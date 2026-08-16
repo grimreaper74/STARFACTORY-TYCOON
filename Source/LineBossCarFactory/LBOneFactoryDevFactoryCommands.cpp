@@ -17,6 +17,7 @@
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryDev, Display, All);
@@ -948,6 +949,44 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryEnvelope(
+    TEXT("LB.OneFactory.Envelope"),
+    TEXT("Usage: LB.OneFactory.Envelope [paddingCm=6000] [heightCm=1800]. "
+         "Encloses the site with walls, a ceiling deck and roof glazing so it "
+         "reads as a factory interior instead of a lit plane."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            const double Padding = Args.Num() > 0
+                ? FCString::Atod(*Args[0]) : 6000.0;
+            const double Height = Args.Num() > 1
+                ? FCString::Atod(*Args[1]) : 1800.0;
+            ALBOneFactoryDevEnvelopeActor* Existing = nullptr;
+            for (TActorIterator<ALBOneFactoryDevEnvelopeActor> It(World);
+                It; ++It)
+            {
+                if (IsValid(*It)) { Existing = *It; break; }
+            }
+            if (!Existing)
+            {
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                Existing = World->SpawnActor<ALBOneFactoryDevEnvelopeActor>(
+                    ALBOneFactoryDevEnvelopeActor::StaticClass(),
+                    FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            }
+            FString Reason;
+            const bool bOk = Existing
+                && Existing->BuildFromRoute(Padding, Height, Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_ENVELOPE ok=%d %s"), bOk ? 1 : 0, *Reason);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryShowWIP(
