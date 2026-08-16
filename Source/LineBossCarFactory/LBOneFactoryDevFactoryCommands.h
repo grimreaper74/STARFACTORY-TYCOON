@@ -157,6 +157,20 @@ public:
     static bool ApplySemanticMaterials(UObject* WorldContextObject,
         FString& OutReason);
 
+    /**
+     * Hides or restores high structure so the management view is not sliced up
+     * by roof beams.
+     *
+     * The map's authored roof sits between a management camera and the floor at
+     * any sensible pitch. Factory-management games cut the roof away for exactly
+     * this reason. Visibility only: nothing is destroyed, the map is untouched,
+     * and passing bShow restores every component this hid.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool SetRoofHidden(UObject* WorldContextObject, bool bHidden,
+        double AboveZCm, FString& OutReason);
+
     /** Body/Weld slice: every unit currently standing in a Body station. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
         meta=(WorldContext="WorldContextObject"))

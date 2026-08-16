@@ -721,6 +721,75 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     return true;
 }
 
+bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
+    const bool bHidden, const double AboveZCm, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NO WORLD");
+        return false;
+    }
+
+    // Remember what was hidden so the toggle is exactly reversible rather than
+    // guessing again on the way back.
+    static TSet<TWeakObjectPtr<UStaticMeshComponent>> Hidden;
+
+    int32 Changed = 0;
+    if (!bHidden)
+    {
+        for (const TWeakObjectPtr<UStaticMeshComponent>& Weak : Hidden)
+        {
+            if (UStaticMeshComponent* Component = Weak.Get())
+            {
+                Component->SetVisibility(true, false);
+                ++Changed;
+            }
+        }
+        Hidden.Reset();
+        OutReason = FString::Printf(TEXT("restored %d component(s)"), Changed);
+        return true;
+    }
+
+    static const FName WipTag(TEXT("LB.OneFactory.WIPPresentation"));
+    static const FName EnvTag(TEXT("LB.OneFactory.DevEnvelope"));
+    static const FName DressTag(TEXT("LB.OneFactory.DevStationDressing"));
+
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        AActor* Actor = *It;
+        if (!IsValid(Actor) || Actor->Tags.Contains(WipTag)
+            || Actor->Tags.Contains(EnvTag) || Actor->Tags.Contains(DressTag))
+        {
+            continue;
+        }
+        for (UActorComponent* Component : Actor->GetComponents())
+        {
+            UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Component);
+            if (!Mesh || !Mesh->GetStaticMesh() || !Mesh->IsVisible())
+            {
+                continue;
+            }
+            // Only structure that sits entirely above the working height, so
+            // machines, floor and markings are never touched.
+            const FBoxSphereBounds Bounds = Mesh->Bounds;
+            const double LowestZ = Bounds.Origin.Z - Bounds.BoxExtent.Z;
+            if (LowestZ < AboveZCm)
+            {
+                continue;
+            }
+            Mesh->SetVisibility(false, false);
+            Hidden.Add(Mesh);
+            ++Changed;
+        }
+    }
+
+    OutReason = FString::Printf(
+        TEXT("hid %d component(s) sitting entirely above %.0f cm"),
+        Changed, AboveZCm);
+    return true;
+}
+
 bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
     UObject* WorldContextObject, FString& OutReason)
 {
@@ -1144,6 +1213,25 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryRoof(
+    TEXT("LB.OneFactory.Roof"),
+    TEXT("Usage: LB.OneFactory.Roof [hidden=1] [aboveCm=900]. Hides or restores "
+         "structure sitting entirely above the working height, so roof beams do "
+         "not slice across the management view."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            const bool bHidden = Args.Num() > 0
+                ? FCString::Atoi(*Args[0]) != 0 : true;
+            const double AboveZ = Args.Num() > 1
+                ? FCString::Atod(*Args[1]) : 900.0;
+            FString Reason;
+            const bool bOk = ULBOneFactoryDevFactory::SetRoofHidden(
+                World, bHidden, AboveZ, Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_ROOF ok=%d %s"), bOk ? 1 : 0, *Reason);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryDressing(
