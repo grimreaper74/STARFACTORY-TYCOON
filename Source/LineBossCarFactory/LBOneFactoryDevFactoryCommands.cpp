@@ -1,6 +1,7 @@
 #include "LBOneFactoryDevFactoryCommands.h"
 
 #include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -22,6 +23,7 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
+#include "LBOneFactoryDevStationDressingActor.h"
 #include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
@@ -620,6 +622,8 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
             return false;
         }
     }
+    // Keep the picked stations in route order: that order is the line direction.
+    TArray<FVector> Picked;
     for (const FLBOneFactoryRuntimeStationStep& Step : Route)
     {
         if (bWIP)
@@ -638,6 +642,7 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
             }
         }
         Bounds += Step.WorldTransform.GetLocation();
+        Picked.Add(Step.WorldTransform.GetLocation());
         ++Counted;
     }
     if (Counted == 0)
@@ -647,17 +652,43 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     }
 
     const FVector Centre = Bounds.GetCenter();
-    const FVector Extent = Bounds.GetExtent();
-    // With the default 90-degree horizontal FOV a span fits at roughly half its
-    // width; the extra factor covers the oblique angle and machine height.
-    const double HalfSpan =
-        FMath::Max3<double>(Extent.X, Extent.Y, 400.0);
-    // A WIP shot wants the cars legible, so sit much closer to them.
+    const FVector Size = Bounds.GetSize();
+
+    // Solve the distance from the camera's field of view against the footprint
+    // diagonal, instead of scaling a guessed multiplier. A long department
+    // framed at an arbitrary angle puts most of its stations outside the frame,
+    // which is exactly why earlier department shots looked like empty floor.
+    constexpr double ManagementFovDegrees = 78.0;
+    const double HalfFov = FMath::DegreesToRadians(ManagementFovDegrees * 0.5);
+    const double Diagonal =
+        FMath::Sqrt(Size.X * Size.X + Size.Y * Size.Y);
     const double Distance = bWIP
-        ? 1600.0
-        : FMath::Max<double>(HalfSpan * 0.80, 1500.0);
+        ? 1500.0
+        : (FMath::Max(Diagonal, 900.0) * 0.5) / FMath::Tan(HalfFov) * 1.16;
+
+    // Route order gives the line's axis directly: first station to last.
+    FVector LineDir(1.0, 0.0, 0.0);
+    if (Picked.Num() >= 2)
+    {
+        const FVector Flat(Picked.Last().X - Picked[0].X,
+                           Picked.Last().Y - Picked[0].Y, 0.0);
+        if (!Flat.IsNearlyZero())
+        {
+            LineDir = Flat.GetSafeNormal();
+        }
+    }
+    // Stand off to one side and slightly down the line, so it reads in
+    // perspective rather than as a flat elevation.
+    const FVector Across(-LineDir.Y, LineDir.X, 0.0);
+    const FVector ViewDir = (Across + LineDir * 0.45).GetSafeNormal();
+
+    // A consistent management pitch, so every department is shot the same way.
+    const double Pitch = FMath::DegreesToRadians(34.0);
     const FVector Eye = Centre
-        + FVector(-Distance * 0.66, -Distance * 0.46, Distance * 0.45);
+        - ViewDir * (Distance * FMath::Cos(Pitch))
+        + FVector(0.0, 0.0, Distance * FMath::Sin(Pitch));
+    // Aim above the floor so machines fill the frame, not concrete.
+    const FVector Target = Centre + FVector(0.0, 0.0, 260.0);
 
     APlayerController* Controller = World->GetFirstPlayerController();
     if (!Controller)
@@ -671,18 +702,22 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     ACameraActor* Camera = World->SpawnActor<ACameraActor>(
         ACameraActor::StaticClass(), Eye,
-        (Centre - Eye).Rotation(), Params);
+        (Target - Eye).Rotation(), Params);
     if (!Camera)
     {
         OutReason = TEXT("COULD NOT SPAWN VIEW CAMERA");
         return false;
     }
+    if (UCameraComponent* Lens = Camera->GetCameraComponent())
+    {
+        Lens->SetFieldOfView(static_cast<float>(ManagementFovDegrees));
+    }
     Camera->Tags.AddUnique(TEXT("LB.OneFactory.DevCamera"));
     Controller->SetViewTargetWithBlend(Camera, 0.0f);
 
     OutReason = FString::Printf(
-        TEXT("framed %d %s station(s); centre=(%.0f,%.0f,%.0f) distance=%.0f"),
-        Counted, *Wanted, Centre.X, Centre.Y, Centre.Z, Distance);
+        TEXT("framed %d %s station(s); footprint %.0fx%.0f; distance=%.0f"),
+        Counted, *Wanted, Size.X, Size.Y, Distance);
     return true;
 }
 
@@ -1109,6 +1144,40 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryDressing(
+    TEXT("LB.OneFactory.Dressing"),
+    TEXT("Dresses every configured station into a working cell: zone pad, "
+         "safety guarding, control cabinet, status beacon, and an overhead beam "
+         "at each quality gate."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            ALBOneFactoryDevStationDressingActor* Existing = nullptr;
+            for (TActorIterator<ALBOneFactoryDevStationDressingActor> It(World);
+                It; ++It)
+            {
+                if (IsValid(*It)) { Existing = *It; break; }
+            }
+            if (!Existing)
+            {
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                Existing =
+                    World->SpawnActor<ALBOneFactoryDevStationDressingActor>(
+                        ALBOneFactoryDevStationDressingActor::StaticClass(),
+                        FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            }
+            FString Reason;
+            const bool bOk = Existing && Existing->BuildFromRoute(Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_DRESSING ok=%d %s"), bOk ? 1 : 0, *Reason);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryHUD(

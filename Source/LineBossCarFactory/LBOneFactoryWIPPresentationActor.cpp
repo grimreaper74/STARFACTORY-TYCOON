@@ -140,6 +140,67 @@ ELBOneFactoryWIPVisual ALBOneFactoryWIPPresentationActor::VisualForStage(
     }
 }
 
+bool ALBOneFactoryWIPPresentationActor::ComputeUnitTransform(
+    const TArray<FLBOneFactoryRuntimeStationStep>& Route,
+    const TMap<FName, FTransform>& StationTransforms,
+    ALBOneFactoryRuntimeCoordinator* Coordinator,
+    const FLBOneFactoryVehicleUnitState& Unit,
+    FTransform& OutTransform) const
+{
+    using namespace LBOneFactoryWIPPresentationPrivate;
+
+    const FTransform* Station = StationTransforms.Find(Unit.CurrentStationId);
+    if (!Station)
+    {
+        return false;
+    }
+    const int32 VisualIndex = static_cast<int32>(VisualForStage(Unit.Stage));
+    if (VisualIndex < 0 || VisualIndex >= VisualCount)
+    {
+        return false;
+    }
+    const FVisualForm& Form = VisualForms[VisualIndex];
+
+    FVector Location = Station->GetLocation();
+    FQuat Rotation = Station->GetRotation();
+
+    FLBOneFactoryRuntimeVehicleStatus Status;
+    FString StatusReason;
+    if (Coordinator
+        && Coordinator->GetVehicleRuntimeStatus(Unit.UnitId, Status,
+            StatusReason)
+        && !Status.bAwaitingQualityResult
+        && Route.IsValidIndex(Status.StationCursor)
+        && Route.IsValidIndex(Status.StationCursor + 1)
+        && Route[Status.StationCursor].StationId == Unit.CurrentStationId)
+    {
+        constexpr float TransferStart = 0.80f;
+        if (Status.NormalizedCycleProgress > TransferStart)
+        {
+            const FVector NextLocation =
+                Route[Status.StationCursor + 1].WorldTransform.GetLocation();
+            const float Alpha = FMath::Clamp(
+                (Status.NormalizedCycleProgress - TransferStart)
+                    / (1.0f - TransferStart), 0.0f, 1.0f);
+            // Ease in and out so the transfer starts and stops smoothly.
+            const float Smooth = Alpha * Alpha * (3.0f - 2.0f * Alpha);
+            Location = FMath::Lerp(Location, NextLocation, Smooth);
+
+            const FVector Travel = NextLocation - Station->GetLocation();
+            if (!Travel.IsNearlyZero())
+            {
+                Rotation =
+                    FRotationMatrix::MakeFromX(Travel.GetSafeNormal()).ToQuat();
+            }
+        }
+    }
+
+    OutTransform.SetRotation(Rotation * Form.LocalRotation.Quaternion());
+    OutTransform.SetScale3D(Form.Scale);
+    OutTransform.SetLocation(Location + FVector(0.0, 0.0, Form.LiftCm));
+    return true;
+}
+
 void ALBOneFactoryWIPPresentationActor::ClearPresentation()
 {
     for (UInstancedStaticMeshComponent* Batch : Batches)
@@ -241,10 +302,10 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
 
     const FLBOneFactoryProductionLedgerState Ledger = Production->CaptureLedger();
 
-    // A hierarchical ISM builds its cluster tree asynchronously. Clearing and
-    // refilling every tick leaves it permanently mid-build and it draws
-    // nothing, so only rebuild when the line has actually changed. Units move
-    // station rarely, so in practice this rebuilds a handful of times a minute.
+    // Membership signature: which unit is drawn in which batch. A unit changes
+    // batch only when it earns a new stage, so this changes rarely. Position
+    // changes every frame and is handled by updating transforms in place - an
+    // ISM that is cleared and refilled every tick never settles.
     uint32 Signature = static_cast<uint32>(Route.Num());
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
@@ -253,12 +314,41 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
             continue;
         }
         Signature = HashCombine(Signature, GetTypeHash(Unit.UnitId));
-        Signature = HashCombine(Signature, GetTypeHash(Unit.CurrentStationId));
         Signature = HashCombine(Signature,
             static_cast<uint32>(Unit.Stage) + 1u);
     }
+
     if (bHasBuiltOnce && Signature == LastSignature)
     {
+        // Same cars in the same families: just move them.
+        for (const FInstanceRef& Ref : InstanceRefs)
+        {
+            if (!Batches.IsValidIndex(Ref.BatchIndex) || !Batches[Ref.BatchIndex])
+            {
+                continue;
+            }
+            const FLBOneFactoryVehicleUnitState* Unit = Ledger.Units.FindByPredicate(
+                [&Ref](const FLBOneFactoryVehicleUnitState& Candidate)
+                { return Candidate.UnitId == Ref.UnitId; });
+            if (!Unit)
+            {
+                continue;
+            }
+            FTransform Moved;
+            if (ComputeUnitTransform(Route, StationTransforms, Coordinator,
+                    *Unit, Moved))
+            {
+                Batches[Ref.BatchIndex]->UpdateInstanceTransform(
+                    Ref.InstanceIndex, Moved, true, false, true);
+            }
+        }
+        for (UInstancedStaticMeshComponent* Batch : Batches)
+        {
+            if (Batch && Batch->GetInstanceCount() > 0)
+            {
+                Batch->MarkRenderStateDirty();
+            }
+        }
         OutReason = FString::Printf(TEXT("%d unit(s) on the line"),
             VisibleUnitCount);
         return true;
@@ -267,16 +357,12 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
     bHasBuiltOnce = true;
 
     ClearPresentation();
+    InstanceRefs.Reset();
 
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
         // A dispatched car has left the building; it is no longer on the line.
         if (Unit.bDispatched)
-        {
-            continue;
-        }
-        const FTransform* Station = StationTransforms.Find(Unit.CurrentStationId);
-        if (!Station)
         {
             continue;
         }
@@ -286,17 +372,22 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         {
             continue;
         }
-        const FVisualForm& Form = VisualForms[VisualIndex];
 
         FTransform Instance;
-        Instance.SetRotation(
-            (Station->GetRotation() * Form.LocalRotation.Quaternion()));
-        Instance.SetScale3D(Form.Scale);
-        Instance.SetLocation(Station->GetLocation()
-            + FVector(0.0, 0.0, Form.LiftCm));
-
-        if (Batches[VisualIndex]->AddInstance(Instance, true) != INDEX_NONE)
+        if (!ComputeUnitTransform(Route, StationTransforms, Coordinator, Unit,
+                Instance))
         {
+            continue;
+        }
+
+        const int32 Added = Batches[VisualIndex]->AddInstance(Instance, true);
+        if (Added != INDEX_NONE)
+        {
+            FInstanceRef Ref;
+            Ref.UnitId = Unit.UnitId;
+            Ref.BatchIndex = VisualIndex;
+            Ref.InstanceIndex = Added;
+            InstanceRefs.Add(Ref);
             ++VisibleUnitCount;
         }
     }

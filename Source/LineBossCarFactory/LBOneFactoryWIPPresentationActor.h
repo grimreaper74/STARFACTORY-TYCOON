@@ -5,9 +5,11 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryWIPPresentationActor.generated.h"
 
+class ALBOneFactoryRuntimeCoordinator;
 class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
+struct FLBOneFactoryRuntimeStationStep;
 
 /**
  * Visual families for work in progress. Each value maps to one HISM batch, so a
@@ -86,6 +88,32 @@ private:
 
     UPROPERTY()
     TArray<TObjectPtr<UMaterialInstanceDynamic>> BatchMaterials;
+
+    /**
+     * Places one unit. While a station cycles the car stands on it; over the
+     * last fifth of the cycle it slides to the next station, so the line reads
+     * as flowing rather than teleporting. A unit held at a quality gate does not
+     * drift: it waits where it is until a result is submitted.
+     */
+    bool ComputeUnitTransform(
+        const TArray<FLBOneFactoryRuntimeStationStep>& Route,
+        const TMap<FName, FTransform>& StationTransforms,
+        ALBOneFactoryRuntimeCoordinator* Coordinator,
+        const FLBOneFactoryVehicleUnitState& Unit,
+        FTransform& OutTransform) const;
+
+    /**
+     * Where each live unit's instance sits, so a car can be moved every frame
+     * without rebuilding the batches. Membership changes rarely; position
+     * changes constantly.
+     */
+    struct FInstanceRef
+    {
+        FName UnitId;
+        int32 BatchIndex = INDEX_NONE;
+        int32 InstanceIndex = INDEX_NONE;
+    };
+    TArray<FInstanceRef> InstanceRefs;
 
     bool bMaterialsResolved = false;
     bool bHasBuiltOnce = false;
