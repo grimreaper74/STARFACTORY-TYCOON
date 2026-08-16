@@ -223,16 +223,11 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         }
     }
 
-    // Ceiling deck above the authored roof beams so the view does not escape to
-    // black, kept thin so the existing structure still reads beneath it.
-    FTransform CeilingTransform;
-    CeilingTransform.SetLocation(FVector(Centre.X, Centre.Y, WallHeightCm));
-    CeilingTransform.SetScale3D(
-        FVector(SizeX / CubeCm, SizeY / CubeCm, 0.8));
-    if (Ceiling->AddInstance(CeilingTransform, true) != INDEX_NONE)
-    {
-        ++PieceCount;
-    }
+    // Deliberately no ceiling deck. The management camera sits well above the
+    // eaves looking down into the hall, so a roof would simply fill the frame
+    // with its own top surface. Walls give the enclosure; the hall stays open
+    // from above, which is how factory-management views read.
+    (void)Ceiling;
 
     OutReason = FString::Printf(
         TEXT("envelope %.0f x %.0f cm, height %.0f, %d piece(s)"),

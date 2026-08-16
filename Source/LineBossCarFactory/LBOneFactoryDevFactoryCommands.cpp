@@ -1,6 +1,10 @@
 #include "LBOneFactoryDevFactoryCommands.h"
 
 #include "Camera/CameraActor.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Components/PointLightComponent.h"
@@ -681,6 +685,161 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     return true;
 }
 
+bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
+    UObject* WorldContextObject, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NO WORLD");
+        return false;
+    }
+
+    UMaterialInterface* Base = Cast<UMaterialInterface>(StaticLoadObject(
+        UMaterialInterface::StaticClass(), nullptr,
+        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")));
+    if (!Base)
+    {
+        OutReason = TEXT("COULD NOT RESOLVE BASE MATERIAL");
+        return false;
+    }
+
+    // Semantic slot name fragment -> colour, roughness, metallic.
+    // Colours are BRAND_IDENTITY_AUTHORITY tokens. Safety Yellow and Signal Red
+    // appear only where the authored slot name asks for a safety colour, so they
+    // stay functional rather than becoming decoration.
+    struct FSemantic
+    {
+        const TCHAR* Fragment;
+        const TCHAR* Hex;
+        float Roughness;
+        float Metallic;
+    };
+    static const FSemantic Semantics[] = {
+        { TEXT("CreamPaint"),      TEXT("F3F1E9"), 0.45f, 0.00f },
+        { TEXT("EmeraldPanel"),    TEXT("1F4B44"), 0.38f, 0.00f },
+        { TEXT("GraphiteTooling"), TEXT("202428"), 0.55f, 0.25f },
+        { TEXT("SafetyYellow"),    TEXT("F2C300"), 0.50f, 0.00f },
+        { TEXT("BlackMotor"),      TEXT("14171A"), 0.45f, 0.30f },
+        { TEXT("BrushedSteel"),    TEXT("70777C"), 0.30f, 0.85f },
+        // Broader fallbacks for the support kit and other native families.
+        { TEXT("Steel"),           TEXT("70777C"), 0.32f, 0.80f },
+        { TEXT("Emerald"),         TEXT("1F4B44"), 0.38f, 0.00f },
+        { TEXT("Green"),           TEXT("1F4B44"), 0.38f, 0.00f },
+        { TEXT("Graphite"),        TEXT("202428"), 0.55f, 0.25f },
+        { TEXT("Charcoal"),        TEXT("202428"), 0.55f, 0.20f },
+        { TEXT("Cream"),           TEXT("F3F1E9"), 0.45f, 0.00f },
+        { TEXT("White"),           TEXT("F3F1E9"), 0.45f, 0.00f },
+        { TEXT("Yellow"),          TEXT("F2C300"), 0.50f, 0.00f },
+        { TEXT("Safety"),          TEXT("F2C300"), 0.50f, 0.00f },
+        { TEXT("Red"),             TEXT("C7352C"), 0.45f, 0.00f },
+        { TEXT("Signal"),          TEXT("C7352C"), 0.45f, 0.00f },
+        { TEXT("Copper"),          TEXT("B46A3A"), 0.30f, 0.85f },
+        { TEXT("Electrode"),       TEXT("B46A3A"), 0.30f, 0.85f },
+        { TEXT("Glass"),           TEXT("BFD4DE"), 0.12f, 0.00f },
+        { TEXT("Rubber"),          TEXT("24272A"), 0.75f, 0.00f },
+        { TEXT("Motor"),           TEXT("14171A"), 0.45f, 0.30f },
+    };
+
+    TMap<FString, UMaterialInstanceDynamic*> Cache;
+    TSet<FString> Unmatched;
+    int32 Bound = 0;
+    int32 Components = 0;
+    int32 AlreadyAuthored = 0;
+
+    // Our own dev actors already carry deliberate materials; leave them alone.
+    static const FName WipTag(TEXT("LB.OneFactory.WIPPresentation"));
+    static const FName EnvTag(TEXT("LB.OneFactory.DevEnvelope"));
+
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        AActor* Actor = *It;
+        if (!IsValid(Actor) || Actor->Tags.Contains(WipTag)
+            || Actor->Tags.Contains(EnvTag))
+        {
+            continue;
+        }
+        for (UActorComponent* Component : Actor->GetComponents())
+        {
+            UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Component);
+            if (!Mesh || !Mesh->GetStaticMesh())
+            {
+                continue;
+            }
+            const TArray<FStaticMaterial>& Slots =
+                Mesh->GetStaticMesh()->GetStaticMaterials();
+            if (Slots.Num() == 0)
+            {
+                continue;
+            }
+            ++Components;
+            for (int32 Index = 0; Index < Slots.Num(); ++Index)
+            {
+                // Only fill genuinely unbound slots. Several native families
+                // (the press trains, the paint line, the oven) already carry
+                // authored materials, and overwriting those would make the
+                // factory worse, not better.
+                if (Slots[Index].MaterialInterface != nullptr)
+                {
+                    ++AlreadyAuthored;
+                    continue;
+                }
+                const FString SlotName = Slots[Index].MaterialSlotName.ToString();
+                const FSemantic* Match = nullptr;
+                for (const FSemantic& Candidate : Semantics)
+                {
+                    if (SlotName.Contains(Candidate.Fragment,
+                            ESearchCase::IgnoreCase))
+                    {
+                        Match = &Candidate;
+                        break;
+                    }
+                }
+                if (!Match)
+                {
+                    Unmatched.Add(SlotName);
+                    continue;
+                }
+                UMaterialInstanceDynamic** Found = Cache.Find(Match->Fragment);
+                UMaterialInstanceDynamic* Material =
+                    Found ? *Found : nullptr;
+                if (!Material)
+                {
+                    Material = UMaterialInstanceDynamic::Create(Base, Actor);
+                    if (!Material)
+                    {
+                        continue;
+                    }
+                    const FLinearColor Colour = FLinearColor::FromSRGBColor(
+                        FColor::FromHex(Match->Hex));
+                    Material->SetVectorParameterValue(TEXT("Color"), Colour);
+                    Material->SetVectorParameterValue(TEXT("BaseColor"), Colour);
+                    // Applied best-effort: BasicShapeMaterial may expose no
+                    // such scalars, in which case these are simply ignored.
+                    Material->SetScalarParameterValue(TEXT("Roughness"),
+                        Match->Roughness);
+                    Material->SetScalarParameterValue(TEXT("Metallic"),
+                        Match->Metallic);
+                    Cache.Add(Match->Fragment, Material);
+                }
+                Mesh->SetMaterial(Index, Material);
+                ++Bound;
+            }
+        }
+    }
+
+    TArray<FString> UnmatchedList = Unmatched.Array();
+    UnmatchedList.Sort();
+    OutReason = FString::Printf(
+        TEXT("bound %d empty slot(s) across %d component(s); left %d authored "
+             "slot(s) alone; %d distinct material(s); unmatched: %s"),
+        Bound, Components, AlreadyAuthored, Cache.Num(),
+        UnmatchedList.Num() == 0
+            ? TEXT("none")
+            : *FString::Join(UnmatchedList, TEXT(", ")));
+    return true;
+}
+
 bool ULBOneFactoryDevFactory::BuildBodyWeldReport(UObject* WorldContextObject,
     FString& OutReport)
 {
@@ -949,6 +1108,21 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryMaterials(
+    TEXT("LB.OneFactory.Materials"),
+    TEXT("Binds a brand material to every authored semantic material slot in "
+         "the world. The import lanes leave these slots unbound, so the whole "
+         "factory otherwise renders in default grey."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            FString Reason;
+            const bool bOk = ULBOneFactoryDevFactory::ApplySemanticMaterials(
+                World, Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_MATERIALS ok=%d %s"), bOk ? 1 : 0, *Reason);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryEnvelope(

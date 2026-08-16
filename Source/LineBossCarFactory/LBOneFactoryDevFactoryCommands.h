@@ -137,6 +137,26 @@ public:
     static bool FrameProductionLine(UObject* WorldContextObject,
         const FString& Department, FString& OutReason);
 
+    /**
+     * Binds a brand material to every semantic material slot in the world.
+     *
+     * The native import lanes set import_materials=False by policy, so meshes
+     * arrive carrying named semantic slots such as M_LB_BS_CreamPaint and
+     * M_LB_BS_EmeraldPanel with nothing bound to them. No material assets exist
+     * for those slots, so the whole factory renders in default grey and good
+     * geometry reads as a featureless blob.
+     *
+     * This walks every static mesh component, reads each slot's authored name
+     * and binds a material instance in the BRAND_IDENTITY_AUTHORITY palette.
+     * Runtime-only: no Content package is created or modified, no mesh is
+     * altered, and no frozen instance count changes. Unmatched slot names are
+     * reported so the table can be extended rather than guessed at.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool ApplySemanticMaterials(UObject* WorldContextObject,
+        FString& OutReason);
+
     /** Body/Weld slice: every unit currently standing in a Body station. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
         meta=(WorldContext="WorldContextObject"))
