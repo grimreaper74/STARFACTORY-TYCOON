@@ -1,5 +1,19 @@
 # Current gameplay status
 
+> **Correction, 2026-08-16.** The table below is a 2026-08-12 snapshot and now
+> understates the project in two places. Weld is recorded as *"Source candidate /
+> planned gameplay ... No production Unreal station loop exists"*; in fact the
+> runtime coordinator implements the full 57-station route with quality gates,
+> rework and save/restore, and the whole `LineBoss` suite is **275/275 green**.
+> The shell is also no longer console-only: `ALBOneFactoryGameMode` installs the
+> production-flow HUD and a player controller, and the commission / order /
+> speed / quality journey has been exercised in a real rendered session. See
+> [the visible running factory](../OneFactory/ONE_FACTORY_VISIBLE_RUNNING_FACTORY_v001.md)
+> and [the unattended session handover](../OneFactory/ONE_FACTORY_UNATTENDED_SESSION_HANDOVER_2026-08-16.md).
+> Per this document's own rule that the strongest evidence wins, treat those as
+> current for weld and the player shell. Everything remains **validation-only**
+> until a packaged journey is proven.
+
 Snapshot: **2026-08-12**. Authoritative implementation is under
 [`Source/LineBossCarFactory`](../../Source/LineBossCarFactory); the status below
 is deliberately narrower than the design roadmap.
