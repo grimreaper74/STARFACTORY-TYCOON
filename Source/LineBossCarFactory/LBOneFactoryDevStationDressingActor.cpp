@@ -719,20 +719,46 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         }
 
         // Conveyor from this station to the next: the line is physically
-        // continuous rather than a row of islands.
+        // continuous rather than a row of islands. Long runs follow the same
+        // Manhattan legs as the painted flow routes - along the line axis,
+        // then across - instead of cutting a diagonal through open floor.
         if (bHasNext)
         {
             const FVector Next = Route[Index + 1].WorldTransform.GetLocation();
-            const double Gap = FVector::Dist2D(At, Next);
             const double SectionCm = Kinds[static_cast<int32>(
                 ELBOneFactoryDressingKind::Conveyor)].LengthCm;
-            const int32 Sections =
-                FMath::FloorToInt(static_cast<float>(Gap / SectionCm));
-            for (int32 Section = 0; Section < Sections; ++Section)
+            auto LayLeg = [&](const FVector& From, const FVector& To)
             {
-                const double Travelled = (Section + 0.5) * SectionCm - Gap * 0.5;
-                Place(ELBOneFactoryDressingKind::Conveyor,
-                    FMath::Lerp(At, Next, 0.5) + Along * Travelled, Facing);
+                const FVector Flat(To.X - From.X, To.Y - From.Y, 0.0);
+                const double Gap = Flat.Size();
+                if (Gap < SectionCm)
+                {
+                    return;
+                }
+                const FVector Dir = Flat.GetSafeNormal();
+                const FQuat LegFacing =
+                    FRotationMatrix::MakeFromX(Dir).ToQuat();
+                const int32 Sections =
+                    FMath::FloorToInt(static_cast<float>(Gap / SectionCm));
+                for (int32 Section = 0; Section < Sections; ++Section)
+                {
+                    const double Travelled =
+                        (Section + 0.5) * SectionCm - Gap * 0.5;
+                    Place(ELBOneFactoryDressingKind::Conveyor,
+                        FMath::Lerp(From, To, 0.5) + Dir * Travelled,
+                        LegFacing);
+                }
+            };
+            if (FMath::Abs(Next.X - At.X) > 600.0
+                && FMath::Abs(Next.Y - At.Y) > 600.0)
+            {
+                const FVector Corner(Next.X, At.Y, At.Z);
+                LayLeg(At, Corner);
+                LayLeg(Corner, Next);
+            }
+            else
+            {
+                LayLeg(At, Next);
             }
         }
 
