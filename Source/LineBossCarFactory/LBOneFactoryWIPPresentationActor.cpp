@@ -203,6 +203,14 @@ bool ALBOneFactoryWIPPresentationActor::ComputeUnitTransform(
         && Coordinator->GetVehicleRuntimeStatus(Unit.UnitId, Status,
             StatusReason)
         && !Status.bAwaitingQualityResult
+        // A unit at a quality gate holds at the gate: no creep toward the
+        // next station during the tail of the inspection cycle, and no
+        // rendering at the next station through a rework hold.
+        && !Status.bAtQualityGate
+        // A completed cycle without a cursor advance is a transfer hold -
+        // the target station is occupied - so the unit waits visibly at its
+        // own station instead of rendering coincident with the occupant.
+        && Status.NormalizedCycleProgress < 1.0f
         && Route.IsValidIndex(Status.StationCursor)
         && Route.IsValidIndex(Status.StationCursor + 1)
         && Route[Status.StationCursor].StationId == Unit.CurrentStationId)
@@ -226,9 +234,41 @@ bool ALBOneFactoryWIPPresentationActor::ComputeUnitTransform(
                     / (1.0f - TransferStart), 0.0f, 1.0f);
             // Ease in and out so the transfer starts and stops smoothly.
             const float Smooth = Alpha * Alpha * (3.0f - 2.0f * Alpha);
-            Location = FMath::Lerp(Location, NextLocation, Smooth);
 
-            const FVector Travel = NextLocation - Station->GetLocation();
+            const bool bCrossDepartment =
+                Route[Status.StationCursor].Department
+                    != NextStep.Department;
+            FVector Travel = NextLocation - Location;
+            if (bCrossDepartment
+                && FMath::Abs(NextLocation.X - Location.X) > 600.0
+                && FMath::Abs(NextLocation.Y - Location.Y) > 600.0)
+            {
+                // Cross-department transfers follow the same Manhattan
+                // corner as the painted routes and the conveyors, instead
+                // of cutting a diagonal through the intervening bays.
+                const FVector Corner(NextLocation.X, Location.Y, Location.Z);
+                const double LegA = FVector::Dist2D(Location, Corner);
+                const double LegB = FVector::Dist2D(Corner, NextLocation);
+                const double Travelled = Smooth * (LegA + LegB);
+                if (Travelled <= LegA && LegA > 1.0)
+                {
+                    const FVector Dir =
+                        (Corner - Location).GetSafeNormal();
+                    Travel = Dir;
+                    Location += Dir * Travelled;
+                }
+                else if (LegB > 1.0)
+                {
+                    const FVector Dir =
+                        (NextLocation - Corner).GetSafeNormal();
+                    Travel = Dir;
+                    Location = Corner + Dir * (Travelled - LegA);
+                }
+            }
+            else
+            {
+                Location = FMath::Lerp(Location, NextLocation, Smooth);
+            }
             if (!Travel.IsNearlyZero())
             {
                 Rotation =

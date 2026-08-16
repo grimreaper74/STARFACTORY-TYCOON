@@ -694,19 +694,29 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             At + Across * (CellHalf * 1.35) - Along * (CellHalf * 0.62),
             FacingOut);
 
-        const int32 PanelsPerSide = FMath::Max(1, FMath::FloorToInt(
-            static_cast<float>(CellHalf * 1.6 / Kinds[
-                static_cast<int32>(ELBOneFactoryDressingKind::Fence)].LengthCm)));
-        for (int32 Side = -1; Side <= 1; Side += 2)
+        // The weld presentation carries its own guard line at +-1570; the
+        // generic fence at +-CellHalf*2.35 lands at +-1222 at the 2000 cm
+        // weld pitch - straight through 34 of the 36 robot bases - and
+        // would remain a redundant inner fence even with the robots pulled
+        // in. Body guards itself, like Press.
+        if (Step.Department != ELBOneFactoryDepartment::Body)
         {
-            for (int32 Panel = 0; Panel < PanelsPerSide; ++Panel)
+            const int32 PanelsPerSide = FMath::Max(1, FMath::FloorToInt(
+                static_cast<float>(CellHalf * 1.6 / Kinds[
+                    static_cast<int32>(
+                        ELBOneFactoryDressingKind::Fence)].LengthCm)));
+            for (int32 Side = -1; Side <= 1; Side += 2)
             {
-                const double Offset = -CellHalf * 0.8
-                    + (Panel + 1) * Kinds[static_cast<int32>(
-                        ELBOneFactoryDressingKind::Fence)].LengthCm;
-                Place(ELBOneFactoryDressingKind::Fence,
-                    At + Across * (CellHalf * 2.35 * Side) + Along * Offset,
-                    Facing);
+                for (int32 Panel = 0; Panel < PanelsPerSide; ++Panel)
+                {
+                    const double Offset = -CellHalf * 0.8
+                        + (Panel + 1) * Kinds[static_cast<int32>(
+                            ELBOneFactoryDressingKind::Fence)].LengthCm;
+                    Place(ELBOneFactoryDressingKind::Fence,
+                        At + Across * (CellHalf * 2.35 * Side)
+                            + Along * Offset,
+                        Facing);
+                }
             }
         }
 
@@ -727,8 +737,22 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             const FVector Next = Route[Index + 1].WorldTransform.GetLocation();
             const double SectionCm = Kinds[static_cast<int32>(
                 ELBOneFactoryDressingKind::Conveyor)].LengthCm;
-            auto LayLeg = [&](const FVector& From, const FVector& To)
+            auto LayLeg = [&](const FVector& RawFrom, const FVector& RawTo)
             {
+                // Keep the sections clear of the station cells at each end:
+                // conveyors starting exactly at a station centre ran through
+                // the weld fixture slabs and any parked body.
+                constexpr double CellClearanceCm = 500.0;
+                const FVector RawFlat(RawTo.X - RawFrom.X,
+                    RawTo.Y - RawFrom.Y, 0.0);
+                if (RawFlat.Size() < SectionCm + 2.0 * CellClearanceCm)
+                {
+                    return;
+                }
+                const FVector Trim =
+                    RawFlat.GetSafeNormal() * CellClearanceCm;
+                const FVector From = RawFrom + Trim;
+                const FVector To = RawTo - Trim;
                 const FVector Flat(To.X - From.X, To.Y - From.Y, 0.0);
                 const double Gap = Flat.Size();
                 if (Gap < SectionCm)
