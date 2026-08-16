@@ -1,0 +1,93 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "LBOneFactoryProductionFlow.h"
+#include "LBOneFactoryWIPPresentationActor.generated.h"
+
+class UHierarchicalInstancedStaticMeshComponent;
+class UMaterialInstanceDynamic;
+class USceneComponent;
+
+/**
+ * Visual families for work in progress. Each value maps to one HISM batch, so a
+ * unit's appearance changes as it earns its next stage.
+ */
+UENUM(BlueprintType)
+enum class ELBOneFactoryWIPVisual : uint8
+{
+    /** Inbound steel coil, before anything has been cut. */
+    Coil,
+    /** Cut blanks and pressed panels waiting in stillage. */
+    PanelStack,
+    /** Bare welded shell: body framing through body inspection. */
+    BodyInWhite,
+    /** Pretreated and e-coated shell, before colour. */
+    PrimedBody,
+    /** Colour coat through paint inspection. */
+    PaintedBody,
+    /** Trimmed and married car through dispatch. */
+    FinishedCar
+};
+
+/**
+ * Presentation-only view of the production ledger.
+ *
+ * The OneFactory production-flow contract states that a WIP presentation actor
+ * "reads the ledger and binds the clean-room VehicleWIPNativeKit_v001 layers.
+ * It owns no genealogy and is never saved." This is that actor.
+ *
+ * It creates no logical WIP, allocates no UnitId, and writes nothing back. It
+ * reads `CaptureLedger()` plus the coordinator's configured route, and draws one
+ * instance per live unit at its current station. If the ledger disagrees with
+ * the route it simply draws less, never more.
+ *
+ * VehicleWIPNativeKit_v001 is prepared offline but not yet imported, so the
+ * batches currently resolve engine primitives. Swapping BatchMeshPath for the
+ * native kit is the only change required once that lane has run: the stage
+ * mapping, transforms and lifecycle stay exactly as they are.
+ */
+UCLASS(BlueprintType)
+class LINEBOSSCARFACTORY_API ALBOneFactoryWIPPresentationActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ALBOneFactoryWIPPresentationActor();
+
+    virtual void Tick(float DeltaSeconds) override;
+
+    /** Rebuilds every instance from the live ledger. Safe to call each frame. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|WIP")
+    bool RefreshFromLedger(FString& OutReason);
+
+    /** Removes every instance without touching any authority. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|WIP")
+    void ClearPresentation();
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|WIP")
+    int32 GetVisibleUnitCount() const { return VisibleUnitCount; }
+
+    /** This actor is a view of WIP; it is never the authority for it. */
+    UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|WIP")
+    static bool OwnsProcessWIP() { return false; }
+
+    static ELBOneFactoryWIPVisual VisualForStage(
+        ELBOneFactoryVehicleStage Stage);
+
+    static FName GetPresentationTag();
+
+private:
+    UPROPERTY()
+    TObjectPtr<USceneComponent> SceneRoot;
+
+    UPROPERTY()
+    TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Batches;
+
+    UPROPERTY()
+    TArray<TObjectPtr<UMaterialInstanceDynamic>> BatchMaterials;
+
+    bool bMaterialsResolved = false;
+    int32 VisibleUnitCount = 0;
+    int32 LastLoggedUnitCount = INDEX_NONE;
+};

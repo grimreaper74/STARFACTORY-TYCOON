@@ -1,13 +1,23 @@
 #include "LBOneFactoryDevFactoryCommands.h"
 
-#include "EngineUtils.h"
+#include "Camera/CameraActor.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/SkyLightComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Engine/DirectionalLight.h"
+#include "Engine/PointLight.h"
 #include "Engine/Engine.h"
+#include "Engine/SkyLight.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "UnrealClient.h"
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryWIPPresentationActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryDev, Display, All);
 
@@ -412,6 +422,260 @@ bool ULBOneFactoryDevFactory::BuildFactoryStatusReport(
     return true;
 }
 
+bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
+    const float Intensity, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NO WORLD");
+        return false;
+    }
+
+    static const FName DevLightTag(TEXT("LB.OneFactory.DevLighting"));
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        if (IsValid(*It) && It->Tags.Contains(DevLightTag))
+        {
+            OutReason = TEXT("DEV LIGHTING ALREADY PRESENT");
+            return true;
+        }
+    }
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    // A steep key light so the long shop floor is lit end to end rather than
+    // only near the origin.
+    ADirectionalLight* Key = World->SpawnActor<ADirectionalLight>(
+        ADirectionalLight::StaticClass(),
+        FVector(0.0f, 0.0f, 20000.0f),
+        FRotator(-48.0f, 35.0f, 0.0f), Params);
+    if (!Key)
+    {
+        OutReason = TEXT("COULD NOT SPAWN DIRECTIONAL LIGHT");
+        return false;
+    }
+    Key->SetMobility(EComponentMobility::Movable);
+    Key->Tags.AddUnique(DevLightTag);
+    if (UDirectionalLightComponent* KeyComponent =
+        Cast<UDirectionalLightComponent>(Key->GetLightComponent()))
+    {
+        KeyComponent->SetIntensity(FMath::Max(0.1f, Intensity));
+        KeyComponent->SetLightColor(FLinearColor(1.0f, 0.98f, 0.94f));
+    }
+
+    // The site is roofed, so a sun alone leaves whole bays black - the press
+    // shop especially. Hang interior fixtures over the stations themselves,
+    // derived from the live route so every occupied bay is actually lit.
+    int32 BayLights = 0;
+    if (ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World))
+    {
+        TArray<FLBOneFactoryRuntimeStationStep> Route;
+        FName TopologyId = NAME_None;
+        FString RouteReason;
+        if (Coordinator->GetConfiguredStationRoute(Route, TopologyId,
+                RouteReason) && Route.Num() > 0)
+        {
+            FBox Bounds(ForceInit);
+            for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+            {
+                Bounds += Step.WorldTransform.GetLocation();
+            }
+            Bounds = Bounds.ExpandBy(FVector(4000.0, 4000.0, 0.0));
+
+            constexpr int32 GridX = 7;
+            constexpr int32 GridY = 7;
+            const FVector Min = Bounds.Min;
+            const FVector Size = Bounds.GetSize();
+            for (int32 X = 0; X < GridX; ++X)
+            {
+                for (int32 Y = 0; Y < GridY; ++Y)
+                {
+                    const FVector Where(
+                        Min.X + Size.X * (X + 0.5) / GridX,
+                        Min.Y + Size.Y * (Y + 0.5) / GridY,
+                        1400.0);
+                    APointLight* Bay = World->SpawnActor<APointLight>(
+                        APointLight::StaticClass(), Where,
+                        FRotator::ZeroRotator, Params);
+                    if (!Bay)
+                    {
+                        continue;
+                    }
+                    Bay->SetMobility(EComponentMobility::Movable);
+                    Bay->Tags.AddUnique(DevLightTag);
+                    if (UPointLightComponent* BayComponent =
+                        Cast<UPointLightComponent>(Bay->GetLightComponent()))
+                    {
+                        BayComponent->SetIntensity(180000.0f);
+                        BayComponent->SetAttenuationRadius(
+                            FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
+                        BayComponent->SetLightColor(
+                            FLinearColor(0.96f, 0.97f, 1.0f));
+                        BayComponent->SetCastShadows(false);
+                    }
+                    ++BayLights;
+                }
+            }
+        }
+    }
+
+    // Ambient fill so machine undersides and the far end of the line read.
+    ASkyLight* Sky = World->SpawnActor<ASkyLight>(ASkyLight::StaticClass(),
+        FVector(0.0f, 0.0f, 8000.0f), FRotator::ZeroRotator, Params);
+    if (Sky)
+    {
+        if (USceneComponent* SkyRoot = Sky->GetRootComponent())
+        {
+            SkyRoot->SetMobility(EComponentMobility::Movable);
+        }
+        Sky->Tags.AddUnique(DevLightTag);
+        if (USkyLightComponent* SkyComponent = Sky->GetLightComponent())
+        {
+            SkyComponent->SetIntensity(1.5f);
+            SkyComponent->SetLightColor(FLinearColor(0.62f, 0.68f, 0.80f));
+            SkyComponent->bLowerHemisphereIsBlack = false;
+            SkyComponent->SourceType = ESkyLightSourceType::SLS_SpecifiedCubemap;
+            SkyComponent->RecaptureSky();
+        }
+    }
+
+    OutReason = FString::Printf(
+        TEXT("directional light (%.1f), %d bay lights and sky fill"),
+        Intensity, BayLights);
+    return true;
+}
+
+bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
+    const FString& Department, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
+    if (!World || !Coordinator)
+    {
+        OutReason = TEXT("NEED A WORLD AND EXACTLY ONE COORDINATOR");
+        return false;
+    }
+
+    TArray<FLBOneFactoryRuntimeStationStep> Route;
+    FName TopologyId = NAME_None;
+    if (!Coordinator->GetConfiguredStationRoute(Route, TopologyId, OutReason))
+    {
+        return false;
+    }
+
+    const FString Wanted = Department.IsEmpty() ? TEXT("All") : Department;
+    const bool bAll = Wanted.Equals(TEXT("All"), ESearchCase::IgnoreCase);
+    const bool bWIP = Wanted.Equals(TEXT("WIP"), ESearchCase::IgnoreCase);
+    const UEnum* DepartmentEnum = StaticEnum<ELBOneFactoryDepartment>();
+
+    FBox Bounds(ForceInit);
+    int32 Counted = 0;
+
+    // "WIP" frames the live units themselves rather than a department, so a
+    // close shot of actual cars on the line is one command away.
+    if (bWIP)
+    {
+        ALBOneFactoryProductionFlowAuthority* Production =
+            FindProductionFlow(World);
+        if (!Production)
+        {
+            OutReason = TEXT("NO PRODUCTION FLOW");
+            return false;
+        }
+        TMap<FName, FTransform> ByStation;
+        for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+        {
+            ByStation.Add(Step.StationId, Step.WorldTransform);
+        }
+        const FLBOneFactoryProductionLedgerState Ledger =
+            Production->CaptureLedger();
+        for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
+        {
+            if (Unit.bDispatched)
+            {
+                continue;
+            }
+            if (const FTransform* At = ByStation.Find(Unit.CurrentStationId))
+            {
+                Bounds += At->GetLocation();
+                ++Counted;
+            }
+        }
+        if (Counted == 0)
+        {
+            OutReason = TEXT("no live units to frame");
+            return false;
+        }
+    }
+    for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+    {
+        if (bWIP)
+        {
+            break;
+        }
+        if (!bAll)
+        {
+            const FString Name = DepartmentEnum
+                ? DepartmentEnum->GetNameStringByValue(
+                    static_cast<int64>(Step.Department))
+                : FString();
+            if (!Name.Equals(Wanted, ESearchCase::IgnoreCase))
+            {
+                continue;
+            }
+        }
+        Bounds += Step.WorldTransform.GetLocation();
+        ++Counted;
+    }
+    if (Counted == 0)
+    {
+        OutReason = FString::Printf(TEXT("no stations matched '%s'"), *Wanted);
+        return false;
+    }
+
+    const FVector Centre = Bounds.GetCenter();
+    const FVector Extent = Bounds.GetExtent();
+    // With the default 90-degree horizontal FOV a span fits at roughly half its
+    // width; the extra factor covers the oblique angle and machine height.
+    const double HalfSpan =
+        FMath::Max3<double>(Extent.X, Extent.Y, 400.0);
+    // A WIP shot wants the cars legible, so sit much closer to them.
+    const double Distance = bWIP
+        ? FMath::Max<double>(HalfSpan * 0.9, 900.0)
+        : FMath::Max<double>(HalfSpan * 1.25, 1800.0);
+    const FVector Eye = Centre
+        + FVector(-Distance * 0.66, -Distance * 0.46, Distance * 0.45);
+
+    APlayerController* Controller = World->GetFirstPlayerController();
+    if (!Controller)
+    {
+        OutReason = TEXT("NO PLAYER CONTROLLER");
+        return false;
+    }
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ACameraActor* Camera = World->SpawnActor<ACameraActor>(
+        ACameraActor::StaticClass(), Eye,
+        (Centre - Eye).Rotation(), Params);
+    if (!Camera)
+    {
+        OutReason = TEXT("COULD NOT SPAWN VIEW CAMERA");
+        return false;
+    }
+    Camera->Tags.AddUnique(TEXT("LB.OneFactory.DevCamera"));
+    Controller->SetViewTargetWithBlend(Camera, 0.0f);
+
+    OutReason = FString::Printf(
+        TEXT("framed %d %s station(s); centre=(%.0f,%.0f,%.0f) distance=%.0f"),
+        Counted, *Wanted, Centre.X, Centre.Y, Centre.Z, Distance);
+    return true;
+}
+
 bool ULBOneFactoryDevFactory::BuildBodyWeldReport(UObject* WorldContextObject,
     FString& OutReport)
 {
@@ -476,6 +740,86 @@ bool ULBOneFactoryDevFactory::BuildBodyWeldReport(UObject* WorldContextObject,
     }
     OutReport = FString::Join(Lines, TEXT("\n"));
     return true;
+}
+
+// ---------------------------------------------------------------------------
+// Timed visual tour.
+// ---------------------------------------------------------------------------
+
+ALBOneFactoryDevTourActor::ALBOneFactoryDevTourActor()
+{
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
+    SetReplicates(false);
+    SetActorEnableCollision(false);
+}
+
+void ALBOneFactoryDevTourActor::BeginTour(const TArray<FString>& InDepartments,
+    const int32 InSettleFrames, const float InSecondsPerStop,
+    const FString& InLabel)
+{
+    Departments = InDepartments;
+    SettleFrames = FMath::Max(1, InSettleFrames);
+    SecondsPerStop = FMath::Max(0.0f, InSecondsPerStop);
+    Label = InLabel;
+    StopIndex = INDEX_NONE;
+    FrameCounter = 0;
+    bAwaitingCapture = false;
+    bFinished = false;
+}
+
+void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (bFinished || Departments.Num() == 0)
+    {
+        return;
+    }
+
+    // Advance the line between stops so successive shots show real movement.
+    if (SecondsPerStop > 0.0f && StopIndex >= 0)
+    {
+        int32 Processed = 0;
+        FString RunReason;
+        ULBOneFactoryDevFactory::AdvanceFactory(this, SecondsPerStop, true,
+            Processed, RunReason);
+    }
+
+    if (FrameCounter > 0)
+    {
+        --FrameCounter;
+        return;
+    }
+
+    if (bAwaitingCapture)
+    {
+        const FString Name = FString::Printf(TEXT("%s_%02d_%s"), *Label,
+            StopIndex + 1, *Departments[StopIndex]);
+        FScreenshotRequest::RequestScreenshot(Name, false, false);
+        UE_LOG(LogLineBossOneFactoryDev, Display,
+            TEXT("LINE_BOSS_DEV_TOUR_SHOT %s"), *Name);
+        bAwaitingCapture = false;
+        FrameCounter = 8;
+        return;
+    }
+
+    ++StopIndex;
+    if (!Departments.IsValidIndex(StopIndex))
+    {
+        bFinished = true;
+        UE_LOG(LogLineBossOneFactoryDev, Display,
+            TEXT("LINE_BOSS_DEV_TOUR_COMPLETE stops=%d"), Departments.Num());
+        return;
+    }
+
+    FString ViewReason;
+    ULBOneFactoryDevFactory::FrameProductionLine(this,
+        Departments[StopIndex], ViewReason);
+    UE_LOG(LogLineBossOneFactoryDev, Display,
+        TEXT("LINE_BOSS_DEV_TOUR_STOP %s :: %s"), *Departments[StopIndex],
+        *ViewReason);
+    bAwaitingCapture = true;
+    FrameCounter = SettleFrames;
 }
 
 // ---------------------------------------------------------------------------
@@ -569,6 +913,108 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryStatus(
             ULBOneFactoryDevFactory::BuildFactoryStatusReport(World, Report);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_STATUS\n%s"), *Report);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryLight(
+    TEXT("LB.OneFactory.Light"),
+    TEXT("Usage: LB.OneFactory.Light [intensity=8]. Spawns runtime-only "
+         "directional and sky lighting sized for the whole site."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            const float Intensity = Args.Num() > 0
+                ? FCString::Atof(*Args[0]) : 8.0f;
+            FString Reason;
+            const bool bOk = ULBOneFactoryDevFactory::EnsureDevLighting(
+                World, Intensity, Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_LIGHT ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
+    TEXT("LB.OneFactory.View"),
+    TEXT("Usage: LB.OneFactory.View [Press|Body|Paint|Assembly|All]. Frames "
+         "the configured route."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            const FString Department = Args.Num() > 0 ? Args[0] : TEXT("All");
+            FString Reason;
+            const bool bOk = ULBOneFactoryDevFactory::FrameProductionLine(
+                World, Department, Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryShowWIP(
+    TEXT("LB.OneFactory.ShowWIP"),
+    TEXT("Spawns the presentation-only WIP view so live units are drawn at "
+         "their current station, changing appearance by stage."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            for (TActorIterator<ALBOneFactoryWIPPresentationActor> It(World);
+                It; ++It)
+            {
+                if (IsValid(*It))
+                {
+                    UE_LOG(LogLineBossOneFactoryDev, Display,
+                        TEXT("LINE_BOSS_DEV_SHOW_WIP already present"));
+                    return;
+                }
+            }
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride =
+                ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            ALBOneFactoryWIPPresentationActor* Wip =
+                World->SpawnActor<ALBOneFactoryWIPPresentationActor>(
+                    ALBOneFactoryWIPPresentationActor::StaticClass(),
+                    FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            FString Reason;
+            const bool bOk = Wip && Wip->RefreshFromLedger(Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_SHOW_WIP ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryTour(
+    TEXT("LB.OneFactory.Tour"),
+    TEXT("Usage: LB.OneFactory.Tour [label=Tour] [settleFrames=30] "
+         "[secondsPerStop=2]. Captures All, Press, Body, Paint and Assembly "
+         "across separate frames."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            const FString Label = Args.Num() > 0 ? Args[0] : TEXT("Tour");
+            const int32 Settle = Args.Num() > 1
+                ? FMath::Max(1, FCString::Atoi(*Args[1])) : 30;
+            const float PerStop = Args.Num() > 2
+                ? FCString::Atof(*Args[2]) : 2.0f;
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride =
+                ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            ALBOneFactoryDevTourActor* Tour =
+                World->SpawnActor<ALBOneFactoryDevTourActor>(
+                    ALBOneFactoryDevTourActor::StaticClass(),
+                    FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            if (!Tour)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Error,
+                    TEXT("LINE_BOSS_DEV_TOUR could not spawn tour actor"));
+                return;
+            }
+            Tour->BeginTour({ TEXT("All"), TEXT("Press"), TEXT("Body"),
+                TEXT("Paint"), TEXT("Assembly") }, Settle, PerStop, Label);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_TOUR started label=%s settle=%d"),
+                *Label, Settle);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryBodyWeld(

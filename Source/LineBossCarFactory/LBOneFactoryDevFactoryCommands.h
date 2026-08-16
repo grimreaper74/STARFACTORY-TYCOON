@@ -1,11 +1,50 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LBOneFactoryDevFactoryCommands.generated.h"
 
 class ALBOneFactoryProductionFlowAuthority;
 class ALBOneFactoryRuntimeCoordinator;
+
+/**
+ * Drives a timed visual tour of the factory.
+ *
+ * Console commands issued through -ExecCmds all execute inside a single
+ * deferred batch, so a camera move and a screenshot in the same batch produce
+ * one image of the last camera. This actor spreads the steps across frames so
+ * each viewpoint is actually rendered, streamed and captured, which makes
+ * visual iteration repeatable.
+ */
+UCLASS()
+class LINEBOSSCARFACTORY_API ALBOneFactoryDevTourActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ALBOneFactoryDevTourActor();
+
+    virtual void Tick(float DeltaSeconds) override;
+
+    /** Departments to visit, in order. */
+    void BeginTour(const TArray<FString>& InDepartments, int32 InSettleFrames,
+        float InSecondsPerStop, const FString& InLabel);
+
+private:
+    UPROPERTY()
+    TArray<FString> Departments;
+
+    UPROPERTY()
+    FString Label;
+
+    int32 SettleFrames = 30;
+    int32 FrameCounter = 0;
+    int32 StopIndex = INDEX_NONE;
+    float SecondsPerStop = 0.0f;
+    bool bAwaitingCapture = false;
+    bool bFinished = false;
+};
 
 /**
  * Developer-only orchestration that drives the shipped OneFactory player
@@ -76,6 +115,27 @@ public:
         meta=(WorldContext="WorldContextObject"))
     static bool BuildFactoryStatusReport(UObject* WorldContextObject,
         FString& OutReport);
+
+    /**
+     * Spawns a movable directional light and sky light sized for the whole
+     * site. The shipped map carries a single RectLight at the origin, so a
+     * player standing at the Management start 280 m away sees almost nothing.
+     * Runtime-only and never saved, so the protected map is untouched.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool EnsureDevLighting(UObject* WorldContextObject, float Intensity,
+        FString& OutReason);
+
+    /**
+     * Frames the configured route, optionally one department only, by pointing
+     * the active view at the station centroid from a distance that fits its
+     * bounds. Department accepts Press, Body, Paint, Assembly or All.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool FrameProductionLine(UObject* WorldContextObject,
+        const FString& Department, FString& OutReason);
 
     /** Body/Weld slice: every unit currently standing in a Body station. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",

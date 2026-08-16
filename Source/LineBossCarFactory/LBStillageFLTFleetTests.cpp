@@ -105,7 +105,7 @@ namespace
         return false;
     }
 
-    bool IsTravelPhase(const ELBCompactStillageFLTPhase Phase)
+    bool IsFleetTestTravelPhase(const ELBCompactStillageFLTPhase Phase)
     {
         return Phase == ELBCompactStillageFLTPhase::TravelToPickup
             || Phase == ELBCompactStillageFLTPhase::TravelToDropoff
@@ -332,7 +332,7 @@ bool FLBStillageFLTTriplexStackingContractTest::RunTest(const FString& Parameter
             MaximumFreeCarriageZCm = FMath::Max(MaximumFreeCarriageZCm,
                 Unit->GetCarriageMover()->GetRelativeLocation().Z);
         }
-        if (IsTravelPhase(Unit->GetPhase())
+        if (IsFleetTestTravelPhase(Unit->GetPhase())
             && Unit->GetCarriageLiftCm() > Unit->GetTransportLiftHeightCm() + 0.05f)
         {
             bObservedRaisedTravel = true;
