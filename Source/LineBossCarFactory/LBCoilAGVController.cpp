@@ -27,7 +27,7 @@ constexpr float InboundRouteCoverageToleranceCm = 75.0f;
 constexpr float InboundRouteSampleSpacingCm = 100.0f;
 constexpr float MinimumRouteLegLengthCm = 25.0f;
 
-bool IsFiniteVector(const FVector& Value)
+bool IsFiniteCoilAGVVector(const FVector& Value)
 {
     return FMath::IsFinite(Value.X) && FMath::IsFinite(Value.Y) && FMath::IsFinite(Value.Z);
 }
@@ -130,7 +130,7 @@ bool IsValidRouteProfileAssignment(const ELBCoilAGVRouteProfile Profile, const i
 
 bool IsValidRouteGeometry(const FVector& Start, const FVector& Turn, const FVector& Dock)
 {
-    if (!IsFiniteVector(Start) || !IsFiniteVector(Turn) || !IsFiniteVector(Dock)
+    if (!IsFiniteCoilAGVVector(Start) || !IsFiniteCoilAGVVector(Turn) || !IsFiniteCoilAGVVector(Dock)
         || FVector::Dist2D(Start, Turn) < MinimumRouteLegLengthCm
         || FVector::Dist2D(Turn, Dock) < MinimumRouteLegLengthCm)
     {
@@ -562,8 +562,8 @@ bool ALBCoilAGVController::ConfigureRouteInternal(const FVector& InStagedPoint,
     const bool bEnforceProtectedEnvelopes, ALBFactoryBuildMachine* InAllowedStartMachine,
     ALBFactoryBuildMachine* InAllowedDockMachine)
 {
-    if (IsMotionPhase(Phase) || !IsFiniteVector(InStagedPoint)
-        || !IsFiniteVector(InTurnPoint) || !IsFiniteVector(InDockPoint)
+    if (IsMotionPhase(Phase) || !IsFiniteCoilAGVVector(InStagedPoint)
+        || !IsFiniteCoilAGVVector(InTurnPoint) || !IsFiniteCoilAGVVector(InDockPoint)
         || FVector::Dist2D(InStagedPoint, InTurnPoint) < MinimumRouteLegLengthCm
         || FVector::Dist2D(InTurnPoint, InDockPoint) < MinimumRouteLegLengthCm)
     {
@@ -1166,7 +1166,7 @@ bool ALBCoilAGVController::RestoreSaveState(const FLBCoilAGVSaveState& InState)
 {
     if (!bBound || (InState.SaveVersion != 1 && InState.SaveVersion != 2 && InState.SaveVersion != 3)
         || InState.Phase == ELBCoilAGVPhase::DockProving || InState.Phase == ELBCoilAGVPhase::RaiseTransferDeck
-        || !IsFiniteVector(InState.VehicleLocation) || !FMath::IsFinite(InState.VehicleYawDegrees)
+        || !IsFiniteCoilAGVVector(InState.VehicleLocation) || !FMath::IsFinite(InState.VehicleYawDegrees)
         || !FMath::IsFinite(InState.LiftHeightCm) || !FMath::IsFinite(InState.PhaseElapsedSeconds)
         || (InState.SaveVersion >= 2 && (!FMath::IsFinite(InState.TravelSpeedCmPerSecond)
             || !FMath::IsFinite(InState.CornerProgress)))
