@@ -86,6 +86,36 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_PaintServiceSet"),
           TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
                "/Services/SM_LB_Paint_ServiceSet_v001"), 344.0 },
+        // The native assembly kit, measured 2026-08-16: floor pivots, true
+        // scale.
+        { TEXT("Dress_AssemblySkillet"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Logistics"
+               "/SM_LB_Assembly_SkilletCarrier_v001"), 520.0 },
+        { TEXT("Dress_AssemblyPartsCart"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Logistics"
+               "/SM_LB_Assembly_SequencedPartsCart_v001"), 180.0 },
+        { TEXT("Dress_AssemblyMarriageGantry"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Robotics"
+               "/SM_LB_Assembly_HeavyMarriageGantry_v001"), 600.0 },
+        { TEXT("Dress_AssemblyLiftPlatform"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Stations"
+               "/SM_LB_Assembly_ErgonomicLiftPlatform_v001"), 550.0 },
+        { TEXT("Dress_AssemblyWheelRack"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Logistics"
+               "/SM_LB_Assembly_WheelTireRack_v001"), 240.0 },
+        { TEXT("Dress_AssemblyEOLArch"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Test"
+               "/SM_LB_Assembly_EOLInspectionArch_v001"), 226.0 },
+        { TEXT("Dress_AssemblyAlignmentBed"),
+          TEXT("/Game/LineBoss/Candidates/AssemblyShop"
+               "/AssemblyLineNativeKit_v001/Test"
+               "/SM_LB_Assembly_WheelAlignmentBed_v001"), 540.0 },
     };
 }
 
@@ -464,14 +494,51 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
 
         case ELBOneFactoryDepartment::Assembly:
         default:
-            // One robot fitting parts, an operator bench opposite, and a parts
-            // rack behind: the readable "station + robot + next part" model.
-            Place(ELBOneFactoryDressingKind::Robot,
-                At + Across * (CellHalf * 0.80), FacingOut, Fit * 0.9);
-            Place(ELBOneFactoryDressingKind::Bench,
-                At - Across * (CellHalf * 0.85), FacingIn, Fit);
-            Place(ELBOneFactoryDressingKind::Rack,
-                At - Across * (CellHalf * 1.7), FacingIn, Fit);
+            // The native assembly kit by stage, keeping the readable
+            // "station + robot + next part" model where no native module
+            // maps.
+            switch (Step.SemanticStage)
+            {
+            case ELBOneFactoryVehicleStage::GeneralAssemblyTrim:
+                // The body rides a skillet carrier; the fitting robot works
+                // one side with the sequenced parts behind the bench side.
+                Place(ELBOneFactoryDressingKind::AssemblySkillet, At, Facing);
+                Place(ELBOneFactoryDressingKind::Robot,
+                    At + Across * (CellHalf * 0.80), FacingOut, Fit * 0.9);
+                Place(ELBOneFactoryDressingKind::Bench,
+                    At - Across * (CellHalf * 0.85), FacingIn, Fit);
+                Place(ELBOneFactoryDressingKind::AssemblyPartsCart,
+                    At - Across * (CellHalf * 1.5), FacingIn);
+                break;
+            case ELBOneFactoryVehicleStage::PowertrainMarriage:
+                Place(ELBOneFactoryDressingKind::AssemblyMarriageGantry, At,
+                    Facing);
+                Place(ELBOneFactoryDressingKind::Bench,
+                    At - Across * (CellHalf * 1.1), FacingIn, Fit);
+                break;
+            case ELBOneFactoryVehicleStage::RollingChassis:
+                Place(ELBOneFactoryDressingKind::AssemblyLiftPlatform, At,
+                    Facing);
+                Place(ELBOneFactoryDressingKind::AssemblyWheelRack,
+                    At + Across * (CellHalf * 0.95), FacingOut);
+                Place(ELBOneFactoryDressingKind::AssemblyWheelRack,
+                    At - Across * (CellHalf * 0.95), FacingIn);
+                break;
+            case ELBOneFactoryVehicleStage::EndOfLineInspection:
+                Place(ELBOneFactoryDressingKind::AssemblyAlignmentBed, At,
+                    Facing);
+                Place(ELBOneFactoryDressingKind::AssemblyEOLArch,
+                    At + Along * 350.0, Facing);
+                break;
+            default:
+                Place(ELBOneFactoryDressingKind::Robot,
+                    At + Across * (CellHalf * 0.80), FacingOut, Fit * 0.9);
+                Place(ELBOneFactoryDressingKind::Bench,
+                    At - Across * (CellHalf * 0.85), FacingIn, Fit);
+                Place(ELBOneFactoryDressingKind::Rack,
+                    At - Across * (CellHalf * 1.7), FacingIn, Fit);
+                break;
+            }
             break;
         }
 

@@ -62,6 +62,20 @@ enum class ELBOneFactoryDressingKind : uint8
     PaintAirExtract,
     /** Native paint kit: service set on the booth's service side. */
     PaintServiceSet,
+    /** Native assembly kit: skillet carrier under each trim body. */
+    AssemblySkillet,
+    /** Native assembly kit: sequenced parts cart at trim stations. */
+    AssemblyPartsCart,
+    /** Native assembly kit: heavy gantry at powertrain marriage. */
+    AssemblyMarriageGantry,
+    /** Native assembly kit: ergonomic lift platform at rolling chassis. */
+    AssemblyLiftPlatform,
+    /** Native assembly kit: wheel and tire rack beside rolling chassis. */
+    AssemblyWheelRack,
+    /** Native assembly kit: end-of-line inspection arch. */
+    AssemblyEOLArch,
+    /** Native assembly kit: wheel alignment bed at end-of-line. */
+    AssemblyAlignmentBed,
     Count
 };
 
