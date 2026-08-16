@@ -5,6 +5,7 @@
 #include "EngineUtils.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryDevFactoryCommands.h"
+#include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
@@ -128,6 +129,15 @@ void ALBOneFactoryPlayerController::CommissionFactory()
         UE_LOG(LogLineBossOneFactoryPlayer, Display,
             TEXT("LINE_BOSS_PLAYER_DRESSING ok=%d %s"), bDressed ? 1 : 0,
             *StepReason);
+    }
+    if (ALBOneFactoryDevRestoredShopActor* Shop =
+        World->SpawnActor<ALBOneFactoryDevRestoredShopActor>(
+            ALBOneFactoryDevRestoredShopActor::StaticClass(),
+            FVector::ZeroVector, FRotator::ZeroRotator, Params))
+    {
+        Shop->BuildFromManifest(StepReason);
+        UE_LOG(LogLineBossOneFactoryPlayer, Display,
+            TEXT("LINE_BOSS_PLAYER_RESTORED_SHOP %s"), *StepReason);
     }
     ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, StepReason);
 

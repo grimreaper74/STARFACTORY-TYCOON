@@ -24,6 +24,7 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
+#include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
 #include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryWIPPresentationActor.h"
@@ -1272,6 +1273,41 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryRoof(
                 World, bHidden, AboveZ, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_ROOF ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryRestoredShop(
+    TEXT("LB.OneFactory.RestoredShop"),
+    TEXT("Rebuilds the complete restored press-shop surroundings - crane, "
+         "guarding, grates, lamps, pipework, logistics - around the press "
+         "datum from the read-only reference manifest."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            ALBOneFactoryDevRestoredShopActor* Existing = nullptr;
+            for (TActorIterator<ALBOneFactoryDevRestoredShopActor> It(World);
+                It; ++It)
+            {
+                if (IsValid(*It)) { Existing = *It; break; }
+            }
+            if (!Existing)
+            {
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                Existing =
+                    World->SpawnActor<ALBOneFactoryDevRestoredShopActor>(
+                        ALBOneFactoryDevRestoredShopActor::StaticClass(),
+                        FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            }
+            FString Reason;
+            const bool bOk = Existing && Existing->BuildFromManifest(Reason);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_RESTORED_SHOP ok=%d %s"),
+                bOk ? 1 : 0, *Reason);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryDressing(
