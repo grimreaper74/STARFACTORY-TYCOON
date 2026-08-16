@@ -61,7 +61,7 @@ private:
     UPROPERTY()
     TObjectPtr<UInstancedStaticMeshComponent> Dado;
 
-    /** Ceiling deck above the roof beams. */
+    /** Floor slab covering the routed footprint where the map has none. */
     UPROPERTY()
     TObjectPtr<UInstancedStaticMeshComponent> Ceiling;
 

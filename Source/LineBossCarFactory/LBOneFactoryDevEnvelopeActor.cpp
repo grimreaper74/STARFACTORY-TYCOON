@@ -116,7 +116,7 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
     const FBatchSetup Setups[] = {
         { Walls, TEXT("6B7078") },
         { Dado, TEXT("3C4650") },
-        { Ceiling, TEXT("4A4F56") },
+        { Ceiling, TEXT("9B9C98") },
         { Clerestory, TEXT("E8F0FA") },
     };
     Materials.Reset();
@@ -227,7 +227,20 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
     // eaves looking down into the hall, so a roof would simply fill the frame
     // with its own top surface. Walls give the enclosure; the hall stays open
     // from above, which is how factory-management views read.
-    (void)Ceiling;
+    //
+    // A floor slab instead. The map's authored floor is smaller than the
+    // configured station route, so stations at the far ends of Press and
+    // Assembly stand over void and render as black holes with machines
+    // apparently floating. This covers the whole routed footprint, sitting just
+    // below the authored floor so it fills the gaps without z-fighting it.
+    FTransform FloorTransform;
+    FloorTransform.SetLocation(FVector(Centre.X, Centre.Y, -6.0));
+    FloorTransform.SetScale3D(
+        FVector(SizeX / CubeCm, SizeY / CubeCm, 0.1));
+    if (Ceiling->AddInstance(FloorTransform, true) != INDEX_NONE)
+    {
+        ++PieceCount;
+    }
 
     OutReason = FString::Printf(
         TEXT("envelope %.0f x %.0f cm, height %.0f, %d piece(s)"),

@@ -5,23 +5,48 @@
 #include "LBOneFactoryDevStationDressingActor.generated.h"
 
 class UInstancedStaticMeshComponent;
-class UMaterialInstanceDynamic;
 class USceneComponent;
 
+/** One mesh family from the Factory Environment Collection. */
+UENUM()
+enum class ELBOneFactoryDressingKind : uint8
+{
+    /** Conveyor sections laid between consecutive stations. */
+    Conveyor,
+    /** Cell guarding. */
+    Fence,
+    /** Six-axis robot; mirrored in pairs at weld positions. */
+    Robot,
+    /** Control cabinet. */
+    Control,
+    /** Heavy machine: the press line. */
+    Press,
+    /** Enclosed process module: paint booths. */
+    Booth,
+    /** Cure oven. */
+    Oven,
+    /** Parts and material racking. */
+    Rack,
+    /** Operator bench for trim work. */
+    Bench,
+    /** Overhead inspection light ramp, placed at quality gates. */
+    LampRamp,
+    Count
+};
+
 /**
- * Turns each configured station from a floor pad into something that reads as a
- * working cell.
+ * Dresses each configured station with real machinery from the Factory
+ * Environment Collection, composed differently per department so the shops read
+ * as different places rather than one repeated cell.
  *
  * The starter presentations are pinned to exact instance counts by contract -
- * the Body/Weld one to 469 - so station geometry cannot simply be added there
- * without a versioned v002 presentation and regenerated tests. This actor adds
- * the dressing alongside instead: a zone pad, safety guarding, a control
- * cabinet and a status beacon per station, all sized from the live route and
- * spawned at runtime.
+ * 469 for Body/Weld - so this cannot be added there without a versioned v002
+ * presentation and regenerated tests. It is added alongside instead, at runtime,
+ * and every mesh keeps its own authored materials.
  *
- * It follows the factory visual standard rather than decorating freely: strong
- * simple silhouettes, no pipe clutter or micro-railings, Safety Yellow used only
- * for guarding, and nothing added that does not correspond to a real station.
+ * Follows the factory visual standard: strong simple silhouettes, no pipe
+ * clutter or micro-railings, and nothing placed that does not correspond to a
+ * real station or its function.
  */
 UCLASS()
 class LINEBOSSCARFACTORY_API ALBOneFactoryDevStationDressingActor : public AActor
@@ -41,29 +66,14 @@ public:
     static FName GetDressingTag();
 
 private:
-    UInstancedStaticMeshComponent* MakeBatch(const TCHAR* Name);
+    void Place(ELBOneFactoryDressingKind Kind, const FVector& Where,
+        const FQuat& Rotation, double UniformScale = 1.0);
 
     UPROPERTY()
     TObjectPtr<USceneComponent> SceneRoot;
 
-    /** Cairnwell Green zone pad marking the cell footprint. */
     UPROPERTY()
-    TObjectPtr<UInstancedStaticMeshComponent> ZonePad;
-
-    /** Safety Yellow posts and rails. Functional colour, per the brand rules. */
-    UPROPERTY()
-    TObjectPtr<UInstancedStaticMeshComponent> Guarding;
-
-    /** Foundry Charcoal control cabinet and overhead beam. */
-    UPROPERTY()
-    TObjectPtr<UInstancedStaticMeshComponent> Equipment;
-
-    /** Status beacon on top of each cabinet. */
-    UPROPERTY()
-    TObjectPtr<UInstancedStaticMeshComponent> Beacon;
-
-    UPROPERTY()
-    TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
+    TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
 
     int32 DressedStations = 0;
     int32 PieceCount = 0;
