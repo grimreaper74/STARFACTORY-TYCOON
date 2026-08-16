@@ -63,6 +63,23 @@ Captures: `Captures/20260816_21_AuditFix*`.
     Exposure bias stays −0.50 per the standard. Captures:
     `Captures/20260816_22_LitPassB_*`.
 
+14. **Outbound and service edges dressed** (fixes 14–16, 20): PR-043
+    marshalling lanes, PR-044 dispatch lorry, PR-040 quarantine pen, PR-039
+    first-off scan cell, PR-041 scrap row and baler, the PR-004 cell robot
+    and tool rack, and the PR-002 coil-scale position — datum-keyed kit
+    placements, packaged in v006.
+15. **PlayableShell_v006 packaged and proven** (fix 21, milestone build): the
+    first attempt omitted `-map` and the map never cooked — the repack with
+    `-map` passed. Packaged journey: 2,804 restored-shop instances, 1,178
+    batches with authored overrides, **0 unresolved from cooked content**;
+    1,335 dressing instances; commission → order → run → tour green.
+    Archive: `E:/LineBossValidationOutput/Builds/PlayableShell_v006`.
+16. **Conveyors follow the painted Manhattan legs** (fix 19): long
+    inter-department runs no longer cut diagonals; suite green.
+17. **Engine basic shapes pinned in the cook list** (fix 10):
+    `/Engine/BasicShapes` is now an explicit always-cook root instead of a
+    side effect of unrelated ConstructorHelpers.
+
 ## Remaining from the fix list (open, in dependency order)
 
 - **East-end dressing** (PR-039 first-off scan, PR-040 quarantine, PR-043

@@ -20,10 +20,14 @@
 > save round trip (`7/57`, cycle 25%) reproduced exactly in the package. The
 > product direction is decided and committed: **one continuous building**, coils
 > to finished car, at the restored press shop's detail standard. All four press
-> trains stand at reference spacing and the complete restored-shop surroundings
-> (overhead crane, runway, guarding, lamps, pipework, logistics) are
-> materialised around them from a read-only manifest — 1,522 instances, zero
-> unresolved. See
+> trains stand on the reference 2200 cm row grid and the complete restored
+> shop — every static-mesh component of every non-train actor, with authored
+> per-slot materials — materialises around them from a read-only manifest:
+> **2,804 instances, zero unresolved, proven from cooked content in the
+> packaged `PlayableShell_v006`**. Trains B–D remain visual-only; making them
+> playable is a separately scheduled versioned press-layout contract change.
+> The six-dimension release audit and its fix execution are recorded in
+> [the press release audit](../OneFactory/PRESS_SHOP_RELEASE_AUDIT_2026-08-16.md). See also
 > [the continuous building decision](../OneFactory/ONE_FACTORY_CONTINUOUS_BUILDING_DECISION_2026-08-16.md)
 > and [the shops release pass](../OneFactory/SHOPS_RELEASE_STANDARD_PASS_2026-08-16.md).
 
