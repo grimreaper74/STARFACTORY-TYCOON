@@ -13,7 +13,14 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
 {
     constexpr int32 ExpectedBatchCount = static_cast<int32>(
         ELBOneFactoryBodyWeldPresentationBatch::BatchCount);
-    constexpr int32 CanonicalInstanceCount = 489;
+    constexpr int32 CanonicalInstanceCount = 597;
+
+    /**
+     * The dress pack rides every robot at a uniform 0.68: the PR004 trio's
+     * 186 cm upper tube, measured in Blender, fits the weld robot's 125 cm
+     * links at exactly that ratio.
+     */
+    constexpr float DressPackScale = 0.68f;
     constexpr float TransformTolerance = 0.01f;
 
     /**
@@ -45,6 +52,9 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("RobotJ6Batch"),
         TEXT("RobotOpenCGunBatch"),
         TEXT("RobotPanelPickToolBatch"),
+        TEXT("RobotDressLowerBatch"),
+        TEXT("RobotDressUpperBatch"),
+        TEXT("RobotDressWristBatch"),
         TEXT("ComponentServicePalletBatch"),
         TEXT("ElectricalCabinetBatch"),
         TEXT("EmptyReturnCartBatch"),
@@ -75,6 +85,9 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.SM_LB_BodyShopRobotNative_J6_v001"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.SM_LB_BodyShopTool_PanelPick8Cup_v001"),
+        TEXT("/Game/LineBoss/Equipment/Robots/Modular6Axis/Candidate_v020/Meshes/SM_LB_PR004_Robot_DressPackLower_v020.SM_LB_PR004_Robot_DressPackLower_v020"),
+        TEXT("/Game/LineBoss/Equipment/Robots/Modular6Axis/Candidate_v020/Meshes/SM_LB_PR004_Robot_DressPackUpper_v020.SM_LB_PR004_Robot_DressPackUpper_v020"),
+        TEXT("/Game/LineBoss/Equipment/Robots/Modular6Axis/Candidate_v020/Meshes/SM_LB_PR004_Robot_DressPackWrist_v020.SM_LB_PR004_Robot_DressPackWrist_v020"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_ComponentServicePallet_v002.SM_LB_BodyShopSupport_ComponentServicePallet_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Controls/SM_LB_BodyShopSupport_ElectricalCabinet_v002.SM_LB_BodyShopSupport_ElectricalCabinet_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_EmptyReturnCart_v002.SM_LB_BodyShopSupport_EmptyReturnCart_v002"),
@@ -239,6 +252,8 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
             JointAngles[JointIndex] = Degrees;
         }
         FTransform CurrentTransform = RobotRoot;
+        FTransform UpperArmTransform = RobotRoot;
+        FTransform WristTransform = RobotRoot;
         for (int32 JointIndex = 0; JointIndex < 6; ++JointIndex)
         {
             FVector PivotLocation = FVector::ZeroVector;
@@ -265,7 +280,45 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
                 CurrentTransform, false,
                 ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
                 true, RobotSide, RobotRole);
+            if (JointIndex == 1)
+            {
+                UpperArmTransform = CurrentTransform;
+            }
+            else if (JointIndex == 4)
+            {
+                WristTransform = CurrentTransform;
+            }
         }
+
+        // v003: the dress pack rides every robot - the PR004 trio at the
+        // measured 0.68 fit (lower on the base stack, upper along the J2
+        // link, wrist at J5).
+        const FTransform DressScale(FQuat::Identity, FVector::ZeroVector,
+            FVector(DressPackScale));
+        AddItem(Items,
+            FName(*MakePresentationId(Station.StationId,
+                *FString::Printf(TEXT("ROBOT_%s_DRESS_LOWER"), SideToken))),
+            Station.StationId, Station.LinePosition,
+            ELBOneFactoryBodyWeldPresentationBatch::RobotDressLower,
+            DressScale * RobotRoot, false,
+            ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
+            true, RobotSide, RobotRole);
+        AddItem(Items,
+            FName(*MakePresentationId(Station.StationId,
+                *FString::Printf(TEXT("ROBOT_%s_DRESS_UPPER"), SideToken))),
+            Station.StationId, Station.LinePosition,
+            ELBOneFactoryBodyWeldPresentationBatch::RobotDressUpper,
+            DressScale * UpperArmTransform, false,
+            ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
+            true, RobotSide, RobotRole);
+        AddItem(Items,
+            FName(*MakePresentationId(Station.StationId,
+                *FString::Printf(TEXT("ROBOT_%s_DRESS_WRIST"), SideToken))),
+            Station.StationId, Station.LinePosition,
+            ELBOneFactoryBodyWeldPresentationBatch::RobotDressWrist,
+            DressScale * WristTransform, false,
+            ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
+            true, RobotSide, RobotRole);
         // v002: every robot carries a visible tool - welding roles the open
         // C-gun, every other role the native eight-cup panel-pick.
         if (RobotRoleUsesCGun(RobotRole))
@@ -470,7 +523,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
         || Batches.Contains(nullptr))
     {
         OutReason = TEXT(
-            "BODY/WELD PRESENTATION COULD NOT RESOLVE ALL 23 NATIVE MESHES, THREE ENGINE BINDINGS AND MATERIAL");
+            "BODY/WELD PRESENTATION COULD NOT RESOLVE ALL 26 NATIVE MESHES, THREE ENGINE BINDINGS AND MATERIAL");
         ClearPresentation();
         return false;
     }
@@ -546,7 +599,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
     bPresentationConfigured = true;
     SetActorHiddenInGame(false);
     OutReason = FString::Printf(TEXT(
-        "NATIVE BODY/WELD PRESENTATION ACTIVE: 26 BATCHES, %d INSTANCES, 18 POSITIONS, 36 LARGE ROBOTS, WIP 0"),
+        "NATIVE BODY/WELD PRESENTATION ACTIVE: 29 BATCHES, %d INSTANCES, 18 POSITIONS, 36 LARGE ROBOTS, WIP 0"),
         CandidateItems.Num());
     return true;
 }
@@ -657,6 +710,10 @@ int32 ALBOneFactoryBodyWeldStarterPresentationActor::
 {
     using B = ELBOneFactoryBodyWeldPresentationBatch;
     if (Batch >= B::RobotBase && Batch <= B::RobotJ6) return 36;
+    if (Batch >= B::RobotDressLower && Batch <= B::RobotDressWrist)
+    {
+        return 36;
+    }
     if (Batch == B::RobotOpenCGun || Batch == B::RobotPanelPickTool)
     {
         int32 CGunCount = 0;
@@ -735,7 +792,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
     if (AssetPaths.Num() != Expected.Num())
     {
         OutReason = TEXT(
-            "BODY/WELD PRESENTATION REQUIRES 26 ORDERED MESH BINDINGS AND ONE MATERIAL");
+            "BODY/WELD PRESENTATION REQUIRES 29 ORDERED MESH BINDINGS AND ONE MATERIAL");
         return false;
     }
     // v002 deliberately unlocks two roots that v001 forbade: the
@@ -763,7 +820,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
         if (AssetPaths[Index].IsNull() || AssetPaths[Index] != Expected[Index])
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION ASSET LIST OR ORDER DRIFTED FROM V002");
+                "BODY/WELD PRESENTATION ASSET LIST OR ORDER DRIFTED FROM V003");
             return false;
         }
         const FString Reference = AssetPaths[Index].ToString();
@@ -776,19 +833,25 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
                 return false;
             }
         }
-        // v002 index windows: 0-7 robot kit, 8 slice tool, 9-20 support
-        // kit, 21 framing fixture, 22 slice fixture, 23-25 engine cubes.
+        // v003 index windows: 0-7 robot kit, 8 slice tool, 9-11 dress trio,
+        // 12-23 support kit, 24 framing fixture, 25 slice fixture, 26-28
+        // engine cubes.
         const bool bRobot = Index < 8;
         const bool bSliceTool = Index == 8;
-        const bool bSupport = Index >= 9 && Index < 21;
-        const bool bFraming = Index == 21;
-        const bool bSliceFixture = Index == 22;
-        const bool bEngine = Index >= 23;
+        const bool bDress = Index >= 9 && Index < 12;
+        const bool bSupport = Index >= 12 && Index < 24;
+        const bool bFraming = Index == 24;
+        const bool bSliceFixture = Index == 25;
+        const bool bEngine = Index >= 26;
+        const FString DressRoot = TEXT(
+            "/Game/LineBoss/Equipment/Robots/Modular6Axis/Candidate_v020/");
         if ((bRobot && !Reference.StartsWith(RobotRoot,
                 ESearchCase::CaseSensitive))
             || ((bSliceTool || bSliceFixture)
                 && !Reference.StartsWith(SliceRoot,
                     ESearchCase::CaseSensitive))
+            || (bDress && !Reference.StartsWith(DressRoot,
+                ESearchCase::CaseSensitive))
             || (bSupport && !Reference.StartsWith(SupportRoot,
                 ESearchCase::CaseSensitive))
             || (bFraming && !Reference.StartsWith(FixtureRoot,
@@ -1039,7 +1102,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
         if (!SameItem(Item, Expected[Index]))
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION INVENTORY OR TRANSFORM DRIFTED FROM V002");
+                "BODY/WELD PRESENTATION INVENTORY OR TRANSFORM DRIFTED FROM V003");
             return false;
         }
         if (Item.bProgrammeFixture)
@@ -1093,12 +1156,12 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
             != GetExpectedInstanceCountForBatch(Layout, Batch))
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION BATCH COUNTS DRIFTED FROM V002");
+                "BODY/WELD PRESENTATION BATCH COUNTS DRIFTED FROM V003");
             return false;
         }
     }
     OutReason = FString::Printf(TEXT(
-        "BODY/WELD PRESENTATION CONTRACT VALID: 26 BATCHES, %d INSTANCES, 18 POSITIONS, 17 ROUTES, 36 LARGE ROBOTS, WIP 0"),
+        "BODY/WELD PRESENTATION CONTRACT VALID: 29 BATCHES, %d INSTANCES, 18 POSITIONS, 17 ROUTES, 36 LARGE ROBOTS, WIP 0"),
         ExpectedCount);
     return true;
 }
@@ -1137,5 +1200,5 @@ const TCHAR* ALBOneFactoryBodyWeldStarterPresentationActor::
 
 FName ALBOneFactoryBodyWeldStarterPresentationActor::GetPresentationTag()
 {
-    return TEXT("LB.OneFactory.BodyWeldStarter.Presentation.v002");
+    return TEXT("LB.OneFactory.BodyWeldStarter.Presentation.v003");
 }

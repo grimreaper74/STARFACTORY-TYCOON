@@ -10,7 +10,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FLBOneFactoryBodyWeldPresentationContractTest,
-    "LineBoss.OneFactory.BodyWeldStarter.Presentation.ExactNativeFourHundredEightyNineInstanceContract",
+    "LineBoss.OneFactory.BodyWeldStarter.Presentation.ExactNativeFiveHundredNinetySevenInstanceContract",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
@@ -27,14 +27,14 @@ bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
     TestTrue(TEXT("Exact Body/Weld presentation contract validates"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
             ValidatePresentationContract(Layout, Items, Reason));
-    TestEqual(TEXT("Canonical presentation has exactly 489 instances"),
-        Items.Num(), 489);
-    TestEqual(TEXT("Canonical count helper remains frozen at 489"),
+    TestEqual(TEXT("Canonical presentation has exactly 597 instances"),
+        Items.Num(), 597);
+    TestEqual(TEXT("Canonical count helper remains frozen at 597"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
-            GetCanonicalVisibleInstanceCount(), 489);
-    TestEqual(TEXT("Presentation has exactly 26 HISM batches"),
+            GetCanonicalVisibleInstanceCount(), 597);
+    TestEqual(TEXT("Presentation has exactly 29 HISM batches"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
-            GetExpectedVisualBatchCount(), 26);
+            GetExpectedVisualBatchCount(), 29);
     TestEqual(TEXT("All 36 large robots have a native base"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
             GetExpectedInstanceCountForBatch(Layout,
@@ -74,20 +74,20 @@ bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
             GetExpectedInstanceCountForBatch(Layout,
                 static_cast<ELBOneFactoryBodyWeldPresentationBatch>(Value));
     }
-    TestEqual(TEXT("Exact per-batch counts sum to 489"),
-        ExpectedTotal, 489);
+    TestEqual(TEXT("Exact per-batch counts sum to 597"),
+        ExpectedTotal, 597);
 
     const TArray<FSoftObjectPath> Assets =
         ALBOneFactoryBodyWeldStarterPresentationActor::
             GetRequiredNativeAssetPaths();
-    TestEqual(TEXT("26 mesh bindings plus one material are exact"),
-        Assets.Num(), 27);
+    TestEqual(TEXT("29 mesh bindings plus one material are exact"),
+        Assets.Num(), 30);
     TestTrue(TEXT("Exact Body/Weld native allowlist validates"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
             ValidateNativePresentationReferences(
                 ALBOneFactoryBodyWeldStarterPresentationActor::
                     GetPresentationClassPath(), Assets, Reason));
-    if (Assets.Num() == 27)
+    if (Assets.Num() == 30)
     {
         for (int32 Index = 0; Index < 8; ++Index)
         {
@@ -98,19 +98,25 @@ bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
         TestEqual(TEXT("The panel-pick tool binds the exact slice asset"),
             Assets[8].ToString(), FString(TEXT(
                 "/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.SM_LB_BodyShopTool_PanelPick8Cup_v001")));
-        for (int32 Index = 9; Index < 21; ++Index)
+        for (int32 Index = 9; Index < 12; ++Index)
+        {
+            TestTrue(TEXT("Dress reference stays in the modular robot kit v020"),
+                Assets[Index].ToString().StartsWith(TEXT(
+                    "/Game/LineBoss/Equipment/Robots/Modular6Axis/Candidate_v020/")));
+        }
+        for (int32 Index = 12; Index < 24; ++Index)
         {
             TestTrue(TEXT("Support reference stays in native support kit v002"),
                 Assets[Index].ToString().StartsWith(TEXT(
                     "/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/")));
         }
         TestEqual(TEXT("The framing fixture binds the exact runtime asset"),
-            Assets[21].ToString(), FString(TEXT(
+            Assets[24].ToString(), FString(TEXT(
                 "/Game/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001/Fixture/SM_LB_BodyWeld_FramingFixture_v001.SM_LB_BodyWeld_FramingFixture_v001")));
         TestEqual(TEXT("The underbody fixture binds the exact slice asset"),
-            Assets[22].ToString(), FString(TEXT(
+            Assets[25].ToString(), FString(TEXT(
                 "/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Fixture/SM_LB_BodyShop_UnderbodyFixture_v001.SM_LB_BodyShop_UnderbodyFixture_v001")));
-        for (int32 Index = 23; Index < 27; ++Index)
+        for (int32 Index = 26; Index < 30; ++Index)
         {
             TestTrue(TEXT("Semantic dependency stays in Engine BasicShapes"),
                 Assets[Index].ToString().StartsWith(
@@ -210,11 +216,11 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
     TestTrue(TEXT("Canonical Body/Weld snapshot configures atomically"),
         Presentation->ConfigureFromLayout(
             Authority->CaptureLayout(), Reason));
-    TestTrue(TEXT("Configured actor exposes all 26 batches"),
+    TestTrue(TEXT("Configured actor exposes all 29 batches"),
         Presentation->IsPresentationConfigured()
-        && Presentation->GetVisualBatchCount() == 26);
-    TestEqual(TEXT("Configured actor exposes all 489 canonical instances"),
-        Presentation->GetVisibleInstanceCount(), 489);
+        && Presentation->GetVisualBatchCount() == 29);
+    TestEqual(TEXT("Configured actor exposes all 597 canonical instances"),
+        Presentation->GetVisibleInstanceCount(), 597);
     TestFalse(TEXT("Configured presentation is unhidden"),
         Presentation->IsHidden());
     {
@@ -242,10 +248,10 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
     TArray<FLBOneFactoryBodyWeldPresentationItem> RightRobot =
         Presentation->GetConfiguredRobotItems(Position2,
             ELBOneFactoryBodyWeldRobotSide::Right);
-    TestEqual(TEXT("Geometry robot has seven links, panel-pick tool and role marker"),
-        LeftRobot.Num(), 9);
-    TestEqual(TEXT("Spot robot has seven links, C-gun and role marker"),
-        RightRobot.Num(), 9);
+    TestEqual(TEXT("Geometry robot has seven links, tool, dress trio and role marker"),
+        LeftRobot.Num(), 12);
+    TestEqual(TEXT("Spot robot has seven links, C-gun, dress trio and role marker"),
+        RightRobot.Num(), 12);
     for (const FLBOneFactoryBodyWeldPresentationItem& Item : LeftRobot)
     {
         TestEqual(TEXT("Left robot items expose geometry-clamp duty"),
@@ -270,10 +276,10 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
         ELBOneFactoryBodyWeldRobotSide::Left);
     RightRobot = Presentation->GetConfiguredRobotItems(Position2,
         ELBOneFactoryBodyWeldRobotSide::Right);
-    TestEqual(TEXT("Spot duty on the left still shows nine items"),
-        LeftRobot.Num(), 9);
-    TestEqual(TEXT("Geometry duty on the right still shows nine items"),
-        RightRobot.Num(), 9);
+    TestEqual(TEXT("Spot duty on the left still shows twelve items"),
+        LeftRobot.Num(), 12);
+    TestEqual(TEXT("Geometry duty on the right still shows twelve items"),
+        RightRobot.Num(), 12);
     auto CountBatch = [](
         const TArray<FLBOneFactoryBodyWeldPresentationItem>& RobotItems,
         const ELBOneFactoryBodyWeldPresentationBatch Batch)
@@ -298,7 +304,7 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
         CountBatch(RightRobot,
             ELBOneFactoryBodyWeldPresentationBatch::RobotOpenCGun), 0);
     TestEqual(TEXT("Role swap preserves exact canonical inventory"),
-        Presentation->GetVisibleInstanceCount(), 489);
+        Presentation->GetVisibleInstanceCount(), 597);
 
     const TArray<FLBOneFactoryBodyWeldPresentationItem> BeforeProgramme =
         Presentation->GetConfiguredItemsForProgramme(

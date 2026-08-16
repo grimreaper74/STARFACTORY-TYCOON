@@ -1,4 +1,14 @@
-# Body/weld starter presentation — contract v002
+# Body/weld starter presentation — contracts v002 and v003
+
+> **v003 (same evening).** The owner commissioned the missing weld models;
+> the dress pack lands as its own versioned change on top of v002. Every
+> robot now carries the PR004 dress trio (lower on the base stack, upper
+> along the J2 link, wrist at J5) at a uniform 0.68 — the measured ratio at
+> which the trio's 186 cm upper tube fits the weld robot's 125 cm links.
+> Counts re-frozen: **29 batches, 597 instances** (489 + 3 × 36), the
+> `Modular6Axis/Candidate_v020` root added to the validator windows and the
+> cook list, tag `...Presentation.v003`, tests regenerated in the same
+> commit (`ExactNativeFiveHundredNinetySevenInstanceContract`).
 
 Supersedes the presentation section of
 `ONE_FACTORY_BODY_WELD_STARTER_INTEGRATION_v001.md` (the layout/data contract

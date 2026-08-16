@@ -12,7 +12,7 @@ class USceneComponent;
 class UStaticMesh;
 
 /**
- * Twenty-three native-authored mesh bindings and three Engine-cube semantic
+ * Twenty-six native-authored mesh bindings and three Engine-cube semantic
  * batches. Every enum value maps to one immutable HISM component.
  */
 UENUM(BlueprintType)
@@ -27,6 +27,9 @@ enum class ELBOneFactoryBodyWeldPresentationBatch : uint8
     RobotJ6,
     RobotOpenCGun,
     RobotPanelPickTool,
+    RobotDressLower,
+    RobotDressUpper,
+    RobotDressWrist,
     ComponentServicePallet,
     ElectricalCabinet,
     EmptyReturnCart,
@@ -186,7 +189,7 @@ public:
         const FLBOneFactoryBodyWeldLayoutState& Layout,
         ELBOneFactoryBodyWeldPresentationBatch Batch);
 
-    /** 26 ordered mesh bindings plus one semantic material binding. */
+    /** 29 ordered mesh bindings plus one semantic material binding. */
     static TArray<FSoftObjectPath> GetRequiredNativeAssetPaths();
 
     /**
