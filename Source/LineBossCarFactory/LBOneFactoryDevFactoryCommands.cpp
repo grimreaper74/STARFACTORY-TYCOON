@@ -20,6 +20,7 @@
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
+#include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
@@ -471,7 +472,8 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
         Cast<UDirectionalLightComponent>(Key->GetLightComponent()))
     {
         KeyComponent->SetIntensity(FMath::Max(0.1f, Intensity));
-        KeyComponent->SetLightColor(FLinearColor(1.0f, 0.98f, 0.94f));
+        // Nominal 5000 K per the factory-wide lighting standard.
+        KeyComponent->SetLightColor(FLinearColor(1.0f, 0.894f, 0.804f));
     }
 
     // The site is roofed, so a sun alone leaves whole bays black - the press
@@ -521,7 +523,7 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                         BayComponent->SetAttenuationRadius(
                             FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
                         BayComponent->SetLightColor(
-                            FLinearColor(0.96f, 0.97f, 1.0f));
+                            FLinearColor(1.0f, 0.894f, 0.804f));
                         BayComponent->SetCastShadows(false);
                     }
                     ++BayLights;
@@ -711,6 +713,14 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     if (UCameraComponent* Lens = Camera->GetCameraComponent())
     {
         Lens->SetFieldOfView(static_cast<float>(ManagementFovDegrees));
+        // Fixed exposure per the factory-wide lighting standard: bias -0.50,
+        // clamped so the view cannot auto-adapt into blown or crushed frames.
+        // "Fixed exposure bias -0.50" per the standard means the bias is
+        // pinned, not that eye adaptation is disabled - clamping the
+        // adaptation range to a constant turned every interior black.
+        Lens->PostProcessSettings.bOverride_AutoExposureBias = true;
+        Lens->PostProcessSettings.AutoExposureBias = -0.5f;
+        Lens->PostProcessBlendWeight = 1.0f;
     }
     Camera->Tags.AddUnique(TEXT("LB.OneFactory.DevCamera"));
     Controller->SetViewTargetWithBlend(Camera, 0.0f);
@@ -1213,6 +1223,36 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryPressBlockout(
+    TEXT("LB.OneFactory.PressBlockout"),
+    TEXT("Usage: LB.OneFactory.PressBlockout [visible=0]. The detailed-press "
+         "recovery design says the 268-primitive blockout batches must no "
+         "longer render once the detailed train stands at the station; this "
+         "hides or restores them, visibility only."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            const bool bVisible = Args.Num() > 0
+                && FCString::Atoi(*Args[0]) != 0;
+            int32 Changed = 0;
+            for (TActorIterator<ALBOneFactoryPressStarterPresentationActor>
+                It(World); It; ++It)
+            {
+                if (IsValid(*It))
+                {
+                    It->SetActorHiddenInGame(!bVisible);
+                    ++Changed;
+                }
+            }
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_PRESS_BLOCKOUT visible=%d actors=%d"),
+                bVisible ? 1 : 0, Changed);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryRoof(

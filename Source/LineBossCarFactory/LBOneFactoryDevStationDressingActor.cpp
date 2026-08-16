@@ -44,6 +44,18 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_Rack"),     TEXT("/Game/Meshes/SM_StorageShelvesBottom01"), 300.0 },
         { TEXT("Dress_Bench"),    TEXT("/Game/Meshes/SM_DeskControl_01"), 111.0 },
         { TEXT("Dress_LampRamp"), TEXT("/Game/Meshes/SM_AssemblyLineLampRamp"), 121.0 },
+        { TEXT("Dress_PressTrain"),
+          TEXT("/Game/LineBoss/PressTrains/RuntimeVisual_v449"
+               "/SM_CA_MW_PressTrain_CompleteRuntimeVisual_v449"), 5770.0 },
+        { TEXT("Dress_Coil"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
+               "/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003"), 181.0 },
+        { TEXT("Dress_CoilStand"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
+               "/Inbound/SM_CA_MW_AdjustableCoilStand_Approved_v005"), 190.0 },
+        { TEXT("Dress_Stillage"),
+          TEXT("/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
+               "/SM_LB_PanelStillage_Runtime_v001"), 190.0 },
     };
 }
 
@@ -216,16 +228,99 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         switch (Step.Department)
         {
         case ELBOneFactoryDepartment::Press:
-            // A heavy press either side of the line, with material racking
-            // behind it.
-            Place(ELBOneFactoryDressingKind::Press,
-                At + Across * (CellHalf * 0.95), FacingOut, Fit);
-            Place(ELBOneFactoryDressingKind::Press,
-                At - Across * (CellHalf * 0.95), FacingIn, Fit);
-            Place(ELBOneFactoryDressingKind::Rack,
-                At + Across * (CellHalf * 1.85) - Along * (CellHalf * 0.5),
-                Facing, Fit);
+        {
+            // The detailed-press recovery design: the complete v449 Train A
+            // visual is anchored once at the committed ConfigurablePressTrain
+            // station transform, with the mesh's pinned local transform -
+            // location [9.25, 2367.5, 0], rotation zero, scale 100 - applied
+            // relative to that datum. Its 57.7 m span covers the working length
+            // of the press line, so the other press positions get material
+            // handling rather than generic machines: coils on stands at the
+            // inbound and storage rows, staged stillages at dispatch, and
+            // nothing that would interpenetrate the train.
+            static const FName PressTrainStation(TEXT("OF_PRESS_TRAIN_001"));
+            static const FName InboundStation(
+                TEXT("OF_PRESS_INBOUND_RECEIVING_001"));
+            static const FName CoilStoreStation(
+                TEXT("OF_PRESS_WRAPPED_COIL_STORE_001"));
+            static const FName DispatchStation(
+                TEXT("OF_PRESS_PANEL_DISPATCH_001"));
+
+            if (Step.StationId == PressTrainStation)
+            {
+                const FTransform Datum = Step.WorldTransform;
+                const FVector TrainAt = Datum.GetLocation()
+                    + Datum.GetRotation().RotateVector(
+                        FVector(9.25, 2367.5, 0.0));
+                // A single 306-section mesh at scale 100 is a one-off, not
+                // an instancing case: give it a plain static mesh component,
+                // which renders unconditionally.
+                if (UStaticMesh* TrainMesh = Cast<UStaticMesh>(
+                    StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
+                        Kinds[static_cast<int32>(
+                            ELBOneFactoryDressingKind::PressTrain)].Path)))
+                {
+                    UStaticMeshComponent* Train =
+                        NewObject<UStaticMeshComponent>(this,
+                            TEXT("Dress_PressTrain_Mesh"));
+                    Train->SetupAttachment(SceneRoot);
+                    Train->SetMobility(EComponentMobility::Movable);
+                    Train->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                    Train->SetCanEverAffectNavigation(false);
+                    Train->SetStaticMesh(TrainMesh);
+                    Train->SetWorldLocationAndRotation(TrainAt,
+                        Datum.GetRotation());
+                    Train->SetWorldScale3D(FVector(100.0));
+                    Train->RegisterComponent();
+                    const FBoxSphereBounds TrainBounds = Train->Bounds;
+                    UE_LOG(LogTemp, Display,
+                        TEXT("LINE_BOSS_DRESS_TRAIN_BOUNDS "
+                             "origin=(%.0f,%.0f,%.0f) extent=(%.0f,%.0f,%.0f) "
+                             "scale=(%.1f,%.1f,%.1f)"),
+                        TrainBounds.Origin.X, TrainBounds.Origin.Y,
+                        TrainBounds.Origin.Z, TrainBounds.BoxExtent.X,
+                        TrainBounds.BoxExtent.Y, TrainBounds.BoxExtent.Z,
+                        Train->GetComponentScale().X,
+                        Train->GetComponentScale().Y,
+                        Train->GetComponentScale().Z);
+                    ++PieceCount;
+                }
+                UE_LOG(LogTemp, Display,
+                    TEXT("LINE_BOSS_DRESS_TRAIN datum=(%.0f,%.0f,%.0f) "
+                         "yaw=%.1f placed=(%.0f,%.0f,%.0f) span~=(1360x5770x940)"),
+                    Datum.GetLocation().X, Datum.GetLocation().Y,
+                    Datum.GetLocation().Z, Datum.Rotator().Yaw,
+                    TrainAt.X, TrainAt.Y, TrainAt.Z);
+            }
+            else if (Step.StationId == InboundStation
+                || Step.StationId == CoilStoreStation)
+            {
+                // A row of stored coils across the station, each on its stand.
+                const int32 Coils =
+                    Step.StationId == CoilStoreStation ? 3 : 2;
+                for (int32 CoilIndex = 0; CoilIndex < Coils; ++CoilIndex)
+                {
+                    const double Offset =
+                        (CoilIndex - (Coils - 1) * 0.5) * 260.0;
+                    const FVector CoilAt = At + Across * Offset;
+                    Place(ELBOneFactoryDressingKind::CoilStand, CoilAt,
+                        Facing);
+                    Place(ELBOneFactoryDressingKind::Coil,
+                        CoilAt + FVector(0.0, 0.0, 20.0), Facing);
+                }
+            }
+            else if (Step.StationId == DispatchStation)
+            {
+                // Staged stillages waiting for the FLT run to weld intake.
+                Place(ELBOneFactoryDressingKind::Stillage,
+                    At + Across * 150.0 + FVector(0.0, 0.0, 58.0), Facing);
+                Place(ELBOneFactoryDressingKind::Stillage,
+                    At - Across * 150.0 + FVector(0.0, 0.0, 58.0), Facing);
+            }
+            // Blank prep, buffer and inspection sit inside the train's span:
+            // no extra machine geometry, or it would interpenetrate the train.
             break;
+        }
 
         case ELBOneFactoryDepartment::Body:
             // Mirrored six-axis pairs, which is how a real body shop works.
@@ -261,7 +356,19 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             break;
         }
 
-        // Common to every station: a control cabinet and side guarding.
+        // Common to every station except Press: a control cabinet and side
+        // guarding. The detailed press train carries its own guards, controls
+        // and utilities, so generic dressing would interpenetrate it.
+        if (Step.Department == ELBOneFactoryDepartment::Press)
+        {
+            if (Step.bQualityGate)
+            {
+                Place(ELBOneFactoryDressingKind::LampRamp, At, Facing,
+                    FMath::Min(Fit, 1.0));
+            }
+            ++DressedStations;
+            continue;
+        }
         Place(ELBOneFactoryDressingKind::Control,
             At + Across * (CellHalf * 1.35) - Along * (CellHalf * 0.62),
             FacingOut);
@@ -309,6 +416,68 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         }
 
         ++DressedStations;
+    }
+
+    // Department aprons: the map's authored floor is near-black in the press
+    // and logistics areas, so machines there read against a void whatever the
+    // light level. A light concrete pad under each department's footprint
+    // gives the standard's readable ground. The engine cube's default material
+    // is deliberately kept - a plain light grey slab.
+    {
+        UStaticMesh* Cube = Cast<UStaticMesh>(StaticLoadObject(
+            UStaticMesh::StaticClass(), nullptr,
+            TEXT("/Engine/BasicShapes/Cube.Cube")));
+        UInstancedStaticMeshComponent* ApronBatch =
+            NewObject<UInstancedStaticMeshComponent>(this,
+                TEXT("Dress_Apron"));
+        if (Cube && ApronBatch)
+        {
+            ApronBatch->SetupAttachment(SceneRoot);
+            ApronBatch->SetMobility(EComponentMobility::Movable);
+            ApronBatch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            ApronBatch->SetCanEverAffectNavigation(false);
+            ApronBatch->SetStaticMesh(Cube);
+            ApronBatch->RegisterComponent();
+
+            FBox DeptBounds[4];
+            for (FBox& Box : DeptBounds) { Box.Init(); }
+            for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+            {
+                DeptBounds[static_cast<int32>(Step.Department)] +=
+                    Step.WorldTransform.GetLocation();
+            }
+            for (const FBox& Box : DeptBounds)
+            {
+                if (!Box.IsValid)
+                {
+                    continue;
+                }
+                const FBox Padded = Box.ExpandBy(FVector(1400.0, 1400.0, 0.0));
+                const FVector Centre = Padded.GetCenter();
+                const FVector Size = Padded.GetSize();
+                FTransform Apron;
+                Apron.SetLocation(FVector(Centre.X, Centre.Y, -14.0));
+                Apron.SetScale3D(FVector(Size.X / 100.0, Size.Y / 100.0, 0.3));
+                if (ApronBatch->AddInstance(Apron, true) != INDEX_NONE)
+                {
+                    ++PieceCount;
+                }
+            }
+        }
+    }
+
+    for (int32 Index = 0; Index < KindCount; ++Index)
+    {
+        if (Batches[Index] && Batches[Index]->GetInstanceCount() > 0)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("LINE_BOSS_DRESS_KIND %s count=%d mesh=%s"),
+                Kinds[Index].Component,
+                Batches[Index]->GetInstanceCount(),
+                Batches[Index]->GetStaticMesh()
+                    ? *Batches[Index]->GetStaticMesh()->GetName()
+                    : TEXT("NONE"));
+        }
     }
 
     OutReason = FString::Printf(

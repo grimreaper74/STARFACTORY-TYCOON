@@ -31,6 +31,19 @@ enum class ELBOneFactoryDressingKind : uint8
     Bench,
     /** Overhead inspection light ramp, placed at quality gates. */
     LampRamp,
+    /**
+     * The complete v449 press-train visual: the whole accepted v438 Train A as
+     * one 306-section mesh, pinned to the Train A datum. Placed once, anchored
+     * at the committed ConfigurablePressTrain station transform, exactly as the
+     * detailed-press recovery design specifies for the first fidelity release.
+     */
+    PressTrain,
+    /** Wrapped steel coil, for the inbound receiving and coil store rows. */
+    Coil,
+    /** Adjustable coil stand beneath each stored coil. */
+    CoilStand,
+    /** Panel stillage, staged at the press dispatch position. */
+    Stillage,
     Count
 };
 

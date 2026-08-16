@@ -6,6 +6,7 @@
 #include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryDevFactoryCommands.h"
 #include "LBOneFactoryDevStationDressingActor.h"
+#include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryWIPPresentationActor.h"
@@ -118,9 +119,25 @@ void ALBOneFactoryPlayerController::CommissionFactory()
             ALBOneFactoryDevStationDressingActor::StaticClass(),
             FVector::ZeroVector, FRotator::ZeroRotator, Params))
     {
-        Dressing->BuildFromRoute(StepReason);
+        const bool bDressed = Dressing->BuildFromRoute(StepReason);
+        UE_LOG(LogLineBossOneFactoryPlayer, Display,
+            TEXT("LINE_BOSS_PLAYER_DRESSING ok=%d %s"), bDressed ? 1 : 0,
+            *StepReason);
     }
     ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, StepReason);
+
+    // The detailed press train now stands at the ConfigurablePressTrain
+    // station, so the 268-primitive press blockout must no longer render,
+    // exactly as the detailed-press recovery design specifies. Visibility
+    // only; LB.OneFactory.PressBlockout 1 restores it.
+    for (TActorIterator<ALBOneFactoryPressStarterPresentationActor> It(World);
+        It; ++It)
+    {
+        if (IsValid(*It))
+        {
+            It->SetActorHiddenInGame(true);
+        }
+    }
     ULBOneFactoryDevFactory::EnsureDevLighting(this, 9.0f, StepReason);
 
     bool bHasWip = false;
