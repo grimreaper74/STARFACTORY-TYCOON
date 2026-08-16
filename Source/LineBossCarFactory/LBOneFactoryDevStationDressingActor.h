@@ -48,6 +48,20 @@ enum class ELBOneFactoryDressingKind : uint8
     Lorry,
     /** S01 destacker, standing at blank preparation. */
     Destacker,
+    /** Native paint kit: pretreatment wash tunnel, on the line. */
+    PaintWashTunnel,
+    /** Native paint kit: flash-off tunnel, standing in for the ED tunnel. */
+    PaintEDTunnel,
+    /** Native paint kit: the drive-through spray booth at colour coat. */
+    PaintSprayBooth,
+    /** Native paint kit: curing oven tunnel at the cure stage. */
+    PaintCureOven,
+    /** Native paint kit: quality light tunnel at paint inspection. */
+    PaintQualityTunnel,
+    /** Native paint kit: air extraction module beside the spray booth. */
+    PaintAirExtract,
+    /** Native paint kit: service set on the booth's service side. */
+    PaintServiceSet,
     Count
 };
 

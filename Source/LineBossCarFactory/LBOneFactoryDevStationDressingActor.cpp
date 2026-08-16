@@ -64,6 +64,28 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_Destacker"),
           TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v012"
                "/PressTrains/SM_CA_MW_S01_Destack_Approved_v006"), 400.0 },
+        // The native paint kit, measured 2026-08-16: floor pivots, true scale.
+        { TEXT("Dress_PaintWashTunnel"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Process/SM_LB_Paint_PretreatmentWashTunnel_v001"), 852.0 },
+        { TEXT("Dress_PaintEDTunnel"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Process/SM_LB_Paint_FlashOffTunnel_v001"), 702.0 },
+        { TEXT("Dress_PaintSprayBooth"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/SprayBoothRuntime_v002"
+               "/SM_LB_PaintSprayBooth_Runtime_v002"), 1200.0 },
+        { TEXT("Dress_PaintCureOven"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Process/SM_LB_Paint_CuringOvenTunnel_v001"), 902.0 },
+        { TEXT("Dress_PaintQualityTunnel"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Quality/SM_LB_Paint_QualityLightTunnel_v001"), 602.0 },
+        { TEXT("Dress_PaintAirExtract"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Services/SM_LB_Paint_AirExtractionModule_v001"), 340.0 },
+        { TEXT("Dress_PaintServiceSet"),
+          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
+               "/Services/SM_LB_Paint_ServiceSet_v001"), 344.0 },
     };
 }
 
@@ -401,17 +423,59 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             break;
 
         case ELBOneFactoryDepartment::Paint:
-            // Enclosed booth modules either side, and an oven at the cure end.
-            Place(ELBOneFactoryDressingKind::Booth,
-                At + Across * (CellHalf * 0.95), FacingOut, Fit);
-            Place(ELBOneFactoryDressingKind::Booth,
-                At - Across * (CellHalf * 0.95), FacingIn, Fit);
-            if (Step.SemanticStage == ELBOneFactoryVehicleStage::Cure)
+        {
+            // The native paint kit, on the line: each process stage is a
+            // drive-through module straddling its station, the way the
+            // approved mockup draws the ED coat card, so bodies pass through
+            // real tunnels instead of between pack-box stand-ins. Each module
+            // is scaled to at most 92% of its cell so neighbouring tunnels
+            // never interpenetrate; never scaled above authored size.
+            auto TunnelScale = [&](const ELBOneFactoryDressingKind Kind)
             {
-                Place(ELBOneFactoryDressingKind::Oven,
-                    At + Across * (CellHalf * 2.1), FacingOut, Fit * 0.9);
+                const double Length =
+                    Kinds[static_cast<int32>(Kind)].LengthCm;
+                return FMath::Min(1.0, (CellHalf * 2.0 * 0.92) / Length);
+            };
+            switch (Step.SemanticStage)
+            {
+            case ELBOneFactoryVehicleStage::Pretreatment:
+                Place(ELBOneFactoryDressingKind::PaintWashTunnel, At, Facing,
+                    TunnelScale(ELBOneFactoryDressingKind::PaintWashTunnel));
+                break;
+            case ELBOneFactoryVehicleStage::EDCoat:
+                Place(ELBOneFactoryDressingKind::PaintEDTunnel, At, Facing,
+                    TunnelScale(ELBOneFactoryDressingKind::PaintEDTunnel));
+                break;
+            case ELBOneFactoryVehicleStage::ColourCoat:
+                Place(ELBOneFactoryDressingKind::PaintSprayBooth, At, Facing,
+                    TunnelScale(ELBOneFactoryDressingKind::PaintSprayBooth));
+                // The booth's services stand on its service side.
+                Place(ELBOneFactoryDressingKind::PaintAirExtract,
+                    At + Across * (CellHalf * 1.15), FacingOut, 1.0);
+                Place(ELBOneFactoryDressingKind::PaintServiceSet,
+                    At + Across * (CellHalf * 1.15) + Along * 400.0,
+                    FacingOut, 1.0);
+                break;
+            case ELBOneFactoryVehicleStage::Cure:
+                Place(ELBOneFactoryDressingKind::PaintCureOven, At, Facing,
+                    TunnelScale(ELBOneFactoryDressingKind::PaintCureOven));
+                break;
+            case ELBOneFactoryVehicleStage::PaintQualityInspection:
+                Place(ELBOneFactoryDressingKind::PaintQualityTunnel, At,
+                    Facing, TunnelScale(
+                        ELBOneFactoryDressingKind::PaintQualityTunnel));
+                break;
+            default:
+                // A stage without a native module keeps the enclosed booth
+                // stand-ins rather than an empty station.
+                Place(ELBOneFactoryDressingKind::Booth,
+                    At + Across * (CellHalf * 0.95), FacingOut, Fit);
+                Place(ELBOneFactoryDressingKind::Booth,
+                    At - Across * (CellHalf * 0.95), FacingIn, Fit);
+                break;
             }
             break;
+        }
 
         case ELBOneFactoryDepartment::Assembly:
         default:
