@@ -1,6 +1,7 @@
 #include "LBOneFactoryDevRestoredShopActor.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Dom/JsonObject.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
@@ -117,6 +118,14 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
         }
     }
     Batches.Reset();
+    for (UPointLightComponent* Old : FixtureLights)
+    {
+        if (Old)
+        {
+            Old->DestroyComponent();
+        }
+    }
+    FixtureLights.Reset();
     PlacedCount = 0;
 
     // Instances batch per (mesh, override-material signature): the reference
@@ -227,6 +236,25 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
         if (Batch->AddInstance(Instance, true) != INDEX_NONE)
         {
             ++PlacedCount;
+        }
+
+        // The reference authors its light fixtures as SM_Lamp01 meshes; a
+        // real point light under each one turns them from dark props into
+        // the shop's actual lighting.
+        if (MeshPath.EndsWith(TEXT("SM_Lamp01")))
+        {
+            UPointLightComponent* Fixture =
+                NewObject<UPointLightComponent>(this);
+            Fixture->SetupAttachment(SceneRoot);
+            Fixture->SetMobility(EComponentMobility::Movable);
+            Fixture->SetIntensity(15000.0f);
+            Fixture->SetAttenuationRadius(2200.0f);
+            Fixture->SetLightColor(FLinearColor(1.0f, 0.894f, 0.804f));
+            Fixture->SetCastShadows(false);
+            Fixture->SetWorldLocation(Instance.GetLocation()
+                + FVector(0.0, 0.0, -60.0));
+            Fixture->RegisterComponent();
+            FixtureLights.Add(Fixture);
         }
     }
 

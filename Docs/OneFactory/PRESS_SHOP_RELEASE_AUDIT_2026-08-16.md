@@ -52,10 +52,19 @@ dependency-ordered fix list. This note tracks execution.
 
 Captures: `Captures/20260816_21_AuditFix*`.
 
+13. **Lit pass landed** (second tranche follow-on): the skylight was set to
+    `SLS_SpecifiedCubemap` with no cubemap — contributing nothing — and now
+    captures the scene; the single 7×7 route-union lamp grid became
+    per-department grids (~one lamp per 18 m bay, 68 000 intensity); the
+    reference's 28 authored `SM_Lamp01` fixtures each carry a real point
+    light. Floor-band luminance at the `Press@0p16~10` camera: 18.2 → 37.4
+    /255 (audit target 40; the shortfall is the intentionally dark deck band
+    and charcoal machine faces), dark fraction 68.4% → 39.2%, aerial 87.6.
+    Exposure bias stays −0.50 per the standard. Captures:
+    `Captures/20260816_22_LitPassB_*`.
+
 ## Remaining from the fix list (open, in dependency order)
 
-- **Lit pass at the fixed exposure standard** (skylight cubemap, per-bay lamp
-  grids, lamp-fixture lights, emissive clerestory) — the largest visual item.
 - **East-end dressing** (PR-039 first-off scan, PR-040 quarantine, PR-043
   marshalling lanes, PR-044 FLT dispatch), **PR-041 scrap/baler bay**,
   **PR-004 cell robot**, **PR-002 coil scale**, head-cluster reskin.

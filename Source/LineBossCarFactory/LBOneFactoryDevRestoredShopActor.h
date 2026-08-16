@@ -47,5 +47,9 @@ private:
     UPROPERTY()
     TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
 
+    /** Point lights standing in for the reference's authored lamp fixtures. */
+    UPROPERTY()
+    TArray<TObjectPtr<class UPointLightComponent>> FixtureLights;
+
     int32 PlacedCount = 0;
 };

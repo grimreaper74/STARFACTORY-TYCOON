@@ -489,17 +489,32 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
         if (Coordinator->GetConfiguredStationRoute(Route, TopologyId,
                 RouteReason) && Route.Num() > 0)
         {
-            FBox Bounds(ForceInit);
+            // One lamp grid per department, sized to that department's own
+            // footprint. A single grid over the union of the whole route
+            // spread most of its lamps over empty mid-hall floor and left
+            // the press bay's corners black at floor level.
+            FBox DeptBounds[4];
+            for (FBox& Box : DeptBounds) { Box.Init(); }
             for (const FLBOneFactoryRuntimeStationStep& Step : Route)
             {
-                Bounds += Step.WorldTransform.GetLocation();
+                DeptBounds[static_cast<int32>(Step.Department)] +=
+                    Step.WorldTransform.GetLocation();
             }
-            Bounds = Bounds.ExpandBy(FVector(4000.0, 4000.0, 0.0));
-
-            constexpr int32 GridX = 7;
-            constexpr int32 GridY = 7;
+            for (const FBox& RawBox : DeptBounds)
+            {
+            if (!RawBox.IsValid)
+            {
+                continue;
+            }
+            const FBox Bounds =
+                RawBox.ExpandBy(FVector(4000.0, 4000.0, 0.0));
             const FVector Min = Bounds.Min;
             const FVector Size = Bounds.GetSize();
+            // Roughly one lamp per 18 m bay in each axis.
+            const int32 GridX = FMath::Clamp(
+                FMath::CeilToInt32(Size.X / 1800.0), 2, 12);
+            const int32 GridY = FMath::Clamp(
+                FMath::CeilToInt32(Size.Y / 1800.0), 2, 12);
             for (int32 X = 0; X < GridX; ++X)
             {
                 for (int32 Y = 0; Y < GridY; ++Y)
@@ -520,7 +535,7 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                     if (UPointLightComponent* BayComponent =
                         Cast<UPointLightComponent>(Bay->GetLightComponent()))
                     {
-                        BayComponent->SetIntensity(42000.0f);
+                        BayComponent->SetIntensity(68000.0f);
                         BayComponent->SetAttenuationRadius(
                             FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
                         BayComponent->SetLightColor(
@@ -529,6 +544,7 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                     }
                     ++BayLights;
                 }
+            }
             }
         }
     }
@@ -548,7 +564,10 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
             SkyComponent->SetIntensity(1.5f);
             SkyComponent->SetLightColor(FLinearColor(0.62f, 0.68f, 0.80f));
             SkyComponent->bLowerHemisphereIsBlack = false;
-            SkyComponent->SourceType = ESkyLightSourceType::SLS_SpecifiedCubemap;
+            // SLS_SpecifiedCubemap with no cubemap assigned contributes
+            // nothing - the ambient fill was dead. Capture the scene
+            // instead.
+            SkyComponent->SourceType = ESkyLightSourceType::SLS_CapturedScene;
             SkyComponent->RecaptureSky();
         }
     }
