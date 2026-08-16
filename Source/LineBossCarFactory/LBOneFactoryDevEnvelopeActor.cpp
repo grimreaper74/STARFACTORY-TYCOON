@@ -5,6 +5,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "LBOneFactoryDevFactoryCommands.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -259,6 +260,15 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         Deck->SetActorScale3D(FVector(SizeX / CubeCm, SizeY / CubeCm, 0.2));
         RoofDeck = Deck;
         ++PieceCount;
+
+        // A rebuild must not resurrect the roof over a management camera:
+        // re-apply the world's current roof state to the fresh deck.
+        if (ULBOneFactoryDevFactory::IsRoofHidden(this))
+        {
+            FString RoofReason;
+            ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0,
+                RoofReason);
+        }
     }
 
     // A floor slab as well. The map's authored floor is smaller than the

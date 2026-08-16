@@ -69,6 +69,14 @@ private:
     void ApplyTimeScale(float TimeScale);
     bool ResolveOldestHold(FName& OutUnitId, FString& OutReason) const;
 
+    /**
+     * Brings the site presentation up around a commissioned or restored
+     * line: envelope, dressing, restored shop, roof state, dev lighting and
+     * the WIP view. Idempotent - every step finds existing actors before
+     * spawning and every builder rebuilds its own content.
+     */
+    void EnsureSitePresentation();
+
     /** Last speed used, so pause can restore what the player had chosen. */
     float LastRunningTimeScale = 1.0f;
     int32 QualityEvidenceCounter = 0;

@@ -171,6 +171,9 @@ public:
     static bool SetRoofHidden(UObject* WorldContextObject, bool bHidden,
         double AboveZCm, FString& OutReason);
 
+    /** Whether this world's roof is currently hidden by SetRoofHidden. */
+    static bool IsRoofHidden(UObject* WorldContextObject);
+
     /** Body/Weld slice: every unit currently standing in a Body station. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
         meta=(WorldContext="WorldContextObject"))

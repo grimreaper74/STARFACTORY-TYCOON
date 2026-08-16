@@ -732,6 +732,17 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     SetRoofHidden(WorldContextObject, Eye.Z > RoofHideAboveZCm,
         RoofHideAboveZCm, RoofReason);
 
+    // One dev camera per world: every framing used to leak a live camera
+    // actor.
+    static const FName DevCameraTag(TEXT("LB.OneFactory.DevCamera"));
+    for (TActorIterator<ACameraActor> It(World); It; ++It)
+    {
+        if (IsValid(*It) && It->Tags.Contains(DevCameraTag))
+        {
+            It->Destroy();
+        }
+    }
+
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -764,6 +775,24 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     return true;
 }
 
+namespace LBOneFactoryRoofPrivate
+{
+    struct FRoofState
+    {
+        TSet<TWeakObjectPtr<UStaticMeshComponent>> Hidden;
+        bool bHidden = false;
+    };
+    static TMap<TWeakObjectPtr<UWorld>, FRoofState> GStatePerWorld;
+}
+
+bool ULBOneFactoryDevFactory::IsRoofHidden(UObject* WorldContextObject)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    const LBOneFactoryRoofPrivate::FRoofState* State =
+        World ? LBOneFactoryRoofPrivate::GStatePerWorld.Find(World) : nullptr;
+    return State && State->bHidden;
+}
+
 bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
     const bool bHidden, const double AboveZCm, FString& OutReason)
 {
@@ -774,14 +803,25 @@ bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
         return false;
     }
 
-    // Remember what was hidden so the toggle is exactly reversible rather than
-    // guessing again on the way back.
-    static TSet<TWeakObjectPtr<UStaticMeshComponent>> Hidden;
+    // Remember what was hidden so the toggle is exactly reversible rather
+    // than guessing again on the way back. State is per world: PIE, editor
+    // and reloaded worlds must never restore or mutate each other's roofs.
+    for (auto It = LBOneFactoryRoofPrivate::GStatePerWorld.CreateIterator();
+        It; ++It)
+    {
+        if (!It->Key.IsValid())
+        {
+            It.RemoveCurrent();
+        }
+    }
+    LBOneFactoryRoofPrivate::FRoofState& State =
+        LBOneFactoryRoofPrivate::GStatePerWorld.FindOrAdd(World);
+    State.bHidden = bHidden;
 
     int32 Changed = 0;
     if (!bHidden)
     {
-        for (const TWeakObjectPtr<UStaticMeshComponent>& Weak : Hidden)
+        for (const TWeakObjectPtr<UStaticMeshComponent>& Weak : State.Hidden)
         {
             if (UStaticMeshComponent* Component = Weak.Get())
             {
@@ -789,7 +829,7 @@ bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
                 ++Changed;
             }
         }
-        Hidden.Reset();
+        State.Hidden.Reset();
         OutReason = FString::Printf(TEXT("restored %d component(s)"), Changed);
         return true;
     }
@@ -827,7 +867,7 @@ bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
                 continue;
             }
             Mesh->SetVisibility(false, false);
-            Hidden.Add(Mesh);
+            State.Hidden.Add(Mesh);
             ++Changed;
         }
     }
@@ -1093,15 +1133,6 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
         return;
     }
 
-    // Advance the line between stops so successive shots show real movement.
-    if (SecondsPerStop > 0.0f && StopIndex >= 0)
-    {
-        int32 Processed = 0;
-        FString RunReason;
-        ULBOneFactoryDevFactory::AdvanceFactory(this, SecondsPerStop, true,
-            Processed, RunReason);
-    }
-
     if (FrameCounter > 0)
     {
         --FrameCounter;
@@ -1129,7 +1160,21 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
         bFinished = true;
         UE_LOG(LogLineBossOneFactoryDev, Display,
             TEXT("LINE_BOSS_DEV_TOUR_COMPLETE stops=%d"), Departments.Num());
+        // The tour is one-shot; a finished tour actor lingering in the world
+        // would re-run on the next BeginTour call against stale state.
+        Destroy();
         return;
+    }
+
+    // Advance the line exactly once per stop, so successive shots show real
+    // movement at the promised simulated seconds per stop (the old per-tick
+    // advance ran ~39x faster than the console usage stated).
+    if (SecondsPerStop > 0.0f && StopIndex > 0)
+    {
+        int32 Processed = 0;
+        FString RunReason;
+        ULBOneFactoryDevFactory::AdvanceFactory(this, SecondsPerStop, true,
+            Processed, RunReason);
     }
 
     FString ViewReason;
@@ -1436,9 +1481,10 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryMaterials(
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryEnvelope(
     TEXT("LB.OneFactory.Envelope"),
-    TEXT("Usage: LB.OneFactory.Envelope [paddingCm=6000] [heightCm=1800]. "
+    TEXT("Usage: LB.OneFactory.Envelope [paddingCm=6000] [heightCm=2200]. "
          "Encloses the site with walls, a ceiling deck and roof glazing so it "
-         "reads as a factory interior instead of a lit plane."),
+         "reads as a factory interior instead of a lit plane. 2200 cm eaves "
+         "clear the restored shop's truss top chords (~2000 cm)."),
     FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
         [](const TArray<FString>& Args, UWorld* World)
         {
@@ -1449,7 +1495,7 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryEnvelope(
             const double Padding = Args.Num() > 0
                 ? FCString::Atod(*Args[0]) : 6000.0;
             const double Height = Args.Num() > 1
-                ? FCString::Atod(*Args[1]) : 1800.0;
+                ? FCString::Atod(*Args[1]) : 2200.0;
             ALBOneFactoryDevEnvelopeActor* Existing = nullptr;
             for (TActorIterator<ALBOneFactoryDevEnvelopeActor> It(World);
                 It; ++It)

@@ -236,6 +236,16 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
     DressedStations = 0;
     PieceCount = 0;
 
+    // Rebuilds must not NewObject over the previous build's live components.
+    for (UActorComponent* Piece : DynamicPieces)
+    {
+        if (Piece)
+        {
+            Piece->DestroyComponent();
+        }
+    }
+    DynamicPieces.Reset();
+
     for (int32 Index = 0; Index < Route.Num(); ++Index)
     {
         const FLBOneFactoryRuntimeStationStep& Step = Route[Index];
@@ -312,12 +322,13 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 const FVector TrainAt = Datum.GetLocation()
                     + Datum.GetRotation().RotateVector(
                         FVector(9.25, 2367.5, 0.0));
-                // The pinned v449 visual renders all four trains. The
-                // reference map's own v049 aggregates were tried in their
-                // place and read near-black under the Moorcross lighting
-                // standard - the restored map only reads because of its own
-                // authored lights - so the recovery doc's v449 pin stands and
-                // the aggregates are filtered out of the manifest.
+                // The pinned v449 mesh is one complete train row, placed four
+                // times at the reference row pitch. The reference map's own
+                // v049 aggregates were tried in its place and read near-black
+                // under the Moorcross lighting standard - the restored map
+                // only reads because of its own authored lights - so the
+                // recovery doc's v449 pin stands and the aggregates are
+                // filtered out of the manifest.
                 if (UStaticMesh* TrainMesh = Cast<UStaticMesh>(
                     StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
                         Kinds[static_cast<int32>(
@@ -325,14 +336,18 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 {
                     for (int32 TrainIndex = 0; TrainIndex < 4; ++TrainIndex)
                     {
+                        // 2200 cm row pitch: the reference grid every
+                        // row-keyed manifest asset is authored on (identity
+                        // plates at ref Y 0/2200/4400/6600; v356 pitch
+                        // receipts record centre_pitch_cm 2200.0). The
+                        // earlier 2251 had no provenance and pushed rows
+                        // B-D off the grid by 51/102/153 cm.
                         const FVector SiblingOffset =
                             Datum.GetRotation().RotateVector(
-                                FVector(-2251.0 * TrainIndex, 0.0, 0.0));
+                                FVector(-2200.0 * TrainIndex, 0.0, 0.0));
                         UStaticMeshComponent* Train =
-                            NewObject<UStaticMeshComponent>(this,
-                                *FString::Printf(
-                                    TEXT("Dress_PressTrain_Mesh_%d"),
-                                    TrainIndex));
+                            NewObject<UStaticMeshComponent>(this);
+                        DynamicPieces.Add(Train);
                         Train->SetupAttachment(SceneRoot);
                         Train->SetMobility(EComponentMobility::Movable);
                         Train->SetCollisionEnabled(
@@ -387,10 +402,40 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             }
             else
             {
+                static const FName BlankBufferStation(
+                    TEXT("OF_PRESS_PREPARED_BLANK_BUFFER_001"));
+                static const FName PanelInspectionStation(
+                    TEXT("OF_PRESS_PANEL_INSPECTION_001"));
+                if (Step.StationId == BlankBufferStation)
+                {
+                    // Staged blanks waiting for the trains: stillages and a
+                    // rack row, so the buffer's 8-second WIP dwell happens
+                    // beside machinery instead of on bare floor.
+                    Place(ELBOneFactoryDressingKind::Stillage,
+                        At + Across * 220.0 + FVector(0.0, 0.0, 58.0),
+                        Facing);
+                    Place(ELBOneFactoryDressingKind::Stillage,
+                        At - Across * 220.0 + FVector(0.0, 0.0, 58.0),
+                        Facing);
+                    Place(ELBOneFactoryDressingKind::Rack,
+                        At - Along * 320.0, FacingIn, Fit);
+                    Place(ELBOneFactoryDressingKind::Rack,
+                        At + Along * 320.0, FacingIn, Fit);
+                }
+                else if (Step.StationId == PanelInspectionStation)
+                {
+                    // Panel inspection: operator bench and the overhead
+                    // light ramp, keyed by station id - the press
+                    // bQualityGate flag is never true, so keying the ramp
+                    // off it left this station bare.
+                    Place(ELBOneFactoryDressingKind::Bench,
+                        At - Across * 260.0, FacingIn, Fit);
+                    Place(ELBOneFactoryDressingKind::LampRamp, At, Facing,
+                        FMath::Min(Fit, 1.0));
+                }
                 // Blank preparation gets the approved S01 destacker if the
-                // station stands clear of the train's measured footprint
-                // (x within +-680, y within +-2885 of the anchored datum);
-                // buffer and inspection inside the span stay clear.
+                // station stands clear of every train row's measured
+                // footprint; stations inside a span stay clear.
                 static const FName BlankPrepStation(
                     TEXT("OF_PRESS_BLANK_PREP_001"));
                 if (Step.StationId == BlankPrepStation)
@@ -407,13 +452,29 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                     bool bClearOfTrain = true;
                     if (Train)
                     {
+                        // Test in the datum's local frame - the station is
+                        // player-movable and rotatable - and against all four
+                        // train rows at the reference 2200 pitch, not just
+                        // row A.
+                        const FQuat TrainRot =
+                            Train->WorldTransform.GetRotation();
                         const FVector TrainCentre =
                             Train->WorldTransform.GetLocation()
-                            + Train->WorldTransform.GetRotation().RotateVector(
+                            + TrainRot.RotateVector(
                                 FVector(9.25, 2367.5, 0.0));
-                        const FVector Delta = At - TrainCentre;
-                        bClearOfTrain = FMath::Abs(Delta.X) > 900.0
-                            || FMath::Abs(Delta.Y) > 3100.0;
+                        const FVector LocalDelta =
+                            TrainRot.UnrotateVector(At - TrainCentre);
+                        for (int32 Row = 0; Row < 4; ++Row)
+                        {
+                            const double RowDeltaX =
+                                LocalDelta.X + 2200.0 * Row;
+                            if (FMath::Abs(RowDeltaX) <= 900.0
+                                && FMath::Abs(LocalDelta.Y) <= 3100.0)
+                            {
+                                bClearOfTrain = false;
+                                break;
+                            }
+                        }
                     }
                     if (bClearOfTrain)
                     {
@@ -614,10 +675,10 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             UStaticMesh::StaticClass(), nullptr,
             TEXT("/Engine/BasicShapes/Cube.Cube")));
         UInstancedStaticMeshComponent* ApronBatch =
-            NewObject<UInstancedStaticMeshComponent>(this,
-                TEXT("Dress_Apron"));
+            NewObject<UInstancedStaticMeshComponent>(this);
         if (Cube && ApronBatch)
         {
+            DynamicPieces.Add(ApronBatch);
             ApronBatch->SetupAttachment(SceneRoot);
             ApronBatch->SetMobility(EComponentMobility::Movable);
             ApronBatch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -665,10 +726,10 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 TEXT("/Engine/BasicShapes/BasicShapeMaterial")
                 TEXT(".BasicShapeMaterial")));
         UInstancedStaticMeshComponent* RouteBatch =
-            NewObject<UInstancedStaticMeshComponent>(this,
-                TEXT("Dress_FlowRoute"));
+            NewObject<UInstancedStaticMeshComponent>(this);
         if (Cube && Base && RouteBatch)
         {
+            DynamicPieces.Add(RouteBatch);
             RouteBatch->SetupAttachment(SceneRoot);
             RouteBatch->SetMobility(EComponentMobility::Movable);
             RouteBatch->SetCollisionEnabled(ECollisionEnabled::NoCollision);

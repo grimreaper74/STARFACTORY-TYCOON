@@ -186,6 +186,17 @@ bool ALBOneFactoryWIPPresentationActor::ComputeUnitTransform(
     FVector Location = Station->GetLocation();
     FQuat Rotation = Station->GetRotation();
 
+    // At the press train the station transform sits inside the machine body:
+    // the v449 train spans +-678 cm across the datum, so a unit standing at
+    // the raw station location renders inside the press for most of its
+    // cycle. Stand it on the outfeed side instead, clear of the footprint,
+    // and let the transfer start from there.
+    static const FName PressTrainStation(TEXT("OF_PRESS_TRAIN_001"));
+    if (Unit.CurrentStationId == PressTrainStation)
+    {
+        Location += Rotation.RotateVector(FVector(0.0, 900.0, 0.0));
+    }
+
     FLBOneFactoryRuntimeVehicleStatus Status;
     FString StatusReason;
     if (Coordinator
@@ -199,8 +210,17 @@ bool ALBOneFactoryWIPPresentationActor::ComputeUnitTransform(
         constexpr float TransferStart = 0.80f;
         if (Status.NormalizedCycleProgress > TransferStart)
         {
-            const FVector NextLocation =
-                Route[Status.StationCursor + 1].WorldTransform.GetLocation();
+            const FLBOneFactoryRuntimeStationStep& NextStep =
+                Route[Status.StationCursor + 1];
+            FVector NextLocation = NextStep.WorldTransform.GetLocation();
+            // Transfers into the press train aim at the same outfeed-side
+            // point, so the inbound visual never passes through the train
+            // body.
+            if (NextStep.StationId == PressTrainStation)
+            {
+                NextLocation += NextStep.WorldTransform.GetRotation()
+                    .RotateVector(FVector(0.0, 900.0, 0.0));
+            }
             const float Alpha = FMath::Clamp(
                 (Status.NormalizedCycleProgress - TransferStart)
                     / (1.0f - TransferStart), 0.0f, 1.0f);

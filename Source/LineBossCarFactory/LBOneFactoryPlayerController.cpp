@@ -96,52 +96,103 @@ void ALBOneFactoryPlayerController::CommissionFactory()
     }
 
     FString Reason;
-    if (!ULBOneFactoryDevFactory::BuildAndCommissionWholeFactory(this, Reason))
+    const bool bBuilt =
+        ULBOneFactoryDevFactory::BuildAndCommissionWholeFactory(this, Reason);
+    if (!bBuilt)
     {
         UE_LOG(LogLineBossOneFactoryPlayer, Warning,
-            TEXT("LINE_BOSS_PLAYER_COMMISSION failed: %s"), *Reason);
+            TEXT("LINE_BOSS_PLAYER_COMMISSION did not build: %s"), *Reason);
+        // A restored or console-built factory reports "already built" here;
+        // the site presentation must still come up for it, or a loaded game
+        // strands the player over a bare lit plane.
+        if (!ULBOneFactoryDevFactory::FindCoordinator(World))
+        {
+            return;
+        }
+    }
+    else
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Display,
+            TEXT("LINE_BOSS_PLAYER_COMMISSION %s"), *Reason);
+    }
+    EnsureSitePresentation();
+}
+
+void ALBOneFactoryPlayerController::EnsureSitePresentation()
+{
+    UWorld* World = GetWorld();
+    if (!World)
+    {
         return;
     }
-    UE_LOG(LogLineBossOneFactoryPlayer, Display,
-        TEXT("LINE_BOSS_PLAYER_COMMISSION %s"), *Reason);
 
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
     // Bring the site up with the factory: enclosure, machinery, lighting and
-    // the work-in-progress view. Without these the commissioned factory is
-    // technically running but unreadable.
+    // the work-in-progress view. Every step finds an existing actor before
+    // spawning, and every builder rebuilds its own content, so running this
+    // after a save-load, a console build or a repeated B press converges on
+    // exactly one of everything.
     FString StepReason;
-    if (ALBOneFactoryDevEnvelopeActor* Envelope =
-        World->SpawnActor<ALBOneFactoryDevEnvelopeActor>(
+    ALBOneFactoryDevEnvelopeActor* Envelope = nullptr;
+    for (TActorIterator<ALBOneFactoryDevEnvelopeActor> It(World); It; ++It)
+    {
+        if (IsValid(*It)) { Envelope = *It; break; }
+    }
+    if (!Envelope)
+    {
+        Envelope = World->SpawnActor<ALBOneFactoryDevEnvelopeActor>(
             ALBOneFactoryDevEnvelopeActor::StaticClass(),
-            FVector::ZeroVector, FRotator::ZeroRotator, Params))
+            FVector::ZeroVector, FRotator::ZeroRotator, Params);
+    }
+    if (Envelope)
     {
         // 2200 cm eaves: the restored shop's wide-span trusses hang at
         // 1740 cm with their top chords near 2000, so a 1400 wall left the
         // whole roof zone floating against void.
         Envelope->BuildFromRoute(6000.0, 2200.0, StepReason);
     }
-    if (ALBOneFactoryDevStationDressingActor* Dressing =
-        World->SpawnActor<ALBOneFactoryDevStationDressingActor>(
+
+    ALBOneFactoryDevStationDressingActor* Dressing = nullptr;
+    for (TActorIterator<ALBOneFactoryDevStationDressingActor> It(World); It;
+        ++It)
+    {
+        if (IsValid(*It)) { Dressing = *It; break; }
+    }
+    if (!Dressing)
+    {
+        Dressing = World->SpawnActor<ALBOneFactoryDevStationDressingActor>(
             ALBOneFactoryDevStationDressingActor::StaticClass(),
-            FVector::ZeroVector, FRotator::ZeroRotator, Params))
+            FVector::ZeroVector, FRotator::ZeroRotator, Params);
+    }
+    if (Dressing)
     {
         const bool bDressed = Dressing->BuildFromRoute(StepReason);
         UE_LOG(LogLineBossOneFactoryPlayer, Display,
             TEXT("LINE_BOSS_PLAYER_DRESSING ok=%d %s"), bDressed ? 1 : 0,
             *StepReason);
     }
-    if (ALBOneFactoryDevRestoredShopActor* Shop =
-        World->SpawnActor<ALBOneFactoryDevRestoredShopActor>(
+
+    ALBOneFactoryDevRestoredShopActor* Shop = nullptr;
+    for (TActorIterator<ALBOneFactoryDevRestoredShopActor> It(World); It; ++It)
+    {
+        if (IsValid(*It)) { Shop = *It; break; }
+    }
+    if (!Shop)
+    {
+        Shop = World->SpawnActor<ALBOneFactoryDevRestoredShopActor>(
             ALBOneFactoryDevRestoredShopActor::StaticClass(),
-            FVector::ZeroVector, FRotator::ZeroRotator, Params))
+            FVector::ZeroVector, FRotator::ZeroRotator, Params);
+    }
+    if (Shop)
     {
         Shop->BuildFromManifest(StepReason);
         UE_LOG(LogLineBossOneFactoryPlayer, Display,
             TEXT("LINE_BOSS_PLAYER_RESTORED_SHOP %s"), *StepReason);
     }
+
     ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, StepReason);
 
     // The detailed press train now stands at the ConfigurablePressTrain
@@ -341,4 +392,12 @@ void ALBOneFactoryPlayerController::LoadFactory()
     const bool bOk = Saves->LoadOneFactory(Reason);
     UE_LOG(LogLineBossOneFactoryPlayer, Display,
         TEXT("LINE_BOSS_PLAYER_LOAD ok=%d %s"), bOk ? 1 : 0, *Reason);
+    if (bOk)
+    {
+        // A restored factory arrives without its site presentation - the
+        // save carries production state, not scenery - so bring the
+        // envelope, dressing, restored shop, lighting and WIP view up
+        // around the loaded line.
+        EnsureSitePresentation();
+    }
 }

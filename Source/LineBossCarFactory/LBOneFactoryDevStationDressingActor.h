@@ -123,6 +123,14 @@ private:
     UPROPERTY()
     TObjectPtr<class UMaterialInstanceDynamic> RouteMaterial;
 
+    /**
+     * Components created per build (train meshes, apron, flow route) rather
+     * than in the constructor. Destroyed and recreated on rebuild, so the
+     * console rebuild path never NewObjects over a live registered component.
+     */
+    UPROPERTY()
+    TArray<TObjectPtr<UActorComponent>> DynamicPieces;
+
     int32 DressedStations = 0;
     int32 PieceCount = 0;
 };
