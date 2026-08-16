@@ -78,6 +78,12 @@ enum class ELBOneFactoryDressingKind : uint8
     AssemblyAlignmentBed,
     /** Open-box pallet cart, standing in for scrap skips at PR-041. */
     ScrapSkip,
+    /** Commissioned model: certified coil-scale platform at PR-002. */
+    PressCoilScale,
+    /** Commissioned model: the PR-041 scrap baler. */
+    PressScrapBaler,
+    /** Commissioned model: closure-station panel turntable. */
+    WeldClosureTurntable,
     Count
 };
 

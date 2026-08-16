@@ -4,6 +4,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -68,9 +69,11 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_PaintWashTunnel"),
           TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
                "/Process/SM_LB_Paint_PretreatmentWashTunnel_v001"), 852.0 },
+        // The commissioned native ED dip tunnel replaces the flash-off
+        // stand-in at the ED coat stage (measured 812 x 616 x 625).
         { TEXT("Dress_PaintEDTunnel"),
-          TEXT("/Game/LineBoss/Candidates/PaintShop/PaintLineNativeKit_v001"
-               "/Process/SM_LB_Paint_FlashOffTunnel_v001"), 702.0 },
+          TEXT("/Game/LineBoss/Candidates/PaintShop/EDDipTunnel_v001"
+               "/SM_LB_Paint_EDDipTunnel_v001"), 812.0 },
         { TEXT("Dress_PaintSprayBooth"),
           TEXT("/Game/LineBoss/Candidates/PaintShop/SprayBoothRuntime_v002"
                "/SM_LB_PaintSprayBooth_Runtime_v002"), 1200.0 },
@@ -118,6 +121,16 @@ namespace LBOneFactoryDressingPrivate
                "/SM_LB_Assembly_WheelAlignmentBed_v001"), 540.0 },
         { TEXT("Dress_ScrapSkip"),
           TEXT("/Game/Meshes/SM_PalletCart_PalletBox_open"), 180.0 },
+        // Owner-commissioned models, measured after import 2026-08-16.
+        { TEXT("Dress_PressCoilScale"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/CoilScale_v001"
+               "/SM_LB_Press_CoilScalePlatform_v001"), 424.0 },
+        { TEXT("Dress_PressScrapBaler"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/ScrapBaler_v001"
+               "/SM_LB_Press_ScrapBaler_v001"), 446.0 },
+        { TEXT("Dress_WeldClosureTurntable"),
+          TEXT("/Game/LineBoss/Candidates/WeldShop/ClosureTurntable_v001"
+               "/SM_LB_BodyShop_ClosureTurntable_v001"), 280.0 },
     };
 }
 
@@ -237,6 +250,11 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
 
     DressedStations = 0;
     PieceCount = 0;
+
+    // Closure-duty stations, resolved once per build from the weld layout
+    // authority (never static: state must not leak across worlds).
+    TSet<FName> ClosureStations;
+    bool bClosureStationsResolved = false;
 
     // Rebuilds must not NewObject over the previous build's live components.
     for (UActorComponent* Piece : DynamicPieces)
@@ -417,9 +435,9 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                     AtLocal(600.0, 3900.0), R);
                 Place(ELBOneFactoryDressingKind::Bench,
                     AtLocal(1000.0, 3900.0), R);
-                // PR-041 trim scrap collection: a skip row and baler block
-                // on the south service edge, fed from the trim/pierce
-                // stages.
+                // PR-041 trim scrap collection: a skip row and the
+                // commissioned baler on the south service edge, fed from
+                // the trim/pierce stages.
                 for (int32 Skip = 0; Skip < 4; ++Skip)
                 {
                     // The reference stands this mesh at z 59: centre pivot.
@@ -427,20 +445,19 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                         AtLocal(1150.0, -700.0 - 380.0 * Skip)
                             + FVector(0.0, 0.0, 59.0), AlongRows);
                 }
-                Place(ELBOneFactoryDressingKind::Press,
-                    AtLocal(1150.0, -2350.0), AlongRows, 0.9);
+                Place(ELBOneFactoryDressingKind::PressScrapBaler,
+                    AtLocal(1150.0, -2350.0), AlongRows);
                 // PR-004 destrap cell centrepiece: the six-axis robot and
                 // its tool rack inside the existing fence line.
                 Place(ELBOneFactoryDressingKind::Robot,
                     AtLocal(-2300.0, -8900.0), AlongRows, 0.9);
                 Place(ELBOneFactoryDressingKind::Rack,
                     AtLocal(-2650.0, -8600.0), R);
-                // PR-002 certified coil scale: HMI pedestal and bench at
-                // the weighing position between receipt and the store.
-                Place(ELBOneFactoryDressingKind::Control,
-                    AtLocal(-2300.0, -11500.0), R);
-                Place(ELBOneFactoryDressingKind::Bench,
-                    AtLocal(-2050.0, -11500.0), AlongRows);
+                // PR-002 certified coil scale: the commissioned flush
+                // platform (deck, load cells, HMI post) at the weighing
+                // position between receipt and the store.
+                Place(ELBOneFactoryDressingKind::PressCoilScale,
+                    AtLocal(-2300.0, -11500.0), AlongRows);
             }
             else if (Step.StationId == InboundStation
                 || Step.StationId == CoilStoreStation)
@@ -565,12 +582,47 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         }
 
         case ELBOneFactoryDepartment::Body:
-            // Deliberately no machines here. The frozen weld starter
-            // presentation already renders the real native robots - 36
-            // seven-link arms and 16 C-guns from BodyShopRobotNative_v001 -
-            // under its exact-count contract (489 as of v002). Pack robots on top were
-            // duplicates of a presentation that is already release content.
+        {
+            // No machines here - the frozen weld starter presentation
+            // renders the native robots under its exact-count contract (489
+            // as of v002); pack robots on top were duplicates of release
+            // content. The one addition is the commissioned closure
+            // turntable, placed outside the presentation's own guard line
+            // at the stations whose robots carry the ClosureHandling duty.
+            if (!bClosureStationsResolved)
+            {
+                bClosureStationsResolved = true;
+                for (TActorIterator<ALBOneFactoryBodyWeldStarterLayoutAuthority>
+                    It(World); It; ++It)
+                {
+                    if (!IsValid(*It))
+                    {
+                        continue;
+                    }
+                    const FLBOneFactoryBodyWeldLayoutState Layout =
+                        It->CaptureLayout();
+                    for (const FLBOneFactoryBodyWeldStationState& Station :
+                        Layout.Stations)
+                    {
+                        using RR = ELBOneFactoryBodyWeldRobotRole;
+                        if (Station.LeftRobotRole == RR::ClosureHandling
+                            || Station.RightRobotRole == RR::ClosureHandling)
+                        {
+                            ClosureStations.Add(Station.StationId);
+                        }
+                    }
+                    break;
+                }
+            }
+            if (ClosureStations.Contains(Step.StationId))
+            {
+                // 1900 cm across the line clears the presentation's guard
+                // panels at +-1570.
+                Place(ELBOneFactoryDressingKind::WeldClosureTurntable,
+                    At + Across * 1900.0, FacingIn);
+            }
             break;
+        }
 
         case ELBOneFactoryDepartment::Paint:
         {
