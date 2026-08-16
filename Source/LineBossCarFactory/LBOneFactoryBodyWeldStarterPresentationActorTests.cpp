@@ -5,6 +5,8 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FLBOneFactoryBodyWeldPresentationContractTest,
@@ -342,6 +344,65 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
         Presentation->IsHidden());
 
     World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FLBOneFactoryBodyWeldCookManifestContractTest,
+    "LineBoss.OneFactory.BodyWeldStarter.Presentation.CookManifestCoversEveryFrozenRoot",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBOneFactoryBodyWeldCookManifestContractTest::RunTest(
+    const FString& Parameters)
+{
+    (void)Parameters;
+    // The frozen presentation resolves everything by path string, which the
+    // cooker cannot see: only these always-cook roots keep the weld shop
+    // alive in a package. Mirrors FLBCoilPreparationCookManifestContractTest.
+    const FString ConfigPath =
+        FPaths::ProjectConfigDir() / TEXT("DefaultGame.ini");
+    FString ConfigContents;
+    TestTrue(TEXT("Project packaging configuration is readable"),
+        FFileHelper::LoadFileToString(ConfigContents, *ConfigPath));
+
+    const TCHAR* RequiredCookRoots[] =
+    {
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001"),
+        TEXT("/Engine/BasicShapes")
+    };
+    for (const TCHAR* Root : RequiredCookRoots)
+    {
+        TestTrue(FString::Printf(
+            TEXT("Cook manifest includes frozen weld root %s"), Root),
+            ConfigContents.Contains(Root));
+    }
+
+    // Every frozen binding must also exist as a real asset on disk, so a
+    // deleted or moved asset fails here rather than in a packaged run.
+    for (const FSoftObjectPath& Asset :
+        ALBOneFactoryBodyWeldStarterPresentationActor::
+            GetRequiredNativeAssetPaths())
+    {
+        const FString Path = Asset.ToString();
+        if (!Path.StartsWith(TEXT("/Game/")))
+        {
+            continue;
+        }
+        FString PackagePath = Path;
+        int32 DotIndex = INDEX_NONE;
+        if (PackagePath.FindChar(TEXT('.'), DotIndex))
+        {
+            PackagePath.LeftInline(DotIndex);
+        }
+        const FString FilePath = FPaths::ProjectContentDir()
+            / PackagePath.RightChop(6) + TEXT(".uasset");
+        TestTrue(FString::Printf(
+            TEXT("Frozen weld binding exists on disk: %s"), *Path),
+            FPaths::FileExists(FilePath));
+    }
     return true;
 }
 

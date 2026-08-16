@@ -334,6 +334,25 @@ bool FLBOneFactoryRuntimeOperationalGatesTest::RunTest(
     TestTrue(TEXT("Exact authority rejection reports the duplicate count"),
         Reason.Contains(TEXT("EXACTLY ONE PRODUCTION"))
         && Reason.Contains(TEXT("FOUND 2")));
+    if (Duplicate)
+    {
+        Duplicate->Destroy();
+    }
+    // The same closed-fail applies per department: a duplicate Body/Weld
+    // authority must be rejected with its exact count, mirroring the
+    // production-authority check above.
+    ALBOneFactoryBodyWeldStarterLayoutAuthority* DuplicateWeld =
+        Fixture.World->SpawnActor<ALBOneFactoryBodyWeldStarterLayoutAuthority>();
+    TestNotNull(TEXT("Duplicate Body/Weld authority fixture exists"),
+        DuplicateWeld);
+    TestFalse(TEXT("Duplicate Body/Weld authority fails closed"),
+        Fixture.Coordinator->ValidateRuntimeFactory(Reason));
+    TestTrue(TEXT("Body/Weld duplicate rejection is explicit"),
+        Reason.Contains(TEXT("BODY")) && Reason.Contains(TEXT("FOUND 2")));
+    if (DuplicateWeld)
+    {
+        DuplicateWeld->Destroy();
+    }
     Fixture.Destroy();
 
     UWorld* MissingWorld = UWorld::CreateWorld(EWorldType::Game, false,
