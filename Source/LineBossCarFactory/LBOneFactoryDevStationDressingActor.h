@@ -76,6 +76,8 @@ enum class ELBOneFactoryDressingKind : uint8
     AssemblyEOLArch,
     /** Native assembly kit: wheel alignment bed at end-of-line. */
     AssemblyAlignmentBed,
+    /** Open-box pallet cart, standing in for scrap skips at PR-041. */
+    ScrapSkip,
     Count
 };
 

@@ -116,6 +116,8 @@ namespace LBOneFactoryDressingPrivate
           TEXT("/Game/LineBoss/Candidates/AssemblyShop"
                "/AssemblyLineNativeKit_v001/Test"
                "/SM_LB_Assembly_WheelAlignmentBed_v001"), 540.0 },
+        { TEXT("Dress_ScrapSkip"),
+          TEXT("/Game/Meshes/SM_PalletCart_PalletBox_open"), 180.0 },
     };
 }
 
@@ -367,6 +369,78 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                     Datum.GetLocation().X, Datum.GetLocation().Y,
                     Datum.GetLocation().Z, Datum.Rotator().Yaw,
                     TrainAt.X, TrainAt.Y, TrainAt.Z);
+
+                // The master plan's outbound and service edges, keyed to the
+                // same datum. Local axes: +Y runs down the train length
+                // toward the outbound end (reference east), -X marches
+                // across the four rows, +X is the reference south edge.
+                const FQuat R = Datum.GetRotation();
+                auto AtLocal = [&](const double LocalX, const double LocalY)
+                {
+                    return TrainAt + R.RotateVector(
+                        FVector(LocalX, LocalY, 0.0));
+                };
+                const FQuat AlongRows =
+                    R * FQuat(FVector::UpVector, PI * 0.5);
+
+                // PR-043 full/empty stillage marshalling: three lanes of
+                // four between the row lines, east of the trains.
+                for (int32 Lane = 0; Lane < 3; ++Lane)
+                {
+                    const double LaneX = -1100.0 - 2200.0 * Lane;
+                    for (int32 Slot = 0; Slot < 4; ++Slot)
+                    {
+                        Place(ELBOneFactoryDressingKind::Stillage,
+                            AtLocal(LaneX, 3800.0 + 420.0 * Slot)
+                                + FVector(0.0, 0.0, 58.0), R);
+                    }
+                }
+                // PR-044 FLT dispatch: the outbound lorry at the east dock.
+                Place(ELBOneFactoryDressingKind::Lorry,
+                    AtLocal(-3300.0, 6000.0), AlongRows);
+                // PR-040 quarantine: a fenced pen with two suspect stillages.
+                for (int32 Panel = 0; Panel < 4; ++Panel)
+                {
+                    Place(ELBOneFactoryDressingKind::Fence,
+                        AtLocal(-6800.0 + 150.0 * Panel, 4050.0), R);
+                    Place(ELBOneFactoryDressingKind::Fence,
+                        AtLocal(-6800.0 + 150.0 * Panel, 4650.0), R);
+                }
+                Place(ELBOneFactoryDressingKind::Stillage,
+                    AtLocal(-6650.0, 4250.0) + FVector(0.0, 0.0, 58.0), R);
+                Place(ELBOneFactoryDressingKind::Stillage,
+                    AtLocal(-6650.0, 4450.0) + FVector(0.0, 0.0, 58.0), R);
+                // PR-039 first-off dimensional scan: light ramp, HMI, bench.
+                Place(ELBOneFactoryDressingKind::LampRamp,
+                    AtLocal(800.0, 4200.0), AlongRows, 0.9);
+                Place(ELBOneFactoryDressingKind::Control,
+                    AtLocal(600.0, 3900.0), R);
+                Place(ELBOneFactoryDressingKind::Bench,
+                    AtLocal(1000.0, 3900.0), R);
+                // PR-041 trim scrap collection: a skip row and baler block
+                // on the south service edge, fed from the trim/pierce
+                // stages.
+                for (int32 Skip = 0; Skip < 4; ++Skip)
+                {
+                    // The reference stands this mesh at z 59: centre pivot.
+                    Place(ELBOneFactoryDressingKind::ScrapSkip,
+                        AtLocal(1150.0, -700.0 - 380.0 * Skip)
+                            + FVector(0.0, 0.0, 59.0), AlongRows);
+                }
+                Place(ELBOneFactoryDressingKind::Press,
+                    AtLocal(1150.0, -2350.0), AlongRows, 0.9);
+                // PR-004 destrap cell centrepiece: the six-axis robot and
+                // its tool rack inside the existing fence line.
+                Place(ELBOneFactoryDressingKind::Robot,
+                    AtLocal(-2300.0, -8900.0), AlongRows, 0.9);
+                Place(ELBOneFactoryDressingKind::Rack,
+                    AtLocal(-2650.0, -8600.0), R);
+                // PR-002 certified coil scale: HMI pedestal and bench at
+                // the weighing position between receipt and the store.
+                Place(ELBOneFactoryDressingKind::Control,
+                    AtLocal(-2300.0, -11500.0), R);
+                Place(ELBOneFactoryDressingKind::Bench,
+                    AtLocal(-2050.0, -11500.0), AlongRows);
             }
             else if (Step.StationId == InboundStation
                 || Step.StationId == CoilStoreStation)
