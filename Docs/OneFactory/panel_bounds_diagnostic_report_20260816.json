@@ -1,0 +1,5693 @@
+{
+  "$schema": "lineboss/diagnostic/cairnwell-2040-panel-bounds/v1",
+  "baseline_file": "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8\\Scripts\\cairnwell_2040_panel_modules_v001_import_baseline_v002.json",
+  "bounds_tolerance_cm": 0.25,
+  "engine_version": "5.8.1-56057345+++UE5+Release-5.8",
+  "errors": [],
+  "failing_count": 24,
+  "panels": {
+    "DOOR_FRONT_LEFT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087906,
+                  63.49826
+                ],
+                "delta": [
+                  -3e-06,
+                  1.1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.999527,
+                  107.998741
+                ],
+                "delta": [
+                  -3e-06,
+                  179.911163,
+                  1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.911636,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.911621,
+                  44.500481
+                ],
+                "delta": [
+                  0.0,
+                  179.911152,
+                  1.4e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.999531,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911152
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911163
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087906,
+                  63.49826
+                ],
+                "delta": [
+                  -3e-06,
+                  1.1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.999527,
+                  107.998741
+                ],
+                "delta": [
+                  -3e-06,
+                  179.911163,
+                  1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.911636,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.911621,
+                  44.500481
+                ],
+                "delta": [
+                  0.0,
+                  179.911152,
+                  1.4e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.999531,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911152
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911163
+          },
+          "triangles_actual": 108,
+          "triangles_expected": 108,
+          "vertices_actual": 218
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087906,
+                  63.49826
+                ],
+                "delta": [
+                  -3e-06,
+                  1.1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.999527,
+                  107.998741
+                ],
+                "delta": [
+                  -3e-06,
+                  179.911163,
+                  1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.911636,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.911621,
+                  44.500481
+                ],
+                "delta": [
+                  0.0,
+                  179.911152,
+                  1.4e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.999531,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911152
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911163
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087906,
+                  63.49826
+                ],
+                "delta": [
+                  -3e-06,
+                  1.1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.999527,
+                  107.998741
+                ],
+                "delta": [
+                  -3e-06,
+                  179.911163,
+                  1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.911636,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.911621,
+                  44.500481
+                ],
+                "delta": [
+                  0.0,
+                  179.911152,
+                  1.4e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.999531,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911152
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911163
+          },
+          "triangles_actual": 44,
+          "triangles_expected": 44,
+          "vertices_actual": 99
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.08992,
+                  63.5
+                ],
+                "delta": [
+                  -3e-06,
+                  1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.998032,
+                  108.000015
+                ],
+                "delta": [
+                  -3e-06,
+                  179.906163,
+                  1.1e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.908131,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.908112,
+                  44.500015
+                ],
+                "delta": [
+                  0.0,
+                  179.906153,
+                  1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.998041,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906153
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906163
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.08992,
+                  63.5
+                ],
+                "delta": [
+                  -3e-06,
+                  1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  91.998032,
+                  108.000015
+                ],
+                "delta": [
+                  -3e-06,
+                  179.906163,
+                  1.1e-05
+                ],
+                "expected": [
+                  91.2,
+                  -87.908131,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906163
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  87.908112,
+                  44.500015
+                ],
+                "delta": [
+                  0.0,
+                  179.906153,
+                  1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  -91.998041,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906153
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906163
+          },
+          "triangles_actual": 12,
+          "triangles_expected": 12,
+          "vertices_actual": 28
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_FRONT_LEFT_v001"
+    },
+    "DOOR_FRONT_RIGHT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087883,
+                  63.498257
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.911652,
+                  107.998711
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.911183,
+                  -1.8e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.999531,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911183
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.999535,
+                  44.500454
+                ],
+                "delta": [
+                  0.0,
+                  -179.911171,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.911636,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911171
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911183
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087883,
+                  63.498257
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.911652,
+                  107.998711
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.911183,
+                  -1.8e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.999531,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911183
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.999535,
+                  44.500454
+                ],
+                "delta": [
+                  0.0,
+                  -179.911171,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.911636,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911171
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911183
+          },
+          "triangles_actual": 108,
+          "triangles_expected": 108,
+          "vertices_actual": 220
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087883,
+                  63.498257
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.911652,
+                  107.998711
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.911183,
+                  -1.8e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.999531,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911183
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.999535,
+                  44.500454
+                ],
+                "delta": [
+                  0.0,
+                  -179.911171,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.911636,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911171
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911183
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.087883,
+                  63.498257
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.087895,
+                  63.498262
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.911652,
+                  107.998711
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.911183,
+                  -1.8e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.999531,
+                  107.998729
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911183
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.999535,
+                  44.500454
+                ],
+                "delta": [
+                  0.0,
+                  -179.911171,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.911636,
+                  44.500467
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911171
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911183
+          },
+          "triangles_actual": 44,
+          "triangles_expected": 44,
+          "vertices_actual": 100
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.089897,
+                  63.500004
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.3e-05,
+                  2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.3e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.90815,
+                  107.999992
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.906191,
+                  -1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.998041,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906191
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.998047,
+                  44.499989
+                ],
+                "delta": [
+                  0.0,
+                  -179.906178,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.908131,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906178
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906191
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  85.999997,
+                  4.089897,
+                  63.500004
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.3e-05,
+                  2e-06
+                ],
+                "expected": [
+                  86.0,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.3e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  91.199997,
+                  -87.90815,
+                  107.999992
+                ],
+                "delta": [
+                  -3e-06,
+                  -179.906191,
+                  -1.2e-05
+                ],
+                "expected": [
+                  91.2,
+                  91.998041,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906191
+              },
+              "minimum_cm": {
+                "actual": [
+                  5.2,
+                  -91.998047,
+                  44.499989
+                ],
+                "delta": [
+                  0.0,
+                  -179.906178,
+                  -1.3e-05
+                ],
+                "expected": [
+                  5.2,
+                  87.908131,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906178
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906191
+          },
+          "triangles_actual": 12,
+          "triangles_expected": 12,
+          "vertices_actual": 28
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_FRONT_RIGHT_v001"
+    },
+    "DOOR_REAR_LEFT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088104,
+                  63.499397
+                ],
+                "delta": [
+                  -1e-06,
+                  7e-06,
+                  3e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499394
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 7e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.999725,
+                  107.999413
+                ],
+                "delta": [
+                  -0.0,
+                  179.911361,
+                  1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.911636,
+                  107.999396
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911361
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.911621,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.911354,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.999733,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911354
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911361
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088104,
+                  63.499397
+                ],
+                "delta": [
+                  -1e-06,
+                  7e-06,
+                  3e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499394
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 7e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.999725,
+                  107.999413
+                ],
+                "delta": [
+                  -0.0,
+                  179.911361,
+                  1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.911636,
+                  107.999396
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911361
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.911621,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.911354,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.999733,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911354
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911361
+          },
+          "triangles_actual": 108,
+          "triangles_expected": 108,
+          "vertices_actual": 219
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088104,
+                  63.499397
+                ],
+                "delta": [
+                  -1e-06,
+                  7e-06,
+                  3e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499394
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 7e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.999725,
+                  107.999413
+                ],
+                "delta": [
+                  -0.0,
+                  179.911361,
+                  1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.911636,
+                  107.999396
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911361
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.911621,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.911354,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.999733,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911354
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911361
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088104,
+                  63.499397
+                ],
+                "delta": [
+                  -1e-06,
+                  7e-06,
+                  3e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499394
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 7e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.999725,
+                  107.999413
+                ],
+                "delta": [
+                  -0.0,
+                  179.911361,
+                  1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.911636,
+                  107.999396
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911361
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.911621,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.911354,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.999733,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911354
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911361
+          },
+          "triangles_actual": 44,
+          "triangles_expected": 44,
+          "vertices_actual": 100
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.08992,
+                  63.5
+                ],
+                "delta": [
+                  -1e-06,
+                  1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.998032,
+                  108.000015
+                ],
+                "delta": [
+                  -0.0,
+                  179.906163,
+                  1.1e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.908131,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906163
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.908112,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.906153,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.998041,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906153
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906163
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.08992,
+                  63.5
+                ],
+                "delta": [
+                  -1e-06,
+                  1e-05,
+                  -2e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  91.998032,
+                  108.000015
+                ],
+                "delta": [
+                  -0.0,
+                  179.906163,
+                  1.1e-05
+                ],
+                "expected": [
+                  3.8,
+                  -87.908131,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906163
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  87.908112,
+                  44.500015
+                ],
+                "delta": [
+                  1e-06,
+                  179.906153,
+                  1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  -91.998041,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906153
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906163
+          },
+          "triangles_actual": 12,
+          "triangles_expected": 12,
+          "vertices_actual": 28
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_REAR_LEFT_v001"
+    },
+    "DOOR_REAR_RIGHT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088089,
+                  63.499378
+                ],
+                "delta": [
+                  -1e-06,
+                  -8e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499382
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 8e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.911652,
+                  107.999367
+                ],
+                "delta": [
+                  -0.0,
+                  -179.911385,
+                  -1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.999733,
+                  107.999384
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911385
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.999741,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.911377,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.911636,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911377
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911385
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088089,
+                  63.499378
+                ],
+                "delta": [
+                  -1e-06,
+                  -8e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499382
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 8e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.911652,
+                  107.999367
+                ],
+                "delta": [
+                  -0.0,
+                  -179.911385,
+                  -1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.999733,
+                  107.999384
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911385
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.999741,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.911377,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.911636,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911377
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911385
+          },
+          "triangles_actual": 108,
+          "triangles_expected": 108,
+          "vertices_actual": 219
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088089,
+                  63.499378
+                ],
+                "delta": [
+                  -1e-06,
+                  -8e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499382
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 8e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.911652,
+                  107.999367
+                ],
+                "delta": [
+                  -0.0,
+                  -179.911385,
+                  -1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.999733,
+                  107.999384
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911385
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.999741,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.911377,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.911636,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911377
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911385
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.088089,
+                  63.499378
+                ],
+                "delta": [
+                  -1e-06,
+                  -8e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.088097,
+                  63.499382
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 8e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.911652,
+                  107.999367
+                ],
+                "delta": [
+                  -0.0,
+                  -179.911385,
+                  -1.7e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.999733,
+                  107.999384
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911385
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.999741,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.911377,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.911636,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.911377
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.911385
+          },
+          "triangles_actual": 44,
+          "triangles_expected": 44,
+          "vertices_actual": 99
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.089897,
+                  63.500004
+                ],
+                "delta": [
+                  -1e-06,
+                  -1.3e-05,
+                  2e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.3e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.90815,
+                  107.999992
+                ],
+                "delta": [
+                  -0.0,
+                  -179.906191,
+                  -1.2e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.998041,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906191
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.998047,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.906178,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.908131,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906178
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906191
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  97.399998,
+                  4.089897,
+                  63.500004
+                ],
+                "delta": [
+                  -1e-06,
+                  -1.3e-05,
+                  2e-06
+                ],
+                "expected": [
+                  97.399999,
+                  4.08991,
+                  63.500002
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.3e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  3.8,
+                  -87.90815,
+                  107.999992
+                ],
+                "delta": [
+                  -0.0,
+                  -179.906191,
+                  -1.2e-05
+                ],
+                "expected": [
+                  3.8,
+                  91.998041,
+                  108.000004
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906191
+              },
+              "minimum_cm": {
+                "actual": [
+                  -93.599998,
+                  -91.998047,
+                  44.499989
+                ],
+                "delta": [
+                  1e-06,
+                  -179.906178,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -93.599999,
+                  87.908131,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 179.906178
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 179.906191
+          },
+          "triangles_actual": 12,
+          "triangles_expected": 12,
+          "vertices_actual": 28
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_REAR_RIGHT_v001"
+    },
+    "FENDER_FRONT_LEFT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.079033,
+                  57.496277
+                ],
+                "delta": [
+                  -1e-06,
+                  -0.0,
+                  -0.0
+                ],
+                "expected": [
+                  117.998475,
+                  22.079033,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  93.999992,
+                  101.996292
+                ],
+                "delta": [
+                  -2e-06,
+                  165.920959,
+                  1.3e-05
+                ],
+                "expected": [
+                  210.498476,
+                  -71.920967,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920959
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.920959,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.920959,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920959
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.920959
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.079033,
+                  57.496277
+                ],
+                "delta": [
+                  -1e-06,
+                  -0.0,
+                  -0.0
+                ],
+                "expected": [
+                  117.998475,
+                  22.079033,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  93.999992,
+                  101.996292
+                ],
+                "delta": [
+                  -2e-06,
+                  165.920959,
+                  1.3e-05
+                ],
+                "expected": [
+                  210.498476,
+                  -71.920967,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920959
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.920959,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.920959,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920959
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.920959
+          },
+          "triangles_actual": 364,
+          "triangles_expected": 364,
+          "vertices_actual": 751
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.074142,
+                  57.496277
+                ],
+                "delta": [
+                  -1e-06,
+                  3e-06,
+                  -0.0
+                ],
+                "expected": [
+                  117.998475,
+                  22.074139,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 3e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  93.999992,
+                  101.996292
+                ],
+                "delta": [
+                  -2e-06,
+                  165.925853,
+                  1.3e-05
+                ],
+                "expected": [
+                  210.498476,
+                  -71.925861,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925853
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.92585,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.92585,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.92585
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.925853
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.074142,
+                  57.496277
+                ],
+                "delta": [
+                  -1e-06,
+                  3e-06,
+                  -0.0
+                ],
+                "expected": [
+                  117.998475,
+                  22.074139,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 3e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  93.999992,
+                  101.996292
+                ],
+                "delta": [
+                  -2e-06,
+                  165.925853,
+                  1.3e-05
+                ],
+                "expected": [
+                  210.498476,
+                  -71.925861,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925853
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.92585,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.92585,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.92585
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.925853
+          },
+          "triangles_actual": 168,
+          "triangles_expected": 168,
+          "vertices_actual": 364
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  118.0,
+                  22.091537,
+                  57.5
+                ],
+                "delta": [
+                  -1e-06,
+                  5e-06,
+                  4e-06
+                ],
+                "expected": [
+                  118.000001,
+                  22.091532,
+                  57.499996
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 5e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.5,
+                  93.999992,
+                  102.000015
+                ],
+                "delta": [
+                  -2e-06,
+                  165.90846,
+                  1.7e-05
+                ],
+                "expected": [
+                  210.500002,
+                  -71.908468,
+                  101.999998
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.90846
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.908455,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.908455,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908455
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.90846
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  118.0,
+                  22.091537,
+                  57.5
+                ],
+                "delta": [
+                  -1e-06,
+                  5e-06,
+                  4e-06
+                ],
+                "expected": [
+                  118.000001,
+                  22.091532,
+                  57.499996
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 5e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.5,
+                  93.999992,
+                  102.000015
+                ],
+                "delta": [
+                  -2e-06,
+                  165.90846,
+                  1.7e-05
+                ],
+                "expected": [
+                  210.500002,
+                  -71.908468,
+                  101.999998
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.90846
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  71.908455,
+                  44.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.908455,
+                  1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908455
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.90846
+          },
+          "triangles_actual": 52,
+          "triangles_expected": 52,
+          "vertices_actual": 128
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_FENDER_FRONT_LEFT_v001"
+    },
+    "FENDER_FRONT_RIGHT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.079025,
+                  57.496273
+                ],
+                "delta": [
+                  -1e-06,
+                  -2e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  117.998475,
+                  22.079027,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  -71.920982,
+                  101.996262
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.920982,
+                  -1.7e-05
+                ],
+                "expected": [
+                  210.498476,
+                  94.0,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920982
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.920981,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.920973,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920981
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.920982
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.079025,
+                  57.496273
+                ],
+                "delta": [
+                  -1e-06,
+                  -2e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  117.998475,
+                  22.079027,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  -71.920982,
+                  101.996262
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.920982,
+                  -1.7e-05
+                ],
+                "expected": [
+                  210.498476,
+                  94.0,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920982
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.920981,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.920973,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.920981
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.920982
+          },
+          "triangles_actual": 364,
+          "triangles_expected": 364,
+          "vertices_actual": 750
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.074142,
+                  57.496273
+                ],
+                "delta": [
+                  -1e-06,
+                  3e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  117.998475,
+                  22.074139,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  -71.925865,
+                  101.996262
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.925865,
+                  -1.7e-05
+                ],
+                "expected": [
+                  210.498476,
+                  94.0,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925865
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.925869,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.925861,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925869
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.925869
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  117.998474,
+                  22.074142,
+                  57.496273
+                ],
+                "delta": [
+                  -1e-06,
+                  3e-06,
+                  -4e-06
+                ],
+                "expected": [
+                  117.998475,
+                  22.074139,
+                  57.496277
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.498474,
+                  -71.925865,
+                  101.996262
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.925865,
+                  -1.7e-05
+                ],
+                "expected": [
+                  210.498476,
+                  94.0,
+                  101.996279
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925865
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.925869,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.925861,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.925869
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.925869
+          },
+          "triangles_actual": 168,
+          "triangles_expected": 168,
+          "vertices_actual": 363
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  118.0,
+                  22.09153,
+                  57.499996
+                ],
+                "delta": [
+                  -1e-06,
+                  -2e-06,
+                  0.0
+                ],
+                "expected": [
+                  118.000001,
+                  22.091532,
+                  57.499996
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.5,
+                  -71.908478,
+                  101.999985
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.908478,
+                  -1.3e-05
+                ],
+                "expected": [
+                  210.500002,
+                  94.0,
+                  101.999998
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908478
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.908476,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.908468,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908476
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.908478
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  118.0,
+                  22.09153,
+                  57.499996
+                ],
+                "delta": [
+                  -1e-06,
+                  -2e-06,
+                  0.0
+                ],
+                "expected": [
+                  118.000001,
+                  22.091532,
+                  57.499996
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  210.5,
+                  -71.908478,
+                  101.999985
+                ],
+                "delta": [
+                  -2e-06,
+                  -165.908478,
+                  -1.3e-05
+                ],
+                "expected": [
+                  210.500002,
+                  94.0,
+                  101.999998
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908478
+              },
+              "minimum_cm": {
+                "actual": [
+                  92.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.908476,
+                  -1.3e-05
+                ],
+                "expected": [
+                  92.500001,
+                  71.908468,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908476
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.908478
+          },
+          "triangles_actual": 52,
+          "triangles_expected": 52,
+          "vertices_actual": 128
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_FENDER_FRONT_RIGHT_v001"
+    },
+    "HOOD_PANEL": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.200882,
+                  24.942719
+                ],
+                "delta": [
+                  -2e-06,
+                  6e-06,
+                  1.7e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.200876,
+                  24.942702
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.7e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.600426,
+                  102.496651
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.2e-05,
+                  3e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.600438,
+                  102.496648
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.600456,
+                  77.553932
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.8e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.600438,
+                  77.553946
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.8e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.200882,
+                  24.942719
+                ],
+                "delta": [
+                  -2e-06,
+                  6e-06,
+                  1.7e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.200876,
+                  24.942702
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.7e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.600426,
+                  102.496651
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.2e-05,
+                  3e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.600438,
+                  102.496648
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.600456,
+                  77.553932
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.8e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.600438,
+                  77.553946
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.8e-05
+          },
+          "triangles_actual": 324,
+          "triangles_expected": 324,
+          "vertices_actual": 232
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.200882,
+                  24.942719
+                ],
+                "delta": [
+                  -2e-06,
+                  6e-06,
+                  1.7e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.200876,
+                  24.942702
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.7e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.600426,
+                  102.496651
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.2e-05,
+                  3e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.600438,
+                  102.496648
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.600456,
+                  77.553932
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.8e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.600438,
+                  77.553946
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.8e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.200882,
+                  24.942719
+                ],
+                "delta": [
+                  -2e-06,
+                  6e-06,
+                  1.7e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.200876,
+                  24.942702
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.7e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.600426,
+                  102.496651
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.2e-05,
+                  3e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.600438,
+                  102.496648
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.600456,
+                  77.553932
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.8e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.600438,
+                  77.553946
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.8e-05
+          },
+          "triangles_actual": 204,
+          "triangles_expected": 204,
+          "vertices_actual": 160
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.196991,
+                  24.950012
+                ],
+                "delta": [
+                  -2e-06,
+                  1e-06,
+                  1.4e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.19699,
+                  24.949998
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.59848,
+                  102.5
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.5e-05,
+                  2e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.598495,
+                  102.499998
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.5e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.598511,
+                  77.549988
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.6e-05,
+                  -1.2e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.598495,
+                  77.55
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.6e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.6e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  137.999985,
+                  141.196991,
+                  24.950012
+                ],
+                "delta": [
+                  -2e-06,
+                  1e-06,
+                  1.4e-05
+                ],
+                "expected": [
+                  137.999987,
+                  141.19699,
+                  24.949998
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  209.999985,
+                  70.59848,
+                  102.5
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.5e-05,
+                  2e-06
+                ],
+                "expected": [
+                  209.99999,
+                  70.598495,
+                  102.499998
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.5e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  72.0,
+                  -70.598511,
+                  77.549988
+                ],
+                "delta": [
+                  -3e-06,
+                  -1.6e-05,
+                  -1.2e-05
+                ],
+                "expected": [
+                  72.000003,
+                  -70.598495,
+                  77.55
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.6e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 1.6e-05
+          },
+          "triangles_actual": 116,
+          "triangles_expected": 116,
+          "vertices_actual": 104
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_HOOD_PANEL_v001"
+    },
+    "QUARTER_PANEL_LEFT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.081215,
+                  65.998009
+                ],
+                "delta": [
+                  4e-06,
+                  -6e-06,
+                  -0.0
+                ],
+                "expected": [
+                  112.498241,
+                  22.081221,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999413,
+                  110.498024
+                ],
+                "delta": [
+                  -1e-06,
+                  165.917614,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.918201,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917614
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  71.918198,
+                  44.500015
+                ],
+                "delta": [
+                  -5e-06,
+                  165.91762,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  -93.999422,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.91762
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.91762
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.081215,
+                  65.998009
+                ],
+                "delta": [
+                  4e-06,
+                  -6e-06,
+                  -0.0
+                ],
+                "expected": [
+                  112.498241,
+                  22.081221,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999413,
+                  110.498024
+                ],
+                "delta": [
+                  -1e-06,
+                  165.917614,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.918201,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917614
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  71.918198,
+                  44.500015
+                ],
+                "delta": [
+                  -5e-06,
+                  165.91762,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  -93.999422,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.91762
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.91762
+          },
+          "triangles_actual": 368,
+          "triangles_expected": 368,
+          "vertices_actual": 760
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.080429,
+                  65.998009
+                ],
+                "delta": [
+                  4e-06,
+                  1e-06,
+                  -0.0
+                ],
+                "expected": [
+                  112.498241,
+                  22.080428,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999413,
+                  110.498024
+                ],
+                "delta": [
+                  -1e-06,
+                  165.918407,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.918994,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918407
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  71.918983,
+                  44.500015
+                ],
+                "delta": [
+                  -5e-06,
+                  165.918405,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  -93.999422,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918405
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.918407
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.080429,
+                  65.998009
+                ],
+                "delta": [
+                  4e-06,
+                  1e-06,
+                  -0.0
+                ],
+                "expected": [
+                  112.498241,
+                  22.080428,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999413,
+                  110.498024
+                ],
+                "delta": [
+                  -1e-06,
+                  165.918407,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.918994,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918407
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  71.918983,
+                  44.500015
+                ],
+                "delta": [
+                  -5e-06,
+                  165.918405,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  -93.999422,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918405
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.918407
+          },
+          "triangles_actual": 168,
+          "triangles_expected": 168,
+          "vertices_actual": 358
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.5,
+                  22.091537,
+                  66.0
+                ],
+                "delta": [
+                  -6e-06,
+                  5e-06,
+                  0.0
+                ],
+                "expected": [
+                  112.500006,
+                  22.091532,
+                  66.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999992,
+                  110.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.90846,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.908468,
+                  110.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.90846
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.5,
+                  71.908455,
+                  44.500015
+                ],
+                "delta": [
+                  5e-06,
+                  165.908455,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.500005,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908455
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.90846
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.5,
+                  22.091537,
+                  66.0
+                ],
+                "delta": [
+                  -6e-06,
+                  5e-06,
+                  0.0
+                ],
+                "expected": [
+                  112.500006,
+                  22.091532,
+                  66.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  93.999992,
+                  110.500015
+                ],
+                "delta": [
+                  -1e-06,
+                  165.90846,
+                  1.3e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  -71.908468,
+                  110.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.90846
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.5,
+                  71.908455,
+                  44.500015
+                ],
+                "delta": [
+                  5e-06,
+                  165.908455,
+                  1.3e-05
+                ],
+                "expected": [
+                  -207.500005,
+                  -94.0,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908455
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.90846
+          },
+          "triangles_actual": 48,
+          "triangles_expected": 48,
+          "vertices_actual": 118
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_QUARTER_PANEL_LEFT_v001"
+    },
+    "QUARTER_PANEL_RIGHT": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.08123,
+                  65.998013
+                ],
+                "delta": [
+                  4e-06,
+                  9e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.498241,
+                  22.081221,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 9e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.918205,
+                  110.498001
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.917627,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  93.999422,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917627
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  -93.999435,
+                  44.499989
+                ],
+                "delta": [
+                  -5e-06,
+                  -165.917636,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  71.918201,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917636
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.917636
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.08123,
+                  65.998013
+                ],
+                "delta": [
+                  4e-06,
+                  9e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.498241,
+                  22.081221,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 9e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.918205,
+                  110.498001
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.917627,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  93.999422,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917627
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  -93.999435,
+                  44.499989
+                ],
+                "delta": [
+                  -5e-06,
+                  -165.917636,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  71.918201,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.917636
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.917636
+          },
+          "triangles_actual": 368,
+          "triangles_expected": 368,
+          "vertices_actual": 758
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.080429,
+                  65.998013
+                ],
+                "delta": [
+                  4e-06,
+                  1e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.498241,
+                  22.080428,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.919006,
+                  110.498001
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.918428,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  93.999422,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918428
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  -93.999435,
+                  44.499989
+                ],
+                "delta": [
+                  -5e-06,
+                  -165.918429,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  71.918994,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918429
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.918429
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.498245,
+                  22.080429,
+                  65.998013
+                ],
+                "delta": [
+                  4e-06,
+                  1e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.498241,
+                  22.080428,
+                  65.998009
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 4e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.919006,
+                  110.498001
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.918428,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  93.999422,
+                  110.498011
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918428
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.498245,
+                  -93.999435,
+                  44.499989
+                ],
+                "delta": [
+                  -5e-06,
+                  -165.918429,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.49824,
+                  71.918994,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.918429
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.918429
+          },
+          "triangles_actual": 168,
+          "triangles_expected": 168,
+          "vertices_actual": 357
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.5,
+                  22.09153,
+                  66.000004
+                ],
+                "delta": [
+                  -6e-06,
+                  -2e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.500006,
+                  22.091532,
+                  66.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.908478,
+                  110.499992
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.908478,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  94.0,
+                  110.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908478
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  5e-06,
+                  -165.908476,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.500005,
+                  71.908468,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908476
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.908478
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  112.5,
+                  22.09153,
+                  66.000004
+                ],
+                "delta": [
+                  -6e-06,
+                  -2e-06,
+                  4e-06
+                ],
+                "expected": [
+                  112.500006,
+                  22.091532,
+                  66.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 6e-06
+              },
+              "maximum_cm": {
+                "actual": [
+                  -95.0,
+                  -71.908478,
+                  110.499992
+                ],
+                "delta": [
+                  -1e-06,
+                  -165.908478,
+                  -1e-05
+                ],
+                "expected": [
+                  -94.999999,
+                  94.0,
+                  110.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908478
+              },
+              "minimum_cm": {
+                "actual": [
+                  -207.5,
+                  -94.000008,
+                  44.499989
+                ],
+                "delta": [
+                  5e-06,
+                  -165.908476,
+                  -1.3e-05
+                ],
+                "expected": [
+                  -207.500005,
+                  71.908468,
+                  44.500002
+                ],
+                "within_tolerance": false,
+                "worst_abs_delta": 165.908476
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": false,
+            "worst_abs_delta": 165.908478
+          },
+          "triangles_actual": 48,
+          "triangles_expected": 48,
+          "vertices_actual": 118
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_QUARTER_PANEL_RIGHT_v001"
+    },
+    "ROOF_PANEL": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.581802,
+                  6.824814
+                ],
+                "delta": [
+                  -3e-06,
+                  -2e-06,
+                  1.1e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.581804,
+                  6.824803
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.790878,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.4e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.790902,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.790924,
+                  149.175186
+                ],
+                "delta": [
+                  5e-06,
+                  -2.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.790902,
+                  149.175191
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.2e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.581802,
+                  6.824814
+                ],
+                "delta": [
+                  -3e-06,
+                  -2e-06,
+                  1.1e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.581804,
+                  6.824803
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.790878,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.4e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.790902,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.790924,
+                  149.175186
+                ],
+                "delta": [
+                  5e-06,
+                  -2.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.790902,
+                  149.175191
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.2e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "triangles_actual": 360,
+          "triangles_expected": 360,
+          "vertices_actual": 254
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.581802,
+                  6.824814
+                ],
+                "delta": [
+                  -3e-06,
+                  -2e-06,
+                  1.1e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.581804,
+                  6.824803
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.790878,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.4e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.790902,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.790924,
+                  149.175186
+                ],
+                "delta": [
+                  5e-06,
+                  -2.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.790902,
+                  149.175191
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.2e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.581802,
+                  6.824814
+                ],
+                "delta": [
+                  -3e-06,
+                  -2e-06,
+                  1.1e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.581804,
+                  6.824803
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.790878,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.4e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.790902,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.790924,
+                  149.175186
+                ],
+                "delta": [
+                  5e-06,
+                  -2.2e-05,
+                  -5e-06
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.790902,
+                  149.175191
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.2e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "triangles_actual": 232,
+          "triangles_expected": 232,
+          "vertices_actual": 174
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.578072,
+                  6.827515
+                ],
+                "delta": [
+                  -3e-06,
+                  -0.0,
+                  1.8e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.578072,
+                  6.827497
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.789009,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.7e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.789036,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.7e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.789062,
+                  149.172485
+                ],
+                "delta": [
+                  5e-06,
+                  -2.7e-05,
+                  -1.2e-05
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.789036,
+                  149.172497
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.7e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.7e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  192.000004,
+                  135.578072,
+                  6.827515
+                ],
+                "delta": [
+                  -3e-06,
+                  -0.0,
+                  1.8e-05
+                ],
+                "expected": [
+                  192.000007,
+                  135.578072,
+                  6.827497
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.8e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  60.000004,
+                  67.789009,
+                  156.0
+                ],
+                "delta": [
+                  2e-06,
+                  -2.7e-05,
+                  6e-06
+                ],
+                "expected": [
+                  60.000002,
+                  67.789036,
+                  155.999994
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.7e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -132.0,
+                  -67.789062,
+                  149.172485
+                ],
+                "delta": [
+                  5e-06,
+                  -2.7e-05,
+                  -1.2e-05
+                ],
+                "expected": [
+                  -132.000005,
+                  -67.789036,
+                  149.172497
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.7e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.7e-05
+          },
+          "triangles_actual": 136,
+          "triangles_expected": 136,
+          "vertices_actual": 118
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_ROOF_PANEL_v001"
+    },
+    "TAILGATE_PANEL": {
+      "lods": {
+        "LOD0": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.572815,
+                  139.996666,
+                  65.505508
+                ],
+                "delta": [
+                  1.5e-05,
+                  -0.0,
+                  2.1e-05
+                ],
+                "expected": [
+                  51.5728,
+                  139.996666,
+                  65.505487
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.418884,
+                  69.998322,
+                  115.497803
+                ],
+                "delta": [
+                  8e-06,
+                  -1.4e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.418892,
+                  69.998336,
+                  115.497792
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.991699,
+                  -69.998344,
+                  49.992294
+                ],
+                "delta": [
+                  -7e-06,
+                  -1.4e-05,
+                  -1.1e-05
+                ],
+                "expected": [
+                  -211.991692,
+                  -69.99833,
+                  49.992305
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.1e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.572815,
+                  139.996666,
+                  65.505508
+                ],
+                "delta": [
+                  1.5e-05,
+                  -0.0,
+                  2.1e-05
+                ],
+                "expected": [
+                  51.5728,
+                  139.996666,
+                  65.505487
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.418884,
+                  69.998322,
+                  115.497803
+                ],
+                "delta": [
+                  8e-06,
+                  -1.4e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.418892,
+                  69.998336,
+                  115.497792
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.991699,
+                  -69.998344,
+                  49.992294
+                ],
+                "delta": [
+                  -7e-06,
+                  -1.4e-05,
+                  -1.1e-05
+                ],
+                "expected": [
+                  -211.991692,
+                  -69.99833,
+                  49.992305
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.1e-05
+          },
+          "triangles_actual": 108,
+          "triangles_expected": 108,
+          "vertices_actual": 215
+        },
+        "LOD1": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.564667,
+                  139.996666,
+                  65.505508
+                ],
+                "delta": [
+                  -2e-06,
+                  -0.0,
+                  2.1e-05
+                ],
+                "expected": [
+                  51.564669,
+                  139.996666,
+                  65.505487
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.422974,
+                  69.998322,
+                  115.497803
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.4e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.422969,
+                  69.998336,
+                  115.497792
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.98764,
+                  -69.998344,
+                  49.992294
+                ],
+                "delta": [
+                  -2e-06,
+                  -1.4e-05,
+                  -1.1e-05
+                ],
+                "expected": [
+                  -211.987638,
+                  -69.99833,
+                  49.992305
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.1e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.564667,
+                  139.996666,
+                  65.505508
+                ],
+                "delta": [
+                  -2e-06,
+                  -0.0,
+                  2.1e-05
+                ],
+                "expected": [
+                  51.564669,
+                  139.996666,
+                  65.505487
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.1e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.422974,
+                  69.998322,
+                  115.497803
+                ],
+                "delta": [
+                  -5e-06,
+                  -1.4e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.422969,
+                  69.998336,
+                  115.497792
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.98764,
+                  -69.998344,
+                  49.992294
+                ],
+                "delta": [
+                  -2e-06,
+                  -1.4e-05,
+                  -1.1e-05
+                ],
+                "expected": [
+                  -211.987638,
+                  -69.99833,
+                  49.992305
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.1e-05
+          },
+          "triangles_actual": 44,
+          "triangles_expected": 44,
+          "vertices_actual": 96
+        },
+        "LOD2": {
+          "render_data": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.589371,
+                  139.997017,
+                  65.509918
+                ],
+                "delta": [
+                  -1.1e-05,
+                  -1e-06,
+                  2.4e-05
+                ],
+                "expected": [
+                  51.589382,
+                  139.997018,
+                  65.509894
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.410614,
+                  69.998497,
+                  115.500008
+                ],
+                "delta": [
+                  -7e-06,
+                  -1.2e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.410607,
+                  69.998509,
+                  115.499997
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.999985,
+                  -69.99852,
+                  49.990089
+                ],
+                "delta": [
+                  4e-06,
+                  -1.1e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  -211.999989,
+                  -69.998509,
+                  49.990103
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "source_model": {
+            "fields": {
+              "dimensions_cm": {
+                "actual": [
+                  51.589371,
+                  139.997017,
+                  65.509918
+                ],
+                "delta": [
+                  -1.1e-05,
+                  -1e-06,
+                  2.4e-05
+                ],
+                "expected": [
+                  51.589382,
+                  139.997018,
+                  65.509894
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 2.4e-05
+              },
+              "maximum_cm": {
+                "actual": [
+                  -160.410614,
+                  69.998497,
+                  115.500008
+                ],
+                "delta": [
+                  -7e-06,
+                  -1.2e-05,
+                  1.1e-05
+                ],
+                "expected": [
+                  -160.410607,
+                  69.998509,
+                  115.499997
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.2e-05
+              },
+              "minimum_cm": {
+                "actual": [
+                  -211.999985,
+                  -69.99852,
+                  49.990089
+                ],
+                "delta": [
+                  4e-06,
+                  -1.1e-05,
+                  -1.4e-05
+                ],
+                "expected": [
+                  -211.999989,
+                  -69.998509,
+                  49.990103
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 1.4e-05
+              },
+              "pivot_cm": {
+                "actual": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "delta": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "expected": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "within_tolerance": true,
+                "worst_abs_delta": 0.0
+              }
+            },
+            "within_tolerance": true,
+            "worst_abs_delta": 2.4e-05
+          },
+          "triangles_actual": 12,
+          "triangles_expected": 12,
+          "vertices_actual": 24
+        }
+      },
+      "num_lods": 3,
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_TAILGATE_PANEL_v001"
+    }
+  },
+  "process_id": 26480,
+  "read_only": true,
+  "status": "DRIFT_DETECTED",
+  "summary": [
+    "FAIL DOOR_FRONT_LEFT:LOD0 worst_delta=179.911163cm",
+    "FAIL DOOR_FRONT_LEFT:LOD1 worst_delta=179.911163cm",
+    "FAIL DOOR_FRONT_LEFT:LOD2 worst_delta=179.906163cm",
+    "FAIL DOOR_FRONT_RIGHT:LOD0 worst_delta=179.911183cm",
+    "FAIL DOOR_FRONT_RIGHT:LOD1 worst_delta=179.911183cm",
+    "FAIL DOOR_FRONT_RIGHT:LOD2 worst_delta=179.906191cm",
+    "FAIL DOOR_REAR_LEFT:LOD0 worst_delta=179.911361cm",
+    "FAIL DOOR_REAR_LEFT:LOD1 worst_delta=179.911361cm",
+    "FAIL DOOR_REAR_LEFT:LOD2 worst_delta=179.906163cm",
+    "FAIL DOOR_REAR_RIGHT:LOD0 worst_delta=179.911385cm",
+    "FAIL DOOR_REAR_RIGHT:LOD1 worst_delta=179.911385cm",
+    "FAIL DOOR_REAR_RIGHT:LOD2 worst_delta=179.906191cm",
+    "FAIL FENDER_FRONT_LEFT:LOD0 worst_delta=165.920959cm",
+    "FAIL FENDER_FRONT_LEFT:LOD1 worst_delta=165.925853cm",
+    "FAIL FENDER_FRONT_LEFT:LOD2 worst_delta=165.908460cm",
+    "FAIL FENDER_FRONT_RIGHT:LOD0 worst_delta=165.920982cm",
+    "FAIL FENDER_FRONT_RIGHT:LOD1 worst_delta=165.925869cm",
+    "FAIL FENDER_FRONT_RIGHT:LOD2 worst_delta=165.908478cm",
+    "OK   HOOD_PANEL:LOD0 worst_delta=0.000018cm",
+    "OK   HOOD_PANEL:LOD1 worst_delta=0.000018cm",
+    "OK   HOOD_PANEL:LOD2 worst_delta=0.000016cm",
+    "FAIL QUARTER_PANEL_LEFT:LOD0 worst_delta=165.917620cm",
+    "FAIL QUARTER_PANEL_LEFT:LOD1 worst_delta=165.918407cm",
+    "FAIL QUARTER_PANEL_LEFT:LOD2 worst_delta=165.908460cm",
+    "FAIL QUARTER_PANEL_RIGHT:LOD0 worst_delta=165.917636cm",
+    "FAIL QUARTER_PANEL_RIGHT:LOD1 worst_delta=165.918429cm",
+    "FAIL QUARTER_PANEL_RIGHT:LOD2 worst_delta=165.908478cm",
+    "OK   ROOF_PANEL:LOD0 worst_delta=0.000024cm",
+    "OK   ROOF_PANEL:LOD1 worst_delta=0.000024cm",
+    "OK   ROOF_PANEL:LOD2 worst_delta=0.000027cm",
+    "OK   TAILGATE_PANEL:LOD0 worst_delta=0.000021cm",
+    "OK   TAILGATE_PANEL:LOD1 worst_delta=0.000021cm",
+    "OK   TAILGATE_PANEL:LOD2 worst_delta=0.000024cm"
+  ],
+  "total_checked": 33,
+  "writes_inside_project": false
+}

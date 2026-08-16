@@ -276,6 +276,31 @@ def vector(value, field: str) -> list[float]:
     return answer
 
 
+def unreal_space_bounds(minimum: list[float], maximum: list[float]) -> dict:
+    """Convert exporter-space bounds into the bounds Unreal will actually report.
+
+    The panel FBX/GLB exports are authored in a right-handed scene. Unreal
+    imports them with ``convert_scene`` enabled, which converts that scene into
+    Unreal's left-handed Z-up space by negating the Y axis. X and Z are carried
+    through unchanged.
+
+    Negating an interval reverses it, so the Unreal Y minimum is derived from the
+    exporter Y *maximum* and vice versa. Extent is unaffected, which is why the
+    three centreline panels (hood, roof, tailgate) agree in both spaces: their Y
+    bounds are symmetric about the car datum, so the negation is invisible. The
+    eight left/right panels are offset in Y and do not survive the omission.
+
+    Recording raw exporter bounds under the name ``expected_unreal_bounds`` made
+    all 24 side-panel LOD checks fail against correctly imported geometry.
+    """
+    return {
+        "minimum_cm": [minimum[0], round(-maximum[1], 6), minimum[2]],
+        "maximum_cm": [maximum[0], round(-minimum[1], 6), maximum[2]],
+        "dimensions_cm": [round(maximum[i] - minimum[i], 6) for i in range(3)],
+        "pivot_cm": [0.0, 0.0, 0.0],
+    }
+
+
 def json_object(path: Path, label: str) -> dict:
     return strict_json_file(path, label)
 
@@ -712,6 +737,7 @@ def normalise_lod(panel_id: str, expected_index: int, value: dict) -> dict:
         raise ContractError(
             f"{panel_id}:LOD{expected_index} triangle/vertex/one-UV/closed-clean-topology gate failed"
         )
+    # Exporter-space bounds. These are NOT Unreal-space; see unreal_space_bounds.
     minimum = vector(value.get("bounds_min_cm"), f"{panel_id}:LOD{expected_index}:bounds_min_cm")
     maximum = vector(value.get("bounds_max_cm"), f"{panel_id}:LOD{expected_index}:bounds_max_cm")
     pivot = vector(value.get("pivot_cm"), f"{panel_id}:LOD{expected_index}:pivot_cm")
@@ -796,12 +822,7 @@ def normalise_lod(panel_id: str, expected_index: int, value: dict) -> dict:
         "nonmanifold_edges": 0,
         "self_intersection_pairs": 0,
         "material_slots": [SEMANTIC_SLOT],
-        "expected_unreal_bounds": {
-            "minimum_cm": minimum,
-            "maximum_cm": maximum,
-            "dimensions_cm": [round(maximum[i] - minimum[i], 6) for i in range(3)],
-            "pivot_cm": [0.0, 0.0, 0.0],
-        },
+        "expected_unreal_bounds": unreal_space_bounds(minimum, maximum),
         "roundtrip": checked_roundtrip,
         "source_face_provenance": provenance,
     }
