@@ -56,6 +56,12 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_Stillage"),
           TEXT("/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
                "/SM_LB_PanelStillage_Runtime_v001"), 190.0 },
+        { TEXT("Dress_Lorry"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
+               "/Inbound/SM_CA_MW_InboundLorry_Approved_v006"), 800.0 },
+        { TEXT("Dress_Destacker"),
+          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v012"
+               "/PressTrains/SM_CA_MW_S01_Destack_Approved_v006"), 400.0 },
     };
 }
 
@@ -295,6 +301,13 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             else if (Step.StationId == InboundStation
                 || Step.StationId == CoilStoreStation)
             {
+                // The delivery lorry stands at receiving, outboard of the
+                // coil row - the visible start of the inbound journey.
+                if (Step.StationId == InboundStation)
+                {
+                    Place(ELBOneFactoryDressingKind::Lorry,
+                        At - Across * 650.0, Facing);
+                }
                 // A row of stored coils across the station, each on its stand.
                 const int32 Coils =
                     Step.StationId == CoilStoreStation ? 3 : 2;
@@ -317,17 +330,56 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 Place(ELBOneFactoryDressingKind::Stillage,
                     At - Across * 150.0 + FVector(0.0, 0.0, 58.0), Facing);
             }
-            // Blank prep, buffer and inspection sit inside the train's span:
-            // no extra machine geometry, or it would interpenetrate the train.
+            else
+            {
+                // Blank preparation gets the approved S01 destacker if the
+                // station stands clear of the train's measured footprint
+                // (x within +-680, y within +-2885 of the anchored datum);
+                // buffer and inspection inside the span stay clear.
+                static const FName BlankPrepStation(
+                    TEXT("OF_PRESS_BLANK_PREP_001"));
+                if (Step.StationId == BlankPrepStation)
+                {
+                    const FLBOneFactoryRuntimeStationStep* Train = nullptr;
+                    for (const FLBOneFactoryRuntimeStationStep& Other : Route)
+                    {
+                        if (Other.StationId == PressTrainStation)
+                        {
+                            Train = &Other;
+                            break;
+                        }
+                    }
+                    bool bClearOfTrain = true;
+                    if (Train)
+                    {
+                        const FVector TrainCentre =
+                            Train->WorldTransform.GetLocation()
+                            + Train->WorldTransform.GetRotation().RotateVector(
+                                FVector(9.25, 2367.5, 0.0));
+                        const FVector Delta = At - TrainCentre;
+                        bClearOfTrain = FMath::Abs(Delta.X) > 900.0
+                            || FMath::Abs(Delta.Y) > 3100.0;
+                    }
+                    if (bClearOfTrain)
+                    {
+                        // The approved destacker mesh is authored at roughly
+                        // one hundred times its real size - 958 x 1080 x 615
+                        // METRES at scale 1, measured in the editor - so it
+                        // stands here at 0.01: a 9.6 x 10.8 x 6.2 m cell.
+                        Place(ELBOneFactoryDressingKind::Destacker,
+                            At + Across * 320.0, FacingOut, 0.01);
+                    }
+                }
+            }
             break;
         }
 
         case ELBOneFactoryDepartment::Body:
-            // Mirrored six-axis pairs, which is how a real body shop works.
-            Place(ELBOneFactoryDressingKind::Robot,
-                At + Across * (CellHalf * 0.80), FacingOut, Fit);
-            Place(ELBOneFactoryDressingKind::Robot,
-                At - Across * (CellHalf * 0.80), FacingIn, Fit);
+            // Deliberately no machines here. The frozen weld starter
+            // presentation already renders the real native robots - 36
+            // seven-link arms and 16 C-guns from BodyShopRobotNative_v001 -
+            // under its exact 469-instance contract. Pack robots on top were
+            // duplicates of a presentation that is already release content.
             break;
 
         case ELBOneFactoryDepartment::Paint:

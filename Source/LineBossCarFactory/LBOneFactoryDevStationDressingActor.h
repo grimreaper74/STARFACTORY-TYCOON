@@ -44,6 +44,10 @@ enum class ELBOneFactoryDressingKind : uint8
     CoilStand,
     /** Panel stillage, staged at the press dispatch position. */
     Stillage,
+    /** Inbound lorry, delivering coils at press receiving. */
+    Lorry,
+    /** S01 destacker, standing at blank preparation. */
+    Destacker,
     Count
 };
 
