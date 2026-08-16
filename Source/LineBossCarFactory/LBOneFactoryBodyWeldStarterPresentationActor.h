@@ -12,8 +12,8 @@ class USceneComponent;
 class UStaticMesh;
 
 /**
- * Twenty native-authored mesh bindings and four Engine-cube semantic batches.
- * Every enum value maps to one immutable HISM component.
+ * Twenty-three native-authored mesh bindings and three Engine-cube semantic
+ * batches. Every enum value maps to one immutable HISM component.
  */
 UENUM(BlueprintType)
 enum class ELBOneFactoryBodyWeldPresentationBatch : uint8
@@ -26,6 +26,7 @@ enum class ELBOneFactoryBodyWeldPresentationBatch : uint8
     RobotJ5,
     RobotJ6,
     RobotOpenCGun,
+    RobotPanelPickTool,
     ComponentServicePallet,
     ElectricalCabinet,
     EmptyReturnCart,
@@ -38,7 +39,8 @@ enum class ELBOneFactoryBodyWeldPresentationBatch : uint8
     SmallPartsBinOpen,
     SmallPartsCrateOpen,
     UtilityPedestal,
-    ProgrammeFixtureCube,
+    ProgrammeFixtureFraming,
+    ProgrammeFixtureUnderbody,
     FloorRouteCube,
     RobotRoleCube,
     StatusCube,
@@ -184,8 +186,17 @@ public:
         const FLBOneFactoryBodyWeldLayoutState& Layout,
         ELBOneFactoryBodyWeldPresentationBatch Batch);
 
-    /** 24 ordered mesh bindings plus one semantic material binding. */
+    /** 26 ordered mesh bindings plus one semantic material binding. */
     static TArray<FSoftObjectPath> GetRequiredNativeAssetPaths();
+
+    /**
+     * The frozen PROCESS-phase contact pose for a robot side and target
+     * index, exactly as validated by the native pack's
+     * Audit/contact_fk_validation_v001.json (18/18 contact passes).
+     */
+    static bool GetContactProcessPoseJointAngles(
+        ELBOneFactoryBodyWeldRobotSide Side, int32 TargetIndex,
+        TArray<float>& OutDegrees);
 
     /** Exact native-code class and NativeOnly asset allowlist validation seam. */
     static bool ValidateNativePresentationReferences(

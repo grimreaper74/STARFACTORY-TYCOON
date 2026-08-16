@@ -254,6 +254,18 @@ bool FLBOneFactorySaveTransactionalRollbackTest::RunTest(
         Fixture.BodyPresentation->GetConfiguredLayoutRevision(),
         FirstCommit.BodyWeldLayout.Revision);
 
+    // A hidden Body/Weld presentation counts every instance yet renders
+    // nothing: the capture preflight must fail closed on it.
+    Fixture.BodyPresentation->SetActorHiddenInGame(true);
+    FLBOneFactorySaveState HiddenCapture;
+    TestFalse(TEXT("Capture rejects a hidden Body/Weld presentation"),
+        Fixture.SaveSubsystem->CaptureCurrentFactory(HiddenCapture, Reason));
+    Fixture.BodyPresentation->SetActorHiddenInGame(false);
+    FLBOneFactorySaveState UnhiddenCapture;
+    TestTrue(TEXT("Capture succeeds once the presentation is visible again"),
+        Fixture.SaveSubsystem->CaptureCurrentFactory(
+            UnhiddenCapture, Reason));
+
     FLBOneFactorySaveState InvalidPreflight = FirstCommit;
     InvalidPreflight.SchemaVersion = 99;
     TestFalse(TEXT("Invalid incoming schema rejects before live mutation"),

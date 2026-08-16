@@ -267,6 +267,9 @@ namespace LBOneFactorySaveSubsystemPrivate
             return false;
         }
         if (!Actors.BodyPresentation->IsPresentationConfigured()
+            // Fail closed: a hidden presentation renders nothing yet counts
+            // every instance.
+            || Actors.BodyPresentation->IsHidden()
             || Actors.BodyPresentation->GetConfiguredLayoutId()
                 != State.BodyWeldLayout.LayoutId
             || Actors.BodyPresentation->GetConfiguredLayoutRevision()

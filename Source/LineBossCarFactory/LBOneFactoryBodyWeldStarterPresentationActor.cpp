@@ -13,8 +13,26 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
 {
     constexpr int32 ExpectedBatchCount = static_cast<int32>(
         ELBOneFactoryBodyWeldPresentationBatch::BatchCount);
-    constexpr int32 CanonicalInstanceCount = 469;
+    constexpr int32 CanonicalInstanceCount = 489;
     constexpr float TransformTolerance = 0.01f;
+
+    /**
+     * The frozen PROCESS-phase contact poses (LEFT side) from the native
+     * pack's own FK validation:
+     * SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/
+     * contact_fk_validation_v001.json (18/18 contact passes, max distance
+     * 10.0 cm, min direction dot 0.99999998). The RIGHT side is the exact
+     * mirror: J1, J4 and J6 negate.
+     */
+    constexpr float ContactProcessPoseDegrees[3][6] =
+    {
+        { 91.240831f, -24.935079f, 15.949661f, -8.509025f, 87.252369f,
+          35.774566f },
+        { 55.0f, -55.947736f, 70.469811f, 0.000001f, 61.000413f,
+          -0.000005f },
+        { 18.759169f, -24.935079f, 15.949661f, 8.509027f, 87.25237f,
+          -35.774574f },
+    };
 
     const TCHAR* BatchComponentNames[ExpectedBatchCount] =
     {
@@ -26,6 +44,7 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("RobotJ5Batch"),
         TEXT("RobotJ6Batch"),
         TEXT("RobotOpenCGunBatch"),
+        TEXT("RobotPanelPickToolBatch"),
         TEXT("ComponentServicePalletBatch"),
         TEXT("ElectricalCabinetBatch"),
         TEXT("EmptyReturnCartBatch"),
@@ -38,7 +57,8 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("SmallPartsBinOpenBatch"),
         TEXT("SmallPartsCrateOpenBatch"),
         TEXT("UtilityPedestalBatch"),
-        TEXT("ProgrammeFixtureCubeBatch"),
+        TEXT("ProgrammeFixtureFramingBatch"),
+        TEXT("ProgrammeFixtureUnderbodyBatch"),
         TEXT("FloorRouteCubeBatch"),
         TEXT("RobotRoleCubeBatch"),
         TEXT("StatusCubeBatch")
@@ -54,6 +74,7 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.SM_LB_BodyShopRobotNative_J5_v001"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.SM_LB_BodyShopRobotNative_J6_v001"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.SM_LB_BodyShopTool_PanelPick8Cup_v001"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_ComponentServicePallet_v002.SM_LB_BodyShopSupport_ComponentServicePallet_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Controls/SM_LB_BodyShopSupport_ElectricalCabinet_v002.SM_LB_BodyShopSupport_ElectricalCabinet_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_EmptyReturnCart_v002.SM_LB_BodyShopSupport_EmptyReturnCart_v002"),
@@ -66,7 +87,8 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_SmallPartsBin_Open_v002.SM_LB_BodyShopSupport_SmallPartsBin_Open_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Logistics/SM_LB_BodyShopSupport_SmallPartsCrate_Open_v002.SM_LB_BodyShopSupport_SmallPartsCrate_Open_v002"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/Services/SM_LB_BodyShopSupport_UtilityPedestal_v002.SM_LB_BodyShopSupport_UtilityPedestal_v002"),
-        TEXT("/Engine/BasicShapes/Cube.Cube"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001/Fixture/SM_LB_BodyWeld_FramingFixture_v001.SM_LB_BodyWeld_FramingFixture_v001"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Fixture/SM_LB_BodyShop_UnderbodyFixture_v001.SM_LB_BodyShop_UnderbodyFixture_v001"),
         TEXT("/Engine/BasicShapes/Cube.Cube"),
         TEXT("/Engine/BasicShapes/Cube.Cube"),
         TEXT("/Engine/BasicShapes/Cube.Cube")
@@ -117,6 +139,17 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
         using R = ELBOneFactoryBodyWeldRobotRole;
         return RobotRole == R::SpotWelding || RobotRole == R::StudWelding
             || RobotRole == R::ReworkWelding;
+    }
+
+    ELBOneFactoryBodyWeldPresentationBatch FixtureBatchForProgramme(
+        const ELBOneFactoryBodyWeldProgramme Programme)
+    {
+        using P = ELBOneFactoryBodyWeldProgramme;
+        return (Programme == P::FrontUnderbodyGeometry
+                || Programme == P::RearUnderbodyGeometry
+                || Programme == P::UnderbodyFramingAndRespot)
+            ? ELBOneFactoryBodyWeldPresentationBatch::ProgrammeFixtureUnderbody
+            : ELBOneFactoryBodyWeldPresentationBatch::ProgrammeFixtureFraming;
     }
 
     bool PositionIn(const int32 Position,
@@ -174,9 +207,12 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
             ELBOneFactoryBodyWeldRobotSide::Left;
         const TCHAR* SideToken = bLeft ? TEXT("LEFT") : TEXT("RIGHT");
         const float SideSign = bLeft ? -1.0f : 1.0f;
+        // v002: the pack's own contact FK validation mounts the pair at
+        // fixture-local Y = +-300 with yaw +-35 - the v001 stand-off of
+        // 1240 put ~10.7 m of floor between a ~3 m arm and its work.
         const FTransform RobotLocal(FRotator(0.0f,
-                bLeft ? 90.0f : -90.0f, 0.0f),
-            FVector(0.0f, SideSign * 1240.0f, 0.0f), FVector::OneVector);
+                bLeft ? 35.0f : -35.0f, 0.0f),
+            FVector(0.0f, SideSign * 300.0f, 0.0f), FVector::OneVector);
         const FTransform RobotRoot = RobotLocal * Station.WorldTransform;
 
         AddItem(Items,
@@ -188,15 +224,20 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
             ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
             true, RobotSide, RobotRole);
 
-        const float JointAngles[6] =
+        // v002: the frozen PROCESS-phase contact pose for this station's
+        // target, mirrored for the right side by negating J1/J4/J6.
+        const int32 TargetIndex = Station.LinePosition % 3;
+        float JointAngles[6];
+        for (int32 JointIndex = 0; JointIndex < 6; ++JointIndex)
         {
-            SideSign * (18.0f + (Station.LinePosition % 3) * 4.0f),
-            -24.0f,
-            54.0f,
-            SideSign * 8.0f,
-            68.0f,
-            SideSign * -12.0f
-        };
+            float Degrees = ContactProcessPoseDegrees[TargetIndex][JointIndex];
+            if (!bLeft
+                && (JointIndex == 0 || JointIndex == 3 || JointIndex == 5))
+            {
+                Degrees = -Degrees;
+            }
+            JointAngles[JointIndex] = Degrees;
+        }
         FTransform CurrentTransform = RobotRoot;
         for (int32 JointIndex = 0; JointIndex < 6; ++JointIndex)
         {
@@ -225,6 +266,8 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
                 ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
                 true, RobotSide, RobotRole);
         }
+        // v002: every robot carries a visible tool - welding roles the open
+        // C-gun, every other role the native eight-cup panel-pick.
         if (RobotRoleUsesCGun(RobotRole))
         {
             AddItem(Items,
@@ -232,6 +275,17 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
                     *FString::Printf(TEXT("ROBOT_%s_CGUN"), SideToken))),
                 Station.StationId, Station.LinePosition,
                 ELBOneFactoryBodyWeldPresentationBatch::RobotOpenCGun,
+                CurrentTransform, false,
+                ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
+                true, RobotSide, RobotRole);
+        }
+        else
+        {
+            AddItem(Items,
+                FName(*MakePresentationId(Station.StationId,
+                    *FString::Printf(TEXT("ROBOT_%s_TOOL"), SideToken))),
+                Station.StationId, Station.LinePosition,
+                ELBOneFactoryBodyWeldPresentationBatch::RobotPanelPickTool,
                 CurrentTransform, false,
                 ELBOneFactoryBodyWeldProgramme::PressedPanelReceive,
                 true, RobotSide, RobotRole);
@@ -305,9 +359,10 @@ ALBOneFactoryBodyWeldStarterPresentationActor::
                 FName(BatchComponentNames[Index]));
         Batch->SetupAttachment(SceneRoot);
         ConfigureVisualBatch(Batch);
+        // Only the three semantic Engine-cube batches skip shadows; the
+        // authored fixtures cast like every other machine.
         if (Index >= static_cast<int32>(
-                ELBOneFactoryBodyWeldPresentationBatch::
-                    ProgrammeFixtureCube))
+                ELBOneFactoryBodyWeldPresentationBatch::FloorRouteCube))
         {
             Batch->SetCastShadow(false);
         }
@@ -415,7 +470,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
         || Batches.Contains(nullptr))
     {
         OutReason = TEXT(
-            "BODY/WELD PRESENTATION COULD NOT RESOLVE ALL 20 NATIVE MESHES, FOUR ENGINE BINDINGS AND MATERIAL");
+            "BODY/WELD PRESENTATION COULD NOT RESOLVE ALL 23 NATIVE MESHES, THREE ENGINE BINDINGS AND MATERIAL");
         ClearPresentation();
         return false;
     }
@@ -424,9 +479,10 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
         Batches[Index]->SetStaticMesh(ResolvedMeshes[Index]);
     }
 
+    // v002: the authored fixtures keep their own materials; only the three
+    // semantic cube batches take tinted materials.
     const FLinearColor SemanticColours[] =
     {
-        FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("275D55"))),
         FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("D79F2B"))),
         FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("50C9C3"))),
         FLinearColor::FromSRGBColor(FColor::FromHex(
@@ -440,7 +496,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
         if (!Material)
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION COULD NOT CREATE ALL FOUR SEMANTIC MATERIALS");
+                "BODY/WELD PRESENTATION COULD NOT CREATE ALL THREE SEMANTIC MATERIALS");
             ClearPresentation();
             return false;
         }
@@ -449,7 +505,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
         Material->SetVectorParameterValue(TEXT("BaseColor"),
             SemanticColours[SemanticIndex]);
         const int32 BatchIndex = static_cast<int32>(
-            ELBOneFactoryBodyWeldPresentationBatch::ProgrammeFixtureCube)
+            ELBOneFactoryBodyWeldPresentationBatch::FloorRouteCube)
             + SemanticIndex;
         Batches[BatchIndex]->SetMaterial(0, Material);
         SemanticMaterials.Add(Material);
@@ -490,7 +546,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::ConfigureFromLayout(
     bPresentationConfigured = true;
     SetActorHiddenInGame(false);
     OutReason = FString::Printf(TEXT(
-        "NATIVE BODY/WELD PRESENTATION ACTIVE: 24 BATCHES, %d INSTANCES, 18 POSITIONS, 36 LARGE ROBOTS, WIP 0"),
+        "NATIVE BODY/WELD PRESENTATION ACTIVE: 26 BATCHES, %d INSTANCES, 18 POSITIONS, 36 LARGE ROBOTS, WIP 0"),
         CandidateItems.Num());
     return true;
 }
@@ -601,18 +657,20 @@ int32 ALBOneFactoryBodyWeldStarterPresentationActor::
 {
     using B = ELBOneFactoryBodyWeldPresentationBatch;
     if (Batch >= B::RobotBase && Batch <= B::RobotJ6) return 36;
-    if (Batch == B::RobotOpenCGun)
+    if (Batch == B::RobotOpenCGun || Batch == B::RobotPanelPickTool)
     {
-        int32 Count = 0;
+        int32 CGunCount = 0;
         for (const FLBOneFactoryBodyWeldStationState& Station :
             Layout.Stations)
         {
             if (LBOneFactoryBodyWeldPresentationPrivate::RobotRoleUsesCGun(
-                    Station.LeftRobotRole)) ++Count;
+                    Station.LeftRobotRole)) ++CGunCount;
             if (LBOneFactoryBodyWeldPresentationPrivate::RobotRoleUsesCGun(
-                    Station.RightRobotRole)) ++Count;
+                    Station.RightRobotRole)) ++CGunCount;
         }
-        return Count;
+        // v002: every robot carries exactly one tool, so the two batches
+        // always partition the 36 arms.
+        return Batch == B::RobotOpenCGun ? CGunCount : 36 - CGunCount;
     }
     switch (Batch)
     {
@@ -628,7 +686,10 @@ int32 ALBOneFactoryBodyWeldStarterPresentationActor::
     case B::SmallPartsBinOpen: return 7;
     case B::SmallPartsCrateOpen: return 5;
     case B::UtilityPedestal: return 15;
-    case B::ProgrammeFixtureCube: return 18;
+    // The 18 programmes appear exactly once each (ValidateStarterLayout),
+    // and exactly three are underbody programmes.
+    case B::ProgrammeFixtureFraming: return 15;
+    case B::ProgrammeFixtureUnderbody: return 3;
     case B::FloorRouteCube: return 17;
     case B::RobotRoleCube: return 36;
     case B::StatusCube: return 18;
@@ -674,26 +735,35 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
     if (AssetPaths.Num() != Expected.Num())
     {
         OutReason = TEXT(
-            "BODY/WELD PRESENTATION REQUIRES 24 ORDERED MESH BINDINGS AND ONE MATERIAL");
+            "BODY/WELD PRESENTATION REQUIRES 26 ORDERED MESH BINDINGS AND ONE MATERIAL");
         return false;
     }
+    // v002 deliberately unlocks two roots that v001 forbade: the
+    // BodyShopUnderbodySlice_v001 pack (clean native Blender source, frozen
+    // roundtrip PASS) and the BodyWeldLine/Runtime_v001 fixture (clean-room
+    // derivative with an Unreal promotion receipt). WeldRobotRuntime is
+    // newly forbidden: its tool meshes derive from the Meshy SpotRobot
+    // intake and must never drift into this NativeOnly contract.
     static const TCHAR* ForbiddenTokens[] =
     {
         TEXT("Meshy"), TEXT("RuntimeGLB"), TEXT("ExternalGenerated"),
         TEXT("OriginalHighPoly"), TEXT("/Downloads/"),
-        TEXT("/Developer/Validation/"), TEXT("BodyShopUnderbodySlice"),
-        TEXT("BodyWeldLine/Runtime")
+        TEXT("/Developer/Validation/"), TEXT("Robots/WeldRobotRuntime")
     };
     const FString RobotRoot = TEXT(
         "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/");
     const FString SupportRoot = TEXT(
         "/Game/LineBoss/Candidates/WeldShop/BodyShopSupportKitNative_v002/");
+    const FString SliceRoot = TEXT(
+        "/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/");
+    const FString FixtureRoot = TEXT(
+        "/Game/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001/");
     for (int32 Index = 0; Index < Expected.Num(); ++Index)
     {
         if (AssetPaths[Index].IsNull() || AssetPaths[Index] != Expected[Index])
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION ASSET LIST OR ORDER DRIFTED FROM V001");
+                "BODY/WELD PRESENTATION ASSET LIST OR ORDER DRIFTED FROM V002");
             return false;
         }
         const FString Reference = AssetPaths[Index].ToString();
@@ -706,12 +776,22 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
                 return false;
             }
         }
+        // v002 index windows: 0-7 robot kit, 8 slice tool, 9-20 support
+        // kit, 21 framing fixture, 22 slice fixture, 23-25 engine cubes.
         const bool bRobot = Index < 8;
-        const bool bSupport = Index >= 8 && Index < 20;
-        const bool bEngine = Index >= 20;
+        const bool bSliceTool = Index == 8;
+        const bool bSupport = Index >= 9 && Index < 21;
+        const bool bFraming = Index == 21;
+        const bool bSliceFixture = Index == 22;
+        const bool bEngine = Index >= 23;
         if ((bRobot && !Reference.StartsWith(RobotRoot,
                 ESearchCase::CaseSensitive))
+            || ((bSliceTool || bSliceFixture)
+                && !Reference.StartsWith(SliceRoot,
+                    ESearchCase::CaseSensitive))
             || (bSupport && !Reference.StartsWith(SupportRoot,
+                ESearchCase::CaseSensitive))
+            || (bFraming && !Reference.StartsWith(FixtureRoot,
                 ESearchCase::CaseSensitive))
             || (bEngine && !Reference.StartsWith(
                 TEXT("/Engine/BasicShapes/"),
@@ -732,7 +812,7 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
         }
     }
     OutReason = TEXT(
-        "BODY/WELD PRESENTATION CLASS, ROBOT KIT, SUPPORT KIT AND ENGINE REFERENCES ARE NATIVE-ONLY");
+        "BODY/WELD PRESENTATION CLASS, ROBOT KIT, SLICE KIT, FIXTURES, SUPPORT KIT AND ENGINE REFERENCES ARE NATIVE-ONLY");
     return true;
 }
 
@@ -775,16 +855,17 @@ ALBOneFactoryBodyWeldStarterPresentationActor::
                 (static_cast<float>(ProgrammeIndex)
                     - (static_cast<float>(Programmes.Num()) - 1.0f) * 0.5f)
                 * 360.0f;
+            // v002: the authored fixtures replace the flat cube slab. Both
+            // fixture meshes carry station-centre-at-floor pivots, so the
+            // z-lift and cube scaling are gone.
             const FTransform FixtureLocal(FRotator::ZeroRotator,
-                FVector(OffsetX, 0.0f, 28.0f),
-                FVector(10.0f, 3.4f, 0.28f));
+                FVector(OffsetX, 0.0f, 0.0f), FVector::OneVector);
             AddItem(Items,
                 FName(*MakePresentationId(Station->StationId,
                     *FString::Printf(TEXT("PROGRAMME_%02d"),
                         static_cast<int32>(Programme) + 1))),
                 Station->StationId, Station->LinePosition,
-                ELBOneFactoryBodyWeldPresentationBatch::
-                    ProgrammeFixtureCube,
+                FixtureBatchForProgramme(Programme),
                 FixtureLocal * Station->WorldTransform,
                 true, Programme);
         }
@@ -958,15 +1039,14 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
         if (!SameItem(Item, Expected[Index]))
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION INVENTORY OR TRANSFORM DRIFTED FROM V001");
+                "BODY/WELD PRESENTATION INVENTORY OR TRANSFORM DRIFTED FROM V002");
             return false;
         }
         if (Item.bProgrammeFixture)
         {
             if (!Station->AssignedProgrammes.Contains(Item.Programme)
                 || PresentedProgrammes.Contains(Item.Programme)
-                || Item.Batch != ELBOneFactoryBodyWeldPresentationBatch::
-                    ProgrammeFixtureCube)
+                || Item.Batch != FixtureBatchForProgramme(Item.Programme))
             {
                 OutReason = TEXT(
                     "BODY/WELD PROGRAMME FIXTURE IS DUPLICATED, MISASSIGNED OR USES THE WRONG BATCH");
@@ -1013,13 +1093,38 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
             != GetExpectedInstanceCountForBatch(Layout, Batch))
         {
             OutReason = TEXT(
-                "BODY/WELD PRESENTATION BATCH COUNTS DRIFTED FROM V001");
+                "BODY/WELD PRESENTATION BATCH COUNTS DRIFTED FROM V002");
             return false;
         }
     }
     OutReason = FString::Printf(TEXT(
-        "BODY/WELD PRESENTATION CONTRACT VALID: 24 BATCHES, %d INSTANCES, 18 POSITIONS, 17 ROUTES, 36 LARGE ROBOTS, WIP 0"),
+        "BODY/WELD PRESENTATION CONTRACT VALID: 26 BATCHES, %d INSTANCES, 18 POSITIONS, 17 ROUTES, 36 LARGE ROBOTS, WIP 0"),
         ExpectedCount);
+    return true;
+}
+
+bool ALBOneFactoryBodyWeldStarterPresentationActor::
+    GetContactProcessPoseJointAngles(
+        const ELBOneFactoryBodyWeldRobotSide Side, const int32 TargetIndex,
+        TArray<float>& OutDegrees)
+{
+    using namespace LBOneFactoryBodyWeldPresentationPrivate;
+    if (TargetIndex < 0 || TargetIndex > 2)
+    {
+        return false;
+    }
+    OutDegrees.Reset(6);
+    const bool bLeft = Side == ELBOneFactoryBodyWeldRobotSide::Left;
+    for (int32 JointIndex = 0; JointIndex < 6; ++JointIndex)
+    {
+        float Degrees = ContactProcessPoseDegrees[TargetIndex][JointIndex];
+        if (!bLeft
+            && (JointIndex == 0 || JointIndex == 3 || JointIndex == 5))
+        {
+            Degrees = -Degrees;
+        }
+        OutDegrees.Add(Degrees);
+    }
     return true;
 }
 
@@ -1032,5 +1137,5 @@ const TCHAR* ALBOneFactoryBodyWeldStarterPresentationActor::
 
 FName ALBOneFactoryBodyWeldStarterPresentationActor::GetPresentationTag()
 {
-    return TEXT("LB.OneFactory.BodyWeldStarter.Presentation.v001");
+    return TEXT("LB.OneFactory.BodyWeldStarter.Presentation.v002");
 }

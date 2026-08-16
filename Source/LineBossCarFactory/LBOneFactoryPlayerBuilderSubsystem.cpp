@@ -772,6 +772,9 @@ bool ULBOneFactoryPlayerBuilderSubsystem::ValidateBodyWeldStarterPair(
         return false;
     }
     if (!Presentation.IsPresentationConfigured()
+        // Fail closed on visibility: a configured-but-hidden presentation
+        // would pass every count check while the shop renders nothing.
+        || Presentation.IsHidden()
         || Presentation.GetConfiguredLayoutId() != State.LayoutId
         || Presentation.GetConfiguredLayoutRevision() != State.Revision
         || Presentation.GetVisualBatchCount()
@@ -1088,7 +1091,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::CanCreateBodyWeldStarter(
         return false;
     }
     OutReason = TEXT(
-        "PRESS COMMISSIONED; CANONICAL 18-POSITION BODY/WELD DATA AND EXACT 24-BATCH NATIVE PRESENTATION ARE ADMITTED");
+        "PRESS COMMISSIONED; CANONICAL 18-POSITION BODY/WELD DATA AND EXACT 26-BATCH NATIVE PRESENTATION ARE ADMITTED");
     return true;
 }
 
@@ -1466,7 +1469,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::
     }
     FActorSpawnParameters Parameters;
     Parameters.Name =
-        TEXT("LB_OneFactory_BodyWeldStarter_Presentation_v001");
+        TEXT("LB_OneFactory_BodyWeldStarter_Presentation_v002");
     Parameters.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     OutPresentation = World->SpawnActor<
@@ -1495,7 +1498,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::
         return false;
     }
     OutReason = TEXT(
-        "EXACT NATIVE 24-BATCH BODY/WELD PRESENTATION MATERIALISED");
+        "EXACT NATIVE 26-BATCH BODY/WELD PRESENTATION MATERIALISED");
     return true;
 }
 
@@ -1904,7 +1907,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::CreateBodyWeldStarter(
     bHasSelectedBodyWeldProgramme = true;
     bHasSelectedAssemblyOperation = false;
     SetLastResult(true, TEXT(
-        "BODY/WELD STARTER CREATED: 18 CONFIGURABLE POSITIONS + 36 LARGE ROBOTS + 469 NATIVE INSTANCES; AWAITING COMMISSION"),
+        "BODY/WELD STARTER CREATED: 18 CONFIGURABLE POSITIONS + 36 LARGE ROBOTS + 489 NATIVE INSTANCES; AWAITING COMMISSION"),
         OutReason);
     return true;
 }

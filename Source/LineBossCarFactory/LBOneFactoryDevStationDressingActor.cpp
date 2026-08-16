@@ -568,7 +568,7 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
             // Deliberately no machines here. The frozen weld starter
             // presentation already renders the real native robots - 36
             // seven-link arms and 16 C-guns from BodyShopRobotNative_v001 -
-            // under its exact 469-instance contract. Pack robots on top were
+            // under its exact-count contract (489 as of v002). Pack robots on top were
             // duplicates of a presentation that is already release content.
             break;
 

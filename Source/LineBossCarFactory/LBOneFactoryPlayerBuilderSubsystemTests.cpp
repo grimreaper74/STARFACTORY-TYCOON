@@ -523,10 +523,12 @@ bool FLBOneFactoryBodyWeldLifecycleRobotProgrammeRollbackMoveWIPAndRemovalTest::
     TestEqual(TEXT("Front-underbody programme is initially chosen"),
         Fixture.Builder->GetSelectedBodyWeldProgramme(),
         ELBOneFactoryBodyWeldProgramme::FrontUnderbodyGeometry);
-    TestEqual(TEXT("Body/Weld presentation commits all 24 HISM batches"),
-        Presentation->GetVisualBatchCount(), 24);
-    TestEqual(TEXT("Body/Weld presentation commits 469 native items"),
-        Presentation->GetVisibleInstanceCount(), 469);
+    TestEqual(TEXT("Body/Weld presentation commits all 26 HISM batches"),
+        Presentation->GetVisualBatchCount(), 26);
+    TestEqual(TEXT("Body/Weld presentation commits 489 native items"),
+        Presentation->GetVisibleInstanceCount(), 489);
+    TestFalse(TEXT("Body/Weld presentation is visible after pair creation"),
+        Presentation->IsHidden());
     TestFalse(TEXT("Body/Weld presentation never owns process WIP"),
         Presentation->RepresentsProcessWIP());
 
