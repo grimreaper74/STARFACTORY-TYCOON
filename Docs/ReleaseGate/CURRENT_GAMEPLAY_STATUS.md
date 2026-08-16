@@ -13,6 +13,19 @@
 > Per this document's own rule that the strongest evidence wins, treat those as
 > current for weld and the player shell. Everything remains **validation-only**
 > until a packaged journey is proven.
+>
+> **Update, 2026-08-16 (evening).** Packaged journeys are now proven: the
+> Development packages v002–v005 each ran the commission → order → 57-station →
+> quality-hold → player-decision → dispatch journey headless and green, and the
+> save round trip (`7/57`, cycle 25%) reproduced exactly in the package. The
+> product direction is decided and committed: **one continuous building**, coils
+> to finished car, at the restored press shop's detail standard. All four press
+> trains stand at reference spacing and the complete restored-shop surroundings
+> (overhead crane, runway, guarding, lamps, pipework, logistics) are
+> materialised around them from a read-only manifest — 1,522 instances, zero
+> unresolved. See
+> [the continuous building decision](../OneFactory/ONE_FACTORY_CONTINUOUS_BUILDING_DECISION_2026-08-16.md)
+> and [the shops release pass](../OneFactory/SHOPS_RELEASE_STANDARD_PASS_2026-08-16.md).
 
 Snapshot: **2026-08-12**. Authoritative implementation is under
 [`Source/LineBossCarFactory`](../../Source/LineBossCarFactory); the status below
