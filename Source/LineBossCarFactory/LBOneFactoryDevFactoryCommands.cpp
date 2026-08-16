@@ -577,7 +577,29 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         return false;
     }
 
-    const FString Wanted = Department.IsEmpty() ? TEXT("All") : Department;
+    // "Press@0.25~16" frames Press at a quarter of the solved distance from a
+    // 16-degree pitch: the close-up syntax the polish tours shoot with. Both
+    // modifiers are optional and filename-safe, so tour shot names keep them.
+    FString Wanted = Department.IsEmpty() ? TEXT("All") : Department;
+    double DistanceScale = 1.0;
+    double PitchDegrees = 34.0;
+    {
+        FString Base = Wanted;
+        FString Modifiers;
+        if (Wanted.Split(TEXT("@"), &Base, &Modifiers))
+        {
+            FString ScaleText = Modifiers;
+            FString PitchText;
+            if (Modifiers.Split(TEXT("~"), &ScaleText, &PitchText))
+            {
+                PitchDegrees = FMath::Clamp(
+                    FCString::Atod(*PitchText), 2.0, 88.0);
+            }
+            DistanceScale = FMath::Clamp(
+                FCString::Atod(*ScaleText), 0.05, 4.0);
+            Wanted = Base;
+        }
+    }
     const bool bAll = Wanted.Equals(TEXT("All"), ESearchCase::IgnoreCase);
     const bool bWIP = Wanted.Equals(TEXT("WIP"), ESearchCase::IgnoreCase);
     const UEnum* DepartmentEnum = StaticEnum<ELBOneFactoryDepartment>();
@@ -665,9 +687,10 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     const double HalfFov = FMath::DegreesToRadians(ManagementFovDegrees * 0.5);
     const double Diagonal =
         FMath::Sqrt(Size.X * Size.X + Size.Y * Size.Y);
-    const double Distance = bWIP
+    const double Distance = (bWIP
         ? 1500.0
-        : (FMath::Max(Diagonal, 900.0) * 0.5) / FMath::Tan(HalfFov) * 1.16;
+        : (FMath::Max(Diagonal, 900.0) * 0.5) / FMath::Tan(HalfFov) * 1.16)
+        * DistanceScale;
 
     // Route order gives the line's axis directly: first station to last.
     FVector LineDir(1.0, 0.0, 0.0);
@@ -685,8 +708,9 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     const FVector Across(-LineDir.Y, LineDir.X, 0.0);
     const FVector ViewDir = (Across + LineDir * 0.45).GetSafeNormal();
 
-    // A consistent management pitch, so every department is shot the same way.
-    const double Pitch = FMath::DegreesToRadians(34.0);
+    // A consistent management pitch by default, so every department is shot
+    // the same way; close-up tours may override it per stop.
+    const double Pitch = FMath::DegreesToRadians(PitchDegrees);
     const FVector Eye = Centre
         - ViewDir * (Distance * FMath::Cos(Pitch))
         + FVector(0.0, 0.0, Distance * FMath::Sin(Pitch));
@@ -1073,8 +1097,11 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
 
     if (bAwaitingCapture)
     {
-        const FString Name = FString::Printf(TEXT("%s_%02d_%s"), *Label,
+        FString Name = FString::Printf(TEXT("%s_%02d_%s"), *Label,
             StopIndex + 1, *Departments[StopIndex]);
+        // A dot in a close-up stop like Press@0.3~20 would read as a file
+        // extension and cost the shot its .png suffix.
+        Name.ReplaceInline(TEXT("."), TEXT("p"));
         FScreenshotRequest::RequestScreenshot(Name, false, false);
         UE_LOG(LogLineBossOneFactoryDev, Display,
             TEXT("LINE_BOSS_DEV_TOUR_SHOT %s"), *Name);
@@ -1469,8 +1496,9 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryShowWIP(
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryTour(
     TEXT("LB.OneFactory.Tour"),
     TEXT("Usage: LB.OneFactory.Tour [label=Tour] [settleFrames=30] "
-         "[secondsPerStop=2]. Captures All, Press, Body, Paint and Assembly "
-         "across separate frames."),
+         "[secondsPerStop=2] [stop...]. Without explicit stops, captures All, "
+         "Press, Body, Paint and Assembly. A stop accepts the close-up "
+         "syntax, e.g. Press@0.25~16."),
     FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
         [](const TArray<FString>& Args, UWorld* World)
         {
@@ -1496,8 +1524,17 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryTour(
                     TEXT("LINE_BOSS_DEV_TOUR could not spawn tour actor"));
                 return;
             }
-            Tour->BeginTour({ TEXT("All"), TEXT("Press"), TEXT("Body"),
-                TEXT("Paint"), TEXT("Assembly") }, Settle, PerStop, Label);
+            TArray<FString> Stops;
+            for (int32 Index = 3; Index < Args.Num(); ++Index)
+            {
+                Stops.Add(Args[Index]);
+            }
+            if (Stops.Num() == 0)
+            {
+                Stops = { TEXT("All"), TEXT("Press"), TEXT("Body"),
+                    TEXT("Paint"), TEXT("Assembly") };
+            }
+            Tour->BeginTour(Stops, Settle, PerStop, Label);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_TOUR started label=%s settle=%d"),
                 *Label, Settle);
