@@ -54,6 +54,30 @@ The gaps were around the machines, not in them:
 - Suite: 275/275 after the materialiser change; re-run after the
   roof/deck/route work recorded in the session log.
 
+## Density pass (same evening, after owner review)
+
+The owner rejected the polish pass as done — *"press is no where near done...
+most of its missing"* — and clarified the scope: *"codex did all the models,
+just want you to get them release ready."* The numbers agreed: the first
+extraction took only root StaticMeshActors, skipping 442 composed actors (the
+PR-004 cell, decoiler, blanking line) and dropping 776 engine primitives.
+
+The second extraction (`Tools/Diagnostics/extract_shop_full.py`) walks every
+static-mesh component of every non-train actor, instances included: 3,129
+components from 2,271 actors, slot-by-slot materials attached. Staging drops
+only the reference *building* — the presentation shell, plus engine primitives
+that are building-scale (any dimension over 25 m) or structural-shaped (over
+8 m with a thin profile: roof/floor tiles, wall panels, columns) — because
+Moorcross has its own envelope. **2,804 pieces stand, zero unresolved.**
+
+Two course corrections along the way, both evidence-driven: the reference's
+tiled roof reassembled itself over the bay until the structural-shape filter
+caught it, and the reference's own v049 aggregate trains read near-black under
+the Moorcross lighting standard (the restored map only reads under its own
+authored lights), so the recovery doc's pinned v449 visual stands and the
+aggregates are filtered from the manifest. Captures:
+`Captures/20260816_19_DensityE_*`.
+
 ## Still open (flagged, not smuggled)
 
 - Booth/oven and assembly native-kit swaps (paint/assembly polish) —

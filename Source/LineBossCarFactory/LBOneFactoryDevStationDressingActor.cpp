@@ -282,31 +282,27 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 const FVector TrainAt = Datum.GetLocation()
                     + Datum.GetRotation().RotateVector(
                         FVector(9.25, 2367.5, 0.0));
-                // A single 306-section mesh at scale 100 is a one-off, not
-                // an instancing case: give it a plain static mesh component,
-                // which renders unconditionally.
+                // The pinned v449 visual renders all four trains. The
+                // reference map's own v049 aggregates were tried in their
+                // place and read near-black under the Moorcross lighting
+                // standard - the restored map only reads because of its own
+                // authored lights - so the recovery doc's v449 pin stands and
+                // the aggregates are filtered out of the manifest.
                 if (UStaticMesh* TrainMesh = Cast<UStaticMesh>(
                     StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
                         Kinds[static_cast<int32>(
                             ELBOneFactoryDressingKind::PressTrain)].Path)))
                 {
-                    // The full press shop, as the restored reference map lays
-                    // it out: four parallel trains at the measured 2251 cm
-                    // spacing (FullFactoryRestored centroids -4494, -2243, 9,
-                    // 2261). Train 0 is the working gameplay train on its
-                    // pinned datum; B, C and D stand deeper into the bay as
-                    // installed capacity. Making them playable trains is a
-                    // versioned press-layout contract change, deliberately not
-                    // smuggled in here.
-                    UStaticMeshComponent* Train = nullptr;
                     for (int32 TrainIndex = 0; TrainIndex < 4; ++TrainIndex)
                     {
                         const FVector SiblingOffset =
                             Datum.GetRotation().RotateVector(
                                 FVector(-2251.0 * TrainIndex, 0.0, 0.0));
-                        Train = NewObject<UStaticMeshComponent>(this,
-                            *FString::Printf(TEXT("Dress_PressTrain_Mesh_%d"),
-                                TrainIndex));
+                        UStaticMeshComponent* Train =
+                            NewObject<UStaticMeshComponent>(this,
+                                *FString::Printf(
+                                    TEXT("Dress_PressTrain_Mesh_%d"),
+                                    TrainIndex));
                         Train->SetupAttachment(SceneRoot);
                         Train->SetMobility(EComponentMobility::Movable);
                         Train->SetCollisionEnabled(
@@ -319,21 +315,10 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                         Train->RegisterComponent();
                         ++PieceCount;
                     }
-                    const FBoxSphereBounds TrainBounds = Train->Bounds;
-                    UE_LOG(LogTemp, Display,
-                        TEXT("LINE_BOSS_DRESS_TRAIN_BOUNDS "
-                             "origin=(%.0f,%.0f,%.0f) extent=(%.0f,%.0f,%.0f) "
-                             "scale=(%.1f,%.1f,%.1f)"),
-                        TrainBounds.Origin.X, TrainBounds.Origin.Y,
-                        TrainBounds.Origin.Z, TrainBounds.BoxExtent.X,
-                        TrainBounds.BoxExtent.Y, TrainBounds.BoxExtent.Z,
-                        Train->GetComponentScale().X,
-                        Train->GetComponentScale().Y,
-                        Train->GetComponentScale().Z);
                 }
                 UE_LOG(LogTemp, Display,
                     TEXT("LINE_BOSS_DRESS_TRAIN datum=(%.0f,%.0f,%.0f) "
-                         "yaw=%.1f placed=(%.0f,%.0f,%.0f) span~=(1360x5770x940)"),
+                         "yaw=%.1f placed=(%.0f,%.0f,%.0f)"),
                     Datum.GetLocation().X, Datum.GetLocation().Y,
                     Datum.GetLocation().Z, Datum.Rotator().Yaw,
                     TrainAt.X, TrainAt.Y, TrainAt.Z);
