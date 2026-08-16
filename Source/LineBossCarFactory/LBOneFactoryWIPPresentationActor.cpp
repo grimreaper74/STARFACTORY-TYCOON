@@ -19,31 +19,51 @@ namespace LBOneFactoryWIPPresentationPrivate
         TEXT("WIP_PrimedBody"), TEXT("WIP_PaintedBody"), TEXT("WIP_FinishedCar")
     };
 
-    /** Engine primitives stand in until VehicleWIPNativeKit_v001 is imported. */
+    /**
+     * Real authored meshes for every family, measured in the editor. The
+     * Cairnwell runtime and panel-stillage assets were imported by the guarded
+     * lanes on 2026-08-15 and carry their own authored materials; the coil is
+     * the repaired press-shop wrapped coil. Scale is 1.0 everywhere - these are
+     * true-size assets, not primitives.
+     *
+     *   WrappedCoil_Repaired_v003          181 x 150 x 179  pivot at base
+     *   PanelStillage_Runtime_v001         190 x 139 x 116  pivot centred
+     *   C2040_BIW_AutomotiveSkeleton_v001  452 x 161 x 143  floor at pivot
+     *   C2040_EmeraldBodyVisualAuthority   456 x 188 x 138  floor at pivot
+     */
     const TCHAR* const BatchMeshPath[VisualCount] = {
-        TEXT("/Engine/BasicShapes/Cylinder.Cylinder"),
-        TEXT("/Engine/BasicShapes/Cube.Cube"),
-        TEXT("/Engine/BasicShapes/Cube.Cube"),
-        TEXT("/Engine/BasicShapes/Cube.Cube"),
-        TEXT("/Engine/BasicShapes/Cube.Cube"),
-        TEXT("/Engine/BasicShapes/Cube.Cube")
+        TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
+             "/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003"),
+        TEXT("/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
+             "/SM_LB_PanelStillage_Runtime_v001"),
+        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+             "/Cairnwell2040Runtime_v001/Meshes"
+             "/SM_LB_C2040_BIW_AutomotiveSkeleton_v001"),
+        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+             "/Cairnwell2040Runtime_v001/Meshes"
+             "/SM_LB_C2040_BIW_AutomotiveSkeleton_v001"),
+        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+             "/Cairnwell2040Runtime_v001/Meshes"
+             "/SM_LB_C2040_EmeraldBodyVisualAuthority_v001"),
+        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+             "/Cairnwell2040Runtime_v001/Meshes"
+             "/SM_LB_C2040_EmeraldBodyVisualAuthority_v001")
     };
 
-    const TCHAR* const BasicMaterialPath =
-        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial");
-
     /**
-     * Semantic colours. Bare steel reads cool and desaturated, primer dull, and
-     * only the colour coat carries the Cairnwell livery, so a glance down the
-     * line tells the player how far each body has travelled.
+     * Optional material override per family. Null keeps the mesh's authored
+     * materials, which is right for every family except Primed: the primed body
+     * reuses the BIW skeleton mesh with the authored ED-coat material, which is
+     * exactly what a body leaving the ED tank looks like.
      */
-    const TCHAR* const BatchColour[VisualCount] = {
-        TEXT("C2C8D0"),   // coil: mill steel
-        TEXT("D8DDE3"),   // pressed panels: brighter cut steel
-        TEXT("9AA3AF"),   // body in white: welded shell
-        TEXT("7A848F"),   // primed: dull e-coat grey
-        TEXT("3FD4C8"),   // painted: Cairnwell teal
-        TEXT("58E6DA")    // finished: brighter trimmed car
+    const TCHAR* const BatchMaterialOverride[VisualCount] = {
+        nullptr,
+        nullptr,
+        nullptr,
+        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+             "/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001"),
+        nullptr,
+        nullptr
     };
 
     /**
@@ -58,14 +78,16 @@ namespace LBOneFactoryWIPPresentationPrivate
     };
 
     const FVisualForm VisualForms[VisualCount] = {
-        // A coil lies on its side across the line.
-        { FVector(1.6, 1.6, 1.3), 80.0, FRotator(90.0, 0.0, 0.0) },
-        // A flat stack of panels in stillage.
-        { FVector(2.6, 1.7, 0.55), 30.0, FRotator::ZeroRotator },
-        { FVector(4.4, 1.8, 1.30), 75.0, FRotator::ZeroRotator },
-        { FVector(4.4, 1.8, 1.30), 75.0, FRotator::ZeroRotator },
-        { FVector(4.5, 1.85, 1.35), 78.0, FRotator::ZeroRotator },
-        { FVector(4.6, 1.90, 1.45), 82.0, FRotator::ZeroRotator }
+        // Coil: pivot at base, stands on the floor as delivered.
+        { FVector(1.0), 0.0, FRotator::ZeroRotator },
+        // Stillage: pivot centred, so lift by half its 116 cm height.
+        { FVector(1.0), 58.0, FRotator::ZeroRotator },
+        // BIW and primed body: authored floor sits at the pivot.
+        { FVector(1.0), 0.0, FRotator::ZeroRotator },
+        { FVector(1.0), 0.0, FRotator::ZeroRotator },
+        // Painted and finished body.
+        { FVector(1.0), 0.0, FRotator::ZeroRotator },
+        { FVector(1.0), 0.0, FRotator::ZeroRotator }
     };
 }
 
@@ -248,37 +270,39 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         return false;
     }
 
-    // Resolve meshes and semantic materials once, on first successful refresh.
+    // Resolve meshes once, on first successful refresh. Authored materials are
+    // kept; only families with a declared override (the ED-coat primed body)
+    // replace them.
     if (!bMaterialsResolved)
     {
-        UMaterialInterface* Base = Cast<UMaterialInterface>(
-            StaticLoadObject(UMaterialInterface::StaticClass(), nullptr,
-                BasicMaterialPath));
-        if (!Base)
-        {
-            OutReason = TEXT("WIP PRESENTATION COULD NOT RESOLVE BASE MATERIAL");
-            return false;
-        }
         for (int32 Index = 0; Index < Batches.Num(); ++Index)
         {
             UStaticMesh* Mesh = Cast<UStaticMesh>(
                 StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
                     BatchMeshPath[Index]));
-            UMaterialInstanceDynamic* Material =
-                UMaterialInstanceDynamic::Create(Base, this);
-            if (!Mesh || !Material || !Batches[Index])
+            if (!Mesh || !Batches[Index])
             {
                 ClearPresentation();
-                OutReason = TEXT("WIP PRESENTATION COULD NOT RESOLVE A BATCH");
+                OutReason = FString::Printf(
+                    TEXT("WIP PRESENTATION COULD NOT RESOLVE MESH %d: %s"),
+                    Index, BatchMeshPath[Index]);
                 return false;
             }
-            const FLinearColor Colour = FLinearColor::FromSRGBColor(
-                FColor::FromHex(BatchColour[Index]));
-            Material->SetVectorParameterValue(TEXT("Color"), Colour);
-            Material->SetVectorParameterValue(TEXT("BaseColor"), Colour);
             Batches[Index]->SetStaticMesh(Mesh);
-            Batches[Index]->SetMaterial(0, Material);
-            BatchMaterials.Add(Material);
+            if (BatchMaterialOverride[Index])
+            {
+                UMaterialInterface* Override = Cast<UMaterialInterface>(
+                    StaticLoadObject(UMaterialInterface::StaticClass(), nullptr,
+                        BatchMaterialOverride[Index]));
+                if (Override)
+                {
+                    for (int32 Slot = 0;
+                        Slot < Mesh->GetStaticMaterials().Num(); ++Slot)
+                    {
+                        Batches[Index]->SetMaterial(Slot, Override);
+                    }
+                }
+            }
         }
         bMaterialsResolved = true;
     }
