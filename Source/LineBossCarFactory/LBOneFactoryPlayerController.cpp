@@ -118,7 +118,10 @@ void ALBOneFactoryPlayerController::CommissionFactory()
             ALBOneFactoryDevEnvelopeActor::StaticClass(),
             FVector::ZeroVector, FRotator::ZeroRotator, Params))
     {
-        Envelope->BuildFromRoute(6000.0, 1400.0, StepReason);
+        // 2200 cm eaves: the restored shop's wide-span trusses hang at
+        // 1740 cm with their top chords near 2000, so a 1400 wall left the
+        // whole roof zone floating against void.
+        Envelope->BuildFromRoute(6000.0, 2200.0, StepReason);
     }
     if (ALBOneFactoryDevStationDressingActor* Dressing =
         World->SpawnActor<ALBOneFactoryDevStationDressingActor>(

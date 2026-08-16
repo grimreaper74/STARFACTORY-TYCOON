@@ -92,6 +92,9 @@ private:
     UPROPERTY()
     TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
 
+    UPROPERTY()
+    TObjectPtr<class UMaterialInstanceDynamic> RouteMaterial;
+
     int32 DressedStations = 0;
     int32 PieceCount = 0;
 };

@@ -72,5 +72,12 @@ private:
     UPROPERTY()
     TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
 
+    /**
+     * The roof deck lives on its own untagged actor, so the camera-height
+     * roof toggle governs it while the envelope's walls stay exempt.
+     */
+    UPROPERTY()
+    TObjectPtr<AActor> RoofDeck;
+
     int32 PieceCount = 0;
 };

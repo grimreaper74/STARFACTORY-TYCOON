@@ -7,6 +7,7 @@
 #include "EngineUtils.h"
 #include "HAL/FileManager.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "Materials/MaterialInterface.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
@@ -118,8 +119,13 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
     Batches.Reset();
     PlacedCount = 0;
 
+    // Instances batch per (mesh, override-material signature): the reference
+    // map authors per-actor overrides - aged RAL1023 on the crane girders,
+    // brand smooth/layered sets on the guarding - and every instance of a
+    // batch shares its component's materials.
     TMap<FString, UInstancedStaticMeshComponent*> ByMesh;
     int32 MissingMeshes = 0;
+    int32 OverriddenBatches = 0;
     for (const TSharedPtr<FJsonValue>& Value : *Actors)
     {
         const TSharedPtr<FJsonObject> Entry = Value->AsObject();
@@ -129,7 +135,26 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
         }
         const FString MeshPath = Entry->GetStringField(TEXT("mesh"));
 
-        UInstancedStaticMeshComponent* Batch = ByMesh.FindRef(MeshPath);
+        TArray<FString> MaterialPaths;
+        const TArray<TSharedPtr<FJsonValue>>* MaterialValues = nullptr;
+        if (Entry->TryGetArrayField(TEXT("mats"), MaterialValues)
+            && MaterialValues)
+        {
+            for (const TSharedPtr<FJsonValue>& MaterialValue : *MaterialValues)
+            {
+                FString Path;
+                MaterialValue->TryGetString(Path);
+                MaterialPaths.Add(Path);
+            }
+        }
+        FString BatchKey = MeshPath;
+        for (const FString& Path : MaterialPaths)
+        {
+            BatchKey += TEXT("|");
+            BatchKey += Path;
+        }
+
+        UInstancedStaticMeshComponent* Batch = ByMesh.FindRef(BatchKey);
         if (!Batch)
         {
             UStaticMesh* Mesh = Cast<UStaticMesh>(StaticLoadObject(
@@ -145,8 +170,27 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
             Batch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
             Batch->SetCanEverAffectNavigation(false);
             Batch->SetStaticMesh(Mesh);
+            bool bOverrodeAny = false;
+            for (int32 Slot = 0; Slot < MaterialPaths.Num(); ++Slot)
+            {
+                if (MaterialPaths[Slot].IsEmpty())
+                {
+                    continue;
+                }
+                if (UMaterialInterface* Material = Cast<UMaterialInterface>(
+                        StaticLoadObject(UMaterialInterface::StaticClass(),
+                            nullptr, *MaterialPaths[Slot])))
+                {
+                    Batch->SetMaterial(Slot, Material);
+                    bOverrodeAny = true;
+                }
+            }
+            if (bOverrodeAny)
+            {
+                ++OverriddenBatches;
+            }
             Batch->RegisterComponent();
-            ByMesh.Add(MeshPath, Batch);
+            ByMesh.Add(BatchKey, Batch);
             Batches.Add(Batch);
         }
 
@@ -187,8 +231,8 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
     }
 
     OutReason = FString::Printf(
-        TEXT("restored shop: %d instance(s) across %d mesh(es); %d mesh "
-             "path(s) unresolved"),
-        PlacedCount, Batches.Num(), MissingMeshes);
+        TEXT("restored shop: %d instance(s) across %d batch(es), %d with "
+             "authored overrides; %d mesh path(s) unresolved"),
+        PlacedCount, Batches.Num(), OverriddenBatches, MissingMeshes);
     return PlacedCount > 0;
 }

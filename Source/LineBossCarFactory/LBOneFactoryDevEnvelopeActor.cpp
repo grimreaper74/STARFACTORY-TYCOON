@@ -2,6 +2,7 @@
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshActor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
@@ -223,12 +224,44 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         }
     }
 
-    // Deliberately no ceiling deck. The management camera sits well above the
-    // eaves looking down into the hall, so a roof would simply fill the frame
-    // with its own top surface. Walls give the enclosure; the hall stays open
-    // from above, which is how factory-management views read.
-    //
-    // A floor slab instead. The map's authored floor is smaller than the
+    // The roof deck sits just under the eaves on its own untagged actor:
+    // the camera-height toggle in FrameProductionLine hides it for
+    // management shots looking in from above and restores it for
+    // floor-level views, which otherwise top out in black void above the
+    // restored shop's trusses.
+    if (RoofDeck)
+    {
+        RoofDeck->Destroy();
+        RoofDeck = nullptr;
+    }
+    if (AStaticMeshActor* Deck = World->SpawnActor<AStaticMeshActor>(
+            AStaticMeshActor::StaticClass(),
+            FVector(Centre.X, Centre.Y, WallHeightCm - 50.0),
+            FRotator::ZeroRotator))
+    {
+        if (UStaticMeshComponent* DeckMesh = Deck->GetStaticMeshComponent())
+        {
+            DeckMesh->SetMobility(EComponentMobility::Movable);
+            DeckMesh->SetStaticMesh(Cube);
+            DeckMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            if (UMaterialInstanceDynamic* DeckMaterial =
+                    UMaterialInstanceDynamic::Create(Base, this))
+            {
+                const FLinearColor DeckColour =
+                    FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("26292E")));
+                DeckMaterial->SetVectorParameterValue(TEXT("Color"), DeckColour);
+                DeckMaterial->SetVectorParameterValue(TEXT("BaseColor"),
+                    DeckColour);
+                DeckMesh->SetMaterial(0, DeckMaterial);
+                Materials.Add(DeckMaterial);
+            }
+        }
+        Deck->SetActorScale3D(FVector(SizeX / CubeCm, SizeY / CubeCm, 0.2));
+        RoofDeck = Deck;
+        ++PieceCount;
+    }
+
+    // A floor slab as well. The map's authored floor is smaller than the
     // configured station route, so stations at the far ends of Press and
     // Assembly stand over void and render as black holes with machines
     // apparently floating. This covers the whole routed footprint, sitting just

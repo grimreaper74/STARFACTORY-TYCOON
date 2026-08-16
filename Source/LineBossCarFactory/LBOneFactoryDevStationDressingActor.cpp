@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 
 namespace LBOneFactoryDressingPrivate
 {
@@ -530,6 +532,76 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 {
                     ++PieceCount;
                 }
+            }
+        }
+    }
+
+    // The production-flow route, painted on the floor in brand green the way
+    // the approved Cairnwell mockup draws it: one stripe per consecutive
+    // station pair, the long inter-department runs included, so the whole
+    // coils-to-dispatch path reads from the management camera.
+    {
+        UStaticMesh* Cube = Cast<UStaticMesh>(StaticLoadObject(
+            UStaticMesh::StaticClass(), nullptr,
+            TEXT("/Engine/BasicShapes/Cube.Cube")));
+        UMaterialInterface* Base = Cast<UMaterialInterface>(
+            StaticLoadObject(UMaterialInterface::StaticClass(), nullptr,
+                TEXT("/Engine/BasicShapes/BasicShapeMaterial")
+                TEXT(".BasicShapeMaterial")));
+        UInstancedStaticMeshComponent* RouteBatch =
+            NewObject<UInstancedStaticMeshComponent>(this,
+                TEXT("Dress_FlowRoute"));
+        if (Cube && Base && RouteBatch)
+        {
+            RouteBatch->SetupAttachment(SceneRoot);
+            RouteBatch->SetMobility(EComponentMobility::Movable);
+            RouteBatch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            RouteBatch->SetCanEverAffectNavigation(false);
+            RouteBatch->SetStaticMesh(Cube);
+            if (UMaterialInstanceDynamic* Paint =
+                    UMaterialInstanceDynamic::Create(Base, this))
+            {
+                const FLinearColor RouteGreen =
+                    FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("2F8A5F")));
+                Paint->SetVectorParameterValue(TEXT("Color"), RouteGreen);
+                Paint->SetVectorParameterValue(TEXT("BaseColor"), RouteGreen);
+                RouteBatch->SetMaterial(0, Paint);
+                RouteMaterial = Paint;
+            }
+            RouteBatch->RegisterComponent();
+
+            auto AddStripe = [&](const FVector& From, const FVector& To)
+            {
+                const FVector Flat(To.X - From.X, To.Y - From.Y, 0.0);
+                const double Length = Flat.Size();
+                if (Length < 50.0)
+                {
+                    return;
+                }
+                FTransform Stripe;
+                Stripe.SetLocation(FVector(
+                    (From.X + To.X) * 0.5, (From.Y + To.Y) * 0.5, 4.0));
+                Stripe.SetRotation(
+                    FRotationMatrix::MakeFromX(Flat).ToQuat());
+                // Half a stripe width of overrun so the two legs of a
+                // Manhattan corner join without a notch.
+                Stripe.SetScale3D(
+                    FVector(Length / 100.0 + 0.6, 1.2, 0.04));
+                if (RouteBatch->AddInstance(Stripe, true) != INDEX_NONE)
+                {
+                    ++PieceCount;
+                }
+            };
+            // Orthogonal legs, the way the approved mockup paints routes:
+            // along the line axis first, then across to the next station.
+            for (int32 Index = 0; Index + 1 < Route.Num(); ++Index)
+            {
+                const FVector From = Route[Index].WorldTransform.GetLocation();
+                const FVector To =
+                    Route[Index + 1].WorldTransform.GetLocation();
+                const FVector Corner(To.X, From.Y, 0.0);
+                AddStripe(From, Corner);
+                AddStripe(Corner, To);
             }
         }
     }

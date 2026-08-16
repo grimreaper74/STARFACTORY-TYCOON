@@ -724,6 +724,14 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         return false;
     }
 
+    // Roof visibility follows the camera: a management shot from above the
+    // eaves needs the roof out of the way, a floor-level close-up needs it
+    // back or the frame tops out in black void.
+    constexpr double RoofHideAboveZCm = 900.0;
+    FString RoofReason;
+    SetRoofHidden(WorldContextObject, Eye.Z > RoofHideAboveZCm,
+        RoofHideAboveZCm, RoofReason);
+
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -789,12 +797,17 @@ bool ULBOneFactoryDevFactory::SetRoofHidden(UObject* WorldContextObject,
     static const FName WipTag(TEXT("LB.OneFactory.WIPPresentation"));
     static const FName EnvTag(TEXT("LB.OneFactory.DevEnvelope"));
     static const FName DressTag(TEXT("LB.OneFactory.DevStationDressing"));
+    // The restored shop's overhead crane, runway and trusses are release
+    // content the owner asked to see - "also everything, the crains" - so
+    // roof-hiding never touches them.
+    static const FName ShopTag(TEXT("LB.OneFactory.DevRestoredShop"));
 
     for (TActorIterator<AActor> It(World); It; ++It)
     {
         AActor* Actor = *It;
         if (!IsValid(Actor) || Actor->Tags.Contains(WipTag)
-            || Actor->Tags.Contains(EnvTag) || Actor->Tags.Contains(DressTag))
+            || Actor->Tags.Contains(EnvTag) || Actor->Tags.Contains(DressTag)
+            || Actor->Tags.Contains(ShopTag))
         {
             continue;
         }
