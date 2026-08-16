@@ -1,0 +1,12 @@
+{
+    "schema":  "lineboss.sourceassets.validation-result.v1",
+    "checked_utc":  "2026-08-12T12:29:17.4902204Z",
+    "full_hash_validation":  false,
+    "ledger_file_count":  5990,
+    "current_file_count":  5990,
+    "error_count":  0,
+    "status":  "PASS",
+    "errors":  [
+
+               ]
+}

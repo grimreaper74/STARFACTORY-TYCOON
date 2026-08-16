@@ -1,0 +1,63 @@
+{
+  "$schema": "lineboss/vehicle-wip-native-kit-v001/static-unreal-lane-freeze/v1",
+  "canonical_tree_sha256": "0EEFE9C26F4E454F8AA475F49E3B0A25F33CD2B0F667183AB565D6E7D83251A0",
+  "destination_reserved_but_absent": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001",
+  "file_count": 10,
+  "files": [
+    {
+      "bytes": 3105,
+      "path": "Docs/VEHICLE_WIP_NATIVE_KIT_UNREAL_IMPORT_LANE_v001.md",
+      "sha256": "F3B5758FAC12085A1109088D5EC6F1A2D8C966561BE308D811D7D8DE6BC85FB8"
+    },
+    {
+      "bytes": 9766,
+      "path": "Scripts/build_vehicle_wip_native_kit_unreal_import_contract_v001.py",
+      "sha256": "CEB3615211613B611A7820B894A97CE1DD7F13C2A9B9BB79F00D20FF0398F629"
+    },
+    {
+      "bytes": 3437,
+      "path": "Scripts/freeze_vehicle_wip_native_kit_unreal_import_lane_static_v001.py",
+      "sha256": "F456CFA98CB6D7E3431AA81C80E0349D1ED78C4D4D7DC5DCA3F8C09C6768A638"
+    },
+    {
+      "bytes": 12488,
+      "path": "Scripts/import_vehicle_wip_native_kit_v001.py",
+      "sha256": "C0E0ABEB2472A43928A007C1044D70D7CDB511ED3EBC729C3FE24EEF3AE34F7F"
+    },
+    {
+      "bytes": 11252,
+      "path": "Scripts/prepare_vehicle_wip_native_kit_unreal_import_baseline_v001.py",
+      "sha256": "F9F7F6ED40376FD141BFE986F4D58061387A9C72C0197289ABE2660E9D41862E"
+    },
+    {
+      "bytes": 12188,
+      "path": "Scripts/run_vehicle_wip_native_kit_unreal_import_lane_v001.ps1",
+      "sha256": "4CB2704027373F5B314ED32D7B4E0E929F29E8C49F7A97AB413F05F0CEC1D29F"
+    },
+    {
+      "bytes": 9416,
+      "path": "Scripts/tests/test_vehicle_wip_native_kit_unreal_import_lane_v001.py",
+      "sha256": "11902D7285BEE1F6A8B700734EAD4EFBD840E21D11A7329E05D2010ABC74DC1C"
+    },
+    {
+      "bytes": 6667,
+      "path": "Scripts/validate_vehicle_wip_native_kit_v001.py",
+      "sha256": "4C1250E2099C8A1974B6AF88BD553DFF07E04B74D7C708980513D7772750B59A"
+    },
+    {
+      "bytes": 70723,
+      "path": "Scripts/vehicle_wip_native_kit_unreal_import_contract_v001.json",
+      "sha256": "87D9FD32964CC0AD0F4AA52CC6F27A0E23BFDA23A18B2F714E6E2807CCA9684D"
+    },
+    {
+      "bytes": 14811,
+      "path": "Scripts/vehicle_wip_native_kit_unreal_runtime_v001.py",
+      "sha256": "628172DCB4CB29704D8B252A387DC4D2B0E4B9E2441C53B7025F52F4F5DAC606"
+    }
+  ],
+  "generated_utc": "2026-08-15T04:42:58.615320+00:00",
+  "mutation_rule": "Any changed lane script/test/doc requires a new static freeze version before the later project baseline is cut.",
+  "status": "FROZEN__OFFLINE_SCRIPTS_TESTS_DOCS_ONLY__NO_PROJECT_BASELINE__NO_UE_RUN",
+  "target_content_exists": false,
+  "whole_project_baseline_exists": false
+}

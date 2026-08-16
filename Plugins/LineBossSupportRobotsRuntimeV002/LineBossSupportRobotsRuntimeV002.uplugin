@@ -1,0 +1,20 @@
+{
+  "FileVersion": 3,
+  "Version": 2,
+  "VersionName": "0.2.0-quarantined",
+  "FriendlyName": "Line Boss Support Robots Runtime v002 (Quarantined)",
+  "Description": "Dormant authority-first RP01/CR01/MR01 runtime components. Disabled by default until native build, UHT, runtime, collision and visual gates pass.",
+  "Category": "Line Boss|Quarantine",
+  "CreatedBy": "Line Boss project",
+  "CanContainContent": false,
+  "IsBetaVersion": true,
+  "Installed": false,
+  "EnabledByDefault": false,
+  "Modules": [
+    {
+      "Name": "LineBossSupportRobotsRuntimeV002",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

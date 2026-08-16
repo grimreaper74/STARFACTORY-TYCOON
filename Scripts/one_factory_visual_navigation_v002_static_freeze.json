@@ -1,0 +1,104 @@
+{
+  "$schema": "lineboss/static-freeze/one-factory-visual-navigation-v002/v1",
+  "status": "FROZEN__OFFLINE_TOOLING_ONLY__UNREAL_NOT_RUN__TARGET_ABSENT",
+  "execution": {
+    "unreal_or_ubt_run": false,
+    "target_map_created": false,
+    "content_source_config_maps_or_saves_mutated": false,
+    "static_tests_only": true
+  },
+  "source_map": {
+    "package": "/Game/LineBoss/Factory/OneFactory/v001/Maps/LB_MoorcrossWorks_OneFactory_v001",
+    "file": "Content/LineBoss/Factory/OneFactory/v001/Maps/LB_MoorcrossWorks_OneFactory_v001.umap",
+    "sha256": "750FB6C93BBE8220467F5BF9656C4017F0D9E2706B35C413460AF20CEB9EB682",
+    "immutable": true
+  },
+  "target_map": {
+    "package": "/Game/LineBoss/Factory/OneFactory/v002/Maps/LB_MoorcrossWorks_OneFactory_v002",
+    "file": "Content/LineBoss/Factory/OneFactory/v002/Maps/LB_MoorcrossWorks_OneFactory_v002.umap",
+    "existed_at_freeze": false,
+    "overwrite_refused": true
+  },
+  "protected_anchors": {
+    "Content/LineBoss/Factory/OneFactory/v001/Maps/LB_MoorcrossWorks_OneFactory_v001.umap": "750FB6C93BBE8220467F5BF9656C4017F0D9E2706B35C413460AF20CEB9EB682",
+    "Content/LineBoss/Maps/LB_PressShop_RebuildFromLorry_v20260810_v913.umap": "26A901442CFA8415E3875BD998A2E3220045E296C17829335552D64837A190A6",
+    "Content/LineBoss/Maps/LB_PressShop_FullFactoryRestored_v001.umap": "D3F8652AA45E7C2FCEE5AF1971F6AA78A3F027E60E361B039D14DAD5806C74A5",
+    "Docs/LINE_BOSS_FACTORY_VISUAL_STANDARD_v001.md": "0E61306C437BCB587C82D6BF5609CAFDA1211E004CCFC86C6C4608CBA42A2971",
+    "Scripts/validate_one_factory_shell_v001.py": "2043ED396DFD366CB857F208A38054EE9CCE4906A04EA53C4ABD86ADF1CB5E61"
+  },
+  "diagnostic_evidence": {
+    "screenshots_root": "Saved/ValidationScreenshots/OneFactory/v001/ActualPlayerPIE/20260815T035404438Z",
+    "actual_player_log": {
+      "file": "Saved/Audits/OneFactory/v001/ActualPlayerPIE/Runs/20260815T035404438Z/Logs/actual_player_pie.stdout.log",
+      "sha256": "839BB53D43D5C4102BD6C3ED334D3E97DDC39714312C5C3EEF511045AA62B91D",
+      "unable_to_find_recast_warning_count": 2
+    },
+    "screenshots": [
+      {
+        "name": "01_empty_factory_management_overview.png",
+        "sha256": "C7CC1C28095CC83279D7F764999E18B58B3DAC60B9010E98BDF1567C4A8E5637",
+        "dimensions": [1920, 1080],
+        "mean_luma": 0.163652,
+        "black_clip_fraction": 0.528524,
+        "top_left_warning_red_pixels": 0
+      },
+      {
+        "name": "02_populated_press_starter_wide_overview.png",
+        "sha256": "7645637C24E077BF6B0F61BAEC1C70A15467913EA0882ACE27D7C23532AEC1FA",
+        "dimensions": [1920, 1080],
+        "mean_luma": 0.174236,
+        "black_clip_fraction": 0.494309,
+        "top_left_warning_red_pixels": 0
+      },
+      {
+        "name": "03_press_train_dispatch_agv_close.png",
+        "sha256": "943BCE49E04D3F1B56E6727C8F43210197FBFA5E563E87B96CDDD6818C487D65",
+        "dimensions": [1920, 1080],
+        "mean_luma": 0.190913,
+        "black_clip_fraction": 0.049176,
+        "top_left_warning_red_pixels": 0
+      },
+      {
+        "name": "04_populated_press_starter_with_umg.png",
+        "sha256": "430182F1D00D1D2E882BC76BC61CA0B3A39DA665F8A31B9506BDE7B190207580",
+        "dimensions": [1920, 1080],
+        "mean_luma": 0.213874,
+        "black_clip_fraction": 0.190862,
+        "top_left_warning_red_pixels": 511
+      }
+    ],
+    "ue58_navigation_config_reflection": {
+      "file": "Saved/Audits/PressTrains/navigation_module_properties_ue58.json",
+      "sha256": "95B84CD3F1BD4410ECA20B8F890BC6159A8811AC6747C6BF82C377BDFB0B3703",
+      "pinned_properties": [
+        "bStrictlyStatic",
+        "bAutoSpawnMissingNavData",
+        "bSpawnNavDataInNavBoundsLevel",
+        "navigation_system_class"
+      ]
+    }
+  },
+  "successor_contract": {
+    "nonfoundation_actor_count": 59,
+    "preserved_hism_actor_count": 10,
+    "preserved_hism_instance_count": 1194,
+    "high_bay_count": 32,
+    "high_bay_temperature_kelvin": 5000.0,
+    "high_bay_intensity_lumens_each": 48000.0,
+    "fixed_exposure_bias": -0.5,
+    "navigation_route_count": 5,
+    "navigation_build_before_save": true,
+    "saved_production_actor_count": 0,
+    "saved_wip_identity_count": 0
+  },
+  "exact_run_command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8\\Scripts\\run_one_factory_visual_navigation_v002.ps1\"",
+  "files": {
+    "Scripts/one_factory_visual_navigation_v002_contract.py": "AF463353CC94988F5B1E413E84898077EB587CF81A4E69A940B006D216EF4DA9",
+    "Scripts/one_factory_visual_navigation_v002_unreal.py": "5F385670623D485F1716C459484A601105DFE7F6EA70E6793FD978272E357F81",
+    "Scripts/build_one_factory_visual_navigation_v002.py": "A89E7C2BCA312581567488A9321A91D808733B7DBAB15BEEE61002F9F7801F5C",
+    "Scripts/validate_one_factory_visual_navigation_v002.py": "5752E46164EEAF122B1773CC870ED8358C2C994CD6A34BAF58D834844980967D",
+    "Scripts/run_one_factory_visual_navigation_v002.ps1": "61DF0116E0BD819C44571C42DFF5BF79A85B8D593FABF2288980C5E5B997B0B4",
+    "Scripts/tests/test_one_factory_visual_navigation_v002.py": "5E48AFCABEDB50C14A07CAF1A22CF6313E1480E3A08C10E7E74938259CADA789",
+    "Docs/OneFactory/ONE_FACTORY_VISUAL_NAVIGATION_V002.md": "8C9782514C3AE0F343A5A39C281832A8E5E4B3C153D82BA2FAAF2F00399D5495"
+  }
+}

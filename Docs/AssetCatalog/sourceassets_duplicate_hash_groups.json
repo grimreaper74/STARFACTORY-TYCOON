@@ -1,0 +1,2210 @@
+{
+    "schema":  "lineboss.sourceassets.duplicate-hash-index.v1",
+    "generated_utc":  "2026-08-12T12:22:21.0239722Z",
+    "source_root":  "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8\\SourceAssets",
+    "duplicate_hash_group_count":  194,
+    "duplicate_file_count":  453,
+    "duplicate_extra_copy_count":  259,
+    "potential_duplicate_bytes_beyond_one_copy":  205820434,
+    "groups":  [
+                   {
+                       "sha256":  "0227029195ECA0E0850FCD7F1D151EC7F85AC4FF6476D48A93B92C2D12E5804E",
+                       "file_count":  2,
+                       "bytes_per_copy":  3307,
+                       "total_bytes_all_copies":  6614,
+                       "potential_duplicate_bytes_beyond_one_copy":  3307,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/fault_matrix.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/fault_matrix.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "02A1C086A30DEBA0933354CA23AD156A9353F94D46B311268E335DB8D76244B1",
+                       "file_count":  2,
+                       "bytes_per_copy":  771,
+                       "total_bytes_all_copies":  1542,
+                       "potential_duplicate_bytes_beyond_one_copy":  771,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/station_dimensions_and_datums.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/station_dimensions_and_datums.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "02F94BDA43EA8AA4C63880F3C2D9BF1C2AC5A638471946C71247A1D297E4FCAA",
+                       "file_count":  2,
+                       "bytes_per_copy":  103357,
+                       "total_bytes_all_copies":  206714,
+                       "potential_duplicate_bytes_beyond_one_copy":  103357,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/06_FixedSafetyFence/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0582E38F1AF7CB2753E535CA211286E195E76A8CB052EC5C377BD5C0879145F7",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "05A256952F91BE40DFD54DBC418B4C85B9E264D215EC7DBDD3798206347682F3",
+                       "file_count":  2,
+                       "bytes_per_copy":  381425,
+                       "total_bytes_all_copies":  762850,
+                       "potential_duplicate_bytes_beyond_one_copy":  381425,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/04_LeftAccessDoor/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "060F531E06F583575A8C5E1DB2895317E0ED0C00D9692DC981F6777C79CFFC06",
+                       "file_count":  2,
+                       "bytes_per_copy":  584121,
+                       "total_bytes_all_copies":  1168242,
+                       "potential_duplicate_bytes_beyond_one_copy":  584121,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset02_InterPressTransferSystem/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0821F386777F21374F2DD99363608AE6C47E31C508FB1D140AED2BFDC1B35F46",
+                       "file_count":  2,
+                       "bytes_per_copy":  1069560,
+                       "total_bytes_all_copies":  2139120,
+                       "potential_duplicate_bytes_beyond_one_copy":  1069560,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/BlankStackAGV/EngineeringCandidate_v20260809_v824/Review/02_AGV_Loaded_Hero_v824.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/02_BlankBuffer_authority.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0853CA0E3EDA05AC01B41781FE98FA00515FFF366329770A60BEE690AF226646",
+                       "file_count":  2,
+                       "bytes_per_copy":  218444,
+                       "total_bytes_all_copies":  436888,
+                       "potential_duplicate_bytes_beyond_one_copy":  218444,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/09_OperatorHMI/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "09D05D0BDA0EBBED10182A225C7171A1FD79F0DA600FC90AF0B8A86C202D9B28",
+                       "file_count":  2,
+                       "bytes_per_copy":  1288837,
+                       "total_bytes_all_copies":  2577674,
+                       "potential_duplicate_bytes_beyond_one_copy":  1288837,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_07_PRESS_TRAIN_C_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_07_PRESS_TRAIN_C_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0D72D6EEB4952674EA5EAF9E1951F50A12F3C059E10DCBFA5F42AFE96C1B63E8",
+                       "file_count":  2,
+                       "bytes_per_copy":  745728,
+                       "total_bytes_all_copies":  1491456,
+                       "potential_duplicate_bytes_beyond_one_copy":  745728,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset02_InterPressTransferSystem/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0D9FED3CDEF6618F1D0EF1F7BD9883E4D2BECA6C52094E216B6D52CD9E1068C3",
+                       "file_count":  2,
+                       "bytes_per_copy":  78543200,
+                       "total_bytes_all_copies":  157086400,
+                       "potential_duplicate_bytes_beyond_one_copy":  78543200,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/UserApprovedS03Walker_v20260809_v001/HighResolutionRuntime_v957/Cairnwell_S03_Walker_HighResolution_v957.glb",
+                                              "Candidate/PressTrains/Shared/UserApprovedS03Walker_v20260809_v001/Original/Meshy_AI_Cairnwell_S03_Walker_0808080548_texture_original.glb"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0ED4F14FFE71FB66BAC24F9F6B33496B7CB41EFC5005CB016AAEFAE456D6F1A1",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "0F502C8EDEDAD717744442ED60235F80EF9AE689EC4614E988EF2E79D1406C8B",
+                       "file_count":  2,
+                       "bytes_per_copy":  517966,
+                       "total_bytes_all_copies":  1035932,
+                       "potential_duplicate_bytes_beyond_one_copy":  517966,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset03_S04TrimScrapSystem/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "105B6FD207D6FB96F8FB27D82093ED520C2CCF4841B5DCD6754E034AD04047F4",
+                       "file_count":  2,
+                       "bytes_per_copy":  127745,
+                       "total_bytes_all_copies":  255490,
+                       "potential_duplicate_bytes_beyond_one_copy":  127745,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/07_InterlockedGate/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "133D16039E55F5A50225740D1C46B2E9400EA1D6DB22DBC9E9682F67CB54553A",
+                       "file_count":  2,
+                       "bytes_per_copy":  2418,
+                       "total_bytes_all_copies":  4836,
+                       "potential_duplicate_bytes_beyond_one_copy":  2418,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v005/LB_MR01_Phase2_Dimensions_v005.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v006/LB_MR01_Phase2_Dimensions_v006.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "145883A623918DB207FDF7F69E3F817F3DFBDBDB9EE1300DD27F07EA008474E6",
+                       "file_count":  2,
+                       "bytes_per_copy":  128042,
+                       "total_bytes_all_copies":  256084,
+                       "potential_duplicate_bytes_beyond_one_copy":  128042,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/08_ElectricalCabinet/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "16A578833F847F5730AF46E0B6F137707701D854F1602302978FE50AD5047C5F",
+                       "file_count":  2,
+                       "bytes_per_copy":  96044,
+                       "total_bytes_all_copies":  192088,
+                       "potential_duplicate_bytes_beyond_one_copy":  96044,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_ControlledStop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_ControlledStop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "16AA512ED13590E81C48BBA24C915AF064FFFEF078A656AF4A5879331D06936B",
+                       "file_count":  2,
+                       "bytes_per_copy":  1138839,
+                       "total_bytes_all_copies":  2277678,
+                       "potential_duplicate_bytes_beyond_one_copy":  1138839,
+                       "relative_paths":  [
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/05_BodyWeld_authority.png",
+                                              "Candidate/WeldShop/WeldRobotRuntime_v001/Renders/WeldRobot_SPOT_LOD0_inspected.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "17A630560088DCC239F2C4626B68C7010E5946466C21D52895540D3C217AB674",
+                       "file_count":  2,
+                       "bytes_per_copy":  272995,
+                       "total_bytes_all_copies":  545990,
+                       "potential_duplicate_bytes_beyond_one_copy":  272995,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09C_FlatStillage/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "18CF4EFAC443E9A571A2628C25B7ADEACC1B80233E6A8312190F70E0D8E867CC",
+                       "file_count":  2,
+                       "bytes_per_copy":  221,
+                       "total_bytes_all_copies":  442,
+                       "potential_duplicate_bytes_beyond_one_copy":  221,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/PR009_Audits/blender_build_v001.stderr.log",
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/PR009_Audits/blender_reproducibility_v001.stderr.log"
+                                          ]
+                   },
+                   {
+                       "sha256":  "197A23EB3EE65EDA0B1A876818EEE749E04AD878362E87B6951ABF9073792720",
+                       "file_count":  2,
+                       "bytes_per_copy":  145432,
+                       "total_bytes_all_copies":  290864,
+                       "potential_duplicate_bytes_beyond_one_copy":  145432,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/05_RightAccessDoor/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "1B296FA70E1CFCCD744952335D2F2B547C50B8F1AA9ED7EC76E559C56A62CD68",
+                       "file_count":  2,
+                       "bytes_per_copy":  130751,
+                       "total_bytes_all_copies":  261502,
+                       "potential_duplicate_bytes_beyond_one_copy":  130751,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/08_ElectricalCabinet/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "1C0EC5C25464ADB37578A42566804D62175547E7EA313FE8D4898F58E6C74FCD",
+                       "file_count":  2,
+                       "bytes_per_copy":  227261,
+                       "total_bytes_all_copies":  454522,
+                       "potential_duplicate_bytes_beyond_one_copy":  227261,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09B_SmallStillage/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "1CB304DFFE1B082292379A70CC0540FD2DBF87E98EEAD22EA5BE20670B1BA4C1",
+                       "file_count":  2,
+                       "bytes_per_copy":  1291747,
+                       "total_bytes_all_copies":  2583494,
+                       "potential_duplicate_bytes_beyond_one_copy":  1291747,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_05_PRESS_TRAIN_A_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_05_PRESS_TRAIN_A_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "1F3A5EE53285EA4B7F495F81F9FDB629BAC100F5AECBA8361739FE6D996BEE39",
+                       "file_count":  2,
+                       "bytes_per_copy":  764764,
+                       "total_bytes_all_copies":  1529528,
+                       "potential_duplicate_bytes_beyond_one_copy":  764764,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset04_S05SlugCollectionSystem/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2119A210FFAAD42A255D93DF32FE745264F3C1B1A104B41CF38D2FF8563F34FE",
+                       "file_count":  2,
+                       "bytes_per_copy":  418912,
+                       "total_bytes_all_copies":  837824,
+                       "potential_duplicate_bytes_beyond_one_copy":  418912,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09A_LargeStillage/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "22299C133D03151B56E161B84CA45F43FD6C03EC9D73AE925D3D23920F8AA75C",
+                       "file_count":  2,
+                       "bytes_per_copy":  54133,
+                       "total_bytes_all_copies":  108266,
+                       "potential_duplicate_bytes_beyond_one_copy":  54133,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Audits/v002/PR009_FBX_EXPORT_MANIFEST_v002.json",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Audits/v002/repro_build_a_export_manifest.tmp.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2347A8726386D849ED0679A3FDFD16AB10EED6E67D5E3288EDC9C3B95B5E35F8",
+                       "file_count":  2,
+                       "bytes_per_copy":  832673,
+                       "total_bytes_all_copies":  1665346,
+                       "potential_duplicate_bytes_beyond_one_copy":  832673,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset01_S01DestackBlankFeed/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "241A9EAF971543E72C5297145E619FFC3DF4641E6FF2D4951B101AC985A36579",
+                       "file_count":  4,
+                       "bytes_per_copy":  4427,
+                       "total_bytes_all_copies":  17708,
+                       "potential_duplicate_bytes_beyond_one_copy":  13281,
+                       "relative_paths":  [
+                                              "ControlRoom/MainControlRoom_v004/documentation/material_schedule.json",
+                                              "ControlRoom/MainControlRoom_v005/documentation/material_schedule.json",
+                                              "ControlRoom/MainControlRoom_v006/documentation/material_schedule.json",
+                                              "ControlRoom/MainControlRoom_v034/documentation/material_schedule.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "262DFB6476AE182D93C4732BFEBBA7D0FB75621567B7BF0473027DE7F8F8FA8F",
+                       "file_count":  2,
+                       "bytes_per_copy":  654275,
+                       "total_bytes_all_copies":  1308550,
+                       "potential_duplicate_bytes_beyond_one_copy":  654275,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset04_S05SlugCollectionSystem/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "27260A896D37A331223C8BC961711C68136FFDCF3CA63C671A0EA3FBA98F2685",
+                       "file_count":  2,
+                       "bytes_per_copy":  825826,
+                       "total_bytes_all_copies":  1651652,
+                       "potential_duplicate_bytes_beyond_one_copy":  825826,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset07_HydraulicPowerUnit/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "27EC69F625380A95EF975F197944F4898B5539CEC8A87A7521A891F308572561",
+                       "file_count":  2,
+                       "bytes_per_copy":  2504240,
+                       "total_bytes_all_copies":  5008480,
+                       "potential_duplicate_bytes_beyond_one_copy":  2504240,
+                       "relative_paths":  [
+                                              "ReferencePacks/LB_CR01_SHARED_ROBOT_PLATFORM_BUILD_PACK_v1.0/references/Press_Shop_revised_master_plan.png",
+                                              "ReferencePacks/LB_MR01_SHARED_PLATFORM_BUILD_PACK_v1.0/references/Press_Shop_revised_master_plan.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2C47869F09F76EFABA767E55869CDA3DB707D2AD4536219648513D40D94503A7",
+                       "file_count":  2,
+                       "bytes_per_copy":  297345,
+                       "total_bytes_all_copies":  594690,
+                       "potential_duplicate_bytes_beyond_one_copy":  297345,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/03_LowerDie/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2DA9EF65379884CEBCADC7ABE25E3E4559F710CE62AC5B6DB1EAC19D56130B6F",
+                       "file_count":  2,
+                       "bytes_per_copy":  3172,
+                       "total_bytes_all_copies":  6344,
+                       "potential_duplicate_bytes_beyond_one_copy":  3172,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/PACK_MANIFEST_SHA256.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/PACK_MANIFEST_SHA256.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2E3203A238C78C8F1492F034E942E9DEF18E10B3C8DF42ED05C179ADC71C3A52",
+                       "file_count":  2,
+                       "bytes_per_copy":  1299784,
+                       "total_bytes_all_copies":  2599568,
+                       "potential_duplicate_bytes_beyond_one_copy":  1299784,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_08_PRESS_TRAIN_D_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_08_PRESS_TRAIN_D_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2F0EFDA8FDE0800E8F209AA2E49788A7798309E5CA2FBA4DDA0134B8C863496F",
+                       "file_count":  2,
+                       "bytes_per_copy":  420466,
+                       "total_bytes_all_copies":  840932,
+                       "potential_duplicate_bytes_beyond_one_copy":  420466,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/06_FixedSafetyFence/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2F1BE31BCABD677FBED92F91C199E6ABE8288BEA8A621EF563D051B432D4B7F6",
+                       "file_count":  5,
+                       "bytes_per_copy":  640,
+                       "total_bytes_all_copies":  3200,
+                       "potential_duplicate_bytes_beyond_one_copy":  2560,
+                       "relative_paths":  [
+                                              "SharedSystems/CleaningAMR/Candidate_v010/validation.json",
+                                              "SharedSystems/CleaningAMR/Candidate_v011/dimension_validation.json",
+                                              "SharedSystems/CleaningAMR/Candidate_v012/dimension_validation.json",
+                                              "SharedSystems/CleaningAMR/Candidate_v013/dimension_validation.json",
+                                              "SharedSystems/CleaningAMR/Candidate_v014/dimension_validation.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2F3C3EAE6002026E23B26B61A0111A841C37A655AEE96D42737F48613244ECF8",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "2FDB70BDCC316CF9D69373CB7BE7B397C8A29959AE018AB3EFDAF2619E7784E7",
+                       "file_count":  2,
+                       "bytes_per_copy":  517455,
+                       "total_bytes_all_copies":  1034910,
+                       "potential_duplicate_bytes_beyond_one_copy":  517455,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset06_DieChangeCart/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "30A99AD58AF6CC3FF319D16EF69630AFFDE08756CBB5844BF0CB34FC0827B880",
+                       "file_count":  2,
+                       "bytes_per_copy":  445999,
+                       "total_bytes_all_copies":  891998,
+                       "potential_duplicate_bytes_beyond_one_copy":  445999,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/10_FlywheelHousing/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "30BDA9E91870FDC686FFB62CDC7A274BFB9B4C4456C41980A6B576499F1798B5",
+                       "file_count":  2,
+                       "bytes_per_copy":  587910,
+                       "total_bytes_all_copies":  1175820,
+                       "potential_duplicate_bytes_beyond_one_copy":  587910,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset02_InterPressTransferSystem/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "32780226C8F512B680EBF24A0DF66D498754314E533DC23EED7B538EB5BB4095",
+                       "file_count":  2,
+                       "bytes_per_copy":  558329,
+                       "total_bytes_all_copies":  1116658,
+                       "potential_duplicate_bytes_beyond_one_copy":  558329,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset06_DieChangeCart/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3329155A53A8878679D11443C357E55A73C58C3A9643A04AC88D78B292E61C48",
+                       "file_count":  2,
+                       "bytes_per_copy":  134444,
+                       "total_bytes_all_copies":  268888,
+                       "potential_duplicate_bytes_beyond_one_copy":  134444,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_EmergencyStop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_EmergencyStop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "350FA7C43719A21467C81E59BD7F544FAD4BA79FAD7FC0D78E268EC1E6464CAD",
+                       "file_count":  2,
+                       "bytes_per_copy":  9449,
+                       "total_bytes_all_copies":  18898,
+                       "potential_duplicate_bytes_beyond_one_copy":  9449,
+                       "relative_paths":  [
+                                              "Shared/HMI/v003_ue001/SM_LB_HMI_CabinetBody.fbm/PR005_HMI_brushed_stainless_cabinet_Hairline",
+                                              "Shared/HMI/v003_ue001/SM_LB_HMI_RearServiceDoor.fbm/PR005_HMI_brushed_stainless_cabinet_Hairline"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3514536835E84047A0EA80368C3C487FD151629D95F5CB6A44E60B4D1ECD6B8E",
+                       "file_count":  2,
+                       "bytes_per_copy":  476036,
+                       "total_bytes_all_copies":  952072,
+                       "potential_duplicate_bytes_beyond_one_copy":  476036,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/11_FlywheelRotorShaft/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "362D71A6A2FD17073DED059DDDD44E3D391EDA717C10503EFD5D94C8810AFE7B",
+                       "file_count":  4,
+                       "bytes_per_copy":  5503,
+                       "total_bytes_all_copies":  22012,
+                       "potential_duplicate_bytes_beyond_one_copy":  16509,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v009/LB_MR01_Phase3_Hierarchy_v009.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v010/LB_MR01_Phase3_Hierarchy_v010.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v011/LB_MR01_Phase3_Hierarchy_v011.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v012/LB_MR01_Phase3_Hierarchy_v012.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3A4595099CF5EF9DF03C14C4D26D6A70FF305B0105EF35E6A0EA113FC2224905",
+                       "file_count":  2,
+                       "bytes_per_copy":  266022,
+                       "total_bytes_all_copies":  532044,
+                       "potential_duplicate_bytes_beyond_one_copy":  266022,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09C_FlatStillage/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3A7C87170DD94890153776AB873F3D9BF7235DA967A7613ACC8187E75B593993",
+                       "file_count":  2,
+                       "bytes_per_copy":  410890,
+                       "total_bytes_all_copies":  821780,
+                       "potential_duplicate_bytes_beyond_one_copy":  410890,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset10_PoweredRollerConveyor/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3A8BF69E17CFBCDE490F014F44BD5C5B6B7D296C917B9D2B70CA8D7CC1E403F7",
+                       "file_count":  2,
+                       "bytes_per_copy":  92985,
+                       "total_bytes_all_copies":  185970,
+                       "potential_duplicate_bytes_beyond_one_copy":  92985,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/09_OperatorHMI/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3AFBB4375D0F2F6BFAC31C7ADF35D89A31CA743EFCEC42E13ABD3E372F3C9B8D",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3BEED4401FDB7F9FD57A2C10E719BACC0CDBF91720530E3BD59166015019B9E9",
+                       "file_count":  2,
+                       "bytes_per_copy":  10028,
+                       "total_bytes_all_copies":  20056,
+                       "potential_duplicate_bytes_beyond_one_copy":  10028,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/unreal_asset_manifest.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/unreal_asset_manifest.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3C05B09F1335BB8A267497215A45F70E9336C4BF2668D0BD1B3BCE8887F81D66",
+                       "file_count":  2,
+                       "bytes_per_copy":  2522590,
+                       "total_bytes_all_copies":  5045180,
+                       "potential_duplicate_bytes_beyond_one_copy":  2522590,
+                       "relative_paths":  [
+                                              "ReferencePacks/LB_CR01_SHARED_ROBOT_PLATFORM_BUILD_PACK_v1.0/references/LB_CR01_design_sheet.png",
+                                              "ReferencePacks/LB_MR01_SHARED_PLATFORM_BUILD_PACK_v1.0/references/LB_CR01_design_sheet.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3D37D19DCBE4BDB5D30D6FA58F7E4C60D2654BAEB36057E6DBF46BB4FFC43008",
+                       "file_count":  2,
+                       "bytes_per_copy":  1633656,
+                       "total_bytes_all_copies":  3267312,
+                       "potential_duplicate_bytes_beyond_one_copy":  1633656,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_02_PR009_ENGINEERING_REFERENCE_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_02_PR009_ENGINEERING_REFERENCE_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "3FDA35ABFAB3CB5FC3370BA42F070A42C5D44B65349AB35A2B0C18DA6E00648F",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "40C8A07311CAAE4E8BA0E7E8D9CB7098FB9278588FEB8ECD49D2FBD0D84D177C",
+                       "file_count":  2,
+                       "bytes_per_copy":  104366,
+                       "total_bytes_all_copies":  208732,
+                       "potential_duplicate_bytes_beyond_one_copy":  104366,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/06_FixedSafetyFence/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "43F34EABADC8D6130CA430A10EF4F844D1AB389C861595B856F0F8B9ABF81724",
+                       "file_count":  2,
+                       "bytes_per_copy":  687363,
+                       "total_bytes_all_copies":  1374726,
+                       "potential_duplicate_bytes_beyond_one_copy":  687363,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/11_FlywheelRotorShaft/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "44B9E67E1CFB009CF471C232E48B12C1126B1ECF1E8AA1101477923CC206C990",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "48E27EAE3BA1A9D8BC516F3B6480E3B1AEAA3024CE9CB2047AD2A14E34582D6F",
+                       "file_count":  2,
+                       "bytes_per_copy":  1944,
+                       "total_bytes_all_copies":  3888,
+                       "potential_duplicate_bytes_beyond_one_copy":  1944,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/CODEX_BUILD_PROMPT.md",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/CODEX_BUILD_PROMPT.md"
+                                          ]
+                   },
+                   {
+                       "sha256":  "48ED9BB50851E35ABDD8B49AEE399414DE9EBEE6B6AAB6C93C0632A87500748F",
+                       "file_count":  2,
+                       "bytes_per_copy":  192044,
+                       "total_bytes_all_copies":  384088,
+                       "potential_duplicate_bytes_beyond_one_copy":  192044,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_TransferServo_Loop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_TransferServo_Loop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "49FE95E3F751473527EB8D229F5CA19220457C858BE9B69F8746C5F95F927409",
+                       "file_count":  2,
+                       "bytes_per_copy":  2578,
+                       "total_bytes_all_copies":  5156,
+                       "potential_duplicate_bytes_beyond_one_copy":  2578,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/ChassisFrameUnderbody_Intake_v001/Build/compare_vertex_clouds.py",
+                                              "Candidate/WeldShop/VacuumPanelPickEOAT_Intake_v001/Build/compare_vertex_clouds.py"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4A70EF6BC7224420D8768EDD40269D7D0B61613A116BD60D1B4C69E3AF3BCD5C",
+                       "file_count":  4,
+                       "bytes_per_copy":  6529,
+                       "total_bytes_all_copies":  26116,
+                       "potential_duplicate_bytes_beyond_one_copy":  19587,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v009/LB_MR01_Phase3_ToolModules_v009.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v010/LB_MR01_Phase3_ToolModules_v010.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v011/LB_MR01_Phase3_ToolModules_v011.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v012/LB_MR01_Phase3_ToolModules_v012.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4B2B198EB4D909F97F292731626CCB754F0D310E18E20EA8CC2B3B05703FFF6C",
+                       "file_count":  2,
+                       "bytes_per_copy":  398597,
+                       "total_bytes_all_copies":  797194,
+                       "potential_duplicate_bytes_beyond_one_copy":  398597,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/05_RightAccessDoor/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4C2C5A5E7EB6541E42FDA52BD7E27F0CA2DBDA744DDDF460ACE2C26FF3063C96",
+                       "file_count":  2,
+                       "bytes_per_copy":  12192,
+                       "total_bytes_all_copies":  24384,
+                       "potential_duplicate_bytes_beyond_one_copy":  12192,
+                       "relative_paths":  [
+                                              "ReferencePacks/LB_CR01_SHARED_ROBOT_PLATFORM_BUILD_PACK_v1.0/proxy/LB_RP01_SharedCore_Blockout.glb",
+                                              "ReferencePacks/LB_MR01_SHARED_PLATFORM_BUILD_PACK_v1.0/references/LB_RP01_SharedCore_ReferenceOnly.glb"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4C4722E2B8DB06DFA065CB57FDF8C6D5266348A02E327DAACD66304B48633F03",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4C769DFDA097B5E0A262DF375ECCF272C359B311A1D7F2483CF65CDE7F807971",
+                       "file_count":  2,
+                       "bytes_per_copy":  1955,
+                       "total_bytes_all_copies":  3910,
+                       "potential_duplicate_bytes_beyond_one_copy":  1955,
+                       "relative_paths":  [
+                                              "PR008/StripTransition/Candidate_v001/pr008_strip_transition_module_manifest_v001.json",
+                                              "PR008/StripTransition/ProEntryLoop_v002/pr008_strip_transition_module_manifest_v002.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "4FEA5A0229707B31E70A199C42B9287220EE4CDCDF9F75DEC79DDF21425BB18C",
+                       "file_count":  2,
+                       "bytes_per_copy":  1106,
+                       "total_bytes_all_copies":  2212,
+                       "potential_duplicate_bytes_beyond_one_copy":  1106,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/lod_collision_schedule.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/lod_collision_schedule.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "51E69E9A450BEA6ECED39BFE3BFBFF9D052C9266403EC050DEE5F133F106175D",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "521C72FA346A7D33CC9E1D958D26892957635729AEE47E7692328E28C2995761",
+                       "file_count":  2,
+                       "bytes_per_copy":  3184154,
+                       "total_bytes_all_copies":  6368308,
+                       "potential_duplicate_bytes_beyond_one_copy":  3184154,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/CompleteTrainAAssembly_v660/Review/Textured_v726/TrainA_textured_operator_elevated_v726.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/03_TransferPress_authority.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "536D59548D372FC79F1489A479A08A5ACEF4E9633FFB5B06F2E6EB60ECDB0EEF",
+                       "file_count":  2,
+                       "bytes_per_copy":  4261,
+                       "total_bytes_all_copies":  8522,
+                       "potential_duplicate_bytes_beyond_one_copy":  4261,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/01_SOURCE_AUTHORITY_AUDIT.md",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/01_SOURCE_AUTHORITY_AUDIT.md"
+                                          ]
+                   },
+                   {
+                       "sha256":  "538DC7DB2E35CD8472F5CBC4C7BB20002E91E334B1CAD0D648C16399209C86BE",
+                       "file_count":  2,
+                       "bytes_per_copy":  6359,
+                       "total_bytes_all_copies":  12718,
+                       "potential_duplicate_bytes_beyond_one_copy":  6359,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/module_register.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/module_register.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "541F76CDF8E4AF77D549136A84F5FF4A9283A1E1AB9B3611E710979A13CCD07F",
+                       "file_count":  2,
+                       "bytes_per_copy":  192044,
+                       "total_bytes_all_copies":  384088,
+                       "potential_duplicate_bytes_beyond_one_copy":  192044,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_RobotServo_Loop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_RobotServo_Loop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "55432159254BBBD65E55A26A8E5BD6139C4DF82D7044B45675EB72A8C8BDE931",
+                       "file_count":  2,
+                       "bytes_per_copy":  421749,
+                       "total_bytes_all_copies":  843498,
+                       "potential_duplicate_bytes_beyond_one_copy":  421749,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09A_LargeStillage/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "560868AC9ADAFC98E11594776B4A20E2E8DAD1DA25F0EDF354CA9265E77BEED5",
+                       "file_count":  2,
+                       "bytes_per_copy":  966,
+                       "total_bytes_all_copies":  1932,
+                       "potential_duplicate_bytes_beyond_one_copy":  966,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/README_FIRST.md",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/README_FIRST.md"
+                                          ]
+                   },
+                   {
+                       "sha256":  "565788789C7625251FE8C328F7825FD0AA8C85144AD29DF7602D47966D54F160",
+                       "file_count":  2,
+                       "bytes_per_copy":  15046,
+                       "total_bytes_all_copies":  30092,
+                       "potential_duplicate_bytes_beyond_one_copy":  15046,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/PRESS_SHOP_REMAINING_MACHINERY_ENGINEERING_SPEC_v1.0.md",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/PRESS_SHOP_REMAINING_MACHINERY_ENGINEERING_SPEC_v1.0.md"
+                                          ]
+                   },
+                   {
+                       "sha256":  "56DBD80AFB1A4872F45066B13C61B06EA3BF5E1005A3F1CAF9EE8410C3C4BE99",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "575BCB783FAFE84E21AAF05F666A28F0CC3F38881950E62DF8A91E825DBCE606",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5773F936EC70A502735D995F6B64A23B80375017E1E6AFD713DB596127671B1C",
+                       "file_count":  2,
+                       "bytes_per_copy":  3362,
+                       "total_bytes_all_copies":  6724,
+                       "potential_duplicate_bytes_beyond_one_copy":  3362,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/02_DIMENSIONED_ASSET_INVENTORY.csv",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/02_DIMENSIONED_ASSET_INVENTORY.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5ABDF6038186251AB675170EEF35BA06C1A5D70D6D57798BF008E4231821659A",
+                       "file_count":  2,
+                       "bytes_per_copy":  2143224,
+                       "total_bytes_all_copies":  4286448,
+                       "potential_duplicate_bytes_beyond_one_copy":  2143224,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/Meshy6PressUnloadRobot_v719/approved_robot_family_sheet.png",
+                                              "Candidate/PressTrains/TrainA/AssemblyStudy_v012/Reference/Cairnwell_Robot_Family_Robot_Variants.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5AEE02A68DFDE1A9FEB06184C22D0D4C249983154CA84918F7B5713A65594C1A",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5B6C0F43133A4782017A92362C5322B912321FB15AF3CA99CCCD59C4827F0101",
+                       "file_count":  2,
+                       "bytes_per_copy":  646250,
+                       "total_bytes_all_copies":  1292500,
+                       "potential_duplicate_bytes_beyond_one_copy":  646250,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset04_S05SlugCollectionSystem/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5D2DE376C6B443B09D1454261B6D7C49932285D4ED34EBCB6836D49C1D435695",
+                       "file_count":  2,
+                       "bytes_per_copy":  270823,
+                       "total_bytes_all_copies":  541646,
+                       "potential_duplicate_bytes_beyond_one_copy":  270823,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09C_FlatStillage/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "5F3735090674806780A36286DA80681D532F3BAA2B5156C2308029F34B14FF08",
+                       "file_count":  2,
+                       "bytes_per_copy":  673259,
+                       "total_bytes_all_copies":  1346518,
+                       "potential_duplicate_bytes_beyond_one_copy":  673259,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset05_S07InspectUnloadCell/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6437F8646CC87DCB71BFE6192C5331AF31184600B521E27CD7CBB8A040927B19",
+                       "file_count":  3,
+                       "bytes_per_copy":  2424,
+                       "total_bytes_all_copies":  7272,
+                       "potential_duplicate_bytes_beyond_one_copy":  4848,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v009/LB_MR01_Phase3_Dimensions_v009.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v010/LB_MR01_Phase3_Dimensions_v010.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v011/LB_MR01_Phase3_Dimensions_v011.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6682635F951D218370F2958084FF2480330789D6A8E90089186FE2A02AC65245",
+                       "file_count":  2,
+                       "bytes_per_copy":  420456,
+                       "total_bytes_all_copies":  840912,
+                       "potential_duplicate_bytes_beyond_one_copy":  420456,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/03_LowerDie/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "68911DA781238F9F9464C2E911D36439AA0267218690370DCF73B6A77F7C2E68",
+                       "file_count":  2,
+                       "bytes_per_copy":  833117,
+                       "total_bytes_all_copies":  1666234,
+                       "potential_duplicate_bytes_beyond_one_copy":  833117,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset07_HydraulicPowerUnit/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6B7B0EEED9780CDB490002DFDA0ADEDB99EF53989D248C3297EAAF8F4EB8AEF0",
+                       "file_count":  2,
+                       "bytes_per_copy":  500829,
+                       "total_bytes_all_copies":  1001658,
+                       "potential_duplicate_bytes_beyond_one_copy":  500829,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/01_RamSlide/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6D48E7F5E6A65D70DA8970C42967B51D1FFC19A098DB5265CEA5637C3EB34726",
+                       "file_count":  2,
+                       "bytes_per_copy":  608743,
+                       "total_bytes_all_copies":  1217486,
+                       "potential_duplicate_bytes_beyond_one_copy":  608743,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset01_S01DestackBlankFeed/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6E57DEA280B761A83A8C32322A7358CB2F1D408C671118B17EACBDB3178FF40C",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6F4AFFF9DEEE83236910559ADBB122A84685C44706322D968433259A78A72B43",
+                       "file_count":  2,
+                       "bytes_per_copy":  1841713,
+                       "total_bytes_all_copies":  3683426,
+                       "potential_duplicate_bytes_beyond_one_copy":  1841713,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/InboundHandoffComposite_v20260809_v831/Review/01_Combined_Neutral_Hero_v831.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/01_CoilIntake_authority.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6F6559B5CC3C6548A10B138062F2AC8229A3BB96304A646AC6AF4A8CD9D22D8E",
+                       "file_count":  2,
+                       "bytes_per_copy":  1393,
+                       "total_bytes_all_copies":  2786,
+                       "potential_duplicate_bytes_beyond_one_copy":  1393,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/interaction_points_and_clearances.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/interaction_points_and_clearances.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "6FAE215700F1B5E3E2DB40FB095F19CEE6C95A2B48575B5EDA90C5AA6D4458F9",
+                       "file_count":  2,
+                       "bytes_per_copy":  1327,
+                       "total_bytes_all_copies":  2654,
+                       "potential_duplicate_bytes_beyond_one_copy":  1327,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/authority_and_assumptions.json",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/authority_and_assumptions.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "70B97C1B5F78A97308D0BCCF5DC8CA04EB1F4DC1EF3A1385D58B62BFC41124B9",
+                       "file_count":  2,
+                       "bytes_per_copy":  755474,
+                       "total_bytes_all_copies":  1510948,
+                       "potential_duplicate_bytes_beyond_one_copy":  755474,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/02_InterPressTransferSystem/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset02_InterPressTransferSystem/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "75F8F0445CE578C2176A4BCF3165DCB16836AAA7F765091D095966443E99C0C2",
+                       "file_count":  2,
+                       "bytes_per_copy":  1729563,
+                       "total_bytes_all_copies":  3459126,
+                       "potential_duplicate_bytes_beyond_one_copy":  1729563,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_01_PR008_ENGINEERING_REFERENCE_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_01_PR008_ENGINEERING_REFERENCE_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "764EBFC3753BADB2EDD03DE0085514DDA3CDFC6926D8A36B839BEB9815BD973D",
+                       "file_count":  2,
+                       "bytes_per_copy":  2440055,
+                       "total_bytes_all_copies":  4880110,
+                       "potential_duplicate_bytes_beyond_one_copy":  2440055,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/Inbound/CoilHandlerAGV_v20260810/Hybrid_v999/SM_Cairnwell_AGV_CHF01_StaticBody_v999.fbm/CHF01_Image_0.jpg",
+                                              "Candidate/PressShop/Inbound/CoilHandlerAGV_v20260810/Hybrid_v999/Textures/CHF01_Image_0.jpg"
+                                          ]
+                   },
+                   {
+                       "sha256":  "79869B23D413A838FDB276EE990593F9AA720127B86B42B9DD338036D245D414",
+                       "file_count":  2,
+                       "bytes_per_copy":  613638,
+                       "total_bytes_all_copies":  1227276,
+                       "potential_duplicate_bytes_beyond_one_copy":  613638,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset05_S07InspectUnloadCell/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "7B335A8CECC8487AF670873381139E1A24903644331CE09B7091B6CF93DAE0E6",
+                       "file_count":  2,
+                       "bytes_per_copy":  1223331,
+                       "total_bytes_all_copies":  2446662,
+                       "potential_duplicate_bytes_beyond_one_copy":  1223331,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_04_PRESS_TRAINS_SHARED_ARCHITECTURE_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_04_PRESS_TRAINS_SHARED_ARCHITECTURE_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "7DC4FCFA5ACEC200F81F7819186A152D6AC2299EB4DD0019E1F2F9028B8EFD64",
+                       "file_count":  2,
+                       "bytes_per_copy":  212055,
+                       "total_bytes_all_copies":  424110,
+                       "potential_duplicate_bytes_beyond_one_copy":  212055,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09B_SmallStillage/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "7ED8353BCA60F50F369ECBE64657AD7DBB2161008515D8E65B0B637A4E8C2161",
+                       "file_count":  2,
+                       "bytes_per_copy":  703760,
+                       "total_bytes_all_copies":  1407520,
+                       "potential_duplicate_bytes_beyond_one_copy":  703760,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset05_S07InspectUnloadCell/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8145F0F884B4D514FF638434AAD1F1DCE2180610F391CA898C2063BEB8C5EB44",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8175E8A9AD220AB2F771549795A5A446970D0BF3906C80C775197DB2C97188C7",
+                       "file_count":  5,
+                       "bytes_per_copy":  5489,
+                       "total_bytes_all_copies":  27445,
+                       "potential_duplicate_bytes_beyond_one_copy":  21956,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v002/LB_MR01_Phase2_Hierarchy_v002.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v003/LB_MR01_Phase2_Hierarchy_v003.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v004/LB_MR01_Phase2_Hierarchy_v004.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v005/LB_MR01_Phase2_Hierarchy_v005.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v006/LB_MR01_Phase2_Hierarchy_v006.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "81B792E05A3A0C7F1B11551931D71324892F02CEDBD0D925D6AD67E88D4F6DFD",
+                       "file_count":  2,
+                       "bytes_per_copy":  606315,
+                       "total_bytes_all_copies":  1212630,
+                       "potential_duplicate_bytes_beyond_one_copy":  606315,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset01_S01DestackBlankFeed/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "83008CAE31B3560C48E8DC26AAB06F298EB06C71C00134F9E83A97FAF0924700",
+                       "file_count":  3,
+                       "bytes_per_copy":  985,
+                       "total_bytes_all_copies":  2955,
+                       "potential_duplicate_bytes_beyond_one_copy":  1970,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/CAIRNWELL_AUTOMOTIVE_PRIMARY_LOGO.svg",
+                                              "ReferencePacks/CAIRNWELL_AUTOMOTIVE_BRAND_IDENTITY_PACK_v1.0/CAIRNWELL_AUTOMOTIVE_PRIMARY_LOGO.svg",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/CAIRNWELL_AUTOMOTIVE_PRIMARY_LOGO.svg"
+                                          ]
+                   },
+                   {
+                       "sha256":  "863BC6978581461A987F88F73D5A4690BD31DAFBAD29D5C1AA03EC3D0A8F3D11",
+                       "file_count":  2,
+                       "bytes_per_copy":  284609,
+                       "total_bytes_all_copies":  569218,
+                       "potential_duplicate_bytes_beyond_one_copy":  284609,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/01_RamSlide/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8792A9AF0C7FA2B0FA277047AB70FF6C3456E4479DC8B44B2E8D054CFE6C69C7",
+                       "file_count":  2,
+                       "bytes_per_copy":  226721,
+                       "total_bytes_all_copies":  453442,
+                       "potential_duplicate_bytes_beyond_one_copy":  226721,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09B_SmallStillage/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8BF8B04ED8F7205D4D0745A7C1D4933EEBC0E2C3361BC1F10B316625F9307970",
+                       "file_count":  2,
+                       "bytes_per_copy":  384044,
+                       "total_bytes_all_copies":  768088,
+                       "potential_duplicate_bytes_beyond_one_copy":  384044,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_HydraulicPower_Loop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_HydraulicPower_Loop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8D70C298574CA9C3782F3DA2F057CE5819740EBA22BC45C7B0F10F504EEF6FF6",
+                       "file_count":  2,
+                       "bytes_per_copy":  517316,
+                       "total_bytes_all_copies":  1034632,
+                       "potential_duplicate_bytes_beyond_one_copy":  517316,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/07_InterlockedGate/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8D77A23B85E1DD9BC61F54AE4B4481E15066EC1EFA6BB257607B9627E9598B21",
+                       "file_count":  2,
+                       "bytes_per_copy":  893,
+                       "total_bytes_all_copies":  1786,
+                       "potential_duplicate_bytes_beyond_one_copy":  893,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/state_models.json",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/state_models.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8DA22A555055E491CC3ACF7752F31F4DCAE361BB4CE4A34ECD2CFEB29EBB84E5",
+                       "file_count":  2,
+                       "bytes_per_copy":  13631360,
+                       "total_bytes_all_copies":  27262720,
+                       "potential_duplicate_bytes_beyond_one_copy":  13631360,
+                       "relative_paths":  [
+                                              "Candidate/FactoryLogistics/PoweredConveyor_v001/Authorities/MeshyPoweredRoller_Cleaned_v639__SM_CA_MW_PT_PoweredRollerConveyor_LOD0_v639.glb",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Cleaned_v644/SM_CA_MW_PT_PoweredRollerConveyor_LOD0_v639.glb"
+                                          ]
+                   },
+                   {
+                       "sha256":  "8E29FEAC7DB63682FC49FA0C5DD674C17E4B0EFF4955308F7BBDCAF7D7FC9422",
+                       "file_count":  2,
+                       "bytes_per_copy":  457616,
+                       "total_bytes_all_copies":  915232,
+                       "potential_duplicate_bytes_beyond_one_copy":  457616,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09A_LargeStillage/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "90F325369A420AE928FFBBD3E3F9BD4EC1BB5901714BB4FAF20FC2B128783962",
+                       "file_count":  2,
+                       "bytes_per_copy":  284713,
+                       "total_bytes_all_copies":  569426,
+                       "potential_duplicate_bytes_beyond_one_copy":  284713,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/08_ElectricalCabinet/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "929D87E7ADE378EA3DE9CEF321F0ABE44FA4CCFC17ED0F99E0A6F9FF5F48EB65",
+                       "file_count":  2,
+                       "bytes_per_copy":  517487,
+                       "total_bytes_all_copies":  1034974,
+                       "potential_duplicate_bytes_beyond_one_copy":  517487,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset03_S04TrimScrapSystem/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "93D0E0465C5CB66288135B12CCB4968E4F79C00C1E4D6701A8E343506EAEBF6C",
+                       "file_count":  2,
+                       "bytes_per_copy":  149907,
+                       "total_bytes_all_copies":  299814,
+                       "potential_duplicate_bytes_beyond_one_copy":  149907,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/10_FlywheelHousing/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "94FD86DC747ACC18CCD335ACB1740D9549AA1E87347197CCE054235552969EC4",
+                       "file_count":  2,
+                       "bytes_per_copy":  1861011,
+                       "total_bytes_all_copies":  3722022,
+                       "potential_duplicate_bytes_beyond_one_copy":  1861011,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/Inbound/CoilHandlerAGV_v20260810/Hybrid_v999/SM_Cairnwell_AGV_CHF01_StaticBody_v999.fbm/CHF01_Image_2.jpg",
+                                              "Candidate/PressShop/Inbound/CoilHandlerAGV_v20260810/Hybrid_v999/Textures/CHF01_Image_2.jpg"
+                                          ]
+                   },
+                   {
+                       "sha256":  "966487E4477EAF1CB88F445FFAECFEF2032BAF51EA554F25F87AD94D2409D85D",
+                       "file_count":  2,
+                       "bytes_per_copy":  315892,
+                       "total_bytes_all_copies":  631784,
+                       "potential_duplicate_bytes_beyond_one_copy":  315892,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/03_LowerDie/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "968178B3216194781259B0B2F5132A8F7D7502C6351A511B1751D8B751F2D05E",
+                       "file_count":  2,
+                       "bytes_per_copy":  375997,
+                       "total_bytes_all_copies":  751994,
+                       "potential_duplicate_bytes_beyond_one_copy":  375997,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/05_RightAccessDoor/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "96D61F5E292519C4ECAB23E0220A19597569881C300D09C7229B20D51D517054",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "96DE4334421618EA06B2AACFE4E72BCBD37C5B9054CDDD1174B31364CC746F07",
+                       "file_count":  2,
+                       "bytes_per_copy":  2439678,
+                       "total_bytes_all_copies":  4879356,
+                       "potential_duplicate_bytes_beyond_one_copy":  2439678,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/SHEET_00_PRESS_SHOP_REMAINING_MACHINERY_OVERVIEW.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/SHEET_00_PRESS_SHOP_REMAINING_MACHINERY_OVERVIEW.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "97BED5E936C70EB61DDA37F5EFBB74C3CC3FBF0FF5F6FDEE5E17918BDA24C87A",
+                       "file_count":  2,
+                       "bytes_per_copy":  567430,
+                       "total_bytes_all_copies":  1134860,
+                       "potential_duplicate_bytes_beyond_one_copy":  567430,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset03_S04TrimScrapSystem/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "98FEBCF8640DFA333CF5155E6384749C180716042899F5FF484F8F0EC2E708E9",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "99309998507225074418D9119101C2EA3A013ADF608BEB808D3677CE8C0DE21D",
+                       "file_count":  2,
+                       "bytes_per_copy":  512855,
+                       "total_bytes_all_copies":  1025710,
+                       "potential_duplicate_bytes_beyond_one_copy":  512855,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset06_DieChangeCart/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9954339FFA13877B554B53F39AA0EAF77BF2456642BDAE3DA3877332A1DD7DF5",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9DBE9E1B6E46DDBFF63E8D422BDD3BB39E83BD58CF0FBFB59DB368EB8BF2B9C2",
+                       "file_count":  2,
+                       "bytes_per_copy":  6797,
+                       "total_bytes_all_copies":  13594,
+                       "potential_duplicate_bytes_beyond_one_copy":  6797,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/05_MACHINE_IDENTITY_AND_INTERACTION_MANIFEST.json",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/05_MACHINE_IDENTITY_AND_INTERACTION_MANIFEST.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9DF2E4E1DA05779EEA925E8FB2363717EFE14139BDE4B7000D5E468A405F1958",
+                       "file_count":  2,
+                       "bytes_per_copy":  554168,
+                       "total_bytes_all_copies":  1108336,
+                       "potential_duplicate_bytes_beyond_one_copy":  554168,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/02_UpperDie/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9E7B7E2A168F4FE377832C507F45237FE8E31C486807A8A7046FB8FEBE791A14",
+                       "file_count":  3,
+                       "bytes_per_copy":  942,
+                       "total_bytes_all_copies":  2826,
+                       "potential_duplicate_bytes_beyond_one_copy":  1884,
+                       "relative_paths":  [
+                                              "ControlRoom/MainControlRoom_v005/documentation/source_envelope_dimension_audit.json",
+                                              "ControlRoom/MainControlRoom_v006/documentation/source_envelope_dimension_audit.json",
+                                              "ControlRoom/MainControlRoom_v034/documentation/source_envelope_dimension_audit.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9E9DE419B62BA7C1A5C374CBE0FE7183DD673B2274E9695A08062058EB907BB6",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "9F2D9D2E3EC9D8039067BCD74455E00F1AEED3C3D9362D1163510CE7600B6464",
+                       "file_count":  2,
+                       "bytes_per_copy":  478464,
+                       "total_bytes_all_copies":  956928,
+                       "potential_duplicate_bytes_beyond_one_copy":  478464,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/11_FlywheelRotorShaft/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "A19F05715B29A01F5B75F1D3BC1200BDA06F4220F37D78B7F5F8890CD342EF04",
+                       "file_count":  2,
+                       "bytes_per_copy":  530844,
+                       "total_bytes_all_copies":  1061688,
+                       "potential_duplicate_bytes_beyond_one_copy":  530844,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/07_InterlockedGate/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "A467BB2C70F3A52CFD2D8B5E3F8DF6AE8E4D3C18572236286FA98E336F202DB9",
+                       "file_count":  2,
+                       "bytes_per_copy":  4397,
+                       "total_bytes_all_copies":  8794,
+                       "potential_duplicate_bytes_beyond_one_copy":  4397,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/03_LAYOUT_AND_DATUM_PLAN.json",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/03_LAYOUT_AND_DATUM_PLAN.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "A5860F7C4BD12387AE7D66EF45F3E9D2C1D1150020B83FB426CA4A6B292CCD02",
+                       "file_count":  2,
+                       "bytes_per_copy":  2567461,
+                       "total_bytes_all_copies":  5134922,
+                       "potential_duplicate_bytes_beyond_one_copy":  2567461,
+                       "relative_paths":  [
+                                              "ReferencePacks/LB_CR01_SHARED_ROBOT_PLATFORM_BUILD_PACK_v1.0/references/LB_MR01_design_sheet.png",
+                                              "ReferencePacks/LB_MR01_SHARED_PLATFORM_BUILD_PACK_v1.0/references/LB_MR01_design_sheet.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "A589565B637628A43C00632620D95F9596FF23C8D45D65188037336ABA3C2EB0",
+                       "file_count":  2,
+                       "bytes_per_copy":  1081,
+                       "total_bytes_all_copies":  2162,
+                       "potential_duplicate_bytes_beyond_one_copy":  1081,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/ChassisFrameUnderbody_Intake_v001/Build/extract_vertex_cloud.py",
+                                              "Candidate/WeldShop/VacuumPanelPickEOAT_Intake_v001/Build/extract_vertex_cloud.py"
+                                          ]
+                   },
+                   {
+                       "sha256":  "AAEDEEAFDE57B86CC377D47BA7DF440439763F159A09C37CDE08426C070C1BF3",
+                       "file_count":  2,
+                       "bytes_per_copy":  806,
+                       "total_bytes_all_copies":  1612,
+                       "potential_duplicate_bytes_beyond_one_copy":  806,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/press_train_variant_matrix.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/press_train_variant_matrix.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "ABE314BC4D36A530E0C8D4967A083854F01873559592DF2357E8FF6C3EB0139B",
+                       "file_count":  2,
+                       "bytes_per_copy":  273522,
+                       "total_bytes_all_copies":  547044,
+                       "potential_duplicate_bytes_beyond_one_copy":  273522,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/01_RamSlide/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "ABF9F7FCD01D2E79D434FB8582BBAF24C02D56607A7E166D8EF4ED6DE7FDFDEA",
+                       "file_count":  2,
+                       "bytes_per_copy":  266560,
+                       "total_bytes_all_copies":  533120,
+                       "potential_duplicate_bytes_beyond_one_copy":  266560,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/09_OperatorHMI/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "ABFCE1A8A1B8C9180CC21BD09986A024B7E289708A4B3364D870366011D515BC",
+                       "file_count":  2,
+                       "bytes_per_copy":  579134,
+                       "total_bytes_all_copies":  1158268,
+                       "potential_duplicate_bytes_beyond_one_copy":  579134,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/03_S04TrimScrapSystem/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset03_S04TrimScrapSystem/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "B0DA8BF745805892D90CCF0DDA65AE038F31270579EB002556497A2AC285CC94",
+                       "file_count":  2,
+                       "bytes_per_copy":  448613,
+                       "total_bytes_all_copies":  897226,
+                       "potential_duplicate_bytes_beyond_one_copy":  448613,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset10_PoweredRollerConveyor/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "B1F638EEF060DE3844F482469A33CC22491AF6E8B4C7EC8E3906ACADF3AC992D",
+                       "file_count":  2,
+                       "bytes_per_copy":  6282,
+                       "total_bytes_all_copies":  12564,
+                       "potential_duplicate_bytes_beyond_one_copy":  6282,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/Meshy6PressUnloadRobot_v719/task_complete.json",
+                                              "Candidate/PressTrains/Shared/Meshy6PressUnloadRobot_v719/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "B831C4BE6245BD4C3ADFD55DFBD71590135E7658618B259B0F51F7B071D8468B",
+                       "file_count":  6,
+                       "bytes_per_copy":  6247,
+                       "total_bytes_all_copies":  37482,
+                       "potential_duplicate_bytes_beyond_one_copy":  31235,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v003/LB_MR01_Phase2_ToolAttachments_v003.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v004/LB_MR01_Phase2_ToolAttachments_v004.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v005/LB_MR01_Phase2_ToolAttachments_v005.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v006/LB_MR01_Phase2_ToolAttachments_v006.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v007/LB_MR01_Phase2_ToolAttachments_v007.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v008/LB_MR01_Phase2_ToolAttachments_v008.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "B9A7275AF3E9104AF8B855D9A802CE0E07D2A3709FE00D68C34DFBCC72447F7A",
+                       "file_count":  2,
+                       "bytes_per_copy":  131694,
+                       "total_bytes_all_copies":  263388,
+                       "potential_duplicate_bytes_beyond_one_copy":  131694,
+                       "relative_paths":  [
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Derived/T_LB_UI_PF_TransferPress_v001.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v002/Derived/T_LB_UI_PF_TransferPress_v002.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "B9EBA16D88F1BE9F876911A45155210193979A2DF8B7E8E478A46883B21ED64C",
+                       "file_count":  2,
+                       "bytes_per_copy":  267060,
+                       "total_bytes_all_copies":  534120,
+                       "potential_duplicate_bytes_beyond_one_copy":  267060,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09C_FlatStillage/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "BC91D6265490AD3228860D07E7C34FF46799E4D8DF3899E14BA2CDA75E4E2EFD",
+                       "file_count":  2,
+                       "bytes_per_copy":  52844,
+                       "total_bytes_all_copies":  105688,
+                       "potential_duplicate_bytes_beyond_one_copy":  52844,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_GateInterlock_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_GateInterlock_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "BDEC798E950D120EF557FEE26130B0C7B47A613D8F6D3D842F25A2A2FED549F4",
+                       "file_count":  2,
+                       "bytes_per_copy":  225728,
+                       "total_bytes_all_copies":  451456,
+                       "potential_duplicate_bytes_beyond_one_copy":  225728,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/08_ElectricalCabinet/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/08_ElectricalCabinet/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C0101781F952F92C2052134A5A96AE77B327FC861F66FAC9C428D25071441C62",
+                       "file_count":  2,
+                       "bytes_per_copy":  13532931,
+                       "total_bytes_all_copies":  27065862,
+                       "potential_duplicate_bytes_beyond_one_copy":  13532931,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/PRESS_SHOP_REMAINING_MACHINERY_ENGINEERING_SPEC_v1.0.docx",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/docs/PRESS_SHOP_REMAINING_MACHINERY_ENGINEERING_SPEC_v1.0.docx"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C21326221466D8DFBC9CA1784B9F21AA8E9824E7A46EF4B9D9A9203DAE9D7C21",
+                       "file_count":  2,
+                       "bytes_per_copy":  2929,
+                       "total_bytes_all_copies":  5858,
+                       "potential_duplicate_bytes_beyond_one_copy":  2929,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/04_MATERIAL_REQUIREMENTS.json",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/04_MATERIAL_REQUIREMENTS.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C225B1EC83A766C95EA5140C143AE90412F2EDB15D0E99A545E1F2077B5786AC",
+                       "file_count":  2,
+                       "bytes_per_copy":  410632,
+                       "total_bytes_all_copies":  821264,
+                       "potential_duplicate_bytes_beyond_one_copy":  410632,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset10_PoweredRollerConveyor/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C235922D6AFD842ADF8DA79D4374B69AF989619F15A2B8895EE323DA4EA4D27A",
+                       "file_count":  2,
+                       "bytes_per_copy":  2596,
+                       "total_bytes_all_copies":  5192,
+                       "potential_duplicate_bytes_beyond_one_copy":  2596,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/FinishedVehicleVisual_Intake_v001/Build/render_review_views.py",
+                                              "Candidate/WeldShop/VacuumPanelPickEOAT_Intake_v001/Build/render_review_views.py"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C79D110E8874B5EE52D6FB9302C7C94889461D5927B9F33A5E1847B687CB34CC",
+                       "file_count":  2,
+                       "bytes_per_copy":  492136,
+                       "total_bytes_all_copies":  984272,
+                       "potential_duplicate_bytes_beyond_one_copy":  492136,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/01_RamSlide/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/01_RamSlide/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C8063D6F79FD717638DC5337858547C0750BA418AE5F017AB7DE7F8BB99BD177",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C94983B596919F958F08B74088FCFBF7FF9D1AE0F831D3799546EDC080DD6368",
+                       "file_count":  2,
+                       "bytes_per_copy":  543349,
+                       "total_bytes_all_copies":  1086698,
+                       "potential_duplicate_bytes_beyond_one_copy":  543349,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/01_DieChangeCart/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset06_DieChangeCart/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "C9E81614B40B39B19EF0D5C75DF9A7B28E852141FCFB472C68AD990EABD9B254",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/05_FlatPanelStillage/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D09A3D68DFFE53914870D06E0A10EAB67D128A2B990F0FA019698DEEAB7149A8",
+                       "file_count":  2,
+                       "bytes_per_copy":  422482,
+                       "total_bytes_all_copies":  844964,
+                       "potential_duplicate_bytes_beyond_one_copy":  422482,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/03_LargeTrimScrapBin/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09A_LargeStillage/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D27F44C94AD30039F475B0C0608F6BC8FFEEEA9B0DAE785B7ECE005B88B4D3F7",
+                       "file_count":  2,
+                       "bytes_per_copy":  759568,
+                       "total_bytes_all_copies":  1519136,
+                       "potential_duplicate_bytes_beyond_one_copy":  759568,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/04_S05SlugCollectionSystem/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset04_S05SlugCollectionSystem/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D2A3F4BE28820FC45EA2D32E11E7981E47DEFE4F4F949697D9F99EA54C9B6C11",
+                       "file_count":  4,
+                       "bytes_per_copy":  3339,
+                       "total_bytes_all_copies":  13356,
+                       "potential_duplicate_bytes_beyond_one_copy":  10017,
+                       "relative_paths":  [
+                                              "ControlRoom/MainControlRoom_v004/documentation/player_validation_camera_manifest.json",
+                                              "ControlRoom/MainControlRoom_v005/documentation/player_validation_camera_manifest.json",
+                                              "ControlRoom/MainControlRoom_v006/documentation/player_validation_camera_manifest.json",
+                                              "ControlRoom/MainControlRoom_v034/documentation/player_validation_camera_manifest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D2A5B53FB658E6C0428D7C98219F6DF5EDFC9E5E30923CC07C0FE3163C352765",
+                       "file_count":  2,
+                       "bytes_per_copy":  369888,
+                       "total_bytes_all_copies":  739776,
+                       "potential_duplicate_bytes_beyond_one_copy":  369888,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/04_LeftAccessDoor/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D8195770214E10A2CF99A00527428311D725C3633818A73EF63C8B4FD0F91AAF",
+                       "file_count":  2,
+                       "bytes_per_copy":  192044,
+                       "total_bytes_all_copies":  384088,
+                       "potential_duplicate_bytes_beyond_one_copy":  192044,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Audio_v001/PTA_WarningAlarm_Loop_v001.wav",
+                                              "Candidate/PressTrains/TrainA/Audio_v002/PTA_WarningAlarm_Loop_v002.wav"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D8EBA25DE5005F94772A1A466BC217F39DDEE42DB7410292CB0CC1BC038922FC",
+                       "file_count":  2,
+                       "bytes_per_copy":  2463404,
+                       "total_bytes_all_copies":  4926808,
+                       "potential_duplicate_bytes_beyond_one_copy":  2463404,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/SHEET_00B_PRESS_SHOP_FRONT_END_AND_TRAINS_CONCEPT.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/SHEET_00B_PRESS_SHOP_FRONT_END_AND_TRAINS_CONCEPT.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "D9A95E6D87B03B9ED8526CB3C50847CE48F05E6551ED0716808EE1B960FFE0A3",
+                       "file_count":  2,
+                       "bytes_per_copy":  523052,
+                       "total_bytes_all_copies":  1046104,
+                       "potential_duplicate_bytes_beyond_one_copy":  523052,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/02_UpperDie/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DA171DEA7CCC2E39E10876C40D0C76AFF7884FC4FA710DD804E848D4F0A7F7C2",
+                       "file_count":  2,
+                       "bytes_per_copy":  434520,
+                       "total_bytes_all_copies":  869040,
+                       "potential_duplicate_bytes_beyond_one_copy":  434520,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/10_FlywheelHousing/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DB3F612075435842411F590CAC35AE3B63CD6B498776C3173C59AD91D404FC50",
+                       "file_count":  2,
+                       "bytes_per_copy":  884,
+                       "total_bytes_all_copies":  1768,
+                       "potential_duplicate_bytes_beyond_one_copy":  884,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/materials_and_decals.json",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/materials_and_decals.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DB7EC02CC4E2426D2D7F6B96E875D95D3C4F4D53153B190DCED07DBAA9DC25E4",
+                       "file_count":  2,
+                       "bytes_per_copy":  145684,
+                       "total_bytes_all_copies":  291368,
+                       "potential_duplicate_bytes_beyond_one_copy":  145684,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/10_FlywheelHousing/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/10_FlywheelHousing/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DBB34FA4D45F444980C4360231B76D8CCF2CC510CDA4CC62CB2D660B3E18B1CD",
+                       "file_count":  2,
+                       "bytes_per_copy":  843004,
+                       "total_bytes_all_copies":  1686008,
+                       "potential_duplicate_bytes_beyond_one_copy":  843004,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset07_HydraulicPowerUnit/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DC87E78AFDD065AB8B370E8F6B806B39932E503A7F8FD742073D4C801FD62A6B",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/task_complete.json",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DCB46CE8C6D6818A42DCB991220190C92E130F2A83659C034FA6D5170EC56F70",
+                       "file_count":  2,
+                       "bytes_per_copy":  442723,
+                       "total_bytes_all_copies":  885446,
+                       "potential_duplicate_bytes_beyond_one_copy":  442723,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset10_PoweredRollerConveyor/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "DE854397A34CD63325577FB2B6C266E40DDB19B58A173B13C2039997B3B0064C",
+                       "file_count":  2,
+                       "bytes_per_copy":  298976,
+                       "total_bytes_all_copies":  597952,
+                       "potential_duplicate_bytes_beyond_one_copy":  298976,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/02_UpperDie/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E0A72EC713A0D3378B8AC1262ADC10520A9FA67C3E6944990E6EA4785C23E046",
+                       "file_count":  3,
+                       "bytes_per_copy":  6045,
+                       "total_bytes_all_copies":  18135,
+                       "potential_duplicate_bytes_beyond_one_copy":  12090,
+                       "relative_paths":  [
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v010/LB_MR01_Phase3_ModuleAudit_v010.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v011/LB_MR01_Phase3_ModuleAudit_v011.json",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v012/LB_MR01_Phase3_ModuleAudit_v012.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E34941759B41065C4ACC28F942DAE270FE598356FBAED5094173033E46A7C3DE",
+                       "file_count":  2,
+                       "bytes_per_copy":  212914,
+                       "total_bytes_all_copies":  425828,
+                       "potential_duplicate_bytes_beyond_one_copy":  212914,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/04_SmallSlugBin/Original/left.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset09B_SmallStillage/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+                       "file_count":  26,
+                       "bytes_per_copy":  0,
+                       "total_bytes_all_copies":  0,
+                       "potential_duplicate_bytes_beyond_one_copy":  0,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/automotive_skeleton.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/automotive_skeleton.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/bumper_front.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/bumper_rear.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_front_left.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_front_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_front_right.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_rear_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_rear_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/door_rear_right.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/emerald_horizon.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/fender_front_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/fender_front_right.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/fender_front_right.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/finished_car_reference.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/hood_panel.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/quarter_panel_left.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/quarter_panel_left.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/quarter_panel_right.iso.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/quarter_panel_right.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/roof_panel.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/shell_chassis.render.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Review/Logs/tailgate_panel.render.err.log",
+                                              "Candidate/WeldShop/WeldRobotRuntime_v001/Audit/validate_stderr.log",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Audits/v002/blender_build_v002.stderr.log",
+                                              "Robots/LB_MR01_MaintenanceRobot/Validation/Candidate_v013/_wheel_authority_validation_stderr_2.log"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E3C0DF95F4563880C046E0AD90303D2A5FA312DAE448893391241DB5469D8FFB",
+                       "file_count":  2,
+                       "bytes_per_copy":  146612,
+                       "total_bytes_all_copies":  293224,
+                       "potential_duplicate_bytes_beyond_one_copy":  146612,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/05_RightAccessDoor/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/05_RightAccessDoor/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E49171C012369525749C9B27D82712A6A89D2FB26F83C1003AA2A6DA0590269D",
+                       "file_count":  2,
+                       "bytes_per_copy":  91154,
+                       "total_bytes_all_copies":  182308,
+                       "potential_duplicate_bytes_beyond_one_copy":  91154,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/09_OperatorHMI/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/09_OperatorHMI/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E66957253E511F7BDE0521AC807E5BF3FEC77348769327B738A990CB6286F205",
+                       "file_count":  2,
+                       "bytes_per_copy":  900015,
+                       "total_bytes_all_copies":  1800030,
+                       "potential_duplicate_bytes_beyond_one_copy":  900015,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/02_HydraulicPowerUnit/Original/front.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset07_HydraulicPowerUnit/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E69BF1B26342393840B41FBF3BDBB24B4D35DD9E3B25EDB5AD7C1A89348062B3",
+                       "file_count":  2,
+                       "bytes_per_copy":  1658614,
+                       "total_bytes_all_copies":  3317228,
+                       "potential_duplicate_bytes_beyond_one_copy":  1658614,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_03_PR010_ENGINEERING_REFERENCE_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_03_PR010_ENGINEERING_REFERENCE_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E6D0D6AF2EC58D416F6FA0B0AC764643E69330559CF69EBFD84CAF2F9B105A7D",
+                       "file_count":  2,
+                       "bytes_per_copy":  7991,
+                       "total_bytes_all_copies":  15982,
+                       "potential_duplicate_bytes_beyond_one_copy":  7991,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/moving_parts_and_pivots.csv",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/moving_parts_and_pivots.csv"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E784D02099EF58D74D292A87A376028A9E88ACD7360E0296EA99FFCB74EF4FFB",
+                       "file_count":  2,
+                       "bytes_per_copy":  116655,
+                       "total_bytes_all_copies":  233310,
+                       "potential_duplicate_bytes_beyond_one_copy":  116655,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/07_InterlockedGate/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E847575DFA8E8EC288EB22BF48377B1F0ECACC8B522B648DF06320D92640FAA3",
+                       "file_count":  2,
+                       "bytes_per_copy":  272220,
+                       "total_bytes_all_copies":  544440,
+                       "potential_duplicate_bytes_beyond_one_copy":  272220,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Audits/v002/PR009_SK_BINDING_MANIFEST_v002.json",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Audits/v002/repro_build_a_binding_manifest.tmp.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E89587689A6D6E56F2CBB723E9786BF3C705B75CF9500810E28A24E98320CF25",
+                       "file_count":  2,
+                       "bytes_per_copy":  15976787,
+                       "total_bytes_all_copies":  31953574,
+                       "potential_duplicate_bytes_beyond_one_copy":  15976787,
+                       "relative_paths":  [
+                                              "Candidate/FactoryLogistics/PoweredConveyor_v001/Authorities/MeshyPoweredRoller_Cleaned_v639__SM_CA_MW_PT_PoweredRollerConveyor_Master_v639.blend",
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v641/06_PoweredRollerConveyor/Cleaned_v644/SM_CA_MW_PT_PoweredRollerConveyor_Master_v639.blend"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E914B105882392C8F176E89D3538BD7EBF11D9F85932931449CD244789E9831F",
+                       "file_count":  15,
+                       "bytes_per_copy":  547,
+                       "total_bytes_all_copies":  8205,
+                       "potential_duplicate_bytes_beyond_one_copy":  7658,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/bumper_front.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/bumper_rear.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/door_front_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/door_front_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/door_rear_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/door_rear_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/emerald_horizon.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/fender_front_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/fender_front_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/hood_panel.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/quarter_panel_left.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/quarter_panel_right.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/roof_panel.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/shell_chassis.err.log",
+                                              "Candidate/Vehicles/Cairnwell2040/PanelPack_v001/Audit/Logs/tailgate_panel.err.log"
+                                          ]
+                   },
+                   {
+                       "sha256":  "E99CE040D4A3682DD6E9C667834245AC15DF20E5BAD18BE3E534C5720465DBB1",
+                       "file_count":  2,
+                       "bytes_per_copy":  4085603,
+                       "total_bytes_all_copies":  8171206,
+                       "potential_duplicate_bytes_beyond_one_copy":  4085603,
+                       "relative_paths":  [
+                                              "Candidate/PaintShop/EDLineAssembly/Renders/01_LB_EDLine_Combined_Blockout_OverallIso.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/06_EDCoat_authority.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "EA12249AD942CC2C684B749F9F62A4BEB00B674BB4FF3B689ED5AB871A3EA58E",
+                       "file_count":  2,
+                       "bytes_per_copy":  708775,
+                       "total_bytes_all_copies":  1417550,
+                       "potential_duplicate_bytes_beyond_one_copy":  708775,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/11_FlywheelRotorShaft/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/11_FlywheelRotorShaft/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "EDE822A23AAA7345D6F73995115415AA8EA73A5DE9FB38404961C1F4CBDB6089",
+                       "file_count":  2,
+                       "bytes_per_copy":  15950,
+                       "total_bytes_all_copies":  31900,
+                       "potential_duplicate_bytes_beyond_one_copy":  15950,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/cairnwell_logo.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/references/cairnwell_logo.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "EF40402501B5BE4E2879EBEA8BD8C4F0987A4365A977627EA3D7044EAF199056",
+                       "file_count":  2,
+                       "bytes_per_copy":  1302142,
+                       "total_bytes_all_copies":  2604284,
+                       "potential_duplicate_bytes_beyond_one_copy":  1302142,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_06_PRESS_TRAIN_B_4K.png",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/visuals/SHEET_06_PRESS_TRAIN_B_4K.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "EF9D0BC67A4F0C2C003AB43E6EA9B139B6AE2E2F2A743FDBADF3D1B5802A32AA",
+                       "file_count":  4,
+                       "bytes_per_copy":  136304,
+                       "total_bytes_all_copies":  545216,
+                       "potential_duplicate_bytes_beyond_one_copy":  408912,
+                       "relative_paths":  [
+                                              "ControlRoom/MainControlRoom_v004/documentation/interaction_surface_manifest.json",
+                                              "ControlRoom/MainControlRoom_v005/documentation/interaction_surface_manifest.json",
+                                              "ControlRoom/MainControlRoom_v006/documentation/interaction_surface_manifest.json",
+                                              "ControlRoom/MainControlRoom_v034/documentation/interaction_surface_manifest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F15D32B1BE05DF80800DB009F350495510205FCD46E04244B6E1155F57AA8FC0",
+                       "file_count":  6,
+                       "bytes_per_copy":  8060,
+                       "total_bytes_all_copies":  48360,
+                       "potential_duplicate_bytes_beyond_one_copy":  40300,
+                       "relative_paths":  [
+                                              "Candidate/Vehicles/Cairnwell2040/ChassisFrameUnderbody_Intake_v001/Build/audit_chassis_blend.py",
+                                              "Candidate/Vehicles/Cairnwell2040/FinishedVehicleVisual_Intake_v001/Build/audit_blend_file.py",
+                                              "Candidate/WeldShop/PanelStillage_ThreeHigh_Intake_v001/Build/audit_blend_file.py",
+                                              "Candidate/WeldShop/SpotRobot_v002/Build/audit_blend_file.py",
+                                              "Candidate/WeldShop/VacuumPanelPickEOAT_Intake_v001/Build/audit_blend_file.py",
+                                              "Candidate/WeldShop/VisionQualityGate_Intake_v001/Build/audit_blend_file.py"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F1ED12E575849EC17B181E1EFD7C4C572E1BDA2F13D393228314239B03D6E49F",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F2A57B4B0E1F09D0CDCF36AE3D8D7652F4C7FD04BFA67CC09D18FCAC5B11B614",
+                       "file_count":  2,
+                       "bytes_per_copy":  5959,
+                       "total_bytes_all_copies":  11918,
+                       "potential_duplicate_bytes_beyond_one_copy":  5959,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/task_complete.json",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/07_InterlockedGate/task_latest.json"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F2DD43C0A60FCB90A955882658023003B4B8E14E476690EA7A0EA4FADF4A0003",
+                       "file_count":  2,
+                       "bytes_per_copy":  300977,
+                       "total_bytes_all_copies":  601954,
+                       "potential_duplicate_bytes_beyond_one_copy":  300977,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/02_UpperDie/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/02_UpperDie/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F2F4C717585532714A77EAD0324A798AEA8BC4F2C9ACE571D91035D486ED3CCF",
+                       "file_count":  2,
+                       "bytes_per_copy":  614,
+                       "total_bytes_all_copies":  1228,
+                       "potential_duplicate_bytes_beyond_one_copy":  614,
+                       "relative_paths":  [
+                                              "PR009/AutomatedBlankStacker/Candidate_v001/PR009_Source/build_pr009_v001.ps1",
+                                              "PR009/AutomatedBlankStacker/Candidate_v002/PR009_Source/build_pr009_v001.ps1"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F3BA9C6E7D04BA438BA5F95F773AB6D0A488268156C082F40B5023AC11C985E1",
+                       "file_count":  2,
+                       "bytes_per_copy":  417881,
+                       "total_bytes_all_copies":  835762,
+                       "potential_duplicate_bytes_beyond_one_copy":  417881,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/06_FixedSafetyFence/Original/rear.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/06_FixedSafetyFence/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F46C26A61B24873E39A92AC5F6A2BFDEADCEE7157258F6AE8FC951AE7F2021C1",
+                       "file_count":  2,
+                       "bytes_per_copy":  778,
+                       "total_bytes_all_copies":  1556,
+                       "potential_duplicate_bytes_beyond_one_copy":  778,
+                       "relative_paths":  [
+                                              "Reference/PressShop/RemainingMachineryPack_v1.0/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/README_DATA_AUTHORITY.md",
+                                              "ReferencePacks/CAIRNWELL_PRESS_SHOP_REMAINING_MACHINERY_PACK_v1.0/data/README_DATA_AUTHORITY.md"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F503CA523B702D6CB1BCEE42BE6886942CFD09C11FD98317A061089AE92EC80E",
+                       "file_count":  2,
+                       "bytes_per_copy":  149679,
+                       "total_bytes_all_copies":  299358,
+                       "potential_duplicate_bytes_beyond_one_copy":  149679,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/Original/left.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/04_LeftAccessDoor/left.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F7A7BAB641B283F926E21B13C74D6D89776965B851A25766B3C2ECD1874FFA3F",
+                       "file_count":  2,
+                       "bytes_per_copy":  426919,
+                       "total_bytes_all_copies":  853838,
+                       "potential_duplicate_bytes_beyond_one_copy":  426919,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/03_LowerDie/Original/front.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/03_LowerDie/front.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "F7B65F60B9E1E2BE6D8DC9009B2546E17870B37D7BDCE3BDC22E752BB30BA9D3",
+                       "file_count":  2,
+                       "bytes_per_copy":  612351,
+                       "total_bytes_all_copies":  1224702,
+                       "potential_duplicate_bytes_beyond_one_copy":  612351,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/05_S07InspectUnloadCell/Original/right.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset05_S07InspectUnloadCell/right.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "FCCC5D5CFB07D725BC7342887B1976C5A9324591B173C45614DE62454EE995FA",
+                       "file_count":  2,
+                       "bytes_per_copy":  1410766,
+                       "total_bytes_all_copies":  2821532,
+                       "potential_duplicate_bytes_beyond_one_copy":  1410766,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/FinishedPanelStillage/Renders/FP_STILLAGE_ModularGuides_v004_three-quarter.png",
+                                              "Candidate/UI/ProductionFlowThumbnails_v001/Authority/04_PanelStillages_authority.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "FCE350D15713C508D2F3E0273BA15E0CB8849A7B20CBE9330F081BED88015BAF",
+                       "file_count":  2,
+                       "bytes_per_copy":  831408,
+                       "total_bytes_all_copies":  1662816,
+                       "potential_duplicate_bytes_beyond_one_copy":  831408,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/TrainA/Meshy6SupportingSystemsProduction_v638/01_S01DestackBlankFeed/Original/rear.png",
+                                              "Candidate/PressTrains/TrainA/MeshySupportingSystemsReferences_v634/Asset01_S01DestackBlankFeed/rear.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "FD35C52EB2BD43E270FB76577150CDE78CC90763B8517E8B753A403E4B78087E",
+                       "file_count":  2,
+                       "bytes_per_copy":  283094,
+                       "total_bytes_all_copies":  566188,
+                       "potential_duplicate_bytes_beyond_one_copy":  283094,
+                       "relative_paths":  [
+                                              "Candidate/PressShop/MeshyTrial_S03_v001/S03_front_clean_reference.png",
+                                              "Candidate/PressShop/MeshyTrial_S03_v001/S03_front_orthographic.png"
+                                          ]
+                   },
+                   {
+                       "sha256":  "FDD8FB83BF5AE681EB87C7CC79A473DD52A27ACEAF55F24CC48091F773CADCB8",
+                       "file_count":  2,
+                       "bytes_per_copy":  147839,
+                       "total_bytes_all_copies":  295678,
+                       "potential_duplicate_bytes_beyond_one_copy":  147839,
+                       "relative_paths":  [
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Generated/Meshy6_v646/04_LeftAccessDoor/Original/right.png",
+                                              "Candidate/PressTrains/Shared/MeshyIsolatedIntake_v625/Prepared/Meshy6Views_v645/04_LeftAccessDoor/right.png"
+                                          ]
+                   }
+               ]
+}

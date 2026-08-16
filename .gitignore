@@ -1,0 +1,40 @@
+# --- Unreal generated / regenerable -----------------------------------------
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+/Builds/
+/Build/
+/.vs/
+/.idea/
+*.VC.db
+*.suo
+*.opensdf
+*.sdf
+*.tmp
+*.log
+
+# Generated solution/project files
+*.sln
+*.xcodeproj
+*.xcworkspace
+
+# --- Large binary trees: deliberately NOT in git ----------------------------
+# Content is ~7 GB of .uasset and SourceAssets is ~50 GB of DCC source.
+# Git cannot hold these sensibly without LFS. They are excluded so that the
+# code, scripts, configuration and documentation are versioned immediately.
+# To bring binaries under version control later, install Git LFS and track
+# *.uasset / *.umap / *.fbx / *.blend before un-ignoring these directories.
+/Content/
+/SourceAssets/
+
+# --- Local scratch / stray artefacts ----------------------------------------
+/work/
+/B/
+/LineBossCarFactory_Unreal 5.8/
+NUL.sarif
+CON
+
+# Python bytecode from editor automation
+__pycache__/
+*.py[cod]

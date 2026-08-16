@@ -1,0 +1,5 @@
+PARENT_MAP = "/Game/LineBoss/Maps/LB_PressShop_PR009LayeredPresentationCandidate_v086"
+TARGET_MAP = "/Game/LineBoss/Maps/LB_PressShop_PR009ReleaseCollisionCandidate_v087"
+VERSION = "v087"
+STATIC_DEST = "/Game/LineBoss/Candidates/PressShop/PR009/v087/ReleaseCollision/Static"
+MOVING_DEST = "/Game/LineBoss/Candidates/PressShop/PR009/v087/ReleaseCollision/Moving"

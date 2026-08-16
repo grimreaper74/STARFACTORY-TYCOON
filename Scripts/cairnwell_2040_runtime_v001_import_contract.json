@@ -1,0 +1,1079 @@
+{
+  "$schema": "lineboss/cairnwell-2040-runtime-v001/unreal-import-contract/v1",
+  "approval_supersession": {
+    "evidence": {
+      "approved_manifest": {
+        "bytes": 19559,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/MANIFEST_v005.json",
+        "sha256": "FADE2251A090D36351317C5F9FB9758586B8F7E2A65B25CA54325B289D3A72B7"
+      },
+      "historical_do_not_promote_marker": {
+        "bytes": 273,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/PENDING_ROOT_VISUAL_APPROVAL_DO_NOT_PROMOTE.md",
+        "sha256": "95744B4C6195427B49ED22A24A5567A0BEDF74FA4758C35673CEAF7328BE777F"
+      },
+      "manual_paint_mask_audit": {
+        "bytes": 4755,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_ManualPaintMask_Audit.json",
+        "sha256": "0BCEA0B784AAF744820A37A4FFDF828196A4A8A75991957312CC7B2548AA1AC8"
+      },
+      "manual_paint_mask_texture": {
+        "bytes": 6599897,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_MR_BodyPaintMaskA_v005.png",
+        "sha256": "A7A7277CB069E7BFC8F3302BA618DCC19C9A8BB5DBC8755237BE6D5350BB11B5"
+      }
+    },
+    "freeze_amendment": {
+      "current_contract_authority": true,
+      "current_supersession": {
+        "bytes": 3319,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_FinalApprovalSupersession.json",
+        "sha256": "738E19C3D1D07028C0F2C107AD023F14DBC94FD44DAE2107411D6C8A317A348C"
+      },
+      "declared_post_v1_incident": {
+        "changed_path": "Audit/Cairnwell2040_v005_FinalApprovalSupersession.json",
+        "current_expected_bytes": 3319,
+        "current_expected_sha256": "738E19C3D1D07028C0F2C107AD023F14DBC94FD44DAE2107411D6C8A317A348C",
+        "current_state": {
+          "bytes": 3319,
+          "sha256": "738E19C3D1D07028C0F2C107AD023F14DBC94FD44DAE2107411D6C8A317A348C"
+        },
+        "sole_change": "JSON key `schema` corrected to `$schema`; value and every other semantic/evidence field retained.",
+        "v1_pinned_state": {
+          "bytes": 3319,
+          "sha256": "8E40E4ED420A7F343B8678562D8D38058EAFA72001007F9249AEA97718DE0B98"
+        }
+      },
+      "final_authority_and_additive_inventory_count": 44,
+      "no_missing_files": true,
+      "no_other_changed_files": true,
+      "no_unexpected_additions": true,
+      "preexisting_file_count": 36,
+      "record": {
+        "bytes": 24420,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_AdditiveFreezeReceipt_v002.json",
+        "sha256": "7BCE6A5A1DF2C0080011D8EB78D24C5839B44A4755F65FD2939F0E562D75A4A0"
+      },
+      "schema": "lineboss.cairnwell2040.v005.additive-freeze-amendment.v2",
+      "selected_candidate": "ProductionCandidate_v005",
+      "selected_version": "v005",
+      "stale_v1_receipt": {
+        "bytes": 24570,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_AdditiveFreezeReceipt.json",
+        "sha256": "F7C761D794F44E7EEEBB2958A7947F63D59D0EE828510E1803D7B69EA62642F0"
+      },
+      "status": "PASS__V005_ADDITIVE_FREEZE_RECEIPT_V002__CURRENT_CONTRACT_AUTHORITY__SOLE_SCHEMA_KEY_CORRECTION",
+      "supersedes_stale_v1_receipt_without_modifying_it": true,
+      "unreal_import_or_promotion_performed": false
+    },
+    "historical_marker_preserved_byte_exact": true,
+    "manual_paint_mask_renders": {
+      "front": {
+        "bytes": 1068715,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_front.png",
+        "sha256": "AF4DAD860AA2E7C3D4AA957CAAE7C56752314821596BBD22F0AC4C7E1861250C"
+      },
+      "hero": {
+        "bytes": 1100443,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_hero.png",
+        "sha256": "617A29C17AFD10790A61AC77AD5C06972E70D0D9D10B0E46675262958F1B9272"
+      },
+      "rear": {
+        "bytes": 1066851,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_rear.png",
+        "sha256": "8FBFF68DDCD30ABCD76F09737D09FEED39107B4F6E65423ED8C1F2AA985BF9E2"
+      },
+      "side": {
+        "bytes": 1073165,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_side.png",
+        "sha256": "51CE22022CCCC3E9D1F39B75348619B30B77655BD06082F4ABF310E2FDC38C4B"
+      }
+    },
+    "record": {
+      "bytes": 3319,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_FinalApprovalSupersession.json",
+      "sha256": "738E19C3D1D07028C0F2C107AD023F14DBC94FD44DAE2107411D6C8A317A348C"
+    },
+    "root_visual_approval": {
+      "glazing_lamps_trim_diffuser_and_wheels_excluded": true,
+      "painted_roof_and_body_included": true,
+      "status": "PASS",
+      "visible_isolated_false_positive_regions": 0
+    },
+    "selected_candidate": "ProductionCandidate_v005",
+    "selected_version": "v005",
+    "status": "APPROVED__V005_MANUAL_MASK_SUPERSEDES_HISTORICAL_DO_NOT_PROMOTE_WITHOUT_DELETION",
+    "supersedes_historical_marker_without_deletion": true,
+    "unreal_import_or_promotion_performed": false
+  },
+  "destination": {
+    "disk_root": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001",
+    "expected_material_count": 4,
+    "expected_mesh_count": 4,
+    "expected_package_count": 11,
+    "expected_package_paths": [
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001",
+      "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001"
+    ],
+    "expected_source_fbx_count": 12,
+    "expected_texture_count": 3,
+    "must_be_absent_before_run": true,
+    "namespace": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001"
+  },
+  "import_contract": {
+    "auto_compute_lod_screen_size": false,
+    "auto_generate_collision": false,
+    "bounds_tolerance_cm": 0.25,
+    "collision_trace_flag": "CTF_USE_SIMPLE_AS_COMPLEX",
+    "combine_meshes": true,
+    "editor_bootstrap_world": "/Engine/Maps/Entry.Entry",
+    "editor_startup_map_override": "-ini:EditorPerProjectUserSettings:[/Script/UnrealEd.EditorLoadingSavingSettings]:LoadLevelAtStartup=None",
+    "exact_texture_material_dependency_closure": true,
+    "fresh_only": true,
+    "generate_lightmap_uvs": false,
+    "has_navigation_data": false,
+    "import_animations": false,
+    "import_materials_from_fbx": false,
+    "import_textures_from_fbx": false,
+    "lod_screen_sizes": [
+      1.0,
+      0.35,
+      0.12
+    ],
+    "nanite_enabled": false,
+    "pivot_tolerance_cm": 0.01,
+    "project_map_load_save_authorized": false,
+    "remove_degenerates": false,
+    "replace_existing": false
+  },
+  "lane_files_to_pin_when_baseline_is_cut": [
+    "Scripts/prepare_cairnwell_2040_runtime_v001_contract.py",
+    "Scripts/prepare_cairnwell_2040_runtime_v001_baseline.py",
+    "Scripts/cairnwell_2040_runtime_v001.py",
+    "Scripts/import_cairnwell_2040_runtime_v001.py",
+    "Scripts/validate_cairnwell_2040_runtime_fresh_process_v001.py",
+    "Scripts/run_cairnwell_2040_runtime_import_lane_v001.ps1",
+    "Scripts/tests/test_cairnwell_2040_runtime_import_lane_v001.py",
+    "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_UNREAL_IMPORT_LANE.md"
+  ],
+  "materials": {
+    "biw_galvanised": {
+      "asset_name": "M_LB_C2040_BIWGalvanized_v001",
+      "base_color_linear": [
+        0.48,
+        0.53,
+        0.55
+      ],
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+      "material_key": "biw_galvanised",
+      "metallic": 0.72,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.M_LB_C2040_BIWGalvanized_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001",
+      "recipe": "solid_pbr",
+      "roughness": 0.37,
+      "slot_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005",
+      "texture_object_paths": {},
+      "texture_semantics": []
+    },
+    "body": {
+      "asset_name": "M_LB_C2040_BodyPaintTintPBR_v001",
+      "default_paint_colour_linear": [
+        0.012,
+        0.155,
+        0.105
+      ],
+      "detail_clamp_max": 1.15,
+      "detail_clamp_min": 0.35,
+      "detail_luminance_weights": [
+        0.2126,
+        0.7152,
+        0.0722
+      ],
+      "detail_normalization": 1.35,
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+      "material_key": "body",
+      "metallic_channel": "B",
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.M_LB_C2040_BodyPaintTintPBR_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001",
+      "paint_mask_channel": "A",
+      "paint_mask_target_input": "Alpha",
+      "paint_mask_texture_semantic": "metallic_roughness",
+      "parameter_name": "VehiclePaintColour",
+      "parameter_output": "RGB",
+      "recipe": "textured_tint_pbr",
+      "roughness_channel": "G",
+      "slot_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005",
+      "texture_object_paths": {
+        "base_color": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.T_LB_C2040_Emerald_BaseColor_v001",
+        "metallic_roughness": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.T_LB_C2040_Emerald_MRBodyMask_v001",
+        "normal": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.T_LB_C2040_Emerald_Normal_v001"
+      },
+      "texture_semantics": [
+        "base_color",
+        "metallic_roughness",
+        "normal"
+      ],
+      "tint_graph_topology": "Lerp(BaseColor.RGB,VehiclePaintColour.RGB*Clamp(Dot(BaseColor.RGB,LinearLuminanceWeights)*1.35,0.35,1.15),metallic_roughness.A)->BaseColor"
+    },
+    "ed_coat": {
+      "asset_name": "M_LB_C2040_EDCoat_v001",
+      "base_color_linear": [
+        0.04,
+        0.048,
+        0.052
+      ],
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.uasset",
+      "material_key": "ed_coat",
+      "metallic": 0.1,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.M_LB_C2040_EDCoat_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001",
+      "recipe": "solid_pbr",
+      "roughness": 0.52,
+      "slot_name": "MI_LB_C2040_EDCoat_v005",
+      "texture_object_paths": {},
+      "texture_semantics": []
+    },
+    "rolling_gear": {
+      "asset_name": "M_LB_C2040_RollingGearPBR_v001",
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+      "material_key": "rolling_gear",
+      "metallic_channel": "B",
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.M_LB_C2040_RollingGearPBR_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001",
+      "recipe": "textured_pbr",
+      "roughness_channel": "G",
+      "slot_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005",
+      "texture_object_paths": {
+        "base_color": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.T_LB_C2040_Emerald_BaseColor_v001",
+        "metallic_roughness": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.T_LB_C2040_Emerald_MRBodyMask_v001",
+        "normal": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.T_LB_C2040_Emerald_Normal_v001"
+      },
+      "texture_semantics": [
+        "base_color",
+        "metallic_roughness",
+        "normal"
+      ]
+    }
+  },
+  "modules": {
+    "BIW_AutomotiveSkeleton": {
+      "asset_name": "SM_LB_C2040_BIW_AutomotiveSkeleton_v001",
+      "closed_body_shell": false,
+      "collision": {
+        "convex_count": 0,
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_SIMPLE_AS_COMPLEX"
+      },
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset",
+      "has_navigation_data": false,
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              160.856796,
+              142.851236
+            ],
+            "maximum_cm": [
+              226.012373,
+              80.435479,
+              151.465559
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -80.421317,
+              8.614323
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "MI_LB_C2040_BIW_GalvanisedSteel_v005"
+          ],
+          "source": {
+            "bytes": 1607148,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD0.fbx",
+            "sha256": "55BF69BB6B8D3D724A76D199D3E852931F9B7CBE8F262D2CD73DE4975F648C3B"
+          },
+          "source_vertices": 29092,
+          "triangles": 59998,
+          "uv_channels": 0
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              160.856808,
+              142.851246
+            ],
+            "maximum_cm": [
+              226.012373,
+              80.435485,
+              151.465559
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -80.421323,
+              8.614313
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "MI_LB_C2040_BIW_GalvanisedSteel_v005"
+          ],
+          "source": {
+            "bytes": 627228,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD1.fbx",
+            "sha256": "418D2505F98EEE4E89CCDC4B96F065D9A333E89CE885A441DBF338CEF6200142"
+          },
+          "source_vertices": 11093,
+          "triangles": 24000,
+          "uv_channels": 0
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              160.85682,
+              142.851245
+            ],
+            "maximum_cm": [
+              226.012373,
+              80.435491,
+              151.465559
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -80.421329,
+              8.614314
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "MI_LB_C2040_BIW_GalvanisedSteel_v005"
+          ],
+          "source": {
+            "bytes": 196412,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD2.fbx",
+            "sha256": "D192C97C8EA695C3E4C4B745E5ECB6526909C56FB1C5F6C188E8BBB0B1359991"
+          },
+          "source_vertices": 3093,
+          "triangles": 8000,
+          "uv_channels": 0
+        }
+      ],
+      "material_bindings": {
+        "MI_LB_C2040_BIW_GalvanisedSteel_v005": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.M_LB_C2040_BIWGalvanized_v001"
+      },
+      "material_slots": [
+        "MI_LB_C2040_BIW_GalvanisedSteel_v005"
+      ],
+      "nanite_enabled": false,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.SM_LB_C2040_BIW_AutomotiveSkeleton_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001",
+      "role": "BIW_AutomotiveSkeleton",
+      "semantic_object_count_before_combined_import": 1,
+      "triangle_chain": [
+        59998,
+        24000,
+        8000
+      ]
+    },
+    "BIW_UnderbodySubset": {
+      "asset_name": "SM_LB_C2040_BIW_UnderbodySubset_v001",
+      "closed_body_shell": false,
+      "collision": {
+        "convex_count": 0,
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_SIMPLE_AS_COMPLEX"
+      },
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+      "has_navigation_data": false,
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              159.165883,
+              66.132906
+            ],
+            "maximum_cm": [
+              226.012373,
+              79.097211,
+              74.747229
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -80.068672,
+              8.614323
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "MI_LB_C2040_EDCoat_v005"
+          ],
+          "source": {
+            "bytes": 1406876,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_BIW_UnderbodySubset_LOD0.fbx",
+            "sha256": "84C917E954CECE184D47A23D92B9E9626BA06FE261E5224FD679EE992CE11FC3"
+          },
+          "source_vertices": 102687,
+          "triangles": 34229,
+          "uv_channels": 0
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              159.021896,
+              76.719493
+            ],
+            "maximum_cm": [
+              226.012373,
+              80.04148,
+              85.333806
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -78.980416,
+              8.614313
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "MI_LB_C2040_EDCoat_v005"
+          ],
+          "source": {
+            "bytes": 577676,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_BIW_UnderbodySubset_LOD1.fbx",
+            "sha256": "55AD989C0CB58E42C50FBD9D4054EEA4F57B27FCD81D82B6254452BE0D728BB1"
+          },
+          "source_vertices": 42948,
+          "triangles": 14316,
+          "uv_channels": 0
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              451.999998,
+              159.52909,
+              85.59035
+            ],
+            "maximum_cm": [
+              226.012373,
+              80.34693,
+              94.204664
+            ],
+            "minimum_cm": [
+              -225.987625,
+              -79.18216,
+              8.614314
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "MI_LB_C2040_EDCoat_v005"
+          ],
+          "source": {
+            "bytes": 197884,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_BIW_UnderbodySubset_LOD2.fbx",
+            "sha256": "B679F4D4472429C5B11D074D7881530D36AF15A4474750B7CFD3B92BA3DEE244"
+          },
+          "source_vertices": 14541,
+          "triangles": 4847,
+          "uv_channels": 0
+        }
+      ],
+      "material_bindings": {
+        "MI_LB_C2040_EDCoat_v005": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.M_LB_C2040_EDCoat_v001"
+      },
+      "material_slots": [
+        "MI_LB_C2040_EDCoat_v005"
+      ],
+      "nanite_enabled": false,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.SM_LB_C2040_BIW_UnderbodySubset_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001",
+      "role": "BIW_UnderbodySubset",
+      "semantic_object_count_before_combined_import": 1,
+      "triangle_chain": [
+        34229,
+        14316,
+        4847
+      ]
+    },
+    "EmeraldBodyVisualAuthority": {
+      "asset_name": "SM_LB_C2040_EmeraldBodyVisualAuthority_v001",
+      "closed_body_shell": true,
+      "collision": {
+        "convex_count": 0,
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_SIMPLE_AS_COMPLEX"
+      },
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset",
+      "has_navigation_data": false,
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              455.999946,
+              187.999988,
+              138.381363
+            ],
+            "maximum_cm": [
+              227.999973,
+              93.999988,
+              155.999994
+            ],
+            "minimum_cm": [
+              -227.999973,
+              -94.0,
+              17.618631
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+          ],
+          "source": {
+            "bytes": 4088940,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD0.fbx",
+            "sha256": "B933245F6282C842697176DC877DB24F34CB5115882A32C510E7D29944B64227"
+          },
+          "source_vertices": 69167,
+          "triangles": 97999,
+          "uv_channels": 1
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              455.999946,
+              188.0,
+              138.38136
+            ],
+            "maximum_cm": [
+              227.999973,
+              93.999994,
+              155.999994
+            ],
+            "minimum_cm": [
+              -227.999973,
+              -94.000006,
+              17.618634
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+          ],
+          "source": {
+            "bytes": 1585292,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD1.fbx",
+            "sha256": "112B4A80CC2BC91CC146FA56B329ECC690EDEA40F3E2EBF55870E9F4ABF5E24D"
+          },
+          "source_vertices": 30351,
+          "triangles": 33999,
+          "uv_channels": 1
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              455.999994,
+              187.999988,
+              138.381357
+            ],
+            "maximum_cm": [
+              227.999997,
+              93.999988,
+              155.999994
+            ],
+            "minimum_cm": [
+              -227.999997,
+              -94.0,
+              17.618637
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+          ],
+          "source": {
+            "bytes": 1220732,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD2.fbx",
+            "sha256": "A0F62BC296E5662BC5A94FD42C9320F628A3C481A312472C9F5840F29784B6C9"
+          },
+          "source_vertices": 34431,
+          "triangles": 20000,
+          "uv_channels": 1
+        }
+      ],
+      "material_bindings": {
+        "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.M_LB_C2040_BodyPaintTintPBR_v001"
+      },
+      "material_slots": [
+        "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+      ],
+      "nanite_enabled": false,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.SM_LB_C2040_EmeraldBodyVisualAuthority_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001",
+      "role": "EmeraldBodyVisualAuthority",
+      "semantic_object_count_before_combined_import": 1,
+      "triangle_chain": [
+        97999,
+        33999,
+        20000
+      ]
+    },
+    "EmeraldRollingGearVisualAuthority": {
+      "asset_name": "SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001",
+      "closed_body_shell": false,
+      "collision": {
+        "convex_count": 0,
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_SIMPLE_AS_COMPLEX"
+      },
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset",
+      "has_navigation_data": false,
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              345.762312,
+              167.922645,
+              74.489826
+            ],
+            "maximum_cm": [
+              178.739977,
+              83.812427,
+              74.489832
+            ],
+            "minimum_cm": [
+              -167.022335,
+              -84.110218,
+              6e-06
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+          ],
+          "source": {
+            "bytes": 2147388,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD0.fbx",
+            "sha256": "BE890EC87D3DE9FD32E9B022D8574BDE7ADD1323F246C2B0BF8E97766F4592A7"
+          },
+          "source_vertices": 38725,
+          "triangles": 59999,
+          "uv_channels": 1
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              345.762312,
+              167.922651,
+              74.489823
+            ],
+            "maximum_cm": [
+              178.739965,
+              83.812427,
+              74.489832
+            ],
+            "minimum_cm": [
+              -167.022347,
+              -84.110224,
+              9e-06
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+          ],
+          "source": {
+            "bytes": 963660,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD1.fbx",
+            "sha256": "140BA101E2D307CA1991A31CB8F7D13BB911D670E2ED7F3597100F1FBF96112D"
+          },
+          "source_vertices": 17905,
+          "triangles": 23999,
+          "uv_channels": 1
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              345.762312,
+              167.922651,
+              74.489826
+            ],
+            "maximum_cm": [
+              178.739977,
+              83.812427,
+              74.489832
+            ],
+            "minimum_cm": [
+              -167.022335,
+              -84.110224,
+              6e-06
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+          ],
+          "source": {
+            "bytes": 538492,
+            "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD2.fbx",
+            "sha256": "FED7867718DE76F40C25C4707385FA7D29DB74642086693261ECF62544C36881"
+          },
+          "source_vertices": 14176,
+          "triangles": 9599,
+          "uv_channels": 1
+        }
+      ],
+      "material_bindings": {
+        "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.M_LB_C2040_RollingGearPBR_v001"
+      },
+      "material_slots": [
+        "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+      ],
+      "nanite_enabled": false,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001",
+      "role": "EmeraldRollingGearVisualAuthority",
+      "semantic_object_count_before_combined_import": 8,
+      "triangle_chain": [
+        59999,
+        23999,
+        9599
+      ]
+    }
+  },
+  "paint_mask_authority": {
+    "audit": {
+      "bytes": 4755,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_ManualPaintMask_Audit.json",
+      "sha256": "0BCEA0B784AAF744820A37A4FFDF828196A4A8A75991957312CC7B2548AA1AC8"
+    },
+    "channel": "A",
+    "false_positive_fragment_count": 0,
+    "manual_authored": true,
+    "selected_version": "v005",
+    "status": "APPROVED__MANUALLY_AUTHORED_V005_BODY_PAINT_MASK__VISUALLY_VALIDATED",
+    "texture_semantic": "metallic_roughness",
+    "v006_mask_reused": false
+  },
+  "policy": {
+    "automatic_partial_cleanup": false,
+    "baseline_must_be_cut_after_contract_freeze_and_before_unreal": true,
+    "content_writes_authorized_only_inside_fresh_destination": true,
+    "map_load_save_authorized": false,
+    "overwrite_reimport_delete_authorized": false,
+    "panel_module_namespace_or_packages_authorized": false,
+    "runtime_binding_or_map_promotion_authorized": false,
+    "source_config_maps_saves_writes_authorized": false
+  },
+  "provenance": {
+    "approval_status": "APPROVED_FOR_GUARDED_UNREAL_IMPORT",
+    "description": "approved Meshy-derived Cairnwell ProductionCandidate_v005 v005 modular vehicle authority",
+    "manifest": {
+      "bytes": 19559,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/MANIFEST_v005.json",
+      "sha256": "FADE2251A090D36351317C5F9FB9758586B8F7E2A65B25CA54325B289D3A72B7"
+    },
+    "manifest_schema": "lineboss.cairnwell2040.runtime-authority-manifest.v5",
+    "selected_candidate": "ProductionCandidate_v005",
+    "selected_version": "v005",
+    "source_files": [
+      {
+        "bytes": 58502,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_EmeraldAuthority_ProductionCandidate_Audit_v005.json",
+        "sha256": "6BD17950BEA833EA7849F17E42619F6DB201D1044883903C7AA94081C2A3FD08"
+      },
+      {
+        "bytes": 24570,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_AdditiveFreezeReceipt.json",
+        "sha256": "F7C761D794F44E7EEEBB2958A7947F63D59D0EE828510E1803D7B69EA62642F0"
+      },
+      {
+        "bytes": 24420,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_AdditiveFreezeReceipt_v002.json",
+        "sha256": "7BCE6A5A1DF2C0080011D8EB78D24C5839B44A4755F65FD2939F0E562D75A4A0"
+      },
+      {
+        "bytes": 3319,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_FinalApprovalSupersession.json",
+        "sha256": "738E19C3D1D07028C0F2C107AD023F14DBC94FD44DAE2107411D6C8A317A348C"
+      },
+      {
+        "bytes": 4755,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Audit/Cairnwell2040_v005_ManualPaintMask_Audit.json",
+        "sha256": "0BCEA0B784AAF744820A37A4FFDF828196A4A8A75991957312CC7B2548AA1AC8"
+      },
+      {
+        "bytes": 1607148,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD0.fbx",
+        "sha256": "55BF69BB6B8D3D724A76D199D3E852931F9B7CBE8F262D2CD73DE4975F648C3B"
+      },
+      {
+        "bytes": 1406876,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_BIW_UnderbodySubset_LOD0.fbx",
+        "sha256": "84C917E954CECE184D47A23D92B9E9626BA06FE261E5224FD679EE992CE11FC3"
+      },
+      {
+        "bytes": 4088940,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD0.fbx",
+        "sha256": "B933245F6282C842697176DC877DB24F34CB5115882A32C510E7D29944B64227"
+      },
+      {
+        "bytes": 2147388,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD0/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD0.fbx",
+        "sha256": "BE890EC87D3DE9FD32E9B022D8574BDE7ADD1323F246C2B0BF8E97766F4592A7"
+      },
+      {
+        "bytes": 627228,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD1.fbx",
+        "sha256": "418D2505F98EEE4E89CCDC4B96F065D9A333E89CE885A441DBF338CEF6200142"
+      },
+      {
+        "bytes": 577676,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_BIW_UnderbodySubset_LOD1.fbx",
+        "sha256": "55AD989C0CB58E42C50FBD9D4054EEA4F57B27FCD81D82B6254452BE0D728BB1"
+      },
+      {
+        "bytes": 1585292,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD1.fbx",
+        "sha256": "112B4A80CC2BC91CC146FA56B329ECC690EDEA40F3E2EBF55870E9F4ABF5E24D"
+      },
+      {
+        "bytes": 963660,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD1/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD1.fbx",
+        "sha256": "140BA101E2D307CA1991A31CB8F7D13BB911D670E2ED7F3597100F1FBF96112D"
+      },
+      {
+        "bytes": 196412,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_BIW_AutomotiveSkeleton_LOD2.fbx",
+        "sha256": "D192C97C8EA695C3E4C4B745E5ECB6526909C56FB1C5F6C188E8BBB0B1359991"
+      },
+      {
+        "bytes": 197884,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_BIW_UnderbodySubset_LOD2.fbx",
+        "sha256": "B679F4D4472429C5B11D074D7881530D36AF15A4474750B7CFD3B92BA3DEE244"
+      },
+      {
+        "bytes": 1220732,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_EmeraldBodyVisualAuthority_LOD2.fbx",
+        "sha256": "A0F62BC296E5662BC5A94FD42C9320F628A3C481A312472C9F5840F29784B6C9"
+      },
+      {
+        "bytes": 538492,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Exports/Modules/LOD2/SM_LB_C2040_EmeraldRollingGearVisualAuthority_LOD2.fbx",
+        "sha256": "FED7867718DE76F40C25C4707385FA7D29DB74642086693261ECF62544C36881"
+      },
+      {
+        "bytes": 19559,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/MANIFEST_v005.json",
+        "sha256": "FADE2251A090D36351317C5F9FB9758586B8F7E2A65B25CA54325B289D3A72B7"
+      },
+      {
+        "bytes": 273,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/PENDING_ROOT_VISUAL_APPROVAL_DO_NOT_PROMOTE.md",
+        "sha256": "95744B4C6195427B49ED22A24A5567A0BEDF74FA4758C35673CEAF7328BE777F"
+      },
+      {
+        "bytes": 1068715,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_front.png",
+        "sha256": "AF4DAD860AA2E7C3D4AA957CAAE7C56752314821596BBD22F0AC4C7E1861250C"
+      },
+      {
+        "bytes": 1100443,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_hero.png",
+        "sha256": "617A29C17AFD10790A61AC77AD5C06972E70D0D9D10B0E46675262958F1B9272"
+      },
+      {
+        "bytes": 1066851,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_rear.png",
+        "sha256": "8FBFF68DDCD30ABCD76F09737D09FEED39107B4F6E65423ED8C1F2AA985BF9E2"
+      },
+      {
+        "bytes": 1073165,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Renders/PaintMaskAuthority_v005/Cairnwell2040_v005_ManualPaintMask_side.png",
+        "sha256": "51CE22022CCCC3E9D1F39B75348619B30B77655BD06082F4ABF310E2FDC38C4B"
+      },
+      {
+        "bytes": 5056898,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_BaseColor_v005.png",
+        "sha256": "6090BC8011011936CCEFEC1490DAD8BD86ACF7C3A2B431F144030E65998A10C8"
+      },
+      {
+        "bytes": 6599897,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_MR_BodyPaintMaskA_v005.png",
+        "sha256": "A7A7277CB069E7BFC8F3302BA618DCC19C9A8BB5DBC8755237BE6D5350BB11B5"
+      },
+      {
+        "bytes": 4979021,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_Normal_OpenGL_v005.png",
+        "sha256": "2E6E7BA88F74804A7B391DF4DF4CFB5A5469626166D0F4A76DD0AC0F9F690195"
+      }
+    ]
+  },
+  "shared_datum": {
+    "forward_axis": "+X",
+    "pivot_cm": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "up_axis": "+Z"
+  },
+  "status": "FROZEN__APPROVED_CAIRNWELL_V005_WINNER__READY_FOR_BASELINE",
+  "textures": {
+    "base_color": {
+      "asset_name": "T_LB_C2040_Emerald_BaseColor_v001",
+      "channel_mapping": {
+        "RGB": "base_color"
+      },
+      "channels": 4,
+      "compression": "TC_DEFAULT",
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+      "flip_green_channel": false,
+      "height": 2048,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.T_LB_C2040_Emerald_BaseColor_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001",
+      "semantic": "base_color",
+      "source": {
+        "bytes": 5056898,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_BaseColor_v005.png",
+        "sha256": "6090BC8011011936CCEFEC1490DAD8BD86ACF7C3A2B431F144030E65998A10C8"
+      },
+      "source_colorspace": "sRGB",
+      "srgb": true,
+      "width": 2048
+    },
+    "metallic_roughness": {
+      "asset_name": "T_LB_C2040_Emerald_MRBodyMask_v001",
+      "channel_mapping": {
+        "A": "BodyPaintMask",
+        "B": "metallic",
+        "G": "roughness",
+        "R": "ambient_occlusion"
+      },
+      "channels": 4,
+      "compression": "TC_MASKS",
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+      "flip_green_channel": false,
+      "height": 2048,
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.T_LB_C2040_Emerald_MRBodyMask_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001",
+      "semantic": "metallic_roughness",
+      "source": {
+        "bytes": 6599897,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_MR_BodyPaintMaskA_v005.png",
+        "sha256": "A7A7277CB069E7BFC8F3302BA618DCC19C9A8BB5DBC8755237BE6D5350BB11B5"
+      },
+      "source_colorspace": "Non-Color",
+      "srgb": false,
+      "width": 2048
+    },
+    "normal": {
+      "asset_name": "T_LB_C2040_Emerald_Normal_v001",
+      "channel_mapping": {
+        "RGB": "tangent_space_normal"
+      },
+      "channels": 4,
+      "compression": "TC_NORMALMAP",
+      "disk_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+      "flip_green_channel": true,
+      "height": 2048,
+      "normal_convention": "OpenGL",
+      "object_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.T_LB_C2040_Emerald_Normal_v001",
+      "package_path": "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001",
+      "semantic": "normal",
+      "source": {
+        "bytes": 4979021,
+        "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/FinishedVehicleRuntimeDerivative_v001/ProductionCandidate_v005/Textures/T_LB_C2040_Emerald_Normal_OpenGL_v005.png",
+        "sha256": "2E6E7BA88F74804A7B391DF4DF4CFB5A5469626166D0F4A76DD0AC0F9F690195"
+      },
+      "source_colorspace": "Non-Color",
+      "srgb": false,
+      "width": 2048
+    }
+  }
+}

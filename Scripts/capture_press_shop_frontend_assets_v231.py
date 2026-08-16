@@ -1,0 +1,64 @@
+"""Capture current front-end cameras against v231 after a shader/streaming warm-up."""
+
+import os
+import time
+from pathlib import Path
+
+import unreal
+
+
+MAP = "/Game/LineBoss/Maps/LB_PressShop_PlayableManagementCandidate_v231"
+CAPTURES = {
+    "agv": ("LB_ENV_V140_CAM_AGVLoadedClose", "v231_coil_agv_loaded_close.png"),
+    "coils": ("LB_ENV_V141_CAM_CoilStoreNorth", "v231_coil_store_north.png"),
+    "frontend": ("LB_ENV_V141_CAM_FrontEndFlow", "v231_front_end_flow.png"),
+}
+capture_id = os.environ.get("LB_V231_FRONTEND_CAPTURE", "coils").lower()
+if capture_id not in CAPTURES:
+    raise RuntimeError(capture_id)
+camera_label, filename = CAPTURES[capture_id]
+output = Path(unreal.Paths.project_saved_dir()) / "ValidationScreenshots/PressShopIntegration/v231_frontend_assets" / filename
+levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
+actors_api = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+if not levels.load_level(MAP):
+    raise RuntimeError(MAP)
+camera = next((actor for actor in actors_api.get_all_level_actors() if actor.get_actor_label() == camera_label), None)
+if camera is None:
+    raise RuntimeError(camera_label)
+output.parent.mkdir(parents=True, exist_ok=True)
+if output.exists():
+    output.unlink()
+world = unreal.EditorLevelLibrary.get_editor_world()
+unreal.SystemLibrary.execute_console_command(world, "viewmode lit")
+unreal.SystemLibrary.execute_console_command(world, "r.Streaming.FullyLoadUsedTextures 1")
+unreal.SystemLibrary.execute_console_command(world, "r.HighResScreenshotDelay 24")
+unreal.EditorLevelLibrary.editor_set_game_view(True)
+unreal.AutomationUtilsBlueprintLibrary.finish_all_asset_compilation()
+unreal.AutomationLibrary.finish_loading_before_screenshot()
+task = unreal.AutomationLibrary.take_high_res_screenshot(
+    1920, 1080, str(output), camera=camera, mask_enabled=False, capture_hdr=False,
+    comparison_tolerance=unreal.ComparisonTolerance.LOW,
+    comparison_notes=f"Cairnwell whole-shop v231 front-end {capture_id}",
+    delay=0.0, force_game_view=True)
+if not task.is_valid_task():
+    raise RuntimeError(f"invalid screenshot task for {capture_id}")
+started = time.monotonic()
+handle = None
+
+
+def tick(_delta):
+    global handle
+    elapsed = time.monotonic() - started
+    if output.exists() and output.stat().st_size >= 1024:
+        unreal.log(f"LB_V231_FRONTEND_CAPTURE_PASS id={capture_id} path={output}")
+        unreal.unregister_slate_post_tick_callback(handle)
+        handle = None
+        unreal.SystemLibrary.quit_editor()
+    elif elapsed >= 75.0:
+        unreal.log_error(f"LB_V231_FRONTEND_CAPTURE_FAIL id={capture_id} path={output}")
+        unreal.unregister_slate_post_tick_callback(handle)
+        handle = None
+        unreal.SystemLibrary.quit_editor()
+
+
+handle = unreal.register_slate_post_tick_callback(tick)

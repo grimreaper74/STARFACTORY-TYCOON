@@ -1,0 +1,1920 @@
+{
+  "$schema": "lineboss/cairnwell-2040-runtime-v001/recovery-contract/v6",
+  "acknowledgement": "RECOVER_QUARANTINED_CAIRNWELL_2040_RUNTIME_V001_V006_ONCE",
+  "approved_source": {
+    "file_count": 26,
+    "inventory_sha256": "C5D7F19A1886EF6E9FAA80F0118343AEAF2DD773B9E8B8DB5EAA4025068A9C58"
+  },
+  "exact_ue_enum_validation": {
+    "affected_fields": [
+      "Texture2D.compression_settings",
+      "MaterialExpressionTextureSample.sampler_type",
+      "MaterialExpressionClamp.clamp_mode",
+      "BodySetup.collision_trace_flag",
+      "Material.blend_mode",
+      "Material.material_domain"
+    ],
+    "classification": "DETERMINISTIC_VALIDATOR_FALSE_NEGATIVE__UE_ENUM_STRING_REPR_HAS_NUMERIC_SUFFIX__TEXTURE_ASSETS_AND_IMPORTER_SETTINGS_ARE_CORRECT",
+    "comparison_rule": "exact UE Python enum type and value identity",
+    "engine_source": {
+      "exact_comparison_lines": "388-410",
+      "name_value_lines": "461-462",
+      "path": "C:/Program Files/Epic Games/UE_5.8/Engine/Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Private/PyWrapperEnum.cpp",
+      "repr_lines": "378-385",
+      "sha256": "54488C18B0C2916E89BF416EAC8F008E79AF430AC2F4EA8299A603D5809693AA"
+    },
+    "read_only_diagnostic": {
+      "editor_bootstrap_world": "/Engine/Maps/Entry.Entry",
+      "files": {
+        "20260815T120715Z-readonly/diagnose_textures_read_only.py": {
+          "bytes": 7060,
+          "mtime_ns": 1786795686491168100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/20260815T120715Z-readonly/diagnose_textures_read_only.py",
+          "sha256": "50589A4BAA76925072139FC1D92C0F09E49143A6396412CF800B2EC0023CD77A"
+        },
+        "20260815T120715Z-readonly/diagnostic.log": {
+          "bytes": 308251,
+          "mtime_ns": 1786795750844633000,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/20260815T120715Z-readonly/diagnostic.log",
+          "sha256": "54AA87B60703486AF6BBE6805DFD0BF4AE95A6F19973BC7B9F5DB438A09F0AD1"
+        },
+        "20260815T120715Z-readonly/diagnostic.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786795710465286000,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/20260815T120715Z-readonly/diagnostic.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "20260815T120715Z-readonly/diagnostic.stdout.log": {
+          "bytes": 308153,
+          "mtime_ns": 1786795750824633500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/20260815T120715Z-readonly/diagnostic.stdout.log",
+          "sha256": "CB893F9AA903FA7849477B902C4C170CAB5DDA24A27DE5457CC334439042F7EA"
+        },
+        "Run_readonly_20260815T121015Z/diagnostic.log": {
+          "bytes": 308531,
+          "mtime_ns": 1786795824629283000,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z/diagnostic.log",
+          "sha256": "2F6584057130D6E0601DA7222F345B0FD5EB25FE13F79C39F626D0BC72C63F49"
+        },
+        "Run_readonly_20260815T121015Z/diagnostic.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786795804678017400,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z/diagnostic.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "Run_readonly_20260815T121015Z/diagnostic.stdout.log": {
+          "bytes": 308403,
+          "mtime_ns": 1786795824611285100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z/diagnostic.stdout.log",
+          "sha256": "C580023F915EE4E89EA33BD91C5F114B35002611BEC248AD62FC89295FEE773D"
+        },
+        "Run_readonly_20260815T121015Z/texture_runtime_properties_read_only.json": {
+          "bytes": 5562,
+          "mtime_ns": 1786795814443282700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z/texture_runtime_properties_read_only.json",
+          "sha256": "8476C9EF8CFE8A3E58C383FEC80085370F2554F91618569598FDE5D975E79A4A"
+        }
+      },
+      "package_hashes_unchanged": true,
+      "package_saves_authorized": [],
+      "receipt": {
+        "bytes": 5562,
+        "mtime_ns": 1786795814443282700,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z/texture_runtime_properties_read_only.json",
+        "sha256": "8476C9EF8CFE8A3E58C383FEC80085370F2554F91618569598FDE5D975E79A4A"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005_TextureForensics/Run_readonly_20260815T121015Z",
+      "textures": {
+        "base_color": {
+          "compression_enum_name": "TC_DEFAULT",
+          "compression_enum_value": 0,
+          "decorated_runtime_repr": "<TextureCompressionSettings.TC_DEFAULT: 0>",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "flip_green_channel": false,
+          "srgb": true
+        },
+        "metallic_roughness": {
+          "compression_enum_name": "TC_MASKS",
+          "compression_enum_value": 2,
+          "decorated_runtime_repr": "<TextureCompressionSettings.TC_MASKS: 2>",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "flip_green_channel": false,
+          "srgb": false
+        },
+        "normal": {
+          "compression_enum_name": "TC_NORMALMAP",
+          "compression_enum_value": 1,
+          "decorated_runtime_repr": "<TextureCompressionSettings.TC_NORMALMAP: 1>",
+          "dimensions": [
+            2048,
+            2048
+          ],
+          "flip_green_channel": true,
+          "srgb": false
+        }
+      }
+    },
+    "semantic_gates_relaxed": false,
+    "string_suffix_comparison_forbidden": true
+  },
+  "generated_utc": "2026-08-15T12:40:56.778694+00:00",
+  "incident_chain": {
+    "binding_sha256": "7FD754B3BFC8FC3BF7CF42059EB16268A766C75290A76B92AFC107C24AA5E661",
+    "old_success_receipts_present": false,
+    "v001": {
+      "failed_run_id": "20260815T094919Z-7dfb3c0a",
+      "files": {
+        "import_failure_v001.json": {
+          "bytes": 4288,
+          "mtime_ns": 1786787454191383300,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/import_failure_v001.json",
+          "sha256": "05F204CDE09BD22BED823101525C82F64E18F8EE56BC6004C9E0979AA73CFC2D"
+        },
+        "lane_summary_v001.json": {
+          "bytes": 1771,
+          "mtime_ns": 1786787462745829700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/lane_summary_v001.json",
+          "sha256": "00DA69AEA08322AFFD099D5126BADA3F78265EDC9A38302D3C3CC2B3D118CEA5"
+        },
+        "unreal_import.log": {
+          "bytes": 344784,
+          "mtime_ns": 1786787462363829200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.log",
+          "sha256": "11AADD66D2C685202B1C07C9E1A2E493CEC7C796398FD8AE59A2AE4569CDA367"
+        },
+        "unreal_import.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786787381244292400,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import.stdout.log": {
+          "bytes": 344814,
+          "mtime_ns": 1786787462358823200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.stdout.log",
+          "sha256": "5F173EEFEB82A3A6930B062CB8755AD7617C2F9B8851CE7782085A223E1DF8A2"
+        }
+      },
+      "import_failure": {
+        "bytes": 4288,
+        "mtime_ns": 1786787454191383300,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/import_failure_v001.json",
+        "sha256": "05F204CDE09BD22BED823101525C82F64E18F8EE56BC6004C9E0979AA73CFC2D"
+      }
+    },
+    "v002": {
+      "failed_run_id": "20260815T103132Z-3fc39714",
+      "files": {
+        "import_failure_recovery_v002.json": {
+          "bytes": 5460,
+          "mtime_ns": 1786790021159680000,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/import_failure_recovery_v002.json",
+          "sha256": "86AB67E0AD2C501EE8E49CFAF6061694DD78DFD616B81F22B53B80896E127EE1"
+        },
+        "lane_summary_recovery_v002.json": {
+          "bytes": 2921,
+          "mtime_ns": 1786790026702669500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/lane_summary_recovery_v002.json",
+          "sha256": "D152B33365F3CCBE005E7552468FDE90628AEBB21371A93831A7187BEF2146D6"
+        },
+        "quarantine_receipt_v002.json": {
+          "bytes": 3205,
+          "mtime_ns": 1786789933743132500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/quarantine_receipt_v002.json",
+          "sha256": "61185A4AF74711FEAD0E67D4026522BF5C48CB48D73CCCC0BAB76DE4A8F0CC57"
+        },
+        "unreal_import_recovery_v002.log": {
+          "bytes": 359433,
+          "mtime_ns": 1786790025548676500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.log",
+          "sha256": "138E4F06AC6B562325BE84EA8CEA4D6DBE27CCE6140FA718C9A6C6164487BB08"
+        },
+        "unreal_import_recovery_v002.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786789933762135600,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import_recovery_v002.stdout.log": {
+          "bytes": 359416,
+          "mtime_ns": 1786790025533676500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.stdout.log",
+          "sha256": "DCBE73E2CA83CD6BAD6EC18ECC29983D1D20F2E82618642D7609C740BF927B69"
+        }
+      },
+      "import_failure": {
+        "bytes": 5460,
+        "mtime_ns": 1786790021159680000,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/import_failure_recovery_v002.json",
+        "sha256": "86AB67E0AD2C501EE8E49CFAF6061694DD78DFD616B81F22B53B80896E127EE1"
+      },
+      "lane_summary": {
+        "bytes": 2921,
+        "mtime_ns": 1786790026702669500,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/lane_summary_recovery_v002.json",
+        "sha256": "D152B33365F3CCBE005E7552468FDE90628AEBB21371A93831A7187BEF2146D6"
+      },
+      "primary_failure": "exact source material name .001 sanitized by UE to _001",
+      "quarantine_receipt": {
+        "bytes": 3205,
+        "mtime_ns": 1786789933743132500,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/quarantine_receipt_v002.json",
+        "sha256": "61185A4AF74711FEAD0E67D4026522BF5C48CB48D73CCCC0BAB76DE4A8F0CC57"
+      },
+      "recovery_contract": {
+        "bytes": 15394,
+        "mtime_ns": 1786789677489047000,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v002_contract.json",
+        "sha256": "0D0E0ADE47D80F487A8E94547133323EF1C7622C9260177A948049BC09AA85E2"
+      },
+      "recovery_contract_sidecar": {
+        "bytes": 123,
+        "mtime_ns": 1786789677499053100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v002_contract.sha256",
+        "sha256": "FEBE082E2A64EEC41EEB881D4A888E5C2C9C241865AE571D65BB6B979445F9B1"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714",
+      "wrapper_failure": "redirected stdout remained temporarily locked after process exit"
+    },
+    "v003": {
+      "failed_run_id": "20260815T105958Z-79a98abc",
+      "files": {
+        "import_failure_recovery_v003.json": {
+          "bytes": 7072,
+          "mtime_ns": 1786791718894696200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/import_failure_recovery_v003.json",
+          "sha256": "3FB3E1A8F27F1E4EF477C6F1E3E3AF41E53F2C8618CAC9A4E0A047F91BD60E7C"
+        },
+        "lane_summary_recovery_v003.json": {
+          "bytes": 3369,
+          "mtime_ns": 1786791725437696300,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/lane_summary_recovery_v003.json",
+          "sha256": "6771F6D980A89CF32D92B7FD1013BAF297D1003AFAEC71B6EEDE824EA8183C45"
+        },
+        "quarantine_receipt_v003.json": {
+          "bytes": 5195,
+          "mtime_ns": 1786791639794234700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/quarantine_receipt_v003.json",
+          "sha256": "1BCE465D7D8CF731CBE6F17121149A74AA550EA12E31C53EAF80D6F55A198D80"
+        },
+        "unreal_import_recovery_v003.log": {
+          "bytes": 380780,
+          "mtime_ns": 1786791723167690600,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/unreal_import_recovery_v003.log",
+          "sha256": "BC70CA39AA8EEA93AFD9BB7E67AF0AADDA6DB7AE8485AD695BD73D3B0830144C"
+        },
+        "unreal_import_recovery_v003.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786791639812235900,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/unreal_import_recovery_v003.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import_recovery_v003.stdout.log": {
+          "bytes": 380785,
+          "mtime_ns": 1786791723147688100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/unreal_import_recovery_v003.stdout.log",
+          "sha256": "34E586D561A7A1A9AE5C39E75F26359A8DEC4C22C94484856FCFBEB160FA1E63"
+        }
+      },
+      "import_failure": {
+        "bytes": 7072,
+        "mtime_ns": 1786791718894696200,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/import_failure_recovery_v003.json",
+        "sha256": "3FB3E1A8F27F1E4EF477C6F1E3E3AF41E53F2C8618CAC9A4E0A047F91BD60E7C"
+      },
+      "lane_summary": {
+        "bytes": 3369,
+        "mtime_ns": 1786791725437696300,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/lane_summary_recovery_v003.json",
+        "sha256": "6771F6D980A89CF32D92B7FD1013BAF297D1003AFAEC71B6EEDE824EA8183C45"
+      },
+      "primary_failure": "UE5.8 forced one runtime UV channel for zero-UV FBX",
+      "quarantine_receipt": {
+        "bytes": 5195,
+        "mtime_ns": 1786791639794234700,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc/quarantine_receipt_v003.json",
+        "sha256": "1BCE465D7D8CF731CBE6F17121149A74AA550EA12E31C53EAF80D6F55A198D80"
+      },
+      "recovery_contract": {
+        "bytes": 24664,
+        "mtime_ns": 1786791324149749100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v003_contract.json",
+        "sha256": "A5ED1D53A35A7D2D58BD533691C4207AF9BF820EBC4D0E0DD0D734254D34FF22"
+      },
+      "recovery_contract_sidecar": {
+        "bytes": 123,
+        "mtime_ns": 1786791324157749100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v003_contract.sha256",
+        "sha256": "9AAA3D433C089D813F780E9CF59346B0E756B94E2EF0EB9D8519D28C1A7F7FAF"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/20260815T105958Z-79a98abc",
+      "wrapper_result": "strict process/log gate passed then failure receipt stopped lane"
+    },
+    "v004": {
+      "failed_run_id": "20260815T112446Z-4e34bb5c",
+      "files": {
+        "import_failure_recovery_v004.json": {
+          "bytes": 7378,
+          "mtime_ns": 1786793205975540200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/import_failure_recovery_v004.json",
+          "sha256": "D5BFCA5C8C2380587ECADDE9C64455FFD60A282D54A6FF8E27CD2E7144B494DF"
+        },
+        "lane_summary_recovery_v004.json": {
+          "bytes": 3525,
+          "mtime_ns": 1786793223123935200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/lane_summary_recovery_v004.json",
+          "sha256": "C05669FFD06EA3570B8192E4A4ADE4F1596B4AAED402E5202E481E527E349961"
+        },
+        "quarantine_receipt_v004.json": {
+          "bytes": 7938,
+          "mtime_ns": 1786793126769898100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/quarantine_receipt_v004.json",
+          "sha256": "D5E09C0EEE23CF6FBCC914A00DD44F5CE3EA9EF33C9461E9E6B38EE98C1CF144"
+        },
+        "unreal_import_recovery_v004.log": {
+          "bytes": 380700,
+          "mtime_ns": 1786793217624405300,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/unreal_import_recovery_v004.log",
+          "sha256": "9EC1257D9C2CB441040820F18D27C374D91F25101B090E353823D1C86C303F49"
+        },
+        "unreal_import_recovery_v004.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786793126788898100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/unreal_import_recovery_v004.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import_recovery_v004.stdout.log": {
+          "bytes": 380711,
+          "mtime_ns": 1786793217538406500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/unreal_import_recovery_v004.stdout.log",
+          "sha256": "9EBE0189E19B51FE6D240F3FC9F037B2976345D374CD909D27C0A132F38008DF"
+        }
+      },
+      "import_failure": {
+        "bytes": 7378,
+        "mtime_ns": 1786793205975540200,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/import_failure_recovery_v004.json",
+        "sha256": "D5BFCA5C8C2380587ECADDE9C64455FFD60A282D54A6FF8E27CD2E7144B494DF"
+      },
+      "lane_summary": {
+        "bytes": 3525,
+        "mtime_ns": 1786793223123935200,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/lane_summary_recovery_v004.json",
+        "sha256": "C05669FFD06EA3570B8192E4A4ADE4F1596B4AAED402E5202E481E527E349961"
+      },
+      "primary_failure": "frozen source-space Y bounds compared against UE left-handed import",
+      "quarantine_receipt": {
+        "bytes": 7938,
+        "mtime_ns": 1786793126769898100,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c/quarantine_receipt_v004.json",
+        "sha256": "D5E09C0EEE23CF6FBCC914A00DD44F5CE3EA9EF33C9461E9E6B38EE98C1CF144"
+      },
+      "recovery_contract": {
+        "bytes": 37568,
+        "mtime_ns": 1786792844439097600,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v004_contract.json",
+        "sha256": "C52DE8F74018D03458A94946A0B1208322881F4C52E765B474B3DE56CF8052DA"
+      },
+      "recovery_contract_sidecar": {
+        "bytes": 123,
+        "mtime_ns": 1786792844450097100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v004_contract.sha256",
+        "sha256": "DC2409FB0294530E5C39EF33BB231C87307A91D14A808D721C72006B61201238"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v004/20260815T112446Z-4e34bb5c",
+      "wrapper_result": "strict process/log gate passed then failure receipt stopped lane"
+    },
+    "v005": {
+      "failed_run_id": "20260815T115847Z-92ea69dd",
+      "files": {
+        "import_failure_recovery_v005.json": {
+          "bytes": 7486,
+          "mtime_ns": 1786795258740419700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/import_failure_recovery_v005.json",
+          "sha256": "435D82778C83CDACAA2E59F91E04273181BA710F5D0BAFFA719A15E04A9F48BB"
+        },
+        "lane_summary_recovery_v005.json": {
+          "bytes": 3691,
+          "mtime_ns": 1786795264343885100,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/lane_summary_recovery_v005.json",
+          "sha256": "58D984424C0132820D05283327751D636D7B32FFC04EBED1E44F2CA68B45C99C"
+        },
+        "quarantine_receipt_v005.json": {
+          "bytes": 8093,
+          "mtime_ns": 1786795168689041900,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/quarantine_receipt_v005.json",
+          "sha256": "17CCF587D92D0FBE85E704112B70CA17937E047EB2F4BB3003C40EDB5DD9315E"
+        },
+        "unreal_import_recovery_v005.log": {
+          "bytes": 406774,
+          "mtime_ns": 1786795262644370200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/unreal_import_recovery_v005.log",
+          "sha256": "25C565460931492017AE3FE9AD023A5F44971B3AE6BAFA2EE16CE4C2867CF1F6"
+        },
+        "unreal_import_recovery_v005.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786795168708038800,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/unreal_import_recovery_v005.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import_recovery_v005.stdout.log": {
+          "bytes": 406787,
+          "mtime_ns": 1786795262624376700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/unreal_import_recovery_v005.stdout.log",
+          "sha256": "70C81AEFF22C31F3F8712D49E298B8A1C514B4998F3F302A9DC7C4E0900B6DCC"
+        }
+      },
+      "import_failure": {
+        "bytes": 7486,
+        "mtime_ns": 1786795258740419700,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/import_failure_recovery_v005.json",
+        "sha256": "435D82778C83CDACAA2E59F91E04273181BA710F5D0BAFFA719A15E04A9F48BB"
+      },
+      "lane_summary": {
+        "bytes": 3691,
+        "mtime_ns": 1786795264343885100,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/lane_summary_recovery_v005.json",
+        "sha256": "58D984424C0132820D05283327751D636D7B32FFC04EBED1E44F2CA68B45C99C"
+      },
+      "primary_failure": "decorated UE Python enum repr falsely failed a suffix comparison",
+      "quarantine_receipt": {
+        "bytes": 8093,
+        "mtime_ns": 1786795168689041900,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd/quarantine_receipt_v005.json",
+        "sha256": "17CCF587D92D0FBE85E704112B70CA17937E047EB2F4BB3003C40EDB5DD9315E"
+      },
+      "recovery_contract": {
+        "bytes": 66548,
+        "mtime_ns": 1786794890912474100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v005_contract.json",
+        "sha256": "E5E9F4CF0E003C0B5936E0EED581D6E697E1C20AD0BC1B390E6FA7D3ADD2E239"
+      },
+      "recovery_contract_sidecar": {
+        "bytes": 122,
+        "mtime_ns": 1786794902625223400,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v005_contract.sha256",
+        "sha256": "697AD0D21AE2EF719D3C92AB5CFBD577C5E5811A3FBBC2BB885BBB4E96A3F0B1"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v005/20260815T115847Z-92ea69dd",
+      "wrapper_result": "strict process/log gate passed then failure receipt stopped lane"
+    }
+  },
+  "lane": {
+    "file_count": 29,
+    "files": [
+      {
+        "bytes": 4560,
+        "mtime_ns": 1786789295417213800,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V002.md",
+        "sha256": "5B00801B63E1DFDDDF935BCE683CAB02B00EDB468C21A73E76460158E72301C9"
+      },
+      {
+        "bytes": 4461,
+        "mtime_ns": 1786790885680817400,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003.md",
+        "sha256": "B71C7572D8273617313D35E77E8FADD495ABDAFD65AD8D671C925DE1E02541D6"
+      },
+      {
+        "bytes": 4304,
+        "mtime_ns": 1786792280231528900,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V004.md",
+        "sha256": "19C80AE936E37C77CA58F1B2A9902EA53C76B0B188529E576027A0F8936508E0"
+      },
+      {
+        "bytes": 5847,
+        "mtime_ns": 1786794657895264600,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V005.md",
+        "sha256": "0AB6F6C5DBD7CBFCB00B6AC4153262BAD80479FE712F47DBBF2902C3AB5708FA"
+      },
+      {
+        "bytes": 5631,
+        "mtime_ns": 1786797568363177100,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V006.md",
+        "sha256": "43E8AC9C9B32189446CB6931610FBCB0CAAB0F05EAB621856DE0BACB865CEC15"
+      },
+      {
+        "bytes": 15785,
+        "mtime_ns": 1786787045044191000,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_UNREAL_IMPORT_LANE.md",
+        "sha256": "4C48B1113C7F1247653FC0A56E218B2591F56AD084DBE8891A39589C4C255043"
+      },
+      {
+        "bytes": 2649,
+        "mtime_ns": 1786790344973365100,
+        "path": "Scripts/cairnwell_2040_runtime_log_retry_v003.ps1",
+        "sha256": "218252FB28ED421E3B6700FDE9D44F7D3046A6E688FE010E20E75BA042939E38"
+      },
+      {
+        "bytes": 85799,
+        "mtime_ns": 1786797154824735800,
+        "path": "Scripts/cairnwell_2040_runtime_v001.py",
+        "sha256": "52E29F08F2B99F58DFAD8618CAB45C70C779980A4B3BF58B8A972EE2D8CA4565"
+      },
+      {
+        "bytes": 6590513,
+        "mtime_ns": 1786787267410217900,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.json",
+        "sha256": "493CEBCA0DAA09179D0F44BE2FE4E4D60658D8F42CD88A02268045591EE77882"
+      },
+      {
+        "bytes": 116,
+        "mtime_ns": 1786787267424218100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.sha256",
+        "sha256": "3A7ED675CF10D08BBF70076A1FC510F2661CE6DDAF0362078D0309AF7AF62C21"
+      },
+      {
+        "bytes": 48402,
+        "mtime_ns": 1786787122308856700,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.json",
+        "sha256": "B0D276A85E8532B580098092384BD93D0E5F55E3A437922FFFC31D69B8816EB1"
+      },
+      {
+        "bytes": 116,
+        "mtime_ns": 1786787122323855900,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.sha256",
+        "sha256": "494AC94DFBD12D79E90285BF7E8C3436DB7E87E233D434924466194652A29EE6"
+      },
+      {
+        "bytes": 24664,
+        "mtime_ns": 1786791324149749100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v003_contract.json",
+        "sha256": "A5ED1D53A35A7D2D58BD533691C4207AF9BF820EBC4D0E0DD0D734254D34FF22"
+      },
+      {
+        "bytes": 123,
+        "mtime_ns": 1786791324157749100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v003_contract.sha256",
+        "sha256": "9AAA3D433C089D813F780E9CF59346B0E756B94E2EF0EB9D8519D28C1A7F7FAF"
+      },
+      {
+        "bytes": 37568,
+        "mtime_ns": 1786792844439097600,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v004_contract.json",
+        "sha256": "C52DE8F74018D03458A94946A0B1208322881F4C52E765B474B3DE56CF8052DA"
+      },
+      {
+        "bytes": 123,
+        "mtime_ns": 1786792844450097100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v004_contract.sha256",
+        "sha256": "DC2409FB0294530E5C39EF33BB231C87307A91D14A808D721C72006B61201238"
+      },
+      {
+        "bytes": 66548,
+        "mtime_ns": 1786794890912474100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v005_contract.json",
+        "sha256": "E5E9F4CF0E003C0B5936E0EED581D6E697E1C20AD0BC1B390E6FA7D3ADD2E239"
+      },
+      {
+        "bytes": 122,
+        "mtime_ns": 1786794902625223400,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v005_contract.sha256",
+        "sha256": "697AD0D21AE2EF719D3C92AB5CFBD577C5E5811A3FBBC2BB885BBB4E96A3F0B1"
+      },
+      {
+        "bytes": 34258,
+        "mtime_ns": 1786797031128039400,
+        "path": "Scripts/import_cairnwell_2040_runtime_v001.py",
+        "sha256": "EE248DA29B1B3BF90DA872BA6B041A649A4A2462F313ABB3F685915C819BC31C"
+      },
+      {
+        "bytes": 17292,
+        "mtime_ns": 1786786970771940300,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_baseline.py",
+        "sha256": "A5122C77D74192C111A36F334CEFF118D116B39DAA07AB5ADB633733D886A0D5"
+      },
+      {
+        "bytes": 47112,
+        "mtime_ns": 1786786848756110100,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_contract.py",
+        "sha256": "F89C8B0E6BD3CD140D34788AF20FF4B7D38E1FBF3554ACE9F830D558C9345311"
+      },
+      {
+        "bytes": 24081,
+        "mtime_ns": 1786788973784317500,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v002.py",
+        "sha256": "C20D5E25C0E6C318824A69A81F9EC422988D12DF2B6E8AADB96E9A96E47BF571"
+      },
+      {
+        "bytes": 26982,
+        "mtime_ns": 1786790845764846700,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v003.py",
+        "sha256": "8D21CDC140932559D9553D69BEB61A1425B2B92A62391AE930F25A37D448D897"
+      },
+      {
+        "bytes": 24950,
+        "mtime_ns": 1786792701993415400,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v004.py",
+        "sha256": "CB6533B0F8BD657F81DEBA3E73B94F204C5DC4AC77DA55FE9C781551165CB729"
+      },
+      {
+        "bytes": 30683,
+        "mtime_ns": 1786794857542984300,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v005.py",
+        "sha256": "DA2C88EE7E2CAA7407B4D80F9F3988A82873BB20EC3EDA565C13900E4E6D649D"
+      },
+      {
+        "bytes": 31401,
+        "mtime_ns": 1786797247307583700,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v006.py",
+        "sha256": "100D5A2B17B3F98ACCD970365BD27260C87A19219528F1042D8BEB395770C2C1"
+      },
+      {
+        "bytes": 26279,
+        "mtime_ns": 1786797256743464500,
+        "path": "Scripts/run_cairnwell_2040_runtime_import_lane_v001.ps1",
+        "sha256": "A6028EEC6DF6E56E0AF4E0A2D5D853CA36776EBD84DD94E660428C6EF5CEAC1E"
+      },
+      {
+        "bytes": 68859,
+        "mtime_ns": 1786797415251161100,
+        "path": "Scripts/tests/test_cairnwell_2040_runtime_import_lane_v001.py",
+        "sha256": "39BB3703CFA7FF8497F36F7E4E8B270C22DED1467FEF3B1AD678E3691FF15E4A"
+      },
+      {
+        "bytes": 12027,
+        "mtime_ns": 1786796689665479300,
+        "path": "Scripts/validate_cairnwell_2040_runtime_fresh_process_v001.py",
+        "sha256": "B9941081F84493AECB37DAA390538C1F2C5056AF3D62B3E428F7B21ECE60074C"
+      }
+    ],
+    "inventory_sha256": "157E3922E5C7302D28ACE0BCDCA9122495B8077543A7D0E916E4C0ABA8E66D39"
+  },
+  "original_authorities": {
+    "baseline": {
+      "bytes": 6590513,
+      "mtime_ns": 1786787267410217900,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.json",
+      "sha256": "493CEBCA0DAA09179D0F44BE2FE4E4D60658D8F42CD88A02268045591EE77882"
+    },
+    "baseline_sidecar": {
+      "bytes": 116,
+      "mtime_ns": 1786787267424218100,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.sha256",
+      "sha256": "3A7ED675CF10D08BBF70076A1FC510F2661CE6DDAF0362078D0309AF7AF62C21"
+    },
+    "contract": {
+      "bytes": 48402,
+      "mtime_ns": 1786787122308856700,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.json",
+      "sha256": "B0D276A85E8532B580098092384BD93D0E5F55E3A437922FFFC31D69B8816EB1"
+    },
+    "contract_sidecar": {
+      "bytes": 116,
+      "mtime_ns": 1786787122323855900,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.sha256",
+      "sha256": "494AC94DFBD12D79E90285BF7E8C3436DB7E87E233D434924466194652A29EE6"
+    }
+  },
+  "partial_packages": {
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset": {
+      "bytes": 6002,
+      "mtime_ns": 1786795253747427700,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+      "sha256": "48653B767DA34619873A63EC67DC151E1E9BD0C565A14A4C1C4FA105E96F95AF",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset": {
+      "bytes": 11566,
+      "mtime_ns": 1786795253805426900,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+      "sha256": "3670BB2739D78DEABCB169F771F342CDB7FF789C59163EA8C20BC24E203F527A",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.uasset": {
+      "bytes": 5960,
+      "mtime_ns": 1786795253861437900,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Materials/M_LB_C2040_EDCoat_v001.uasset",
+      "sha256": "39EBB5ADA41F1236AE0805D06A5D7BE7116C5F97219665D9D15A856A6F09194B",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.uasset": {
+      "bytes": 7119,
+      "mtime_ns": 1786795253915426800,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+      "sha256": "23F372167D9AA1604176E35C9DD626587A66383A12D547CA76DC494680DD7128",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset": {
+      "bytes": 2293043,
+      "mtime_ns": 1786795257845427400,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset",
+      "sha256": "D3EDFE4656581961BB1A7C06218730D2359AD7A063AB0A8D8EC7B0FA7A9F8F27",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset": {
+      "bytes": 1329365,
+      "mtime_ns": 1786795257865428100,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+      "sha256": "AC4D1F896515CD515907C4CCA7C11E202D08526993A9CAE3103753F7DC24F19F",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset": {
+      "bytes": 7355548,
+      "mtime_ns": 1786795257906426700,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset",
+      "sha256": "FB0A4CEC489DF3AFDF8E89B67FA90B29A6C99AB9135D1231016D3FF3C05A09C4",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset": {
+      "bytes": 3756424,
+      "mtime_ns": 1786795257934427100,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset",
+      "sha256": "D5685F0C9300AB0CE0ABCA2921B53F4F6982350889BDD23150135E5004EF843A",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset": {
+      "bytes": 3818680,
+      "mtime_ns": 1786795253542265800,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+      "sha256": "1B3E9E256D435B0BF93133F726C3F15F5CD8BD7F7C859D7B45169C7C0E85BE3D",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset": {
+      "bytes": 5818244,
+      "mtime_ns": 1786795253587265800,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+      "sha256": "5E64D13250AA226AB4D60A66A6291ABA3D892A8EB7968ADF595F6C5F2483AB9E",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset": {
+      "bytes": 3973188,
+      "mtime_ns": 1786795253624266000,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+      "sha256": "46AB631B0F07F67A202EFE7F97ED46178CCB86980D986A23A0E5575CB0A84146",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset"
+    }
+  },
+  "policy": {
+    "enum_string_suffix_comparisons_forbidden": true,
+    "exact_ue_enum_identity_required": true,
+    "map_load_save_authorized": false,
+    "panel_module_namespace_or_packages_authorized": false,
+    "post_receipt_fatal_or_crash_accepted": false,
+    "runtime_binding_or_promotion_authorized": false,
+    "runtime_bounds_tolerance_must_remain_0_25_cm": true,
+    "runtime_uv_expectation_is_exact_not_relaxed": true,
+    "source_config_maps_saves_writes_authorized": false,
+    "source_fbx_bounds_must_remain_unmodified": true,
+    "source_uv_authority_must_remain_unmodified": true,
+    "strict_editor_exit_code_zero_required": true,
+    "unreal_launch_authorized_by_freeze": false
+  },
+  "prior_quarantines": {
+    "v001_partial_packages": {
+      "file_count": 4,
+      "files": [
+        {
+          "bytes": 6002,
+          "mtime_ns": 1786787454166374600,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+          "sha256": "FCE1DDBA01C45F7162297F6C5D048394F8FA5CCD01E43851044D517FDA1739D9"
+        },
+        {
+          "bytes": 3818680,
+          "mtime_ns": 1786787453931382900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+          "sha256": "D057B1C2A56F8F17CD0ED77321FD803EC733FA8E845504D34D52CA99F4180CFD"
+        },
+        {
+          "bytes": 5818244,
+          "mtime_ns": 1786787453981375100,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+          "sha256": "F4ADBF3AC8E0ACE8D053D6BD3E73EA887EC3FF33C63CDF0F61FBC767DE400309"
+        },
+        {
+          "bytes": 3973188,
+          "mtime_ns": 1786787454019375700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+          "sha256": "67465B09C9B5418F08EDE7E2195E297472AE35E0BA96A05545EB0FE179CBEB7A"
+        }
+      ],
+      "inventory_sha256": "01F4C5436A311027BAC80057C0B1A19256FC7E09548826FF2B1650885D6B1068"
+    },
+    "v002_partial_packages": {
+      "file_count": 7,
+      "files": [
+        {
+          "bytes": 6002,
+          "mtime_ns": 1786790010826675900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+          "sha256": "3B3A5D9B6195891522A219D27C19E62DDA3C891EDC664EE1E75B13615D5A3034"
+        },
+        {
+          "bytes": 11566,
+          "mtime_ns": 1786790010882676700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+          "sha256": "E74FA8C2EA49B1AD34D33CBD11CEF4D4A2C627490223C06A525487B8AE36208A"
+        },
+        {
+          "bytes": 5960,
+          "mtime_ns": 1786790010938669000,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_EDCoat_v001.uasset",
+          "sha256": "765F924403E6278B8604F4700ACD9DC7F89E6FF813B5DF3758952C90E8C78274"
+        },
+        {
+          "bytes": 7119,
+          "mtime_ns": 1786790010993668700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+          "sha256": "57698E6F740E4D0F2C53C4FF3196AF2A4874BD04ADBE5D7A67238D713F8C8D02"
+        },
+        {
+          "bytes": 3818680,
+          "mtime_ns": 1786790010622668900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+          "sha256": "6F902C40D9117585711E383673990B3FA7501E53CA3B9CCF76DDD377F4FE044A"
+        },
+        {
+          "bytes": 5818244,
+          "mtime_ns": 1786790010667676200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+          "sha256": "CFECE87484B903B5350D98A06D05D083E247273A227E8A7DBBCC88198F9FF2B1"
+        },
+        {
+          "bytes": 3973188,
+          "mtime_ns": 1786790010703676400,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+          "sha256": "39BA2B508646697BD09130525A14715218C54DFA72204F51B777136CDE7CF989"
+        }
+      ],
+      "inventory_sha256": "30C731577D536A2F33B653EBC469B05DF303B36AC983778DCC10B2DC4642312D"
+    },
+    "v003_partial_packages": {
+      "file_count": 11,
+      "files": [
+        {
+          "bytes": 6002,
+          "mtime_ns": 1786791714569696100,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+          "sha256": "F81EA9E6D5214E263B2E103F74FC96BD242B6CB714F910DFF94D7C1A535D60E0"
+        },
+        {
+          "bytes": 11566,
+          "mtime_ns": 1786791714628696400,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+          "sha256": "A27356BC5F25C906B5F873FC1356A27C0976E4AE63C47F6C4DE05AECFB944CBC"
+        },
+        {
+          "bytes": 5960,
+          "mtime_ns": 1786791714685697000,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Materials/M_LB_C2040_EDCoat_v001.uasset",
+          "sha256": "CC01EA6964DDBCFEE1550DBAAF5EA79EE998A0BE68A22841ECA14DF53FB7D884"
+        },
+        {
+          "bytes": 7119,
+          "mtime_ns": 1786791714741688700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+          "sha256": "6896BEB2E1BED87248A3F0AD77177C3132B23CEE424055D9D18F988AEEB342F1"
+        },
+        {
+          "bytes": 2293043,
+          "mtime_ns": 1786791718669688600,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset",
+          "sha256": "CAFBD608BDD3302C86A8F2DD634C14B41B004DC8D12938DAEB2088628142D4D4"
+        },
+        {
+          "bytes": 1329365,
+          "mtime_ns": 1786791718689696200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+          "sha256": "F174A0BD87165F5FA493A191831490FB2AD7814DD10C1774BC14920521AA1A18"
+        },
+        {
+          "bytes": 7355548,
+          "mtime_ns": 1786791718729696200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset",
+          "sha256": "F6DE95F6D789324D6C62E7ACAC84CD513E71267486DDDC54857255BE4D995259"
+        },
+        {
+          "bytes": 3756424,
+          "mtime_ns": 1786791718758696200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset",
+          "sha256": "F287DD3924ED7632E5099F426600285F63310D64C724EB1026791FDBD6F1E2F5"
+        },
+        {
+          "bytes": 3818680,
+          "mtime_ns": 1786791714368688700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+          "sha256": "C8D90B29C300F4ED308966226CBFF85930FE9FA9225B5ADEFED2DD440EC11607"
+        },
+        {
+          "bytes": 5818244,
+          "mtime_ns": 1786791714418696600,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+          "sha256": "803E008887DFC6AFB386A205580CF133C85EBC648A6A2B2FC0020EBDD393AA51"
+        },
+        {
+          "bytes": 3973188,
+          "mtime_ns": 1786791714455695900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+          "sha256": "68079B26306853D680539042C8A824C8A2CF3091F8F091635A895267CCBA1BB8"
+        }
+      ],
+      "inventory_sha256": "FB9BFD4893B368E63E2B539AF26384AED307B66BED3EE34F75B702CFD4D3923D"
+    },
+    "v004_partial_packages": {
+      "file_count": 11,
+      "files": [
+        {
+          "bytes": 6002,
+          "mtime_ns": 1786793199484938000,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+          "sha256": "7CB2E1A6290373CB105EDC2A64EA8F9984CD8DF9E39A3E09D6B4B53DB8F977B0"
+        },
+        {
+          "bytes": 11566,
+          "mtime_ns": 1786793199546939800,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+          "sha256": "B6A69E70FA534BEC747AC5CB70DA63E997AB1B3B6FC6B3CA0A0973BE736314F4"
+        },
+        {
+          "bytes": 5960,
+          "mtime_ns": 1786793199603937900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Materials/M_LB_C2040_EDCoat_v001.uasset",
+          "sha256": "53DA47DECFFB17A7B1403AF548B0562EBF94F7CAEEDFE229AA2DF87D4E334446"
+        },
+        {
+          "bytes": 7119,
+          "mtime_ns": 1786793199662938000,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+          "sha256": "98A863E52C804BC04F9E4DD4180A3B6A3852AD01A74DF28712BD9E5BE57F0C82"
+        },
+        {
+          "bytes": 2293043,
+          "mtime_ns": 1786793205386473800,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Meshes/SM_LB_C2040_BIW_AutomotiveSkeleton_v001.uasset",
+          "sha256": "7D35D47B0ECDE59EAB51FBDB475EF20F4F4BB481BBA453927724B9B521445DD0"
+        },
+        {
+          "bytes": 1329365,
+          "mtime_ns": 1786793205406473900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+          "sha256": "DEF91E57144420980F5C07089B2A2625ABD31BEE40C7ED8B64DDE04E4FCFF858"
+        },
+        {
+          "bytes": 7355548,
+          "mtime_ns": 1786793205447491200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Meshes/SM_LB_C2040_EmeraldBodyVisualAuthority_v001.uasset",
+          "sha256": "4CAAA5B6465D4D967F3BE2FAE5406271D9D5F225270BB64FAEFCD6F04E9EA386"
+        },
+        {
+          "bytes": 3756424,
+          "mtime_ns": 1786793205528540500,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Meshes/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001.uasset",
+          "sha256": "20D2E8EE7D7B197C5E88A4E1CCA0A308511673A602053C15AFA185BC20AD811F"
+        },
+        {
+          "bytes": 3818680,
+          "mtime_ns": 1786793199233939900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+          "sha256": "DD48E3BD3A2EE49E2D6F2C351857A884C2834636134E533BDB5F95BCC8C27586"
+        },
+        {
+          "bytes": 5818244,
+          "mtime_ns": 1786793199283940800,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+          "sha256": "A98F8229F7BB6583F3857AAF976CA82F0519E8BBAD6C360A225B522B2DFAF450"
+        },
+        {
+          "bytes": 3973188,
+          "mtime_ns": 1786793199323948900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T112446Z-4e34bb5c_v004/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+          "sha256": "94CC4413F9EEC414F32D42108D3381DC6BCD63658D7F969DD208483A12DCFC72"
+        }
+      ],
+      "inventory_sha256": "829C77D4C7EF2B98404BD0991186B57C64F1F3576CC2227D8E799DD821336D28"
+    }
+  },
+  "project_root": "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8",
+  "protected_project": {
+    "file_count": 15670,
+    "inventory_sha256": "EBBCE409A82768D6C0AE90F78C55656022D97B8A3A87E78D132A144A6B2E5559"
+  },
+  "quarantine": {
+    "automatic_delete_authorized": false,
+    "destination_root": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T115847Z-92ea69dd_v005",
+    "operation": "MOVE_DIRECTORY_ONLY__NO_DELETE",
+    "rerun_after_any_recovery_result_authorized": false,
+    "source_root": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001"
+  },
+  "result_topology": {
+    "audit_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v006",
+    "fresh_validation": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v006/fresh-process-validation/v6",
+      "failure_filename": "fresh_process_validation_failure_recovery_v006.json",
+      "package_hash_fields": [
+        "package_sha256_before_loads",
+        "package_sha256_after_loads"
+      ],
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V006_DISTINCT_FRESH_PROCESS__READ_ONLY_RELOAD__11_PACKAGE_HASHES_UNCHANGED",
+      "receipt_filename": "fresh_process_validation_receipt_recovery_v006.json"
+    },
+    "import": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v006/unreal-import/v6",
+      "failure_filename": "import_failure_recovery_v006.json",
+      "package_hash_field": "package_sha256",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V006_FRESH_IMPORT__4_MESHES__12_AUTHORED_LODS__3_TEXTURES__4_MATERIALS__EXACT_11_PACKAGE_CLOSURE",
+      "receipt_filename": "import_receipt_recovery_v006.json"
+    },
+    "quarantine_receipt": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v006/quarantine/v6",
+      "filename": "quarantine_receipt_v006.json",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V006_PARTIALS_QUARANTINED"
+    },
+    "required_incident_binding_fields": [
+      "recovery_contract_sha256",
+      "v001_failed_run_id",
+      "v001_import_failure_sha256",
+      "v002_failed_run_id",
+      "v002_import_failure_sha256",
+      "v003_failed_run_id",
+      "v003_import_failure_sha256",
+      "v004_failed_run_id",
+      "v004_import_failure_sha256",
+      "v005_failed_run_id",
+      "v005_import_failure_sha256",
+      "incident_chain_sha256",
+      "quarantine_receipt"
+    ],
+    "run_root_pattern": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v006/<UTC>-<GUID8>",
+    "summary": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v006/import-lane-summary/v6",
+      "filename": "lane_summary_recovery_v006.json",
+      "package_hash_field": "post_exit_package_sha256",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V006_GUARDED_IMPORT_AND_DISTINCT_READ_ONLY_RELOAD"
+    }
+  },
+  "runtime_bounds_coordinate_conversion": {
+    "bounds_rule": "min=(minX,-maxY,minZ); max=(maxX,-minY,maxZ)",
+    "comparison_tolerance_cm": 0.25,
+    "coordinate_rule": "Unreal = (source X, -source Y, source Z)",
+    "engine_sources": {
+      "bounds_serializer": {
+        "lines": "406-410",
+        "path": "C:/Program Files/Epic Games/UE_5.8/Engine/Source/Runtime/Core/Public/Math/BoxSphereBounds.h",
+        "proof": "FBoxSphereBounds3d serializes Origin then BoxExtent",
+        "sha256": "690FB6D64A5375CAF53635FC1EFE210FED8C9D2679C5A2F864D08F742085198B"
+      },
+      "fbx_position_converter": {
+        "lines": "63-71",
+        "path": "C:/Program Files/Epic Games/UE_5.8/Engine/Source/Editor/UnrealEd/Private/Fbx/FbxUtilsImport.cpp",
+        "proof": "FFbxDataConverter::ConvertPos maps X,-Y,Z",
+        "sha256": "E96AF266A819FD61B94F637253C409B98312B13B24E32B1E873CB4AB45481FB2"
+      }
+    },
+    "roles": {
+      "BIW_AutomotiveSkeleton": {
+        "lods": [
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.856796,
+                142.851236
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.421317,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.435479,
+                8.614323
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.856796,
+                142.851236
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.435479,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.421317,
+                8.614323
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 0
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.856808,
+                142.851246
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.421323,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.435485,
+                8.614313
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.856808,
+                142.851246
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.435485,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.421323,
+                8.614313
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 1
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.85682,
+                142.851245
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.421329,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.435491,
+                8.614314
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                160.85682,
+                142.851245
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.435491,
+                151.465559
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.421329,
+                8.614314
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 2
+          }
+        ]
+      },
+      "BIW_UnderbodySubset": {
+        "lods": [
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.165883,
+                66.132906
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.068672,
+                74.747229
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -79.097211,
+                8.614323
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.165883,
+                66.132906
+              ],
+              "maximum_cm": [
+                226.012373,
+                79.097211,
+                74.747229
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.068672,
+                8.614323
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 0
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.021896,
+                76.719493
+              ],
+              "maximum_cm": [
+                226.012373,
+                78.980416,
+                85.333806
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.04148,
+                8.614313
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.021896,
+                76.719493
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.04148,
+                85.333806
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -78.980416,
+                8.614313
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 1
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.52909,
+                85.59035
+              ],
+              "maximum_cm": [
+                226.012373,
+                79.18216,
+                94.204664
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -80.34693,
+                8.614314
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                451.999998,
+                159.52909,
+                85.59035
+              ],
+              "maximum_cm": [
+                226.012373,
+                80.34693,
+                94.204664
+              ],
+              "minimum_cm": [
+                -225.987625,
+                -79.18216,
+                8.614314
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 2
+          }
+        ]
+      },
+      "EmeraldBodyVisualAuthority": {
+        "lods": [
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                455.999946,
+                187.999988,
+                138.381363
+              ],
+              "maximum_cm": [
+                227.999973,
+                94.0,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999973,
+                -93.999988,
+                17.618631
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                455.999946,
+                187.999988,
+                138.381363
+              ],
+              "maximum_cm": [
+                227.999973,
+                93.999988,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999973,
+                -94.0,
+                17.618631
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 0
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                455.999946,
+                188.0,
+                138.38136
+              ],
+              "maximum_cm": [
+                227.999973,
+                94.000006,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999973,
+                -93.999994,
+                17.618634
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                455.999946,
+                188.0,
+                138.38136
+              ],
+              "maximum_cm": [
+                227.999973,
+                93.999994,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999973,
+                -94.000006,
+                17.618634
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 1
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                455.999994,
+                187.999988,
+                138.381357
+              ],
+              "maximum_cm": [
+                227.999997,
+                94.0,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999997,
+                -93.999988,
+                17.618637
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                455.999994,
+                187.999988,
+                138.381357
+              ],
+              "maximum_cm": [
+                227.999997,
+                93.999988,
+                155.999994
+              ],
+              "minimum_cm": [
+                -227.999997,
+                -94.0,
+                17.618637
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 2
+          }
+        ]
+      },
+      "EmeraldRollingGearVisualAuthority": {
+        "lods": [
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922645,
+                74.489826
+              ],
+              "maximum_cm": [
+                178.739977,
+                84.110218,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022335,
+                -83.812427,
+                6e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922645,
+                74.489826
+              ],
+              "maximum_cm": [
+                178.739977,
+                83.812427,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022335,
+                -84.110218,
+                6e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 0
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922651,
+                74.489823
+              ],
+              "maximum_cm": [
+                178.739965,
+                84.110224,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022347,
+                -83.812427,
+                9e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922651,
+                74.489823
+              ],
+              "maximum_cm": [
+                178.739965,
+                83.812427,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022347,
+                -84.110224,
+                9e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 1
+          },
+          {
+            "expected_unreal_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922651,
+                74.489826
+              ],
+              "maximum_cm": [
+                178.739977,
+                84.110224,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022335,
+                -83.812427,
+                6e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                -0.0,
+                0.0
+              ]
+            },
+            "frozen_source_bounds_cm": {
+              "dimensions_cm": [
+                345.762312,
+                167.922651,
+                74.489826
+              ],
+              "maximum_cm": [
+                178.739977,
+                83.812427,
+                74.489832
+              ],
+              "minimum_cm": [
+                -167.022335,
+                -84.110224,
+                6e-06
+              ],
+              "pivot_cm": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "lod": 2
+          }
+        ]
+      }
+    },
+    "source_or_fbx_modified": false,
+    "tolerance_relaxed": false,
+    "v004_underbody_lod0_failure_forensics": {
+      "classification": "DETERMINISTIC_UE5_8_FBX_HANDEDNESS_CONVERSION__FROZEN_CONTRACT_WAS_SOURCE_SPACE__NO_TRANSFORM_OR_GEOMETRY_DRIFT",
+      "expected_after_ue_y_flip": {
+        "dimensions_cm": [
+          451.999998,
+          159.165883,
+          66.132906
+        ],
+        "maximum_cm": [
+          226.012373,
+          80.068672,
+          74.747229
+        ],
+        "minimum_cm": [
+          -225.987625,
+          -79.097211,
+          8.614323
+        ],
+        "pivot_cm": [
+          0.0,
+          -0.0,
+          0.0
+        ]
+      },
+      "frozen_expected_source_space": {
+        "dimensions_cm": [
+          451.999998,
+          159.165883,
+          66.132906
+        ],
+        "maximum_cm": [
+          226.012373,
+          79.097211,
+          74.747229
+        ],
+        "minimum_cm": [
+          -225.987625,
+          -80.068672,
+          8.614323
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "maximum_expected_vs_observed_delta_cm": 2.5633300779759338e-05,
+      "source_space_y_endpoint_mismatch_cm": 0.9714459213867173,
+      "v003_preserved_package": {
+        "box_extent_byte_offset": 15840,
+        "box_extent_cm": [
+          226.0,
+          79.58294677734375,
+          33.06645393371582
+        ],
+        "maximum_cm": [
+          226.0123748779297,
+          80.06865692138672,
+          74.74723052978516
+        ],
+        "minimum_cm": [
+          -225.9876251220703,
+          -79.09723663330078,
+          8.614322662353516
+        ],
+        "origin_byte_offset": 15767,
+        "origin_cm": [
+          0.0123748779296875,
+          0.48571014404296875,
+          41.680776596069336
+        ],
+        "package": {
+          "bytes": 1329365,
+          "mtime_ns": 1786791718689696200,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T105958Z-79a98abc_v003/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+          "sha256": "F174A0BD87165F5FA493A191831490FB2AD7814DD10C1774BC14920521AA1A18"
+        },
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "serialization": "FBoxSphereBounds3d Origin then BoxExtent property values"
+      },
+      "v004_preserved_package": {
+        "box_extent_byte_offset": 15840,
+        "box_extent_cm": [
+          226.0,
+          79.58294677734375,
+          33.06645393371582
+        ],
+        "maximum_cm": [
+          226.0123748779297,
+          80.06865692138672,
+          74.74723052978516
+        ],
+        "minimum_cm": [
+          -225.9876251220703,
+          -79.09723663330078,
+          8.614322662353516
+        ],
+        "origin_byte_offset": 15767,
+        "origin_cm": [
+          0.0123748779296875,
+          0.48571014404296875,
+          41.680776596069336
+        ],
+        "package": {
+          "bytes": 1329365,
+          "mtime_ns": 1786793205406473900,
+          "path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Meshes/SM_LB_C2040_BIW_UnderbodySubset_v001.uasset",
+          "sha256": "DEF91E57144420980F5C07089B2A2625ABD31BEE40C7ED8B64DDE04E4FCFF858"
+        },
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "serialization": "FBoxSphereBounds3d Origin then BoxExtent property values"
+      }
+    }
+  },
+  "runtime_uv_sanitization": {
+    "engine_source": {
+      "lines": "709-718",
+      "path": "C:/Program Files/Epic Games/UE_5.8/Engine/Source/Editor/UnrealEd/Private/Fbx/FbxStaticMeshImport.cpp",
+      "proof": "NumUVs = FMath::Max(1, NumUVs) before both UV channel setters",
+      "sha256": "D6E42F80894F87E580DD72FC2EE7F9A46E312DDE1AB006F18F01A068408523C6"
+    },
+    "roles": {
+      "BIW_AutomotiveSkeleton": {
+        "expected_unreal_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "source_uv_channels_by_lod": [
+          0,
+          0,
+          0
+        ],
+        "ue_forced_minimum_one_by_lod": [
+          true,
+          true,
+          true
+        ]
+      },
+      "BIW_UnderbodySubset": {
+        "expected_unreal_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "source_uv_channels_by_lod": [
+          0,
+          0,
+          0
+        ],
+        "ue_forced_minimum_one_by_lod": [
+          true,
+          true,
+          true
+        ]
+      },
+      "EmeraldBodyVisualAuthority": {
+        "expected_unreal_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "source_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "ue_forced_minimum_one_by_lod": [
+          false,
+          false,
+          false
+        ]
+      },
+      "EmeraldRollingGearVisualAuthority": {
+        "expected_unreal_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "source_uv_channels_by_lod": [
+          1,
+          1,
+          1
+        ],
+        "ue_forced_minimum_one_by_lod": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    "v003_observed_biw_automotive_skeleton_lod0": {
+      "actual_render_vertices": 29109,
+      "actual_triangles": 59998,
+      "actual_unreal_uv_channels": 1,
+      "evidence": "embedded StaticMesh AssetRegistry tags in preserved package",
+      "expected_source_uv_channels": 0,
+      "expected_triangles": 59998,
+      "package_sha256": "CAFBD608BDD3302C86A8F2DD634C14B41B004DC8D12938DAEB2088628142D4D4",
+      "sole_failed_predicate": "actual_unreal_uv_channels != source_uv_channels",
+      "source_vertices": 29092,
+      "triangle_or_degenerate_removal_drift": false
+    }
+  },
+  "slot_normalization": {
+    "BIW_AutomotiveSkeleton": {
+      "canonical_material_slot_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": true,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005.001",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005_001"
+    },
+    "BIW_UnderbodySubset": {
+      "canonical_material_slot_name": "MI_LB_C2040_EDCoat_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EDCoat_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EDCoat_v005"
+    },
+    "EmeraldBodyVisualAuthority": {
+      "canonical_material_slot_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+    },
+    "EmeraldRollingGearVisualAuthority": {
+      "canonical_material_slot_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+    }
+  },
+  "status": "FROZEN__CAIRNWELL_2040_RUNTIME_V001_INCIDENT_CHAINED_RECOVERY_V006__READY_FOR_ONE_SHOT_QUARANTINE_AND_TWO_PROCESS_IMPORT"
+}

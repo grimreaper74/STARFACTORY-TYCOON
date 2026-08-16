@@ -1,0 +1,15 @@
+{
+    "schema":  "lineboss.sourceassets.file-ledger-summary.v1",
+    "generated_utc":  "2026-08-12T12:22:21.1343304Z",
+    "source_root":  "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8\\SourceAssets",
+    "file_count":  5990,
+    "total_bytes":  39833778358,
+    "hashes_reused":  5990,
+    "hashes_computed":  0,
+    "duplicate_hash_group_count":  194,
+    "duplicate_file_count":  453,
+    "duplicate_extra_copy_count":  259,
+    "potential_duplicate_bytes_beyond_one_copy":  205820434,
+    "ledger_sha256":  "008E226C9607155EAA31BCDD33BE0D4D0EDECAC8484D577D008319DE4D0E6733",
+    "csv_sha256":  "CEE8379586A19FE4503CB7BA7E2948B32CB38521F66511459FDDBCD13893E1C1"
+}

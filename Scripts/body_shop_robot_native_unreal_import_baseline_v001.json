@@ -1,0 +1,5155 @@
+{
+  "$schema": "lineboss/bodyshop-robot-native-v001-unreal-import-baseline/v1",
+  "generated_utc": "2026-08-14T20:24:01.173081+00:00",
+  "status": "FROZEN__HIGH_ELBOW_STRICT_MONOTONIC_BODYSHOP_ROBOT_NATIVE_V001_CLEAN_UNREAL_IMPORT_BASELINE",
+  "project": {
+    "root": "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8",
+    "uproject": "LineBossCarFactory.uproject",
+    "game_name": "LineBossCarFactory"
+  },
+  "source": {
+    "root": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001",
+    "freeze_status": "FROZEN__HIGH_ELBOW__STRICT_MONOTONIC_LODS__ONE_UV_LAYER__SOURCEASSETS_ONLY__50_EXPORT_ROUNDTRIPS_PASS__UNREAL_IMPORT_PENDING",
+    "manifest_status": "SOURCE_BUILD_PASS__HIGH_ELBOW__STRICT_MONOTONIC_LODS__ONE_UV_LAYER__FK_CONTACT_CLEARANCE_PASS__READY_FOR_ISOLATED_UNREAL_IMPORT__NOT_PROMOTED",
+    "contact_status": "PASS__NATIVE_SIX_AXIS_HIGH_ELBOW_MIRRORED_CONTACT_AND_CLEARANCE",
+    "roundtrip_status": "PASS__ALL_50_FBX_GLB_EXPORTS_ROUNDTRIP__STRICT_MONOTONIC_LODS__ONE_UV_LAYER",
+    "authority_hashes": {
+      "Audit/FROZEN_v001.json": "C11F95D4EC8B57C2D2D89AD63D44589C8A46FF0A6169DD37E733A25C0AA7C3CB",
+      "MANIFEST_v001.json": "2797633628F0D295850A62319BB4D3E84ABA87BEB3C2B303C26FE7E17DBF1D4E",
+      "Authority/LB_BodyShopRobotNative_v001.blend": "91DC4262FEA06C63B49A2E457ACB30F2E70576CEC92B2EA4D6FF2FC7F7C55E3B",
+      "Audit/contact_fk_validation_v001.json": "29A0DCB9EF64191E7558B9E79562540CF1DFC98F1BC7D95CDAC25D3B4F6FA963",
+      "Audit/geometry_inventory_v001.json": "8B334351E194F61033F269FBFB2BF45686AD4A3AC28C58536A04E2E3A1B61E82",
+      "Audit/roundtrip_validation_v001.json": "FA784FB2D05781CDD5DA54D5E168225CB0D000A48E6F5CCCECB3A6E1F84CE9DB"
+    },
+    "frozen_row_count": 63,
+    "all_source_file_count": 66,
+    "freeze_excluded_but_baseline_pinned": [
+      "Audit/SupersededEvidence/pre_monotonic_blender_generation_stdout.log",
+      "Audit/blender_generation_stderr.log"
+    ],
+    "all_files": [
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/blender_generation_stderr.log",
+        "bytes": 540,
+        "sha256": "A3984575B06747BD5CF1DC0AACCF542F7B46936E4DDAD6D88E0A5FFE62461C98"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/contact_fk_validation_v001.json",
+        "bytes": 21185,
+        "sha256": "29A0DCB9EF64191E7558B9E79562540CF1DFC98F1BC7D95CDAC25D3B4F6FA963"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/FROZEN_v001.json",
+        "bytes": 12159,
+        "sha256": "C11F95D4EC8B57C2D2D89AD63D44589C8A46FF0A6169DD37E733A25C0AA7C3CB"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/geometry_inventory_v001.json",
+        "bytes": 23497,
+        "sha256": "8B334351E194F61033F269FBFB2BF45686AD4A3AC28C58536A04E2E3A1B61E82"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/roundtrip_validation_v001.json",
+        "bytes": 66056,
+        "sha256": "FA784FB2D05781CDD5DA54D5E168225CB0D000A48E6F5CCCECB3A6E1F84CE9DB"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Audit/SupersededEvidence/pre_monotonic_blender_generation_stdout.log",
+        "bytes": 15224,
+        "sha256": "67D49FBBAE369AFBDB231E9F254660422B28E3D3CDD18790F3D4FB913F1102C3"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Authority/LB_BodyShopRobotNative_v001.blend",
+        "bytes": 169730,
+        "sha256": "91DC4262FEA06C63B49A2E457ACB30F2E70576CEC92B2EA4D6FF2FC7F7C55E3B"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Build/generate_bodyshop_robot_native_v001.py",
+        "bytes": 52544,
+        "sha256": "F2352D9BC3ADC07D65B34A00FC873086F88B66571A8ABBC842DD6AB270293592"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Build/validate_bodyshop_robot_native_v001.py",
+        "bytes": 7693,
+        "sha256": "759D2FCFB8207E4A49BE8DC773B079F67D64D1EE8FC8114147A4BA96AAB65052"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/LB_BodyShopRobotNative_Hierarchy_v001.fbx",
+        "bytes": 99308,
+        "sha256": "B73D4558AF1CCA9D3A76EB4364A0264E0866FE82C916BBCF876447F960D253B9"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/LB_BodyShopRobotNative_Hierarchy_v001.glb",
+        "bytes": 170700,
+        "sha256": "170B0D83982B892D7496C3112EBCCD9C4C6A5DFE8F209CAA4C4FF97023CCB82C"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD1_v001.fbx",
+        "bytes": 27068,
+        "sha256": "E4FB2FD008F4162223A2FB1A1A9AC1D86FEB6A2C6F6719B9B9CBA20033A36513"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD1_v001.glb",
+        "bytes": 21400,
+        "sha256": "B154AC82334741C9B4719E7455F2A38358DF4C581D48A1307E4F29511A0E362B"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD2_v001.fbx",
+        "bytes": 23292,
+        "sha256": "DCD01B4D11B6D58B3CCBEBE84B2E027A334F55B6D2B6D02D2AA43143E484C00B"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD2_v001.glb",
+        "bytes": 13704,
+        "sha256": "F278587C665F6A63C3061B773FAE92971C6FB1D13A59A3AF733C5E8CB9E1AB8D"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_v001.fbx",
+        "bytes": 27692,
+        "sha256": "906D1E8803CD7F1D904E9262E26770BFD8D4678FAC91F9DDBE01D90AF93F7FBB"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_v001.glb",
+        "bytes": 30260,
+        "sha256": "A460C2E6E4144634817E38570D822D9645F19D803B364F28E5E2D2BF69E60F38"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD1_v001.fbx",
+        "bytes": 27628,
+        "sha256": "A75BD62BDAB0A202BBCE0032EF6B59AC406AF71701AD97FEB40CE91CF7EBFD72"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD1_v001.glb",
+        "bytes": 23652,
+        "sha256": "A61EE5E71E06CD31C9A353DA20593EB78FF440A090B5356F4491F65C709CC2A3"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD2_v001.fbx",
+        "bytes": 22460,
+        "sha256": "6614FF46C2942525D445FC66AE0C1C71FBEEB09337AA9DB332598AF5E216D3D5"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD2_v001.glb",
+        "bytes": 15308,
+        "sha256": "A7D27E82332D66486003B321CF5F3210E9A03A4B95CA993FE02B1399FD44E35F"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_v001.fbx",
+        "bytes": 27404,
+        "sha256": "C61E69EE8CBD156B7507BCCD02E807436EBBB766433BF49FF13FFD05C27C9B1F"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_v001.glb",
+        "bytes": 24756,
+        "sha256": "8A0EF37A639791B2F60B5EF18D826246F41A67CE981166AA32BB76B5D8CD242C"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD1_v001.fbx",
+        "bytes": 21756,
+        "sha256": "4CEF34A39B9A96F5E91282D290A037EF8A4DD2A03C4F921A13659B4DEF675AD2"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD1_v001.glb",
+        "bytes": 14708,
+        "sha256": "4FBC6A4F6CD7C6D22D259A4AE375D8A2D3C81E906BD05E70087F2D6F70AB8DA5"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD2_v001.fbx",
+        "bytes": 21196,
+        "sha256": "3340C34A47949B62F386812CF96A973411C7CA6A182901414345DEE7594445AC"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD2_v001.glb",
+        "bytes": 13488,
+        "sha256": "6155E04FF42B65BF3480290EB917C87CE4086597E022E353C2B67E8F0D301CD5"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_v001.fbx",
+        "bytes": 26220,
+        "sha256": "20DC4D4E52ACA3783E6DD076E163903F5A0CFF21DD89FA8D6B4F23F75985DEFE"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_v001.glb",
+        "bytes": 23088,
+        "sha256": "63B2193117CD433781A86F3F6AEBABA02AF11E10AD81BF15DABF8B84CFA8B888"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD1_v001.fbx",
+        "bytes": 24396,
+        "sha256": "2EF9CB726D4CA38178F75408AED45F59F393B835342B6AA88C8826853980082C"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD1_v001.glb",
+        "bytes": 21228,
+        "sha256": "1F82D2AD0A6027CD76FD9D324CA6BB6DC170A8766EB61BD1731CBC7A2157AA82"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD2_v001.fbx",
+        "bytes": 19996,
+        "sha256": "C7EA0A4E4CD01B7EE09757A68D8D2C173754C40A3BD575C63457174C64F781ED"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD2_v001.glb",
+        "bytes": 12476,
+        "sha256": "E355C2706253C7617612DF60C78143CF881524B4AFAC686FAEADD462B45CD383"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_v001.fbx",
+        "bytes": 25164,
+        "sha256": "BC620C83ED83CDF5CB42B46B39E34EB77954955915A0E09C3D338874CB5D18F1"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_v001.glb",
+        "bytes": 23044,
+        "sha256": "79362EAB77348F11AED0C2191E114CC6DE4E52728A0AC6C4FBEA8A770A2C818C"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD1_v001.fbx",
+        "bytes": 20716,
+        "sha256": "149D5094DD4613936D11A5D62DB0E9AC0E5E86D2427F515E32D79A7D1E2AD714"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD1_v001.glb",
+        "bytes": 11108,
+        "sha256": "DA5E798C19A92E1CE6492B25FB51BDDA8E94F63B908FF09DBA6C678EF795688C"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD2_v001.fbx",
+        "bytes": 20124,
+        "sha256": "25D717BFF15D7073405C795B0F9977FDB335D77B3EB73852DB779E895126416F"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD2_v001.glb",
+        "bytes": 9988,
+        "sha256": "CCC149E859F4436FAB644177080B629CF7258CABA22719EBF1B19C1DBB5E2C81"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_v001.fbx",
+        "bytes": 23324,
+        "sha256": "4C700BF145F36CAF7E72F8474AB82B3A5ADC6195FB6F1ED1EB3172297AC216A9"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_v001.glb",
+        "bytes": 16128,
+        "sha256": "FA3619A94FC8DCFCA6D0C6AD3B19C2D52CAEA0C8B237A1F3D40F49874E12E926"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD1_v001.fbx",
+        "bytes": 21276,
+        "sha256": "8763AFCABC60B7AA631593998D9698B8148DDB6526F0628C46BE3560C723573F"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD1_v001.glb",
+        "bytes": 14244,
+        "sha256": "4B1450B2390B26F3F087AA171092282B9A6AE682022718E89181C6D31386ECD3"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD2_v001.fbx",
+        "bytes": 20828,
+        "sha256": "59CC5FF11CF6D723B524DD95D6F7764203C93FCC1AD701E98335A551353A51DD"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD2_v001.glb",
+        "bytes": 13124,
+        "sha256": "2CB5AC0DAA324FC3916E9105EE5280578CD6ED28F34869A9826E30B66CCD4B85"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_v001.fbx",
+        "bytes": 21788,
+        "sha256": "71BD9D7339B0293A0AEF2B8CDE40837FD526DFB7CF75ED4207DF5ED693AC7AF3"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_v001.glb",
+        "bytes": 15356,
+        "sha256": "AAC91951D1EBC7E20ECCE4B53FCEC1E22AC939EFD899900B84FFBCDA7D6CA347"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD1_v001.fbx",
+        "bytes": 20428,
+        "sha256": "1A20C696642800D6EFDB14AF76196DC83BAFC320857EA8B2FBBDC2DC4F5FA124"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD1_v001.glb",
+        "bytes": 9560,
+        "sha256": "FD9EF78774B27AACE8B74CB18F68B481CAE415C9A8453BE9711A207034086DB6"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD2_v001.fbx",
+        "bytes": 19900,
+        "sha256": "8BF56B57A00E2BA88D224CB67E1E615C5EE2C16407EF5256065385025531663E"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD2_v001.glb",
+        "bytes": 7928,
+        "sha256": "3B026DEAD93B354796766F61A13FB7B1B391C66ACBEA0668155F3C555784CB45"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_v001.fbx",
+        "bytes": 23276,
+        "sha256": "9E16667C083D94111852E62C8E9F6675661FFD4750DCE0937A800B6CE54AE392"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_v001.glb",
+        "bytes": 15572,
+        "sha256": "AA91DC10159AE6824A5275DE8E4408F795F1687B30281841B88328808B2F2EBF"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD1_v001.fbx",
+        "bytes": 25436,
+        "sha256": "A1BD62AC02883D6C0ABCCC07679AA340CF8455095BBF4390A71F9B49154A26E2"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD1_v001.glb",
+        "bytes": 26852,
+        "sha256": "8841B3042E3CA53DB2F5A707D408A5FAD4829354BBFF9445840EC5C19C764C1F"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD2_v001.fbx",
+        "bytes": 24556,
+        "sha256": "13190BB3DA691DCF86EB7FF9851D1A7A37F315330DA6D8B2AFC8D780433460CF"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD2_v001.glb",
+        "bytes": 25028,
+        "sha256": "0718E94E9A907E6282862C11500CEC50362A6BAA10D7EB62F6933F7684BB3D20"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_v001.fbx",
+        "bytes": 28860,
+        "sha256": "FCED9501E39D9A513D4C4B03158D7F1BFD3DF9A2FF0B99D42C8BB9C51D8FE2C5"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_v001.glb",
+        "bytes": 36228,
+        "sha256": "8DF13C3E2AA7280BF6FF4414C6B640E122109E52AF58CC3C036BD08C2CD8DD58"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/MANIFEST_v001.json",
+        "bytes": 15787,
+        "sha256": "2797633628F0D295850A62319BB4D3E84ABA87BEB3C2B303C26FE7E17DBF1D4E"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/README.md",
+        "bytes": 4322,
+        "sha256": "FAC90229B3EC94000E78EAA5DEFF4552DB59AD8D51FFD4559DC3EBD06B1BCD2D"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Renders/01_native_robot_isometric.png",
+        "bytes": 2336291,
+        "sha256": "0D32C2D166AC59D36192825EFFF0217D99A7923A3ED8800216C66A782F783FF9"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Renders/02_native_robot_front_orthographic.png",
+        "bytes": 2201587,
+        "sha256": "CB10B8841926E0EF86FCD526F748E3B5880D4AC194D395159996B7281724A1CE"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Renders/03_native_robot_side_orthographic.png",
+        "bytes": 2311816,
+        "sha256": "ED970E3045867B3D836488166A153D2F66CA7DCBE8EC72F70AADBCB133C2B8AB"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Renders/04_mirrored_contact_envelope.png",
+        "bytes": 2337675,
+        "sha256": "E16B6BE9FDE79BC1794B20EB1556FEA7A0F21E6B57A25202C06367B230CFE949"
+      },
+      {
+        "path": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Renders/05_open_cgun_closeup.png",
+        "bytes": 2185187,
+        "sha256": "D21CB049C027ABBA9067AA442B302BBADFF10CD8AEB367271FAFC8BB9DF04E1C"
+      }
+    ],
+    "inventory_sha256": "7329DFDDDCEBEC8A21FC4D5C78B0706F41B7C92F9165225ACFDD8F58470E7914",
+    "high_elbow_gate": {
+      "minimum_elbow_rise_above_shoulder_cm": 52.698883,
+      "maximum_elbow_rise_above_shoulder_cm": 105.213684,
+      "minimum_centre_process_elbow_height_above_wrist_cm": 31.344131,
+      "gate": "PASS",
+      "contract": "All poses keep J3 at least 45 cm above J2 shoulder; centre management render keeps J3 at least 20 cm above the wrist."
+    },
+    "contact_summary": {
+      "samples": 18,
+      "passed": 18,
+      "maximum_distance_cm": 10.000016,
+      "minimum_direction_dot": 0.999999978
+    },
+    "clearance_proxy": {
+      "protected_wip_aabb_cm": {
+        "minimum": [
+          -175.0,
+          -72.0,
+          58.0
+        ],
+        "maximum": [
+          175.0,
+          72.0,
+          128.0
+        ]
+      },
+      "capsule_radii_cm": {
+        "upper_arm": 16.0,
+        "forearm": 14.0,
+        "tool": 12.0
+      },
+      "minimum_surface_clearance_cm": 11.999985,
+      "minimum_floor_clearance_cm": 64.0,
+      "minimum_outer_fence_clearance_cm": 114.0,
+      "minimum_paired_robot_surface_clearance_cm": 167.999969,
+      "gate": "PASS",
+      "honest_limit": "Analytical capsule/AABB preflight only; Unreal swept collision in the real cell remains mandatory before promotion."
+    }
+  },
+  "destination": {
+    "namespace": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001",
+    "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001",
+    "expected_asset_count": 8,
+    "expected_lod_count_per_asset": 3,
+    "expected_package_extension": ".uasset"
+  },
+  "import_contract": {
+    "legacy_fbx_factory": true,
+    "fresh_destination_only": true,
+    "custom_lod_route": "LEGACY_FBX_WITH_INTERCHANGE_FEATURE_FLAG_TEMPORARILY_DISABLED",
+    "interchange_fbx_cvar": "Interchange.FeatureFlags.Import.FBX",
+    "interchange_previous_value_captured_and_restored_in_finally": true,
+    "source_units": "metres",
+    "unreal_units": "centimetres",
+    "import_uniform_scale": 1.0,
+    "convert_scene": true,
+    "convert_scene_unit": true,
+    "force_front_x_axis": false,
+    "transform_vertex_to_absolute": true,
+    "bake_pivot_in_vertex": false,
+    "remove_degenerates": false,
+    "generate_lightmap_uvs": false,
+    "expected_uv_channels_per_lod": 1,
+    "strict_per_asset_triangle_order": "LOD0_GT_LOD1_GT_LOD2",
+    "import_materials": false,
+    "import_textures": false,
+    "nanite_enabled": false,
+    "lod_screen_sizes": [
+      1.0,
+      0.55,
+      0.25
+    ],
+    "auto_compute_lod_screen_size": false,
+    "screen_size_write_order": "AFTER_ALL_LOD_IMPORT_NANITE_COLLISION_MATERIAL_SAVE_AND_COMPILATION",
+    "screen_size_persistence_passes": 2,
+    "bounds_tolerance_cm": 0.5,
+    "collision": "ZERO_SIMPLE_OR_CONVEX_PRIMITIVES__SIMPLE_AS_COMPLEX__PRESENTATION_ONLY",
+    "material_bindings": {
+      "M_LB_BS_BlackMotor": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BlackMotor_v002",
+      "M_LB_BS_BrushedSteel": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BrushedSteel_v002",
+      "M_LB_BS_CreamPaint": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_CreamPaint_v002",
+      "M_LB_BS_EmeraldPanel": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_EmeraldPanel_v002",
+      "M_LB_BS_GraphiteTooling": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_GraphiteTooling_v002",
+      "M_LB_BS_SafetyYellow": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_SafetyYellow_v002",
+      "M_LB_BS_StructuralLightGrey": "/Game/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StructuralLightGrey_v002"
+    }
+  },
+  "assets": {
+    "Base": {
+      "asset_name": "SM_LB_BodyShopRobotNative_Base_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001.SM_LB_BodyShopRobotNative_Base_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_v001.fbx",
+          "source_bytes": 27692,
+          "source_sha256": "906D1E8803CD7F1D904E9262E26770BFD8D4678FAC91F9DDBE01D90AF93F7FBB",
+          "object_name": "SM_LB_BodyShopRobotNative_Base_v001",
+          "triangles": 468,
+          "source_vertices": 248,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.42,
+              -0.37,
+              0.0
+            ],
+            "maximum_m": [
+              0.42,
+              0.37,
+              0.4
+            ],
+            "dimensions_m": [
+              0.84,
+              0.74,
+              0.4
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -42.0,
+              -37.0,
+              0.0
+            ],
+            "maximum_cm": [
+              42.0,
+              37.0,
+              40.0
+            ],
+            "dimensions_cm": [
+              84.0,
+              74.0,
+              40.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD1_v001.fbx",
+          "source_bytes": 27068,
+          "source_sha256": "E4FB2FD008F4162223A2FB1A1A9AC1D86FEB6A2C6F6719B9B9CBA20033A36513",
+          "object_name": "SM_LB_BodyShopRobotNative_Base_LOD1_v001",
+          "triangles": 372,
+          "source_vertices": 200,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.42,
+              -0.37,
+              0.0
+            ],
+            "maximum_m": [
+              0.42,
+              0.37,
+              0.4
+            ],
+            "dimensions_m": [
+              0.84,
+              0.74,
+              0.4
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -42.0,
+              -37.0,
+              0.0
+            ],
+            "maximum_cm": [
+              42.0,
+              37.0,
+              40.0
+            ],
+            "dimensions_cm": [
+              84.0,
+              74.0,
+              40.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_Base_LOD2_v001.fbx",
+          "source_bytes": 23292,
+          "source_sha256": "DCD01B4D11B6D58B3CCBEBE84B2E027A334F55B6D2B6D02D2AA43143E484C00B",
+          "object_name": "SM_LB_BodyShopRobotNative_Base_LOD2_v001",
+          "triangles": 228,
+          "source_vertices": 120,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_CreamPaint"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.42,
+              -0.37,
+              0.0
+            ],
+            "maximum_m": [
+              0.42,
+              0.37,
+              0.4
+            ],
+            "dimensions_m": [
+              0.84,
+              0.74,
+              0.4
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -42.0,
+              -37.0,
+              0.0
+            ],
+            "maximum_cm": [
+              42.0,
+              37.0,
+              40.0
+            ],
+            "dimensions_cm": [
+              84.0,
+              74.0,
+              40.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "CGun": {
+      "asset_name": "SM_LB_BodyShopToolNative_OpenCGun_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_v001.fbx",
+          "source_bytes": 28860,
+          "source_sha256": "FCED9501E39D9A513D4C4B03158D7F1BFD3DF9A2FF0B99D42C8BB9C51D8FE2C5",
+          "object_name": "SM_LB_BodyShopToolNative_OpenCGun_v001",
+          "triangles": 504,
+          "source_vertices": 272,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_BrushedSteel",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_SafetyYellow",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0,
+              -0.173,
+              -0.395
+            ],
+            "maximum_m": [
+              0.595,
+              0.14,
+              0.375
+            ],
+            "dimensions_m": [
+              0.595,
+              0.313,
+              0.77
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -0.0,
+              -14.0,
+              -39.5
+            ],
+            "maximum_cm": [
+              59.5,
+              17.3,
+              37.5
+            ],
+            "dimensions_cm": [
+              59.5,
+              31.3,
+              77.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD1_v001.fbx",
+          "source_bytes": 25436,
+          "source_sha256": "A1BD62AC02883D6C0ABCCC07679AA340CF8455095BBF4390A71F9B49154A26E2",
+          "object_name": "SM_LB_BodyShopToolNative_OpenCGun_LOD1_v001",
+          "triangles": 352,
+          "source_vertices": 192,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_BrushedSteel",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0,
+              -0.14,
+              -0.29
+            ],
+            "maximum_m": [
+              0.595,
+              0.14,
+              0.375
+            ],
+            "dimensions_m": [
+              0.595,
+              0.28,
+              0.665
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -0.0,
+              -14.0,
+              -29.0
+            ],
+            "maximum_cm": [
+              59.5,
+              14.0,
+              37.5
+            ],
+            "dimensions_cm": [
+              59.5,
+              28.0,
+              66.5
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopToolNative_OpenCGun_LOD2_v001.fbx",
+          "source_bytes": 24556,
+          "source_sha256": "13190BB3DA691DCF86EB7FF9851D1A7A37F315330DA6D8B2AFC8D780433460CF",
+          "object_name": "SM_LB_BodyShopToolNative_OpenCGun_LOD2_v001",
+          "triangles": 304,
+          "source_vertices": 168,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_BrushedSteel",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0,
+              -0.14,
+              -0.29
+            ],
+            "maximum_m": [
+              0.595,
+              0.14,
+              0.375
+            ],
+            "dimensions_m": [
+              0.595,
+              0.28,
+              0.665
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -0.0,
+              -14.0,
+              -29.0
+            ],
+            "maximum_cm": [
+              59.5,
+              14.0,
+              37.5
+            ],
+            "dimensions_cm": [
+              59.5,
+              28.0,
+              66.5
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J1": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J1_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001.SM_LB_BodyShopRobotNative_J1_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_v001.fbx",
+          "source_bytes": 27404,
+          "source_sha256": "C61E69EE8CBD156B7507BCCD02E807436EBBB766433BF49FF13FFD05C27C9B1F",
+          "object_name": "SM_LB_BodyShopRobotNative_J1_v001",
+          "triangles": 392,
+          "source_vertices": 208,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_BlackMotor",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.34,
+              -0.34,
+              -0.1075
+            ],
+            "maximum_m": [
+              0.34,
+              0.38,
+              0.64
+            ],
+            "dimensions_m": [
+              0.68,
+              0.72,
+              0.7475
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -34.0,
+              -38.0,
+              -10.75
+            ],
+            "maximum_cm": [
+              34.0,
+              34.0,
+              64.0
+            ],
+            "dimensions_cm": [
+              68.0,
+              72.0,
+              74.75
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD1_v001.fbx",
+          "source_bytes": 27628,
+          "source_sha256": "A75BD62BDAB0A202BBCE0032EF6B59AC406AF71701AD97FEB40CE91CF7EBFD72",
+          "object_name": "SM_LB_BodyShopRobotNative_J1_LOD1_v001",
+          "triangles": 360,
+          "source_vertices": 192,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_BlackMotor",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.34,
+              -0.34,
+              -0.1075
+            ],
+            "maximum_m": [
+              0.34,
+              0.38,
+              0.64
+            ],
+            "dimensions_m": [
+              0.68,
+              0.72,
+              0.7475
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -34.0,
+              -38.0,
+              -10.75
+            ],
+            "maximum_cm": [
+              34.0,
+              34.0,
+              64.0
+            ],
+            "dimensions_cm": [
+              68.0,
+              72.0,
+              74.75
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J1_LOD2_v001.fbx",
+          "source_bytes": 22460,
+          "source_sha256": "6614FF46C2942525D445FC66AE0C1C71FBEEB09337AA9DB332598AF5E216D3D5",
+          "object_name": "SM_LB_BodyShopRobotNative_J1_LOD2_v001",
+          "triangles": 208,
+          "source_vertices": 112,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.34,
+              -0.34,
+              -0.1075
+            ],
+            "maximum_m": [
+              0.34,
+              0.34,
+              0.455
+            ],
+            "dimensions_m": [
+              0.68,
+              0.68,
+              0.5625
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -34.0,
+              -34.0,
+              -10.75
+            ],
+            "maximum_cm": [
+              34.0,
+              34.0,
+              45.5
+            ],
+            "dimensions_cm": [
+              68.0,
+              68.0,
+              56.25
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J2": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J2_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001.SM_LB_BodyShopRobotNative_J2_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_v001.fbx",
+          "source_bytes": 26220,
+          "source_sha256": "20DC4D4E52ACA3783E6DD076E163903F5A0CFF21DD89FA8D6B4F23F75985DEFE",
+          "object_name": "SM_LB_BodyShopRobotNative_J2_v001",
+          "triangles": 312,
+          "source_vertices": 168,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_SafetyYellow",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.235,
+              -0.25,
+              -0.235
+            ],
+            "maximum_m": [
+              1.455,
+              0.395,
+              0.235
+            ],
+            "dimensions_m": [
+              1.69,
+              0.645,
+              0.47
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -23.5,
+              -39.5,
+              -23.5
+            ],
+            "maximum_cm": [
+              145.5,
+              25.0,
+              23.5
+            ],
+            "dimensions_cm": [
+              169.0,
+              64.5,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD1_v001.fbx",
+          "source_bytes": 21756,
+          "source_sha256": "4CEF34A39B9A96F5E91282D290A037EF8A4DD2A03C4F921A13659B4DEF675AD2",
+          "object_name": "SM_LB_BodyShopRobotNative_J2_LOD1_v001",
+          "triangles": 176,
+          "source_vertices": 96,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.235,
+              -0.25,
+              -0.235
+            ],
+            "maximum_m": [
+              1.455,
+              0.25,
+              0.235
+            ],
+            "dimensions_m": [
+              1.69,
+              0.5,
+              0.47
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -23.5,
+              -25.0,
+              -23.5
+            ],
+            "maximum_cm": [
+              145.5,
+              25.0,
+              23.5
+            ],
+            "dimensions_cm": [
+              169.0,
+              50.0,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J2_LOD2_v001.fbx",
+          "source_bytes": 21196,
+          "source_sha256": "3340C34A47949B62F386812CF96A973411C7CA6A182901414345DEE7594445AC",
+          "object_name": "SM_LB_BodyShopRobotNative_J2_LOD2_v001",
+          "triangles": 144,
+          "source_vertices": 80,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_GraphiteTooling"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.235,
+              -0.25,
+              -0.235
+            ],
+            "maximum_m": [
+              1.455,
+              0.25,
+              0.235
+            ],
+            "dimensions_m": [
+              1.69,
+              0.5,
+              0.47
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -23.5,
+              -25.0,
+              -23.5
+            ],
+            "maximum_cm": [
+              145.5,
+              25.0,
+              23.5
+            ],
+            "dimensions_cm": [
+              169.0,
+              50.0,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J3": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J3_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001.SM_LB_BodyShopRobotNative_J3_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_v001.fbx",
+          "source_bytes": 25164,
+          "source_sha256": "BC620C83ED83CDF5CB42B46B39E34EB77954955915A0E09C3D338874CB5D18F1",
+          "object_name": "SM_LB_BodyShopRobotNative_J3_v001",
+          "triangles": 312,
+          "source_vertices": 168,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.215,
+              -0.215,
+              -0.215
+            ],
+            "maximum_m": [
+              1.435,
+              0.345,
+              0.215
+            ],
+            "dimensions_m": [
+              1.65,
+              0.56,
+              0.43
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -21.5,
+              -34.5,
+              -21.5
+            ],
+            "maximum_cm": [
+              143.5,
+              21.5,
+              21.5
+            ],
+            "dimensions_cm": [
+              165.0,
+              56.0,
+              43.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD1_v001.fbx",
+          "source_bytes": 24396,
+          "source_sha256": "2EF9CB726D4CA38178F75408AED45F59F393B835342B6AA88C8826853980082C",
+          "object_name": "SM_LB_BodyShopRobotNative_J3_LOD1_v001",
+          "triangles": 264,
+          "source_vertices": 144,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.215,
+              -0.215,
+              -0.215
+            ],
+            "maximum_m": [
+              1.435,
+              0.345,
+              0.215
+            ],
+            "dimensions_m": [
+              1.65,
+              0.56,
+              0.43
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -21.5,
+              -34.5,
+              -21.5
+            ],
+            "maximum_cm": [
+              143.5,
+              21.5,
+              21.5
+            ],
+            "dimensions_cm": [
+              165.0,
+              56.0,
+              43.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J3_LOD2_v001.fbx",
+          "source_bytes": 19996,
+          "source_sha256": "C7EA0A4E4CD01B7EE09757A68D8D2C173754C40A3BD575C63457174C64F781ED",
+          "object_name": "SM_LB_BodyShopRobotNative_J3_LOD2_v001",
+          "triangles": 144,
+          "source_vertices": 80,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.215,
+              -0.215,
+              -0.215
+            ],
+            "maximum_m": [
+              1.435,
+              0.215,
+              0.215
+            ],
+            "dimensions_m": [
+              1.65,
+              0.43,
+              0.43
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -21.5,
+              -21.5,
+              -21.5
+            ],
+            "maximum_cm": [
+              143.5,
+              21.5,
+              21.5
+            ],
+            "dimensions_cm": [
+              165.0,
+              43.0,
+              43.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J4": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J4_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001.SM_LB_BodyShopRobotNative_J4_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_v001.fbx",
+          "source_bytes": 23324,
+          "source_sha256": "4C700BF145F36CAF7E72F8474AB82B3A5ADC6195FB6F1ED1EB3172297AC216A9",
+          "object_name": "SM_LB_BodyShopRobotNative_J4_v001",
+          "triangles": 208,
+          "source_vertices": 112,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel",
+            "M_LB_BS_SafetyYellow"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0925,
+              -0.21,
+              -0.205
+            ],
+            "maximum_m": [
+              0.25,
+              0.2075,
+              0.205
+            ],
+            "dimensions_m": [
+              0.3425,
+              0.4175,
+              0.41
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -9.25,
+              -20.75,
+              -20.5
+            ],
+            "maximum_cm": [
+              25.0,
+              21.0,
+              20.5
+            ],
+            "dimensions_cm": [
+              34.25,
+              41.75,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD1_v001.fbx",
+          "source_bytes": 20716,
+          "source_sha256": "149D5094DD4613936D11A5D62DB0E9AC0E5E86D2427F515E32D79A7D1E2AD714",
+          "object_name": "SM_LB_BodyShopRobotNative_J4_LOD1_v001",
+          "triangles": 132,
+          "source_vertices": 72,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0925,
+              -0.21,
+              -0.205
+            ],
+            "maximum_m": [
+              0.25,
+              0.205,
+              0.205
+            ],
+            "dimensions_m": [
+              0.3425,
+              0.415,
+              0.41
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -9.25,
+              -20.5,
+              -20.5
+            ],
+            "maximum_cm": [
+              25.0,
+              21.0,
+              20.5
+            ],
+            "dimensions_cm": [
+              34.25,
+              41.5,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J4_LOD2_v001.fbx",
+          "source_bytes": 20124,
+          "source_sha256": "25D717BFF15D7073405C795B0F9977FDB335D77B3EB73852DB779E895126416F",
+          "object_name": "SM_LB_BodyShopRobotNative_J4_LOD2_v001",
+          "triangles": 100,
+          "source_vertices": 56,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_EmeraldPanel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.0925,
+              -0.21,
+              -0.205
+            ],
+            "maximum_m": [
+              0.25,
+              0.205,
+              0.205
+            ],
+            "dimensions_m": [
+              0.3425,
+              0.415,
+              0.41
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -9.25,
+              -20.5,
+              -20.5
+            ],
+            "maximum_cm": [
+              25.0,
+              21.0,
+              20.5
+            ],
+            "dimensions_cm": [
+              34.25,
+              41.5,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J5": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J5_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.SM_LB_BodyShopRobotNative_J5_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_v001.fbx",
+          "source_bytes": 21788,
+          "source_sha256": "71BD9D7339B0293A0AEF2B8CDE40837FD526DFB7CF75ED4207DF5ED693AC7AF3",
+          "object_name": "SM_LB_BodyShopRobotNative_J5_v001",
+          "triangles": 208,
+          "source_vertices": 112,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_SafetyYellow",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.18,
+              -0.21,
+              -0.155
+            ],
+            "maximum_m": [
+              0.215,
+              0.32,
+              0.155
+            ],
+            "dimensions_m": [
+              0.395,
+              0.53,
+              0.31
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -18.0,
+              -32.0,
+              -15.5
+            ],
+            "maximum_cm": [
+              21.5,
+              21.0,
+              15.5
+            ],
+            "dimensions_cm": [
+              39.5,
+              53.0,
+              31.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD1_v001.fbx",
+          "source_bytes": 21276,
+          "source_sha256": "8763AFCABC60B7AA631593998D9698B8148DDB6526F0628C46BE3560C723573F",
+          "object_name": "SM_LB_BodyShopRobotNative_J5_LOD1_v001",
+          "triangles": 176,
+          "source_vertices": 96,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_SafetyYellow",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.18,
+              -0.21,
+              -0.155
+            ],
+            "maximum_m": [
+              0.215,
+              0.32,
+              0.155
+            ],
+            "dimensions_m": [
+              0.395,
+              0.53,
+              0.31
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -18.0,
+              -32.0,
+              -15.5
+            ],
+            "maximum_cm": [
+              21.5,
+              21.0,
+              15.5
+            ],
+            "dimensions_cm": [
+              39.5,
+              53.0,
+              31.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J5_LOD2_v001.fbx",
+          "source_bytes": 20828,
+          "source_sha256": "59CC5FF11CF6D723B524DD95D6F7764203C93FCC1AD701E98335A551353A51DD",
+          "object_name": "SM_LB_BodyShopRobotNative_J5_LOD2_v001",
+          "triangles": 144,
+          "source_vertices": 80,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_SafetyYellow",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BlackMotor"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.18,
+              -0.21,
+              -0.155
+            ],
+            "maximum_m": [
+              0.215,
+              0.32,
+              0.155
+            ],
+            "dimensions_m": [
+              0.395,
+              0.53,
+              0.31
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -18.0,
+              -32.0,
+              -15.5
+            ],
+            "maximum_cm": [
+              21.5,
+              21.0,
+              15.5
+            ],
+            "dimensions_cm": [
+              39.5,
+              53.0,
+              31.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "J6": {
+      "asset_name": "SM_LB_BodyShopRobotNative_J6_v001",
+      "package_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001",
+      "object_path": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.SM_LB_BodyShopRobotNative_J6_v001",
+      "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.uasset",
+      "lods": [
+        {
+          "lod": 0,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_v001.fbx",
+          "source_bytes": 23276,
+          "source_sha256": "9E16667C083D94111852E62C8E9F6675661FFD4750DCE0937A800B6CE54AE392",
+          "object_name": "SM_LB_BodyShopRobotNative_J6_v001",
+          "triangles": 224,
+          "source_vertices": 120,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BrushedSteel",
+            "M_LB_BS_EmeraldPanel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.03,
+              -0.165,
+              -0.165
+            ],
+            "maximum_m": [
+              0.2775,
+              0.165,
+              0.165
+            ],
+            "dimensions_m": [
+              0.3075,
+              0.33,
+              0.33
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -3.0,
+              -16.5,
+              -16.5
+            ],
+            "maximum_cm": [
+              27.75,
+              16.5,
+              16.5
+            ],
+            "dimensions_cm": [
+              30.75,
+              33.0,
+              33.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 1,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD1_v001.fbx",
+          "source_bytes": 20428,
+          "source_sha256": "1A20C696642800D6EFDB14AF76196DC83BAFC320857EA8B2FBBDC2DC4F5FA124",
+          "object_name": "SM_LB_BodyShopRobotNative_J6_LOD1_v001",
+          "triangles": 132,
+          "source_vertices": 72,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BrushedSteel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.03,
+              -0.165,
+              -0.165
+            ],
+            "maximum_m": [
+              0.2775,
+              0.165,
+              0.165
+            ],
+            "dimensions_m": [
+              0.3075,
+              0.33,
+              0.33
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -3.0,
+              -16.5,
+              -16.5
+            ],
+            "maximum_cm": [
+              27.75,
+              16.5,
+              16.5
+            ],
+            "dimensions_cm": [
+              30.75,
+              33.0,
+              33.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "lod": 2,
+          "source": "SourceAssets/Candidate/WeldShop/BodyShopRobotNative_v001/Exports/SM_LB_BodyShopRobotNative_J6_LOD2_v001.fbx",
+          "source_bytes": 19900,
+          "source_sha256": "8BF56B57A00E2BA88D224CB67E1E615C5EE2C16407EF5256065385025531663E",
+          "object_name": "SM_LB_BodyShopRobotNative_J6_LOD2_v001",
+          "triangles": 84,
+          "source_vertices": 48,
+          "source_uv_layers": 1,
+          "source_uv_layer_names": [
+            "UVMap"
+          ],
+          "material_slots": [
+            "M_LB_BS_GraphiteTooling",
+            "M_LB_BS_CreamPaint",
+            "M_LB_BS_BrushedSteel"
+          ],
+          "source_bounds_m": {
+            "minimum_m": [
+              -0.03,
+              -0.165,
+              -0.165
+            ],
+            "maximum_m": [
+              0.2775,
+              0.165,
+              0.165
+            ],
+            "dimensions_m": [
+              0.3075,
+              0.33,
+              0.33
+            ]
+          },
+          "expected_unreal_bounds": {
+            "minimum_cm": [
+              -3.0,
+              -16.5,
+              -16.5
+            ],
+            "maximum_cm": [
+              27.75,
+              16.5,
+              16.5
+            ],
+            "dimensions_cm": [
+              30.75,
+              33.0,
+              33.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "source_scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "source_rotation_euler_degrees": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  },
+  "active_body_shop_binding": {
+    "status": "PASS__ACTIVE_BODYSHOP_BINDINGS_USE_ONLY_NATIVE_V001_ROBOT_AND_OPEN_CGUN",
+    "scanned_files": [
+      "Source/LineBossCarFactory/LBBodyShopBuildAuthority.cpp",
+      "Source/LineBossCarFactory/LBBodyShopBuildAuthority.h",
+      "Source/LineBossCarFactory/LBBodyShopBuildAuthorityTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopCellActor.cpp",
+      "Source/LineBossCarFactory/LBBodyShopCellActor.h",
+      "Source/LineBossCarFactory/LBBodyShopCellPresentationTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.cpp",
+      "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.h",
+      "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGameTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopManagementPawn.cpp",
+      "Source/LineBossCarFactory/LBBodyShopManagementPawn.h",
+      "Source/LineBossCarFactory/LBBodyShopPackagedPerformanceBridgeTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPackagedValidationBridgeTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPortComponent.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPortComponent.h",
+      "Source/LineBossCarFactory/LBBodyShopPresentationPalette.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPresentationPalette.h",
+      "Source/LineBossCarFactory/LBBodyShopPresentationPaletteTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.h",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.h",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.h",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidgetTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.h",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeRuntimeTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.cpp",
+      "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.h",
+      "Source/LineBossCarFactory/LBBodyShopRobotActor.cpp",
+      "Source/LineBossCarFactory/LBBodyShopRobotActor.h",
+      "Source/LineBossCarFactory/LBBodyShopRobotActorTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.cpp",
+      "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.h",
+      "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibraryTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.cpp",
+      "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.h",
+      "Source/LineBossCarFactory/LBBodyShopServiceDressingActorTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopServiceDressingCandidateIntegrationTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopTypes.cpp",
+      "Source/LineBossCarFactory/LBBodyShopTypes.h",
+      "Source/LineBossCarFactory/LBBodyShopTypesTests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.cpp",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.h",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2Tests.cpp",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.cpp",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.h",
+      "Source/LineBossCarFactory/LBBodyShopUnderbodyProcessTests.cpp"
+    ],
+    "forbidden_old_runtime_token": "WeldRobotRuntime_v001",
+    "forbidden_matches": [],
+    "binding_authority": "Source/LineBossCarFactory/LBBodyShopRobotActor.cpp",
+    "required_object_paths": [
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001.SM_LB_BodyShopRobotNative_Base_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001.SM_LB_BodyShopRobotNative_J1_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001.SM_LB_BodyShopRobotNative_J2_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001.SM_LB_BodyShopRobotNative_J3_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001.SM_LB_BodyShopRobotNative_J4_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.SM_LB_BodyShopRobotNative_J5_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.SM_LB_BodyShopRobotNative_J6_v001",
+      "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001"
+    ],
+    "missing_required_object_paths": [],
+    "archived_legacy_scope_not_semantically_rejected": [
+      "Source/LineBossCarFactory/LBBodyWeldLineActor.cpp",
+      "Source/LineBossCarFactory/LBBodyWeldLineActor.h",
+      "Source/LineBossCarFactory/LBBodyWeldLineActorTests.cpp"
+    ],
+    "archived_weld_robot_packages_preserved_by_protected_hashes": true
+  },
+  "protected": {
+    "body_shop_map_sha256": "8CB6976C532F5C06635ADC8ED00BB50CAF39FFCE2F15826C3456C6EDF4CACE8F",
+    "press_v913_map_sha256": "26A901442CFA8415E3875BD998A2E3220045E296C17829335552D64837A190A6",
+    "groups": [
+      {
+        "name": "project_descriptor",
+        "file_count": 1,
+        "paths": [
+          "LineBossCarFactory.uproject"
+        ],
+        "files": [
+          "LineBossCarFactory.uproject"
+        ],
+        "roots": [],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "press_v913_map",
+        "file_count": 1,
+        "paths": [
+          "Content/LineBoss/Maps/LB_PressShop_RebuildFromLorry_v20260810_v913.umap"
+        ],
+        "files": [
+          "Content/LineBoss/Maps/LB_PressShop_RebuildFromLorry_v20260810_v913.umap"
+        ],
+        "roots": [],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "body_shop_map",
+        "file_count": 1,
+        "paths": [
+          "Content/LineBoss/BodyShop/Experimental/v001/Maps/LB_BodyShop_Prototype_v001.umap"
+        ],
+        "files": [
+          "Content/LineBoss/BodyShop/Experimental/v001/Maps/LB_BodyShop_Prototype_v001.umap"
+        ],
+        "roots": [],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "config_tree",
+        "file_count": 6,
+        "paths": [
+          "Config/DefaultEditor.ini",
+          "Config/DefaultEditorPerProjectUserSettings.ini",
+          "Config/DefaultEngine.ini",
+          "Config/DefaultGame.ini",
+          "Config/DefaultGameUserSettings.ini",
+          "Config/DefaultInput.ini"
+        ],
+        "files": [],
+        "roots": [
+          "Config"
+        ],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "body_shop_existing_content",
+        "file_count": 15,
+        "paths": [
+          "Content/LineBoss/BodyShop/Experimental/v001/Maps/LB_BodyShop_Prototype_v001.umap",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/M_LB_BodyShop_Functional_Master_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/M_LB_BodyShop_LayeredPaint_Master_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BlackMotor_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BrushedSteel_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_CreamPaint_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_EmeraldPanel_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_GraphiteTooling_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_SafetyYellow_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_ScannerLens_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusAmber_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusGreen_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusRed_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StructuralLightGrey_v002.uasset",
+          "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_VacuumRubber_v002.uasset"
+        ],
+        "files": [],
+        "roots": [
+          "Content/LineBoss/BodyShop"
+        ],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "weld_shop_existing_promoted_and_meshed_content",
+        "file_count": 31,
+        "paths": [
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Fixture/SM_LB_BodyShop_UnderbodyFixture_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_Base_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J1_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J2_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J3_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J4_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J5_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Vision/SM_LB_BodyShop_VisionGate_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001/Fixture/SM_LB_BodyWeld_FramingFixture_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001/material.uasset",
+          "Content/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001/SM_LB_PanelStillage_Runtime_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldRobot_CableProxy_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldRobot_SharedBase_PBR_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_ElectrodeCopper_Protected_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_MIG_Protected_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_PrimaryPreview_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_RawSteel_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_SecondaryPreview_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_VacuumCup_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_SpotGun_PBR_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/SharedBase/SM_LB_WeldRobot_SharedBase_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_BaseColor_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_MR_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_Normal_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_BaseColor_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_MR_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_Normal_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/MIG/SM_LB_WeldTool_MIG_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/PanelPick/SM_LB_WeldTool_PanelPick_v001.uasset",
+          "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/SpotGun/SM_LB_WeldTool_SpotGun_v001.uasset"
+        ],
+        "files": [],
+        "roots": [
+          "Content/LineBoss/Candidates/WeldShop"
+        ],
+        "globs": [],
+        "excludes": [
+          "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001"
+        ],
+        "allow_empty": false
+      },
+      {
+        "name": "complete_source_tree",
+        "file_count": 256,
+        "paths": [
+          "Source/LineBossCarFactory.Target.cs",
+          "Source/LineBossCarFactory/LBBodyShopBuildAuthority.cpp",
+          "Source/LineBossCarFactory/LBBodyShopBuildAuthority.h",
+          "Source/LineBossCarFactory/LBBodyShopBuildAuthorityTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopCellActor.cpp",
+          "Source/LineBossCarFactory/LBBodyShopCellActor.h",
+          "Source/LineBossCarFactory/LBBodyShopCellPresentationTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.cpp",
+          "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.h",
+          "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGameTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopManagementPawn.cpp",
+          "Source/LineBossCarFactory/LBBodyShopManagementPawn.h",
+          "Source/LineBossCarFactory/LBBodyShopPackagedPerformanceBridgeTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPackagedValidationBridgeTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPortComponent.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPortComponent.h",
+          "Source/LineBossCarFactory/LBBodyShopPresentationPalette.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPresentationPalette.h",
+          "Source/LineBossCarFactory/LBBodyShopPresentationPaletteTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.h",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.h",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.h",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidgetTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.h",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeRuntimeTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.cpp",
+          "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.h",
+          "Source/LineBossCarFactory/LBBodyShopRobotActor.cpp",
+          "Source/LineBossCarFactory/LBBodyShopRobotActor.h",
+          "Source/LineBossCarFactory/LBBodyShopRobotActorTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.cpp",
+          "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.h",
+          "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibraryTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.cpp",
+          "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.h",
+          "Source/LineBossCarFactory/LBBodyShopServiceDressingActorTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopServiceDressingCandidateIntegrationTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopTypes.cpp",
+          "Source/LineBossCarFactory/LBBodyShopTypes.h",
+          "Source/LineBossCarFactory/LBBodyShopTypesTests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.cpp",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.h",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2Tests.cpp",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.cpp",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.h",
+          "Source/LineBossCarFactory/LBBodyShopUnderbodyProcessTests.cpp",
+          "Source/LineBossCarFactory/LBBodyWeldLineActor.cpp",
+          "Source/LineBossCarFactory/LBBodyWeldLineActor.h",
+          "Source/LineBossCarFactory/LBBodyWeldLineActorTests.cpp",
+          "Source/LineBossCarFactory/LBBridgeCraneController.cpp",
+          "Source/LineBossCarFactory/LBBridgeCraneController.h",
+          "Source/LineBossCarFactory/LBBridgeCraneControllerTests.cpp",
+          "Source/LineBossCarFactory/LBCleaningAMR.cpp",
+          "Source/LineBossCarFactory/LBCleaningAMR.h",
+          "Source/LineBossCarFactory/LBCoilAGVController.cpp",
+          "Source/LineBossCarFactory/LBCoilAGVController.h",
+          "Source/LineBossCarFactory/LBCoilAGVControllerTests.cpp",
+          "Source/LineBossCarFactory/LBCompactStillageFLT.cpp",
+          "Source/LineBossCarFactory/LBCompactStillageFLT.h",
+          "Source/LineBossCarFactory/LBConsoleFreeRuntimeBootstrapTests.cpp",
+          "Source/LineBossCarFactory/LBControlRoomCCTVFeed.cpp",
+          "Source/LineBossCarFactory/LBControlRoomCCTVFeed.h",
+          "Source/LineBossCarFactory/LBControlRoomCCTVFeedTests.cpp",
+          "Source/LineBossCarFactory/LBControlRoomGameMode.cpp",
+          "Source/LineBossCarFactory/LBControlRoomGameMode.h",
+          "Source/LineBossCarFactory/LBControlRoomHUD.cpp",
+          "Source/LineBossCarFactory/LBControlRoomHUD.h",
+          "Source/LineBossCarFactory/LBControlRoomOperationsConsole.cpp",
+          "Source/LineBossCarFactory/LBControlRoomOperationsConsole.h",
+          "Source/LineBossCarFactory/LBControlRoomOperationsConsoleTests.cpp",
+          "Source/LineBossCarFactory/LBControlRoomPawn.cpp",
+          "Source/LineBossCarFactory/LBControlRoomPawn.h",
+          "Source/LineBossCarFactory/LBControlRoomPawnTests.cpp",
+          "Source/LineBossCarFactory/LBControlRoomPR004Console.cpp",
+          "Source/LineBossCarFactory/LBControlRoomPR004Console.h",
+          "Source/LineBossCarFactory/LBControlRoomPR004ConsoleTests.cpp",
+          "Source/LineBossCarFactory/LBDeveloperAutomationBridge.cpp",
+          "Source/LineBossCarFactory/LBDeveloperAutomationBridge.h",
+          "Source/LineBossCarFactory/LBDeveloperAutomationBridgeTests.cpp",
+          "Source/LineBossCarFactory/LBECoatLineActor.cpp",
+          "Source/LineBossCarFactory/LBECoatLineActor.h",
+          "Source/LineBossCarFactory/LBECoatLineActorTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryAGVInfrastructure.cpp",
+          "Source/LineBossCarFactory/LBFactoryAGVInfrastructure.h",
+          "Source/LineBossCarFactory/LBFactoryBrandSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryBrandSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryBrandSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryBuildMachine.cpp",
+          "Source/LineBossCarFactory/LBFactoryBuildMachine.h",
+          "Source/LineBossCarFactory/LBFactoryConnectionSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryConnectionSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryConnectionSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActor.cpp",
+          "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActor.h",
+          "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActorTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryEnvelopeSideDressingActor.cpp",
+          "Source/LineBossCarFactory/LBFactoryEnvelopeSideDressingActor.h",
+          "Source/LineBossCarFactory/LBFactoryFloorMarkingComponent.cpp",
+          "Source/LineBossCarFactory/LBFactoryFloorMarkingComponent.h",
+          "Source/LineBossCarFactory/LBFactoryFloorMarkingTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryManagementSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryManagementSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryManagementSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFactoryProcessPortComponent.cpp",
+          "Source/LineBossCarFactory/LBFactoryProcessPortComponent.h",
+          "Source/LineBossCarFactory/LBFactoryTransportLink.cpp",
+          "Source/LineBossCarFactory/LBFactoryTransportLink.h",
+          "Source/LineBossCarFactory/LBFactoryUIStateSubsystem.cpp",
+          "Source/LineBossCarFactory/LBFactoryUIStateSubsystem.h",
+          "Source/LineBossCarFactory/LBFactoryUIStateSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBFreeRoamGameMode.cpp",
+          "Source/LineBossCarFactory/LBFreeRoamGameMode.h",
+          "Source/LineBossCarFactory/LBFreeRoamPawn.cpp",
+          "Source/LineBossCarFactory/LBFreeRoamPawn.h",
+          "Source/LineBossCarFactory/LBGameMode.cpp",
+          "Source/LineBossCarFactory/LBGameMode.h",
+          "Source/LineBossCarFactory/LBGameUserSettings.cpp",
+          "Source/LineBossCarFactory/LBGameUserSettings.h",
+          "Source/LineBossCarFactory/LBGameUserSettingsTests.cpp",
+          "Source/LineBossCarFactory/LBGraphicsStartupSubsystem.cpp",
+          "Source/LineBossCarFactory/LBGraphicsStartupSubsystem.h",
+          "Source/LineBossCarFactory/LBGraphicsStartupSubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBInboundDeliveryController.cpp",
+          "Source/LineBossCarFactory/LBInboundDeliveryController.h",
+          "Source/LineBossCarFactory/LBInboundDeliveryControllerTests.cpp",
+          "Source/LineBossCarFactory/LBMachineLiveryComponent.cpp",
+          "Source/LineBossCarFactory/LBMachineLiveryComponent.h",
+          "Source/LineBossCarFactory/LBMachineLiveryComponentTests.cpp",
+          "Source/LineBossCarFactory/LBMaintenanceAMR.cpp",
+          "Source/LineBossCarFactory/LBMaintenanceAMR.h",
+          "Source/LineBossCarFactory/LBManagementHUDTests.cpp",
+          "Source/LineBossCarFactory/LBManagementPawn.cpp",
+          "Source/LineBossCarFactory/LBManagementPawn.h",
+          "Source/LineBossCarFactory/LBManagementPawnPreviewTests.cpp",
+          "Source/LineBossCarFactory/LBManagementRootWidget.cpp",
+          "Source/LineBossCarFactory/LBManagementRootWidget.h",
+          "Source/LineBossCarFactory/LBManagementRootWidgetTests.cpp",
+          "Source/LineBossCarFactory/LBMobileRoutePlanner.cpp",
+          "Source/LineBossCarFactory/LBMobileRoutePlanner.h",
+          "Source/LineBossCarFactory/LBMobileRoutePlannerTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopBuildAuthority.cpp",
+          "Source/LineBossCarFactory/LBPaintShopBuildAuthority.h",
+          "Source/LineBossCarFactory/LBPaintShopBuildAuthorityTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopCellActor.cpp",
+          "Source/LineBossCarFactory/LBPaintShopCellActor.h",
+          "Source/LineBossCarFactory/LBPaintShopCellActorTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGame.cpp",
+          "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGame.h",
+          "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGameTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopManagementPawn.cpp",
+          "Source/LineBossCarFactory/LBPaintShopManagementPawn.h",
+          "Source/LineBossCarFactory/LBPaintShopPlayerControlTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPlayerShellTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPortComponent.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPortComponent.h",
+          "Source/LineBossCarFactory/LBPaintShopPortComponentTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeGameMode.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeGameMode.h",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeHUD.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeHUD.h",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeRootWidget.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeRootWidget.h",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeRuntime.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeRuntime.h",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeRuntimeTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrap.cpp",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrap.h",
+          "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrapTests.cpp",
+          "Source/LineBossCarFactory/LBPaintShopTypes.cpp",
+          "Source/LineBossCarFactory/LBPaintShopTypes.h",
+          "Source/LineBossCarFactory/LBPaintShopTypesTests.cpp",
+          "Source/LineBossCarFactory/LBPlayerBuiltPressFlowController.cpp",
+          "Source/LineBossCarFactory/LBPlayerBuiltPressFlowController.h",
+          "Source/LineBossCarFactory/LBPlayerBuiltPressFlowControllerTests.cpp",
+          "Source/LineBossCarFactory/LBPR004HMIWidget.cpp",
+          "Source/LineBossCarFactory/LBPR004HMIWidget.h",
+          "Source/LineBossCarFactory/LBPR004Station.cpp",
+          "Source/LineBossCarFactory/LBPR004Station.h",
+          "Source/LineBossCarFactory/LBPR004StationTests.cpp",
+          "Source/LineBossCarFactory/LBPR005HMIWidget.cpp",
+          "Source/LineBossCarFactory/LBPR005HMIWidget.h",
+          "Source/LineBossCarFactory/LBPR005Station.cpp",
+          "Source/LineBossCarFactory/LBPR005Station.h",
+          "Source/LineBossCarFactory/LBPR006Station.cpp",
+          "Source/LineBossCarFactory/LBPR006Station.h",
+          "Source/LineBossCarFactory/LBPR006StationTests.cpp",
+          "Source/LineBossCarFactory/LBPR007Station.cpp",
+          "Source/LineBossCarFactory/LBPR007Station.h",
+          "Source/LineBossCarFactory/LBPR007StationTests.cpp",
+          "Source/LineBossCarFactory/LBPR008Station.cpp",
+          "Source/LineBossCarFactory/LBPR008Station.h",
+          "Source/LineBossCarFactory/LBPR008StationTests.cpp",
+          "Source/LineBossCarFactory/LBPR009Station.cpp",
+          "Source/LineBossCarFactory/LBPR009Station.h",
+          "Source/LineBossCarFactory/LBPR009StationTests.cpp",
+          "Source/LineBossCarFactory/LBPR010Station.cpp",
+          "Source/LineBossCarFactory/LBPR010Station.h",
+          "Source/LineBossCarFactory/LBPR010StationTests.cpp",
+          "Source/LineBossCarFactory/LBPressShopBuildAuthority.cpp",
+          "Source/LineBossCarFactory/LBPressShopBuildAuthority.h",
+          "Source/LineBossCarFactory/LBPressShopBuildAuthorityTests.cpp",
+          "Source/LineBossCarFactory/LBPressShopCampaignController.cpp",
+          "Source/LineBossCarFactory/LBPressShopCampaignController.h",
+          "Source/LineBossCarFactory/LBPressShopCampaignControllerTests.cpp",
+          "Source/LineBossCarFactory/LBPressShopMaterialFlowController.cpp",
+          "Source/LineBossCarFactory/LBPressShopMaterialFlowController.h",
+          "Source/LineBossCarFactory/LBPressShopMaterialFlowTests.cpp",
+          "Source/LineBossCarFactory/LBPressShopNavigationBootstrap.cpp",
+          "Source/LineBossCarFactory/LBPressShopNavigationBootstrap.h",
+          "Source/LineBossCarFactory/LBPressShopSaveGame.cpp",
+          "Source/LineBossCarFactory/LBPressShopSaveGame.h",
+          "Source/LineBossCarFactory/LBPressShopStorageZone.cpp",
+          "Source/LineBossCarFactory/LBPressShopStorageZone.h",
+          "Source/LineBossCarFactory/LBPressShopSupportFleetController.cpp",
+          "Source/LineBossCarFactory/LBPressShopSupportFleetController.h",
+          "Source/LineBossCarFactory/LBPressTrainAStation.cpp",
+          "Source/LineBossCarFactory/LBPressTrainAStation.h",
+          "Source/LineBossCarFactory/LBPressTrainAStationTests.cpp",
+          "Source/LineBossCarFactory/LBPressTrainIdentitySubsystem.cpp",
+          "Source/LineBossCarFactory/LBPressTrainIdentitySubsystem.h",
+          "Source/LineBossCarFactory/LBPressTrainIdentitySubsystemTests.cpp",
+          "Source/LineBossCarFactory/LBSettingsRootWidget.cpp",
+          "Source/LineBossCarFactory/LBSettingsRootWidget.h",
+          "Source/LineBossCarFactory/LBSettingsRootWidgetTests.cpp",
+          "Source/LineBossCarFactory/LBStatusBeaconComponent.cpp",
+          "Source/LineBossCarFactory/LBStatusBeaconComponent.h",
+          "Source/LineBossCarFactory/LBStatusBeaconTests.cpp",
+          "Source/LineBossCarFactory/LBStillageFLTFleetController.cpp",
+          "Source/LineBossCarFactory/LBStillageFLTFleetController.h",
+          "Source/LineBossCarFactory/LBStillageFLTFleetTests.cpp",
+          "Source/LineBossCarFactory/LBSupportCraneController.cpp",
+          "Source/LineBossCarFactory/LBSupportCraneController.h",
+          "Source/LineBossCarFactory/LBSupportCraneControllerTests.cpp",
+          "Source/LineBossCarFactory/LBSupportRobot.cpp",
+          "Source/LineBossCarFactory/LBSupportRobot.h",
+          "Source/LineBossCarFactory/LBSupportRobotServiceDock.cpp",
+          "Source/LineBossCarFactory/LBSupportRobotServiceDock.h",
+          "Source/LineBossCarFactory/LBSupportRobotServiceDockTests.cpp",
+          "Source/LineBossCarFactory/LBSupportRobotTests.cpp",
+          "Source/LineBossCarFactory/LBVehiclePanelCatalog.cpp",
+          "Source/LineBossCarFactory/LBVehiclePanelCatalog.h",
+          "Source/LineBossCarFactory/LBVisualTuningTests.cpp",
+          "Source/LineBossCarFactory/LineBossCarFactory.Build.cs",
+          "Source/LineBossCarFactory/LineBossCarFactory.cpp",
+          "Source/LineBossCarFactoryEditor.Target.cs"
+        ],
+        "files": [],
+        "roots": [
+          "Source"
+        ],
+        "globs": [],
+        "excludes": [],
+        "allow_empty": false
+      },
+      {
+        "name": "save_games",
+        "file_count": 2,
+        "paths": [
+          "Saved/SaveGames/LB_AUTOMATION_SUPPORT_FLEET_V269_DISK_ROUNDTRIP.sav",
+          "Saved/SaveGames/LineBoss_BodyShopExperimental_v001.sav"
+        ],
+        "files": [],
+        "roots": [],
+        "globs": [
+          "Saved/SaveGames/*.sav"
+        ],
+        "excludes": [],
+        "allow_empty": true
+      }
+    ],
+    "file_count": 312,
+    "files": [
+      {
+        "path": "Config/DefaultEditor.ini",
+        "bytes": 58476,
+        "sha256": "BBE05501998265524E8ACD5319DBC42E748DDE39FB25463C8BB0D431AC746D16",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Config/DefaultEditorPerProjectUserSettings.ini",
+        "bytes": 234,
+        "sha256": "9255BE413FFFB3970BAD3C921E8E5BFE3DD41A0B01F45348354FCAAC01E9E6D4",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Config/DefaultEngine.ini",
+        "bytes": 1718,
+        "sha256": "A1A3B4E5EC0327BB9AD05B094B7749CE9CE9795B1D065CFA4196C1AD3EFB82D3",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Config/DefaultGame.ini",
+        "bytes": 3239,
+        "sha256": "1DE2055DB7A0F4EA1653E9656A33EE692CBEF133B8761A08A31B090B3832484C",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Config/DefaultGameUserSettings.ini",
+        "bytes": 167,
+        "sha256": "D4E55BBFC7F843097D40E3335B1FE57AE12F804D981564F904AEBCDA34F35F3E",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Config/DefaultInput.ini",
+        "bytes": 14669,
+        "sha256": "8DCE19104C744A1DA03413EC234CF9D0BAD1BF40BD718C1F770D68CBD42D2F00",
+        "groups": [
+          "config_tree"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Maps/LB_BodyShop_Prototype_v001.umap",
+        "bytes": 665980,
+        "sha256": "8CB6976C532F5C06635ADC8ED00BB50CAF39FFCE2F15826C3456C6EDF4CACE8F",
+        "groups": [
+          "body_shop_existing_content",
+          "body_shop_map"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/M_LB_BodyShop_Functional_Master_v002.uasset",
+        "bytes": 11942,
+        "sha256": "F04868806F50DAEF5D1792649E7CCB0DFEC4D5333F340A8D6E6B8A65097EC82B",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/M_LB_BodyShop_LayeredPaint_Master_v002.uasset",
+        "bytes": 27554,
+        "sha256": "10380C5D9DD24072C90999EBF8573E5BB4A6668FC5588C8950A41FF1BD175911",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BlackMotor_v002.uasset",
+        "bytes": 11757,
+        "sha256": "F0F5DB61EB363B2987992C4774F79C530CF7D0BBC72B4792EAC2067237DB8051",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_BrushedSteel_v002.uasset",
+        "bytes": 9808,
+        "sha256": "A0F6B3A8B9B6928484526968E0A59845571C51023091C75A98E1B6DCA80A1E44",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_CreamPaint_v002.uasset",
+        "bytes": 12580,
+        "sha256": "7FEAC6A1ED633AA6FB36D09BA74F144CD194FC5C60E11E189068E0C761509E25",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_EmeraldPanel_v002.uasset",
+        "bytes": 9808,
+        "sha256": "F139E15987AA6D8807895CA490F0DEECDA1B106AFB392DC8166046A09373DE18",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_GraphiteTooling_v002.uasset",
+        "bytes": 9832,
+        "sha256": "67B70AB8286E55A0CDD60D8B4F82C17355D66F5901AC9D6280BFC2CA0E0A91D3",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_SafetyYellow_v002.uasset",
+        "bytes": 9814,
+        "sha256": "62538D9449AC456387B94116692A927BE6CDF93494DC109A4B9213D2288393DD",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_ScannerLens_v002.uasset",
+        "bytes": 9808,
+        "sha256": "ABA56A12D79C0F7AD09FE1F668A2BD6BD6A5DAFEC085D69493B4C8DBB3DAEC40",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusAmber_v002.uasset",
+        "bytes": 9808,
+        "sha256": "2108F30645A41544D7C467F8E0EA43CD74379894C5DB93084D942E8310BB24FF",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusGreen_v002.uasset",
+        "bytes": 9802,
+        "sha256": "FD01422DD21BD311DBDA64E2145450DB86BABF56C4E3AFE2D6D0A5C97A6733D7",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StatusRed_v002.uasset",
+        "bytes": 9790,
+        "sha256": "F94C3D563424BFE79E759CD982EA2901D36EFD40762EA7973A99BD042E4CBC01",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_StructuralLightGrey_v002.uasset",
+        "bytes": 9856,
+        "sha256": "B1609764D304E1B18E1C1131DFFF6BB03A33705AE81751720E4BBF5A7747847C",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/BodyShop/Experimental/v001/Presentation/Materials_v002/MI_LB_BodyShop_VacuumRubber_v002.uasset",
+        "bytes": 9808,
+        "sha256": "BB71CFA36236CF592155C2641BE3E853CDA01A419BA1A49C79FEE2060D32D4EF",
+        "groups": [
+          "body_shop_existing_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Fixture/SM_LB_BodyShop_UnderbodyFixture_v001.uasset",
+        "bytes": 371570,
+        "sha256": "262AB2C8F5289465DB3547BEA11DFCB072721C4A931E6EC81E9723CE2483BDAE",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_Base_v001.uasset",
+        "bytes": 1403786,
+        "sha256": "9CBE6D27268C7B942F7271546B5EC678C063C7CFEE35BE6B7DE0F017FFC3FBB0",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J1_v001.uasset",
+        "bytes": 1529985,
+        "sha256": "4B81E41A999BCA1081EBDBE5FAAB76D4D5B19ECBC820FAD0D1B8B0C36D31E2E4",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J2_v001.uasset",
+        "bytes": 1107902,
+        "sha256": "D4607CB5481E2CC8B7FF23921DE202CCE80676057213653DF8BF2C4730CFB15F",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J3_v001.uasset",
+        "bytes": 1236513,
+        "sha256": "CE96B0591EFB8ABE3944658AA3A2ECF97E844B30C66C3ED49FE36B844AD6EE8A",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J4_v001.uasset",
+        "bytes": 731147,
+        "sha256": "EC6CBF9447DB73AFF82B4ACB184BF9F663480DD48DF4F461B85C4E258070826D",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Robot/SM_LB_BodyShopRobot_J5_v001.uasset",
+        "bytes": 26182,
+        "sha256": "1C5A3E3F3411F066B4AB5A4B63738A63A2CC7D30916F246C193496DA5E40C534",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.uasset",
+        "bytes": 160091,
+        "sha256": "61BF706DF4306873381566A56A0EDD9C1B1A0E7949A07C5928AE79A4F58657A2",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Vision/SM_LB_BodyShop_VisionGate_v001.uasset",
+        "bytes": 154472,
+        "sha256": "53D7443AA524CCF655AFA82BCD9C3950D9C559EA2F41D93E10309B74B0563C71",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyWeldLine/Runtime_v001/Fixture/SM_LB_BodyWeld_FramingFixture_v001.uasset",
+        "bytes": 262849,
+        "sha256": "DE4155CDDDEAB1DE52E68995C440157DC2229F1407598514328EC456E5004839",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001/material.uasset",
+        "bytes": 63672,
+        "sha256": "52FF4A65ED93A93F815CACE56609060608235833976431764532D789FBF41AAB",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001/SM_LB_PanelStillage_Runtime_v001.uasset",
+        "bytes": 855400,
+        "sha256": "F251CE21B52FA2C5E5491C4925BC313E522335F343BEE83A196F748409BA5950",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldRobot_CableProxy_v001.uasset",
+        "bytes": 5988,
+        "sha256": "962349172EF41B78033273283FC30410A3986A6D589DC014852B06B45C49E677",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldRobot_SharedBase_PBR_v001.uasset",
+        "bytes": 7119,
+        "sha256": "5568B39523DCB6C7F0C9E5267892892D085E86021BD8E08F5A382592DE29549E",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_ElectrodeCopper_Protected_v001.uasset",
+        "bytes": 6072,
+        "sha256": "A03ABC1FFFAEA7F22D5CD5017C3E38A63C2A8070387FCA7DBA604436F286E245",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_MIG_Protected_v001.uasset",
+        "bytes": 6000,
+        "sha256": "2778D42CCFAA2FAD805AA7BD7CAE57C6A3C28E11CCB574934F3471BCCB63392E",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_PrimaryPreview_v001.uasset",
+        "bytes": 6066,
+        "sha256": "8ACA585BED3D38234341B17913BDDA53B7CDCDC457DEEDAA0890DD450200CCE5",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_RawSteel_v001.uasset",
+        "bytes": 6030,
+        "sha256": "5449F20BDE0ED0010396BBA699A5974C4B2DB7EBAE6AF335854F338C1E9BE869",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_SecondaryPreview_v001.uasset",
+        "bytes": 6078,
+        "sha256": "79FDCE311D5DA133A628EA7984AE7DD5D206487743D1F7709AEA9F61FBF9C83A",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_PanelPick_VacuumCup_v001.uasset",
+        "bytes": 6036,
+        "sha256": "82F943D8991BCE3F0DDC48F8433BFDAACB9E5EAD7BFCFC13564B87BF5B2133C0",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Materials/M_LB_WeldTool_SpotGun_PBR_v001.uasset",
+        "bytes": 7071,
+        "sha256": "017ECF2F75BEC6682F0A352C0FD517984BCE28C33F9452BF5658144A187D6823",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/SharedBase/SM_LB_WeldRobot_SharedBase_v001.uasset",
+        "bytes": 5551263,
+        "sha256": "3271777D9744131CC90DA12A3C23FF17D99CEAADD7B1326DAB198E2F2F8E0D6F",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_BaseColor_v001.uasset",
+        "bytes": 2276128,
+        "sha256": "D4161E64F5EAD199E5EA01FB32B7723777FC920490329DA36A773321D97FD7B2",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_MR_v001.uasset",
+        "bytes": 2745924,
+        "sha256": "D72EB7EB22CA9D377936C3370C305F4F2B69271113BAACFCDB2649565BA537D9",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldRobot_SharedBase_Normal_v001.uasset",
+        "bytes": 1881836,
+        "sha256": "5D9E1102C4A75A411D63F4BA0F8C7763C82455375DA9DDBD0ECB32E0FCE26677",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_BaseColor_v001.uasset",
+        "bytes": 2289639,
+        "sha256": "70630FEB7466A0F777FDE467CDCD5ED46E9CB5E76BAB6238A02B75EB129870B6",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_MR_v001.uasset",
+        "bytes": 2619558,
+        "sha256": "814F4ADF2CA031D43C169F995483C120EFB0FE34177556F2A593F65E453CDBF2",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Textures/T_LB_WeldTool_SpotGun_Normal_v001.uasset",
+        "bytes": 1860518,
+        "sha256": "200118A208620EFE1D291C75A19CA0CCB7786A357994A44930F70D601551FACA",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/MIG/SM_LB_WeldTool_MIG_v001.uasset",
+        "bytes": 26451,
+        "sha256": "40C4E862C3454A51E4C5430F576126888E74057254D621983F1B1CFFA61B19A2",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/PanelPick/SM_LB_WeldTool_PanelPick_v001.uasset",
+        "bytes": 67175,
+        "sha256": "C64AF68E0048654B59320B0A04F1D56E44D0FFA9608B03F798C437323DE78F25",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/Robots/WeldRobotRuntime_v001/Tools/SpotGun/SM_LB_WeldTool_SpotGun_v001.uasset",
+        "bytes": 1374999,
+        "sha256": "79DAA22563EE54BC1F3C04C98B9CAEC7E22A1F01F7E65E9E76B147B4ABBC27BC",
+        "groups": [
+          "weld_shop_existing_promoted_and_meshed_content"
+        ]
+      },
+      {
+        "path": "Content/LineBoss/Maps/LB_PressShop_RebuildFromLorry_v20260810_v913.umap",
+        "bytes": 179658,
+        "sha256": "26A901442CFA8415E3875BD998A2E3220045E296C17829335552D64837A190A6",
+        "groups": [
+          "press_v913_map"
+        ]
+      },
+      {
+        "path": "LineBossCarFactory.uproject",
+        "bytes": 2793,
+        "sha256": "699573AC1BFA689E8C49ABECEF97493A1CFBFEF8131ADEFAF3A031B8B0BD32F1",
+        "groups": [
+          "project_descriptor"
+        ]
+      },
+      {
+        "path": "Saved/SaveGames/LB_AUTOMATION_SUPPORT_FLEET_V269_DISK_ROUNDTRIP.sav",
+        "bytes": 15045,
+        "sha256": "9C3AC306FEF9535E9115F3E5B568CE9A113515635D64418438EE14760BD20114",
+        "groups": [
+          "save_games"
+        ]
+      },
+      {
+        "path": "Saved/SaveGames/LineBoss_BodyShopExperimental_v001.sav",
+        "bytes": 13453,
+        "sha256": "6C7CBE88D14E10B198CC482FFE07C8C997AA2D31B0068BA4CB306DFB9F976486",
+        "groups": [
+          "save_games"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory.Target.cs",
+        "bytes": 405,
+        "sha256": "8707AD253FD245E1F9AA128D7282B58992D400C8AEAD74EDB5BAC632F0C723A3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopBuildAuthority.cpp",
+        "bytes": 30814,
+        "sha256": "299F03A42CA926780567215E39E308EAD2FE3D7D200758384C3540E8DFAD51C9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopBuildAuthority.h",
+        "bytes": 6421,
+        "sha256": "68DCFE655546DEBB72ABDA10F8477A3120A7E733513779F7FE64F360CEF34538",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopBuildAuthorityTests.cpp",
+        "bytes": 8355,
+        "sha256": "DCC1997931218942E4948B78F1D2E7C7CC017B981FC478AF79A1863EA41CB331",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopCellActor.cpp",
+        "bytes": 42612,
+        "sha256": "E6F4C909750DEE7F584C16C0C2AB84B970A7124D49F1EE7891F5966D09A0A8DA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopCellActor.h",
+        "bytes": 10833,
+        "sha256": "D6D029872163B8D887C387AE31632B18DDD644EE15341F93875F8214B81E83F7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopCellPresentationTests.cpp",
+        "bytes": 14941,
+        "sha256": "4555EF53D52A69A95FC7EF14C7C80DB0DC2BA41578508CC78A8B816EF22A8638",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.cpp",
+        "bytes": 702,
+        "sha256": "B166C5339E491A96B9EF731E95B0275A6C27BBA36A359095AE8FAA6676A2DCDE",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGame.h",
+        "bytes": 1078,
+        "sha256": "833D653DCCD693AEAF63B7DCEC1238B7AED3BF7A10EDF1ADBE426D8C75757E6C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopExperimentalSaveGameTests.cpp",
+        "bytes": 2566,
+        "sha256": "59B9719B69935A58AC90F2920A51D4F5D1B4C9DD67EFCCED4D80327706C0FFA0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopManagementPawn.cpp",
+        "bytes": 14808,
+        "sha256": "9C9D2C6864CBC3555EA3A05F0AE4AB2E6B3384D7A4882C21160464DC558AF67E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopManagementPawn.h",
+        "bytes": 4401,
+        "sha256": "87A2CB8C640823F8BD946FE6FC8A1913FE3852B721570D1ABDDBDB5FC520FAEC",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPackagedPerformanceBridgeTests.cpp",
+        "bytes": 5807,
+        "sha256": "12DB12B31F6165FC08D80F71955628DDBA8EAB0044A67783F93A31731DE71C2B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPackagedValidationBridgeTests.cpp",
+        "bytes": 4703,
+        "sha256": "76595A0853DAA7DD7AB54169C53A61BDB9D8DDE7FDC678A31E09F85D27F513C4",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPortComponent.cpp",
+        "bytes": 648,
+        "sha256": "DEF357F13A1947E8D3A0223878D4F5AAB2D177B9FD21EE8AFD54A4651A2DC1FC",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPortComponent.h",
+        "bytes": 1422,
+        "sha256": "DF108C277C24FAC3115783382F4E73F97BDC6E65B675D24B5DF5957A1FAA0D14",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPresentationPalette.cpp",
+        "bytes": 7464,
+        "sha256": "EF6B1B37209066935CA72E37573F7F88B191DF24FBD541DBD41CF2A5052853F3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPresentationPalette.h",
+        "bytes": 1431,
+        "sha256": "276FC0B43631442175953F8828364B8B69BF2FCC08A3699F5B602C4AA3A8EB31",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPresentationPaletteTests.cpp",
+        "bytes": 14635,
+        "sha256": "F65C920788A36C9717019FE7835CEB9BAA58ED00E4391EE193F09D634DE6CEA2",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.cpp",
+        "bytes": 72297,
+        "sha256": "BD7753AAB3715B6083A9442DBC19329AF523F8FFE22E98E3CF1239AE218144EF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeGameMode.h",
+        "bytes": 6265,
+        "sha256": "158DBFFD439D38ADFA86FDA506D013F69A05101B9F5CB597E32FDA983274904A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.cpp",
+        "bytes": 3751,
+        "sha256": "4F45AB3801D653A38911C69971B619320337FEB68F542ED4550700A0284487B6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeHUD.h",
+        "bytes": 1353,
+        "sha256": "D4092A488D7D188B2E4A663B72C64C5B01A990601810104AB6FA91FF538E6E5A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.cpp",
+        "bytes": 17950,
+        "sha256": "186D30817CEA72385C0608093565FE4F9CDCDFDD7EDEF66C7DF56A4BB212A5CF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidget.h",
+        "bytes": 2665,
+        "sha256": "CFD9A5E48DB9EC15F0ADA7DFC0A1CA8472A9DAD9CDAFF84C9D8C31029DE4B631",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRootWidgetTests.cpp",
+        "bytes": 3377,
+        "sha256": "F0836008EF8A02832B2BA8AFDE27C8AD0735171EFF456A36524F9B0A71274034",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.cpp",
+        "bytes": 61665,
+        "sha256": "40B7BE70F0A8543A63FAC63422389CAE8D1A667F14D55000D276B7C73D76345E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRuntime.h",
+        "bytes": 15754,
+        "sha256": "421FF0C334B9A9231C420CAEF513E8D2FAF9DE9B2CBA45B3F91D069551BF93D3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeRuntimeTests.cpp",
+        "bytes": 25988,
+        "sha256": "671500AA0B4C8D85A1C4887E3FD353ED384EABA5DBB90CFF9AFFBDB9C403398B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeTests.cpp",
+        "bytes": 11881,
+        "sha256": "42ED695C1586F32BCA6A36118DAF47C4EA784B6A090669C9BA78F4EBC7B799A7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.cpp",
+        "bytes": 13285,
+        "sha256": "F32FCB3192442C189998F651A6FF298FCA35308510EB2AB8324B9DCAE237C707",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopPrototypeWorldBootstrap.h",
+        "bytes": 8754,
+        "sha256": "06E30366912656D9A4E067B95F4B058CACF8758812E4BFC1FD0401D3D75E39C7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotActor.cpp",
+        "bytes": 30218,
+        "sha256": "6D0F6D2F8EFDD46642A748BC299690BC6B36860F53C5E0EB535D0A0BD3DBE600",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotActor.h",
+        "bytes": 8891,
+        "sha256": "456B123DB39F9463E9E8524F82AB4883A0C9979DBB8D24969217031BEAC05BF8",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotActorTests.cpp",
+        "bytes": 22892,
+        "sha256": "F08D5CD012DB9B331F65C026B68A8C22E2976DC14BCFB9C526BCB3DFA59F8996",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.cpp",
+        "bytes": 11750,
+        "sha256": "813D92BFD15333CDC5151742B882E17186E9C24FC5D30B3F944356331065ED82",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibrary.h",
+        "bytes": 5382,
+        "sha256": "C7477A747185F97E5F87D777BC34CC1687D56DA1A8A5F39C4F55907A560C27CF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopRobotSlotConfigurationLibraryTests.cpp",
+        "bytes": 7615,
+        "sha256": "BD5CC7554B669EAC4EADC08337560A5D1863E1F8CAC727322F3DAF886653A003",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.cpp",
+        "bytes": 22095,
+        "sha256": "4BD0CFE52B7B684E4551C6D066504003F2A59F802BD7F0956E6ACEF4DBA6CBA3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopServiceDressingActor.h",
+        "bytes": 7037,
+        "sha256": "5671D75E1FD4B637CCAA29D546336AE014595BCFCFC0ED1EAF7A7252C2391A1A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopServiceDressingActorTests.cpp",
+        "bytes": 9863,
+        "sha256": "F3CC19FEBF78BF92B4A63D06A7E2457CED9A074DEED8DEFCBF6C130760F72448",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopServiceDressingCandidateIntegrationTests.cpp",
+        "bytes": 4303,
+        "sha256": "06251C81A7A478E023C2DD9312BFF00EADD5B7D0C2E413CC780F98CF9C7D1E96",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopTypes.cpp",
+        "bytes": 19316,
+        "sha256": "824633CC1F131DBF02D0B31CA2B77BAEC9FEB0BD56E8D9ED8EB3D2E594737C1A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopTypes.h",
+        "bytes": 10523,
+        "sha256": "DC5F78AEFFF42259CFE4577A0A3CDB26820D24904DB70BD9449BCAA4ABA201DF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopTypesTests.cpp",
+        "bytes": 9394,
+        "sha256": "2C66AB9C4E246F10D8B5296A7B23952B061142BB0BB2F233EF1DF174AA1A2F31",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.cpp",
+        "bytes": 40986,
+        "sha256": "F6C49F652D1203BA15765D35DBA3E9EBA7F64B420DC334FAC3E70E96F9818C70",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2.h",
+        "bytes": 7940,
+        "sha256": "29B6F66723127863082E5BD4D212B1D1AE2613BA929E033C409916BF704E4DE6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyExpansionV2Tests.cpp",
+        "bytes": 17445,
+        "sha256": "1A406373B419A273B73FF466BE3F387F2D8AC67BF27C471C344672728AA0D8AF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.cpp",
+        "bytes": 14494,
+        "sha256": "71AE368172787287CC40583B0D1FBB3A7AB1A4656F31AC53D6DEF3E2BE885830",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyProcess.h",
+        "bytes": 5921,
+        "sha256": "DE4E37B1B5FA4B1DF19D67773BE46AA17D095568D217EAB303618CC52231EC25",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyShopUnderbodyProcessTests.cpp",
+        "bytes": 9792,
+        "sha256": "5B0782EE38EE8EF85740559748AC1A24735D2CB21A2FE7A1239DA5E2F76E017F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyWeldLineActor.cpp",
+        "bytes": 78027,
+        "sha256": "C06F7CF6FAECEE3C6B98EA2020226E961479BA04D2C35C4E8B290F3A0BE5C406",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyWeldLineActor.h",
+        "bytes": 28319,
+        "sha256": "BDA985D627F0D3D4885632B9D777CE82071AF84AE036A39269E0F1754C8F46DE",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBodyWeldLineActorTests.cpp",
+        "bytes": 37877,
+        "sha256": "03364A6AF99A8560E4D53D684587A7D885A9DF478CAF0130BEB6D144360A2B65",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBridgeCraneController.cpp",
+        "bytes": 15108,
+        "sha256": "EC933B62D13DD0407D234E1F2BF6CA6619128D0E5A56ED118375041C5B4CDB52",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBridgeCraneController.h",
+        "bytes": 8672,
+        "sha256": "253B186563D4791B80C3B316E1604AB44A196E9A4C62775B43B963981DB01678",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBBridgeCraneControllerTests.cpp",
+        "bytes": 8574,
+        "sha256": "DDE9C9BEB7215A1552B3864CAF0C912A57D669742E7715CB221845DD22854713",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCleaningAMR.cpp",
+        "bytes": 22229,
+        "sha256": "846092B60D1D6DD67DDBD74395AE65AC277A21DE756A0AFAE8A2723F2F695723",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCleaningAMR.h",
+        "bytes": 11682,
+        "sha256": "4485C8D7AF1AC6FD109BCE9A44F8A92ABE2C8F3B8997A90B524A7B789CB78780",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCoilAGVController.cpp",
+        "bytes": 54704,
+        "sha256": "90EA99E942AAA35A24A2E5A6AF5D4A53B3206AEB587C58D6CEAF9CB98E728D76",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCoilAGVController.h",
+        "bytes": 14507,
+        "sha256": "2F46B9F0A8983F80585E36908530CCCD5DA3DB221CB4F8D21546F3C2A5AF39ED",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCoilAGVControllerTests.cpp",
+        "bytes": 35466,
+        "sha256": "9588EB4568D23F5D8F8DE69D98F775CF95159A27CB7C49CAD557FA5C0E8AC7A9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCompactStillageFLT.cpp",
+        "bytes": 47758,
+        "sha256": "0D53A5B8C1C26455FBBDF511E593A6BFD9519BB81B6BD2B3A86787B0FA6600C7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBCompactStillageFLT.h",
+        "bytes": 23545,
+        "sha256": "B4105680DE1A8B77EE8814C8F52CB559DECAA63CCA18AFA332028FED6867A09E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBConsoleFreeRuntimeBootstrapTests.cpp",
+        "bytes": 23671,
+        "sha256": "456EE6984F3272C28FFB0D2F0E7AF9CF4B60EF197E972D5C7B67ED20D427550B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomCCTVFeed.cpp",
+        "bytes": 4760,
+        "sha256": "BA4BDFEBB3640472742538305AC8C47CD4F1E4B187F6A24E80540C2052B3A735",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomCCTVFeed.h",
+        "bytes": 3380,
+        "sha256": "8106B37CC7FC82E048B8244990DE6A9BEB70DA97522D465865CE8AD03DF09122",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomCCTVFeedTests.cpp",
+        "bytes": 3716,
+        "sha256": "E7CD15A389192018248339F8795784783079C3C1EA3A68560873BA6D6CC70AED",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomGameMode.cpp",
+        "bytes": 258,
+        "sha256": "9AEA034F3420E9C36965F0067B4BD59C20174D5AD90F5DC26F0E20B653FD0772",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomGameMode.h",
+        "bytes": 275,
+        "sha256": "1697FA605E3EDB7A11E4DBEA444268C46903F241F16471DCDD09BAAA9692E5A0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomHUD.cpp",
+        "bytes": 170657,
+        "sha256": "11C463C6EF48AB8F16AB2071A2DEA56D9C9BFD59A7B4143537C1BCDD5E791963",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomHUD.h",
+        "bytes": 18040,
+        "sha256": "EEE8298CBB86489B1664428405768C9490996D9500D082609711BA5B44D5FCE9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomOperationsConsole.cpp",
+        "bytes": 41387,
+        "sha256": "87D63C31DDFF18C7D571C2CB57668F5AAB839BA80849B3689D751C2599161F69",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomOperationsConsole.h",
+        "bytes": 11375,
+        "sha256": "62F0CE0C9E738414CAF7525B7C774D94387ADDEBB8BBBCBE76D9D64A86FEBDAB",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomOperationsConsoleTests.cpp",
+        "bytes": 15345,
+        "sha256": "5B199281ABF74BA7B695444CBF849C4ADF7F4A2BB73CA49C91148574C6221AF3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPawn.cpp",
+        "bytes": 20757,
+        "sha256": "38F746953F7E9F0E6E54AA3210BAC399C57B1CD50DB2C0F3C14665119D535629",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPawn.h",
+        "bytes": 5114,
+        "sha256": "133ECE691D91D19842A903F7A3A48804BFB752DDFF3122D5ACC844DBB892B78B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPawnTests.cpp",
+        "bytes": 8025,
+        "sha256": "ABF469D8A5BFA3E254E46F8E6DAA6C6B681AC77651877D7AB280893068C6FF46",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPR004Console.cpp",
+        "bytes": 9710,
+        "sha256": "D95971811280094BC8969CD217BA2302B83B31643D4284949B9AC18AF5EBA561",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPR004Console.h",
+        "bytes": 3025,
+        "sha256": "918F7B34F7683FE84D436F9AF735A00F5D4450FE0068920464DE6B69105F0F22",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBControlRoomPR004ConsoleTests.cpp",
+        "bytes": 4597,
+        "sha256": "D15D39FC5BF3C95FBA0AB8C90BF0B7F6C7DE0AB8A6245907EA5144AAE2F09B07",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBDeveloperAutomationBridge.cpp",
+        "bytes": 74521,
+        "sha256": "D9E68AEA0F1E320BF3FB54BB9CEA2C9AAF6688E68F8768FD8C7AE89DAD44A1E2",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBDeveloperAutomationBridge.h",
+        "bytes": 3673,
+        "sha256": "6C89AF8310D2ADCAEBB826CFA446F7FD3486303356015DA0B1D583B5C1F9196E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBDeveloperAutomationBridgeTests.cpp",
+        "bytes": 35136,
+        "sha256": "AA2E83CB5699BAEE4E46B58EEF9692C4105AA01B375944C030F0B6A02C9B8EF2",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBECoatLineActor.cpp",
+        "bytes": 79846,
+        "sha256": "01A314D5576FFCFE592FED55E2410A1C1454665C5528D6D17986B2FA6EF31D02",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBECoatLineActor.h",
+        "bytes": 26447,
+        "sha256": "0F976B66B9D425E1D198FBDF9657292C1A1AE295DA5F10F96F88649232A862A1",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBECoatLineActorTests.cpp",
+        "bytes": 34082,
+        "sha256": "59A9D161E6C43AEB6346753A678027EB1A37EFB9FB3D5CD3D71EB61C9821912C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryAGVInfrastructure.cpp",
+        "bytes": 11850,
+        "sha256": "E03025373BAD1DF87AC70C3641DE4A7B9733A371AB7BF93418399A3EECB7D7A9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryAGVInfrastructure.h",
+        "bytes": 5367,
+        "sha256": "B7ECDC71EF9C5B3FB00FB520E7932908D1510AEAC5205B073307DAD8DDE77B99",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryBrandSubsystem.cpp",
+        "bytes": 7099,
+        "sha256": "7A3FA7D0DC124E0801C770986D8F91DBCD586106BAA2341AD896410734A72248",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryBrandSubsystem.h",
+        "bytes": 6154,
+        "sha256": "B7282757A6BD988288CFBFC955DBA558546E0D5C9CFBF871521262F3A5C30D0F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryBrandSubsystemTests.cpp",
+        "bytes": 8374,
+        "sha256": "03FDDC15EAC057737571016CB71F6A06373FDA5A3E7DEEFB9EE7C3F4D07BC911",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryBuildMachine.cpp",
+        "bytes": 95055,
+        "sha256": "F91D866D8DCA355AEC68907F59589269392381E30A7A953ED52406EE740D8C1C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryBuildMachine.h",
+        "bytes": 18286,
+        "sha256": "2B19EE32B4A1C33AF42D13F6B973E1B98588813BF3BDB8E75224A515B283D1C9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryConnectionSubsystem.cpp",
+        "bytes": 14084,
+        "sha256": "F509A09D92B28FC298B025BA22D19F91DBF14DC0D481DA0F81897D78318C2C9D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryConnectionSubsystem.h",
+        "bytes": 1768,
+        "sha256": "F0870AEE22B21B0A16F69B5F127913DD999DBDEB7604D42196ACEC4ADB097833",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryConnectionSubsystemTests.cpp",
+        "bytes": 17593,
+        "sha256": "C1AF095749FC670696570EE9879F474A51B8199B84C5128BE4EDCBC370A8D796",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActor.cpp",
+        "bytes": 14943,
+        "sha256": "2FF9536B44CB956496A3F3002FAEC80CE598FA61A49906860348BD3E21E0D004",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActor.h",
+        "bytes": 6119,
+        "sha256": "E49F6CFDC2A5854D9DCFABDD74E779F79E178DCC08D02215A1819A555AE2BBCF",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryEnvelopeShutterActorTests.cpp",
+        "bytes": 17083,
+        "sha256": "7AC6A09F3D3E3FF69FA92B37BB4A7930C50D2E04E12DA2D4FD25B4583DDE4A07",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryEnvelopeSideDressingActor.cpp",
+        "bytes": 8955,
+        "sha256": "4E4902F84FA011A6E4155C22A2F3439D8E5C1BEACC47140D4A2CDBB6173A06AA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryEnvelopeSideDressingActor.h",
+        "bytes": 2965,
+        "sha256": "6726EEA4D4C69BAD44A990C66F5A7D48766EAF84CA11F2E4889EF5FD8ED07F01",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryFloorMarkingComponent.cpp",
+        "bytes": 10878,
+        "sha256": "11B9F374D5564853AA0F73E1E5092C8BB6303B38A672633FFC0E555404B63FDC",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryFloorMarkingComponent.h",
+        "bytes": 3362,
+        "sha256": "BBA44F663BD7648B34EE4F8DE8B107B7D8762DBDA0A87FED89DFFC8F01D59DDA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryFloorMarkingTests.cpp",
+        "bytes": 11548,
+        "sha256": "63B80B2433D1181B1CBA950DD733314486DC6639FBE5E7437E967642F4FABE1A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystem.cpp",
+        "bytes": 89927,
+        "sha256": "C52874F6D10302A178EEEB1A70B17CC3F039702EC05122CC1D7E186FEEF958F7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystem.h",
+        "bytes": 6753,
+        "sha256": "29E8D0A7A74BF2FA30E814295F5AFC41579D1EB4DF304C2C6BDBDC838934A674",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryMachineBuilderSubsystemTests.cpp",
+        "bytes": 72079,
+        "sha256": "920CEDB18C400503BB7941C432C46E2253D969DFE43F9634D294CDC8E038F461",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystem.cpp",
+        "bytes": 35351,
+        "sha256": "5FD91CB7B47486FD9A1666DE1635D1F39373C454EAF2A85FAF21D4092450726C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystem.h",
+        "bytes": 3330,
+        "sha256": "15364AD60B0DC0EAE16F1C14E4BA0AE8080FFC9E76CAAE55D55EA8EFEA286664",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementRuntimeSubsystemTests.cpp",
+        "bytes": 33618,
+        "sha256": "E4FDAEBF283C18A2829B090EB28111A1D72042DFDA1183057CE6B984A6EB5463",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementSubsystem.cpp",
+        "bytes": 50976,
+        "sha256": "69726509429BC9208BCEFCEF5752C31A0ADE2CDBEDC723626AFB5F20400B26BB",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementSubsystem.h",
+        "bytes": 18623,
+        "sha256": "25DD8568E08F9AC0B729A281DED2AB88DF66F102493411BE145C6B998C98689E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryManagementSubsystemTests.cpp",
+        "bytes": 18660,
+        "sha256": "9B1DDCEE84443F4D14CF4BCE2AEA065FE80D7681E9AB0DA4067E57009538CC54",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryProcessPortComponent.cpp",
+        "bytes": 1103,
+        "sha256": "A3D2B0A5AD3CE551E7AAF83F868D5E0784C254643F3496CCBEDF05BF524F9057",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryProcessPortComponent.h",
+        "bytes": 6035,
+        "sha256": "C6329A481B80D9A2ECC0A5C0C8C725FF91F19E2FA6281FD412DC8704BEF26D03",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryTransportLink.cpp",
+        "bytes": 7918,
+        "sha256": "90224497B896FEBDFF309C6B8BED6D5817E9287080C7F6593B0F96D1AC21E227",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryTransportLink.h",
+        "bytes": 2644,
+        "sha256": "D99673A59326F0B92AB5F98995696E2E96695A10844192C531E18DC37808F129",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryUIStateSubsystem.cpp",
+        "bytes": 47172,
+        "sha256": "93894DB03C895C4C1440C5A06A0B84E5DA004E7A6E1701D3AB7E8DDB914FAAB4",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryUIStateSubsystem.h",
+        "bytes": 6537,
+        "sha256": "54C57682666F654092B8E3E5557E36E1499704D0D21CB8995749F334958A7EB1",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFactoryUIStateSubsystemTests.cpp",
+        "bytes": 42194,
+        "sha256": "FF8AFE7103CAD99E85BB0570799900776A6DBC54F78E73A61507485EE1DFFF04",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFreeRoamGameMode.cpp",
+        "bytes": 164,
+        "sha256": "1EC000EE475201039BE05185DBC9A140D2E833E085E00151F05399E5D5C1319E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFreeRoamGameMode.h",
+        "bytes": 357,
+        "sha256": "270DB555635C187573E5903378D6599CA418C5CE3C75CDA25923E9D79D52D580",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFreeRoamPawn.cpp",
+        "bytes": 1068,
+        "sha256": "BFC31C0CF29E2E3626326DD176FACA7B6EF1119805BFBB839B58FB3D73A71DEA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBFreeRoamPawn.h",
+        "bytes": 506,
+        "sha256": "C308E079E2C6E22DC09FA8C30B93C82C5EE6C231D50E5CD0B80DA0585878F473",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGameMode.cpp",
+        "bytes": 40922,
+        "sha256": "564348643D53EA7265840A10989B40E5C385C7ADBC7DDFD19B3C3CFAE819BE2C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGameMode.h",
+        "bytes": 643,
+        "sha256": "B0A7A29DD75A45FD1566319A05E74D89E980562A88758FEF65B508FACC35053D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGameUserSettings.cpp",
+        "bytes": 8863,
+        "sha256": "116B8A51C7DC0E770F82D8F8DA2C002D6AA952A8394EAE0D69C2FBB8B7445CA5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGameUserSettings.h",
+        "bytes": 5390,
+        "sha256": "1EE713DAECC5C8C23DB0904FADCCF7F6A4F6FA7D845B345A5AF5583E713D2EAE",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGameUserSettingsTests.cpp",
+        "bytes": 7750,
+        "sha256": "23633023A6008E7F1CAB7B75FBE291C61FF971212AAE8145844444AC082A6CA0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGraphicsStartupSubsystem.cpp",
+        "bytes": 6159,
+        "sha256": "AD0839F2F341842E0EE8EF476D90B8A3955EC4A04C58B98A54D30CB55033C171",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGraphicsStartupSubsystem.h",
+        "bytes": 2301,
+        "sha256": "CD57C88F08B6823E5EEE0E1F7E9DF1226A040680A960712FB099DF3B1B8CCEF4",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBGraphicsStartupSubsystemTests.cpp",
+        "bytes": 5120,
+        "sha256": "502FEDD800EA0DCD75FF036C438EDF954B69329EFD859C888F883A719974864B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBInboundDeliveryController.cpp",
+        "bytes": 59379,
+        "sha256": "6B4C89B4D39EAEC75FF8CC0EE9B165810B1E3659BA75D104CCD6CADB951A988C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBInboundDeliveryController.h",
+        "bytes": 16683,
+        "sha256": "835B9E6BC281A686AFC85EDEB50E19477C62D63C27081C249D9206D959552B3F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBInboundDeliveryControllerTests.cpp",
+        "bytes": 27735,
+        "sha256": "54DB947DFB8AD79F98E140D26577732E7DBE4166383DE80A174791BBDB3CA3A0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMachineLiveryComponent.cpp",
+        "bytes": 5682,
+        "sha256": "40E5AB5930B9C6392790D032E0B795C49BE9999935D6B394EEB65AF24260655B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMachineLiveryComponent.h",
+        "bytes": 3689,
+        "sha256": "87110849CA9E476874989519755284D757CFA10959B56FF0E4F0516649F0BA11",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMachineLiveryComponentTests.cpp",
+        "bytes": 9696,
+        "sha256": "00CB748CEA4EF3CBCDA26287D1C2A149292E0D24B56AA15D972FF89F32E781A8",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMaintenanceAMR.cpp",
+        "bytes": 43374,
+        "sha256": "37BED7DD377F677F19352C1E632C127429E58E729211C83A9610D01BB7B6275D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMaintenanceAMR.h",
+        "bytes": 12629,
+        "sha256": "3EBC33DB4196E0B3D2BAD50066A1F3CD711CEAAAA6CA7E513E1F9AB333351F1C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementHUDTests.cpp",
+        "bytes": 72809,
+        "sha256": "76B221141BD201B109F83EF99CBCB1B1BC80C787B24629CF6C1F3D5F211FF0C5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementPawn.cpp",
+        "bytes": 120024,
+        "sha256": "497DA151A9F3A1AFBA97A6CBA7B445CB04BAFA388EA1D8E781D6ED06AC8C8CF7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementPawn.h",
+        "bytes": 22957,
+        "sha256": "11E8FAAA5FD64FEF8CDE10463A1A3A9690D04490239BB6A4F2379DB5E89AE0B9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementPawnPreviewTests.cpp",
+        "bytes": 22215,
+        "sha256": "DE21E6CCA6CFE90B9C2F131320AA9D080A6D144DE7F0ECB869895F2FDF8D7966",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementRootWidget.cpp",
+        "bytes": 57236,
+        "sha256": "DC68B2579E913756B29B69F47F2057B05013621E2AE4650E80974332DEA9A218",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementRootWidget.h",
+        "bytes": 14277,
+        "sha256": "6655C38E84011EAE00F71D1C7E487E69ACBF30D2D5D9DB4CEFA787ABBDB03A92",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBManagementRootWidgetTests.cpp",
+        "bytes": 18558,
+        "sha256": "0377D31D52D0782F11D284AE99B494A4CC73C39B70BDA548C61451E08FDEE507",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMobileRoutePlanner.cpp",
+        "bytes": 14557,
+        "sha256": "EE3E7D5FE0DBA90828350FE83965DED43EC0F8A6DD44C82677AD72A7BAB9CC4E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMobileRoutePlanner.h",
+        "bytes": 1414,
+        "sha256": "352AE22DE0C193BD04359F9EDE7F7F7A590FA5AD44D2FB3E6A15A5E296CD4F99",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBMobileRoutePlannerTests.cpp",
+        "bytes": 9642,
+        "sha256": "D7525539BB91BC5B286BF70F60048866F2C44B8444024BCF86E745B172CD322A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopBuildAuthority.cpp",
+        "bytes": 13588,
+        "sha256": "89004FCECA430D127B69391CF3DF30C3EAAAF6D35326038B3E556A92D14982BA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopBuildAuthority.h",
+        "bytes": 3071,
+        "sha256": "256DB973866BFD44D0BB64E455973CE7614B1E028B5E06063F8D84ADA7826E83",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopBuildAuthorityTests.cpp",
+        "bytes": 13911,
+        "sha256": "27AB2976D79039F4D74A3BCEFFB7BE18B2F382C07317D5B63CB8F06392353E16",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopCellActor.cpp",
+        "bytes": 30242,
+        "sha256": "3ACBF58A381D8245C97C591FE16B610F54CE970F552A128BBD01C44417A18270",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopCellActor.h",
+        "bytes": 8318,
+        "sha256": "97F811167CDFC41E0C0FB9BB547DD11F211D93B7760FB4C39ACA7C721EBAD1BB",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopCellActorTests.cpp",
+        "bytes": 14831,
+        "sha256": "3861BF65CF7746C9936A85DA04EF91D77496F88EBFDEA84DFD8381D4F46519AD",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGame.cpp",
+        "bytes": 14930,
+        "sha256": "EAFAB7A99FD2C460E357E94E253143978140802A6A0A7180FEE619E1D44360F0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGame.h",
+        "bytes": 5589,
+        "sha256": "5EED8BADF288B8903E0F57B47A507BBF9E0EA344EF07484A9E13FF97F9393B7D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopExperimentalSaveGameTests.cpp",
+        "bytes": 24273,
+        "sha256": "2C06AD7513745323941B7397DDE76FDCF9CD7BF6308815719204530B6ABA2F0D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopManagementPawn.cpp",
+        "bytes": 14385,
+        "sha256": "CDA899EFCCC8BB4873D1D64478801CE24809D8D842674BBCC842902B87ADE5F7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopManagementPawn.h",
+        "bytes": 3630,
+        "sha256": "118CE74806F1A3BE9CFF785A30283D447A4A906DDC4125FB28A9C4061373A5A9",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPlayerControlTests.cpp",
+        "bytes": 21570,
+        "sha256": "E5A0CE051C3E609EB1243B5D42CC4A941061B0EA7DFDABE9406267BBB9E90E3F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPlayerShellTests.cpp",
+        "bytes": 14578,
+        "sha256": "776196E78DA230755EC389DEE0FD79DFB358B7F6F77F5DB47B13CFEEA31E7459",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPortComponent.cpp",
+        "bytes": 3529,
+        "sha256": "52A9179680146D8F7B2FEA93C21AF25955ABC64BB12AA2FC74004502663B0AD5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPortComponent.h",
+        "bytes": 2945,
+        "sha256": "BFC040539DECD749FE216308967486A5ADD15511FAD46C110358EC66713DE352",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPortComponentTests.cpp",
+        "bytes": 8638,
+        "sha256": "8D452EDBAD97FA708F1CFD4731F80AA879DAC1D0DD7BA842B2F019B3A45C1F71",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeGameMode.cpp",
+        "bytes": 25208,
+        "sha256": "9CF705FAE5A227E4A406176ED53ED80BAFE51F4BBB0DBC8F2E237D3D1781A88F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeGameMode.h",
+        "bytes": 5209,
+        "sha256": "CCA41D0F0658B249AF62DCB32105514ACAA5A1D8DA26DB3B7F1CED78FF8F5520",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeHUD.cpp",
+        "bytes": 5577,
+        "sha256": "DC48CA9017E52FE5E0D5FB7F9C24D64A3C410CEA5841B0D544F2801549284445",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeHUD.h",
+        "bytes": 1621,
+        "sha256": "2225C169AFEB797CC3DE33BC3A98FC803A1D4219D065C5DA7EB767B8B228D28E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeRootWidget.cpp",
+        "bytes": 18046,
+        "sha256": "1EEA66B670D9BB788C64795DAD8803AC766F899DA091D30669BC229C66394581",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeRootWidget.h",
+        "bytes": 2207,
+        "sha256": "1675508176820A638249E628A58E0882A45AB660F1868DB466E16C2A6159C70E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeRuntime.cpp",
+        "bytes": 28397,
+        "sha256": "8E46508A8314DFAFD67AE3A05DF3CBB90D31CD0E839E3E36039DB6AF33DB0B71",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeRuntime.h",
+        "bytes": 7687,
+        "sha256": "2797806BC5229DB2B43E6D34F3609077EE9D38733A4281A25562A15E2E0EDB8D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeRuntimeTests.cpp",
+        "bytes": 24292,
+        "sha256": "4C00E6C8C6355223EC6DA531B4DB193BCF02601F7FC67BECFACAA5717702A08E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrap.cpp",
+        "bytes": 9671,
+        "sha256": "F6CEDCBFCABF76C1DFB53F729DD4805C1E6166D5755BB3F17B328897663C8EA5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrap.h",
+        "bytes": 2935,
+        "sha256": "4886A517CD829589CB56845AD23D78DC366F99520FDD1E7DFE25C7136B13F692",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopPrototypeWorldBootstrapTests.cpp",
+        "bytes": 8536,
+        "sha256": "729852A84043569D3169BBDD4CCA39D42A921B64DB337773D11E358F9CC6D7A2",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopTypes.cpp",
+        "bytes": 9647,
+        "sha256": "C70E179149B58AC5005ED155D249DD2599CF2D31241DBABAC806281055EF2880",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopTypes.h",
+        "bytes": 3900,
+        "sha256": "9BCC742CC7764C239B756816EB4F1F9EA9D7EB4D6DA7AA4CD21134D392610628",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPaintShopTypesTests.cpp",
+        "bytes": 5234,
+        "sha256": "ECDA742D35AF4102A61656D78922084D1CF02BB37476BAFCCBA35CA1D1E46A64",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPlayerBuiltPressFlowController.cpp",
+        "bytes": 80323,
+        "sha256": "181467889579D8C72D7C791ECE525D159CC193ED5BC996602D83286711A697E0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPlayerBuiltPressFlowController.h",
+        "bytes": 16314,
+        "sha256": "620D44066570E1AFC911192789DD57399DBAA5D42E094C0A2DA162BC5A5D2EDA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPlayerBuiltPressFlowControllerTests.cpp",
+        "bytes": 62407,
+        "sha256": "0A809AD907AEBE05FFD94F9B96C90F52701169D6442FEAD38F2E533BB0EA716C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR004HMIWidget.cpp",
+        "bytes": 8834,
+        "sha256": "FCC441B7F3CFE2C43F397F3B14D02C935AD5F0DA764A12684693445634FC2564",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR004HMIWidget.h",
+        "bytes": 1199,
+        "sha256": "D56308C2F822E770B9F8B192CAC4258BA2DCF7BE59EFC5D17778EBA66BFBEB8D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR004Station.cpp",
+        "bytes": 102890,
+        "sha256": "0349E4928E60988A1676C143FB1727750E6ED641AF47344BB32072EAE1DA5D56",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR004Station.h",
+        "bytes": 41838,
+        "sha256": "A5DB0990B893A4B99DAFF0B79EFD53C3E02E58FD2380F927282D84F983223510",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR004StationTests.cpp",
+        "bytes": 18722,
+        "sha256": "6E6C6CB7AF7ECF5565937A9E5F3413BC041FD0EA7AE012B96C34DAFD2C9DED8C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR005HMIWidget.cpp",
+        "bytes": 10728,
+        "sha256": "EF0C2370E78B3EE17CD752989079207E99EA4FF5BD0081B166AB9DDC65419B51",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR005HMIWidget.h",
+        "bytes": 3001,
+        "sha256": "AD6C7F6E195124D2DE550EE50DDF7C1385D3D712E655640BDF5CE5D8025AC465",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR005Station.cpp",
+        "bytes": 38641,
+        "sha256": "3C0E9B8A035E47FB591F60F1BF83B55FEB066411342F378BA69C67E2862AB9A7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR005Station.h",
+        "bytes": 21970,
+        "sha256": "511D016A80E65B5197E6185266152DED72C2655D16A953E7C225285280362B6C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR006Station.cpp",
+        "bytes": 14024,
+        "sha256": "356BEF1C46A1109BB38CF084D9E12329A221964382DF4A41D66A2890DED7418D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR006Station.h",
+        "bytes": 9197,
+        "sha256": "31C8A2341B5378506CA318AE59246FFEDCFC0ADF51329CFAA806236B1E550094",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR006StationTests.cpp",
+        "bytes": 2394,
+        "sha256": "E4D5BCFC0A2B715408D5E90147C10D905C1A2492FA279B95F83F5D21DC8B5517",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR007Station.cpp",
+        "bytes": 12460,
+        "sha256": "43EA5921157C3D26BE7050E7B3AC923F047DBCB5F41A5D115B6BC053410045F0",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR007Station.h",
+        "bytes": 8419,
+        "sha256": "2AEE6CB47DE63DE395E4EB8A6A37BCDBB8DBE38374BC8416ED3936063948C403",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR007StationTests.cpp",
+        "bytes": 2407,
+        "sha256": "407F17D3CBDC00CD6610CD1D3CD8A66617478AE379F27418F5015177F06CAF1F",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR008Station.cpp",
+        "bytes": 34295,
+        "sha256": "7FE62E69B3DBDBE5BD96ACF4DF6E3A5DE6E01EAD84688E52762C0B7C4073EF75",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR008Station.h",
+        "bytes": 20626,
+        "sha256": "4537236DBED6373D1267A0CD95856BCAB388366499BB6E59BFB3FC34F1FD3BA4",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR008StationTests.cpp",
+        "bytes": 10720,
+        "sha256": "00D54F8147FF770998E33F77A1FB5A5AFBB3D4463E4C6FA66EB29A0D0F97BDFC",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR009Station.cpp",
+        "bytes": 31012,
+        "sha256": "54759DEF080BBC58D6969D6D70ED58ACFB812168C587957758B85BF6B42BA6A7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR009Station.h",
+        "bytes": 18944,
+        "sha256": "50F006AF1A725F5CDF7A5DCC29BD83EAAB2F813CEBE8EF48BBD45D73C711EA10",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR009StationTests.cpp",
+        "bytes": 9312,
+        "sha256": "71992608E414B7D6A38806EF3D75A8F5F8DAA9A051605347BFB9CCB05DE4C6E5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR010Station.cpp",
+        "bytes": 31071,
+        "sha256": "A771A75A9ACA83EF6E790328826CE3267C0E45AA099452F1FE6291E7204FD903",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR010Station.h",
+        "bytes": 16541,
+        "sha256": "0CB567796C55E8768DCF615A73E88C6FBDA4E752103AB3F4A784BE5AE1AE71AD",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPR010StationTests.cpp",
+        "bytes": 7333,
+        "sha256": "A775EDDAF0A62480A49E22B0945A19FDF70A69A0E600FEE0EB42AC7F918F5B1A",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopBuildAuthority.cpp",
+        "bytes": 27064,
+        "sha256": "15265C96BF20B5FEC488D872E2F2E163914B38F5F3673488E694CCD2CB39F2D5",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopBuildAuthority.h",
+        "bytes": 7691,
+        "sha256": "2426E5039CFBDC30CF85592736178FB092F6397D177B31BB500ADBBC74A8F7EE",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopBuildAuthorityTests.cpp",
+        "bytes": 22030,
+        "sha256": "2888DA5A281602CF17EEA9D329FBCFB6FDD38EC25F642593EBB2E0EAFC757120",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopCampaignController.cpp",
+        "bytes": 81149,
+        "sha256": "E61A0F6016873F0A8CDC90AB781ACEF5A5F44391C925ECEDFF7DF9AEC77F9923",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopCampaignController.h",
+        "bytes": 1231,
+        "sha256": "6EFFA6AE82C94DA895D703B91DBE64563BE4E554F6C2C54F2B8547F552919165",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopCampaignControllerTests.cpp",
+        "bytes": 43277,
+        "sha256": "491DCE6BA2DE8726E7496417AC688B8F3E70914135289C42A9B58F57A9C98D4E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopMaterialFlowController.cpp",
+        "bytes": 6865,
+        "sha256": "796EEB2A49FB4B7C0E598D060D0D5E2BC149F136DD20E8985B02A30D2253BBE6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopMaterialFlowController.h",
+        "bytes": 3520,
+        "sha256": "150ED4C8903315A85215DB228EA0D545EA88D79304B85F980751D533A5B7E335",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopMaterialFlowTests.cpp",
+        "bytes": 21290,
+        "sha256": "5F8BD299B382F4FE83C512FA1312F5A0FF6F67838DADEA9277C791EAE769B9EA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopNavigationBootstrap.cpp",
+        "bytes": 2604,
+        "sha256": "88BD9879F8E840F4594F9CD05FDD1E510EDA88F56D79AAD6C92327589BEF6F8B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopNavigationBootstrap.h",
+        "bytes": 1884,
+        "sha256": "0809173ABB23E05306459720CE9098632A5C58FBA51E657897A6718D93D85A85",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopSaveGame.cpp",
+        "bytes": 33,
+        "sha256": "55A62FDFFB90CDDEFFB22C1EC704978D23D46FAE3C5E01A150E7FD1E0BFFCFC6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopSaveGame.h",
+        "bytes": 6198,
+        "sha256": "34F02C27D426335F49234CDA8882183B78BF40DB63B761A689C1DF56FFDE1DD1",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopStorageZone.cpp",
+        "bytes": 37495,
+        "sha256": "CEB7D43ECA3B6B8072FC1763E9BF19B7D9D420DC9935CB83F3AEF3FA7043A70B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopStorageZone.h",
+        "bytes": 13455,
+        "sha256": "30F7932A41A3FC7AD57BEA5A1CEE361F473313D43E9DA4277F76F7FAA974CF38",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopSupportFleetController.cpp",
+        "bytes": 15291,
+        "sha256": "A3BD403FEA2492BC0D182D51B74DE1386D2E9F58C5AF5E82F1C50C25C43666B8",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressShopSupportFleetController.h",
+        "bytes": 4883,
+        "sha256": "A2C8D73C8AB964D2C684581705D2BC94717B5E501F08F3CBBE7164129FF7E098",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainAStation.cpp",
+        "bytes": 82678,
+        "sha256": "47F55E18303973107A1EB6B5CAF66FFC5FDBD15CE99B166540175318BDDF5095",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainAStation.h",
+        "bytes": 28316,
+        "sha256": "1F40047B41A3E35034BFFACDC5E5AA9A46C2B88F2736A4032A47460E29A27265",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainAStationTests.cpp",
+        "bytes": 52447,
+        "sha256": "0F0F4EF86EB83D770BF9FFC5DD2C0A423D3D54D0EFEDE250DA1E1D968540C652",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainIdentitySubsystem.cpp",
+        "bytes": 17811,
+        "sha256": "3355F448965729793A4A64C05E6591A1720D36EEA2122D9064549DE7EC178F87",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainIdentitySubsystem.h",
+        "bytes": 2952,
+        "sha256": "9262636C03AD6FCF6FF77C645BDCF309E01BE43F4C6BBC1DDD552D5BE194D818",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBPressTrainIdentitySubsystemTests.cpp",
+        "bytes": 21096,
+        "sha256": "FE703CA2FCB89717C30685D241356267352E846FCB1DA235308F70922B219B3C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSettingsRootWidget.cpp",
+        "bytes": 46737,
+        "sha256": "1D354E7A10FD1F28E33E0E277E0A86EE5C043CEC7A9ECB0697DF80063AF17D7E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSettingsRootWidget.h",
+        "bytes": 6346,
+        "sha256": "C4E7696B226AAEBB5C13E8C9DD31826143C1B5EF6034C16CA319DFF08D67D52C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSettingsRootWidgetTests.cpp",
+        "bytes": 8515,
+        "sha256": "F83BD8910A16FC2BAAE279058FD55451ABE4AD5C40774FBEF96C47C7A67039F2",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStatusBeaconComponent.cpp",
+        "bytes": 8288,
+        "sha256": "C80E7A096B3F91FA927DB16469267CACDEEA397664498C16F0BF211DEBC10A2D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStatusBeaconComponent.h",
+        "bytes": 5077,
+        "sha256": "5AB9FB4245DE1A9981201D555C310CEB4FDF793419171856F3503AA246C744B7",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStatusBeaconTests.cpp",
+        "bytes": 7938,
+        "sha256": "33FBF8CFCD1AA7872641985624B5119602C1237774542AC1BFE1D8317A30EBDB",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStillageFLTFleetController.cpp",
+        "bytes": 36772,
+        "sha256": "8683A62CA932A9849DDDBE7AB41C3EB870F2F1798F759933E1FC77598F7933FB",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStillageFLTFleetController.h",
+        "bytes": 9745,
+        "sha256": "FDE1AC76C47E3B168C2177F0483EAEE4B18161A7C3AD2935450356DEEA0A7A2C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBStillageFLTFleetTests.cpp",
+        "bytes": 52222,
+        "sha256": "B0B0FC5802A1033682F262ED2EAC049F465859C10119C2470260ABBBA2611580",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportCraneController.cpp",
+        "bytes": 12971,
+        "sha256": "057034A614A3E2C5AA822D6AF948793EFF8E89AA18B289991ADA2FAA8A5BF8B6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportCraneController.h",
+        "bytes": 6895,
+        "sha256": "D82CB9D2BC242DA5D36CFB49A3CE9FAE14F179710ED379721D35613F39D098B3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportCraneControllerTests.cpp",
+        "bytes": 7706,
+        "sha256": "C8A7A86BA9FFF0D881159E258F04418CA59E35AC0FE9548A66F4C8D39C4B8585",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobot.cpp",
+        "bytes": 35885,
+        "sha256": "BE183DFD9A53F13E3EF137792F8EB44CE30431639ED9B8821EFF68F1D35F9874",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobot.h",
+        "bytes": 16436,
+        "sha256": "F0163104F081F94FAF165279650A420BA9ADEFE3FFC969AD9400937406B0BF7E",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobotServiceDock.cpp",
+        "bytes": 12997,
+        "sha256": "E17794B3A3B1DB43C4138584568628B29356769F0E96E5EC8582A39F8CB568EA",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobotServiceDock.h",
+        "bytes": 5791,
+        "sha256": "EB7F60714723AA94AE3F16174DCFD7E1AE8EAC30FC2FF20AC4C034352591FEA3",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobotServiceDockTests.cpp",
+        "bytes": 5379,
+        "sha256": "DA95AC8157A25D71E8CC1EFFCAF339BF6CF38C4134485AE24725EEE4EA0A811C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBSupportRobotTests.cpp",
+        "bytes": 29296,
+        "sha256": "DF2F0240C2A9E68B2CD8BA2FFCFDF6E3374FCDA7379A28D419410EF9CEDA47C6",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBVehiclePanelCatalog.cpp",
+        "bytes": 3523,
+        "sha256": "733782DAB256E8F9669FEDDE09DCE81CD0A54E51287EE2744D1B71494B086983",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBVehiclePanelCatalog.h",
+        "bytes": 1339,
+        "sha256": "AC1111D6254BD3F34D7499C9B5E568DE50E6EAD6E215EC100B585CE3F224361D",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LBVisualTuningTests.cpp",
+        "bytes": 21125,
+        "sha256": "0B7502FBEC05014693FAFA730D7DA0E202DFD996F9A122AD69689612AFD83F2B",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LineBossCarFactory.Build.cs",
+        "bytes": 403,
+        "sha256": "3176E2006D9DD887E216823299F78C69C08D235843B54D06810098FD76C6104C",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactory/LineBossCarFactory.cpp",
+        "bytes": 133,
+        "sha256": "3546445611DF65BDE4AB3679F4366F05F27D7532EB27EE825AC7AA3142BD7C97",
+        "groups": [
+          "complete_source_tree"
+        ]
+      },
+      {
+        "path": "Source/LineBossCarFactoryEditor.Target.cs",
+        "bytes": 418,
+        "sha256": "4BCE764C0CFC0DE1C042BFEDD043B187562A0CC0B5ECA3A10EACB525E898BC26",
+        "groups": [
+          "complete_source_tree"
+        ]
+      }
+    ],
+    "inventory_sha256": "FA4590D24992EE8F022D8E50039BA92B3E5727007BBDA1EF16FC8EA0DBC7E8EA",
+    "destination_excluded_from_weld_shop_snapshot": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001"
+  },
+  "policy": {
+    "one_shot": true,
+    "replace_existing": false,
+    "fresh_import_after_hash_guarded_archive_and_atomic_recoverable_namespace_move": true,
+    "failed_runs_required_for_archive": 2,
+    "invalid_packages_required_for_copy_and_move": 8,
+    "destination_must_be_absent_before_unreal_launch": true,
+    "automatic_failure_cleanup": false,
+    "partial_assets_preserved_in_saved_audits_recovery_archive": true,
+    "content_packages_deleted": false,
+    "maps_source_config_and_existing_content_writable": false,
+    "runtime_binding_or_promotion_authorized": false,
+    "unreal_or_ubt_run_by_baseline_freezer": false
+  }
+}

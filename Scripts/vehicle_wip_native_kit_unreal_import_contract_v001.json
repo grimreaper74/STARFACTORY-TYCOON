@@ -1,0 +1,2221 @@
+{
+  "$schema": "lineboss/vehicle-wip-native-kit-v001/unreal-static-import-contract/v1",
+  "assets": {
+    "FrontDoor_L": {
+      "asset_name": "SM_LB_C2040_FrontDoor_L",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              104.7712,
+              11.3,
+              72.1541
+            ],
+            "maximum_cm": [
+              60.2764,
+              -82.65,
+              136.1291
+            ],
+            "minimum_cm": [
+              -44.4948,
+              -93.95,
+              63.975
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_FrontDoor_L_LOD0.fbx",
+          "source_bytes": 40780,
+          "source_sha256": "7218E7358B335B60EAEEE38A5C40FF4F10A717B054E80C23C2D68F6F3B8D3D4A",
+          "triangles": 540,
+          "uv_layers": 1,
+          "vertices": 280
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              104.7712,
+              11.0,
+              72.1541
+            ],
+            "maximum_cm": [
+              60.2764,
+              -82.95,
+              136.1291
+            ],
+            "minimum_cm": [
+              -44.4948,
+              -93.95,
+              63.975
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_FrontDoor_L_LOD1.fbx",
+          "source_bytes": 31580,
+          "source_sha256": "5FE7CB1E1A5D22A5573BE24F8FA475E5560012E67A29A237CDA3B79383F9ACD4",
+          "triangles": 324,
+          "uv_layers": 1,
+          "vertices": 168
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              104.7712,
+              5.5,
+              72.1541
+            ],
+            "maximum_cm": [
+              60.2764,
+              -85.45,
+              136.1291
+            ],
+            "minimum_cm": [
+              -44.4948,
+              -90.95,
+              63.975
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_FrontDoor_L_LOD2.fbx",
+          "source_bytes": 17212,
+          "source_sha256": "56E10672B0DC7EAACD50C1E45F8CD587661415AB2FAEBBBA53B2532D31307D35",
+          "triangles": 44,
+          "uv_layers": 1,
+          "vertices": 24
+        }
+      ],
+      "mirror_recipe": "FrontDoor_R",
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L.SM_LB_C2040_FrontDoor_L",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L",
+      "role": "FrontDoor_L",
+      "triangle_chain": [
+        540,
+        324,
+        44
+      ]
+    },
+    "FrontFender_L": {
+      "asset_name": "SM_LB_C2040_FrontFender_L",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              152.2251,
+              9.1,
+              62.6659
+            ],
+            "maximum_cm": [
+              215.6118,
+              -82.9,
+              104.0241
+            ],
+            "minimum_cm": [
+              63.3867,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_FrontFender_L_LOD0.fbx",
+          "source_bytes": 35244,
+          "source_sha256": "D0F1842213BBD2F6C3A4ED21D4045C67FCFE53216F5A6DFFA4EDEC916F991CB8",
+          "triangles": 496,
+          "uv_layers": 1,
+          "vertices": 260
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              152.2251,
+              8.25,
+              62.6659
+            ],
+            "maximum_cm": [
+              215.6118,
+              -83.75,
+              104.0241
+            ],
+            "minimum_cm": [
+              63.3867,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_FrontFender_L_LOD1.fbx",
+          "source_bytes": 28476,
+          "source_sha256": "A90E582E6C6EEE51C56F3B67D2F0E45E982887A7B3AF20E82D56056D80CCA963",
+          "triangles": 292,
+          "uv_layers": 1,
+          "vertices": 152
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              152.2251,
+              6.0,
+              62.6659
+            ],
+            "maximum_cm": [
+              215.6118,
+              -86.0,
+              104.0241
+            ],
+            "minimum_cm": [
+              63.3867,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_FrontFender_L_LOD2.fbx",
+          "source_bytes": 18396,
+          "source_sha256": "854CD83D35C5202F795B75AB59ABBAAE102F66141F6E2D8A714D5F13236770D7",
+          "triangles": 80,
+          "uv_layers": 1,
+          "vertices": 44
+        }
+      ],
+      "mirror_recipe": "FrontFender_R",
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L.SM_LB_C2040_FrontFender_L",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L",
+      "role": "FrontFender_L",
+      "triangle_chain": [
+        496,
+        292,
+        80
+      ]
+    },
+    "GlassLightsFinish": {
+      "asset_name": "SM_LB_C2040_GlassLightsFinish",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_GlassLightsFinish.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              442.25,
+              218.0,
+              101.1
+            ],
+            "maximum_cm": [
+              225.75,
+              109.0,
+              155.9
+            ],
+            "minimum_cm": [
+              -216.5,
+              -109.0,
+              54.8
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_AUTOMOTIVE_GLASS",
+            "LB_LAMP_EMISSIVE",
+            "LB_TAIL_LAMP_EMISSIVE",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_GlassLightsFinish_LOD0.fbx",
+          "source_bytes": 87516,
+          "source_sha256": "74B221846EC72AE1141769A81645F8827DAD9B87F00B1F9F05A61C2728F07DB5",
+          "triangles": 1708,
+          "uv_layers": 1,
+          "vertices": 888
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              442.0,
+              218.0,
+              65.2672
+            ],
+            "maximum_cm": [
+              225.5,
+              109.0,
+              144.2672
+            ],
+            "minimum_cm": [
+              -216.5,
+              -109.0,
+              79.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_AUTOMOTIVE_GLASS",
+            "LB_LAMP_EMISSIVE",
+            "LB_TAIL_LAMP_EMISSIVE",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_GlassLightsFinish_LOD1.fbx",
+          "source_bytes": 37420,
+          "source_sha256": "2FBBE94A81AF7A72F22933EAF3E3A68E06675FAA4EEEE59D06DEAF2F5425A4C5",
+          "triangles": 616,
+          "uv_layers": 1,
+          "vertices": 336
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              442.0,
+              182.5,
+              65.2672
+            ],
+            "maximum_cm": [
+              225.5,
+              91.25,
+              144.2672
+            ],
+            "minimum_cm": [
+              -216.5,
+              -91.25,
+              79.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_AUTOMOTIVE_GLASS",
+            "LB_LAMP_EMISSIVE",
+            "LB_TAIL_LAMP_EMISSIVE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_GlassLightsFinish_LOD2.fbx",
+          "source_bytes": 33804,
+          "source_sha256": "2FC87B27E1ED1C9960092541ED14F1A76A9470BDAEDC371657324F95AD398D38",
+          "triangles": 528,
+          "uv_layers": 1,
+          "vertices": 288
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_GlassLightsFinish.SM_LB_C2040_GlassLightsFinish",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_GlassLightsFinish",
+      "role": "GlassLightsFinish",
+      "triangle_chain": [
+        1708,
+        616,
+        528
+      ]
+    },
+    "Hood": {
+      "asset_name": "SM_LB_C2040_Hood",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Hood.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              157.8166,
+              157.0721,
+              8.3
+            ],
+            "maximum_cm": [
+              210.4166,
+              78.5361,
+              104.75
+            ],
+            "minimum_cm": [
+              52.6,
+              -78.5361,
+              96.45
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_Hood_LOD0.fbx",
+          "source_bytes": 41196,
+          "source_sha256": "740A9B00C50D495D1E697D00D21204F68ADA2373C8231FB36D58CB8C03F45E97",
+          "triangles": 660,
+          "uv_layers": 1,
+          "vertices": 342
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              157.8166,
+              157.0721,
+              8.3
+            ],
+            "maximum_cm": [
+              210.4166,
+              78.5361,
+              104.75
+            ],
+            "minimum_cm": [
+              52.6,
+              -78.5361,
+              96.45
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_Hood_LOD1.fbx",
+          "source_bytes": 33788,
+          "source_sha256": "0FE4696242607BFDE1AE12C467AD22A42C10C11C9C96F62FBFE2A44142226B4C",
+          "triangles": 444,
+          "uv_layers": 1,
+          "vertices": 230
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              157.8166,
+              157.0721,
+              5.5
+            ],
+            "maximum_cm": [
+              210.4166,
+              78.5361,
+              104.75
+            ],
+            "minimum_cm": [
+              52.6,
+              -78.5361,
+              99.25
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_Hood_LOD2.fbx",
+          "source_bytes": 17244,
+          "source_sha256": "71E93298238BCAA4F7E6694E7A56237D2E8DE48B156255928DCC1B3F2DD70811",
+          "triangles": 52,
+          "uv_layers": 1,
+          "vertices": 28
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Hood.SM_LB_C2040_Hood",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Hood",
+      "role": "Hood",
+      "triangle_chain": [
+        660,
+        444,
+        52
+      ]
+    },
+    "InteriorTrim": {
+      "asset_name": "SM_LB_C2040_InteriorTrim",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_InteriorTrim.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              215.0,
+              164.5,
+              87.0
+            ],
+            "maximum_cm": [
+              91.0,
+              82.25,
+              134.0
+            ],
+            "minimum_cm": [
+              -124.0,
+              -82.25,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_INTERIOR_TRIM",
+            "LB_INTERIOR_ACCENT",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_InteriorTrim_LOD0.fbx",
+          "source_bytes": 105180,
+          "source_sha256": "7C3F424C0701D33EE60591DDD829836A54CE62E9DDCF4059F4486A774C4D1475",
+          "triangles": 2400,
+          "uv_layers": 1,
+          "vertices": 1240
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              205.5,
+              148.0,
+              87.0
+            ],
+            "maximum_cm": [
+              91.0,
+              74.0,
+              134.0
+            ],
+            "minimum_cm": [
+              -114.5,
+              -74.0,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_INTERIOR_TRIM",
+            "LB_INTERIOR_ACCENT",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_InteriorTrim_LOD1.fbx",
+          "source_bytes": 40012,
+          "source_sha256": "1784CA5EF772322B11C0408B54122392F6DF4A0E492EA8B962E346603B0243B5",
+          "triangles": 800,
+          "uv_layers": 1,
+          "vertices": 432
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              201.0,
+              148.0,
+              72.8458
+            ],
+            "maximum_cm": [
+              91.0,
+              74.0,
+              119.8458
+            ],
+            "minimum_cm": [
+              -110.0,
+              -74.0,
+              47.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_INTERIOR_TRIM"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_InteriorTrim_LOD2.fbx",
+          "source_bytes": 24140,
+          "source_sha256": "83C9BFC705A556760BF90E78CDF3BAFF747BEC5F1238DF9E5166DFE3B7848782",
+          "triangles": 308,
+          "uv_layers": 1,
+          "vertices": 168
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_InteriorTrim.SM_LB_C2040_InteriorTrim",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_InteriorTrim",
+      "role": "InteriorTrim",
+      "triangle_chain": [
+        2400,
+        800,
+        308
+      ]
+    },
+    "PowertrainChassis": {
+      "asset_name": "SM_LB_C2040_PowertrainChassis",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_PowertrainChassis.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              344.0,
+              162.0,
+              53.0
+            ],
+            "maximum_cm": [
+              156.0,
+              81.0,
+              62.0
+            ],
+            "minimum_cm": [
+              -188.0,
+              -81.0,
+              9.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_POWERTRAIN_METAL",
+            "LB_POWERTRAIN_COPPER",
+            "LB_BLACK_STRUCTURE",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_PowertrainChassis_LOD0.fbx",
+          "source_bytes": 122620,
+          "source_sha256": "52683DCC0DB1C488888DF51FA3FE8104FCE7352033D6E56ECE564D4E0570EE93",
+          "triangles": 3136,
+          "uv_layers": 1,
+          "vertices": 1616
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              343.6894,
+              162.0,
+              53.0
+            ],
+            "maximum_cm": [
+              155.6894,
+              81.0,
+              62.0
+            ],
+            "minimum_cm": [
+              -188.0,
+              -81.0,
+              9.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_POWERTRAIN_METAL",
+            "LB_POWERTRAIN_COPPER",
+            "LB_BLACK_STRUCTURE",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_PowertrainChassis_LOD1.fbx",
+          "source_bytes": 49740,
+          "source_sha256": "5A9AE97478497A915D8470D9343585BF91364BA33F7EB1EB509FFE2893FA6415",
+          "triangles": 1048,
+          "uv_layers": 1,
+          "vertices": 560
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              341.3205,
+              162.0,
+              53.0
+            ],
+            "maximum_cm": [
+              153.3205,
+              81.0,
+              62.0
+            ],
+            "minimum_cm": [
+              -188.0,
+              -81.0,
+              9.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_POWERTRAIN_METAL",
+            "LB_POWERTRAIN_COPPER",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_PowertrainChassis_LOD2.fbx",
+          "source_bytes": 31228,
+          "source_sha256": "D24A72838602607D180E1D61DCBD29B0559EF754D14B4D859D61CDCB8EF2661F",
+          "triangles": 488,
+          "uv_layers": 1,
+          "vertices": 264
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_PowertrainChassis.SM_LB_C2040_PowertrainChassis",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_PowertrainChassis",
+      "role": "PowertrainChassis",
+      "triangle_chain": [
+        3136,
+        1048,
+        488
+      ]
+    },
+    "QuarterPanel_L": {
+      "asset_name": "SM_LB_C2040_QuarterPanel_L",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              142.2251,
+              9.1,
+              62.668
+            ],
+            "maximum_cm": [
+              -65.3897,
+              -82.9,
+              104.0262
+            ],
+            "minimum_cm": [
+              -207.6147,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_QuarterPanel_L_LOD0.fbx",
+          "source_bytes": 35212,
+          "source_sha256": "7E29C097D8E8F5F40714292006DD372D80DAAE70FC899FA4190EB603EFDC0054",
+          "triangles": 496,
+          "uv_layers": 1,
+          "vertices": 260
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              142.2251,
+              8.25,
+              62.668
+            ],
+            "maximum_cm": [
+              -65.3897,
+              -83.75,
+              104.0262
+            ],
+            "minimum_cm": [
+              -207.6147,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_QuarterPanel_L_LOD1.fbx",
+          "source_bytes": 28492,
+          "source_sha256": "FEB34BE0C4D16BEA1B2E850B16054B109DD6BC30A99D2C2CEC391A694E5D7678",
+          "triangles": 292,
+          "uv_layers": 1,
+          "vertices": 152
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              142.2251,
+              6.0,
+              62.668
+            ],
+            "maximum_cm": [
+              -65.3897,
+              -86.0,
+              104.0262
+            ],
+            "minimum_cm": [
+              -207.6147,
+              -92.0,
+              41.3582
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_QuarterPanel_L_LOD2.fbx",
+          "source_bytes": 18396,
+          "source_sha256": "3AF533D501640FBB880FE36087A5BC097A23317EFF27623CDEB833BFD1023631",
+          "triangles": 80,
+          "uv_layers": 1,
+          "vertices": 44
+        }
+      ],
+      "mirror_recipe": "QuarterPanel_R",
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L.SM_LB_C2040_QuarterPanel_L",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L",
+      "role": "QuarterPanel_L",
+      "triangle_chain": [
+        496,
+        292,
+        80
+      ]
+    },
+    "RearDoor_L": {
+      "asset_name": "SM_LB_C2040_RearDoor_L",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              113.9186,
+              11.3,
+              72.2358
+            ],
+            "maximum_cm": [
+              -26.6497,
+              -82.65,
+              136.2358
+            ],
+            "minimum_cm": [
+              -140.5683,
+              -93.95,
+              64.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_RearDoor_L_LOD0.fbx",
+          "source_bytes": 42236,
+          "source_sha256": "699D61B74F14D2359F20AC82B7950D40A7C0EF0D75ACCBB3F9A12A3833F3F611",
+          "triangles": 568,
+          "uv_layers": 1,
+          "vertices": 294
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              113.9186,
+              11.0,
+              72.2358
+            ],
+            "maximum_cm": [
+              -26.6497,
+              -82.95,
+              136.2358
+            ],
+            "minimum_cm": [
+              -140.5683,
+              -93.95,
+              64.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_RearDoor_L_LOD1.fbx",
+          "source_bytes": 32764,
+          "source_sha256": "70BF50CBAAF492A14447D72E96DB030682B838B0012CEC9196E1765C97F6B229",
+          "triangles": 352,
+          "uv_layers": 1,
+          "vertices": 182
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              113.9186,
+              5.5,
+              72.2358
+            ],
+            "maximum_cm": [
+              -26.6497,
+              -85.45,
+              136.2358
+            ],
+            "minimum_cm": [
+              -140.5683,
+              -90.95,
+              64.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_RearDoor_L_LOD2.fbx",
+          "source_bytes": 17564,
+          "source_sha256": "DF530C545169EC6584486DCB8275DDB25DF7378FEF5F96B2A3CF51EB5BC389AF",
+          "triangles": 56,
+          "uv_layers": 1,
+          "vertices": 30
+        }
+      ],
+      "mirror_recipe": "RearDoor_R",
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L.SM_LB_C2040_RearDoor_L",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L",
+      "role": "RearDoor_L",
+      "triangle_chain": [
+        568,
+        352,
+        56
+      ]
+    },
+    "RollingGear": {
+      "asset_name": "SM_LB_C2040_RollingGear",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RollingGear.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              347.0,
+              184.0,
+              72.0
+            ],
+            "maximum_cm": [
+              172.0,
+              92.0,
+              72.0
+            ],
+            "minimum_cm": [
+              -175.0,
+              -92.0,
+              0.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_RUBBER_RUNNING_GEAR",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE",
+            "LB_POWERTRAIN_COPPER",
+            "LB_INTERIOR_ACCENT"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_RollingGear_LOD0.fbx",
+          "source_bytes": 190940,
+          "source_sha256": "1866131C339F09544279ACCFCADBC81AA0EECD680DEA29A15143D55863864736",
+          "triangles": 5904,
+          "uv_layers": 1,
+          "vertices": 3024
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              347.0,
+              184.0,
+              72.0
+            ],
+            "maximum_cm": [
+              172.0,
+              92.0,
+              72.0
+            ],
+            "minimum_cm": [
+              -175.0,
+              -92.0,
+              0.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_RUBBER_RUNNING_GEAR",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE",
+            "LB_POWERTRAIN_COPPER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_RollingGear_LOD1.fbx",
+          "source_bytes": 113052,
+          "source_sha256": "8E0256667308C5EE113034C7BB2694C266B720FAE160938CE1403EA71C12C3F1",
+          "triangles": 2976,
+          "uv_layers": 1,
+          "vertices": 1536
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              347.0,
+              184.0,
+              72.0
+            ],
+            "maximum_cm": [
+              172.0,
+              92.0,
+              72.0
+            ],
+            "minimum_cm": [
+              -175.0,
+              -92.0,
+              0.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_RUBBER_RUNNING_GEAR",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE",
+            "LB_POWERTRAIN_COPPER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_RollingGear_LOD2.fbx",
+          "source_bytes": 35612,
+          "source_sha256": "F9607F72934FAAFD45594ECEBDFB067F5085432C4F549D803E519DF7ECB0B1D6",
+          "triangles": 656,
+          "uv_layers": 1,
+          "vertices": 352
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RollingGear.SM_LB_C2040_RollingGear",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RollingGear",
+      "role": "RollingGear",
+      "triangle_chain": [
+        5904,
+        2976,
+        656
+      ]
+    },
+    "Roof": {
+      "asset_name": "SM_LB_C2040_Roof",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Roof.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              202.4595,
+              158.4472,
+              7.55
+            ],
+            "maximum_cm": [
+              72.2158,
+              79.2233,
+              153.25
+            ],
+            "minimum_cm": [
+              -130.2437,
+              -79.2239,
+              145.7
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_Roof_LOD0.fbx",
+          "source_bytes": 38028,
+          "source_sha256": "6F004F53A0F4D90EA337A324417CF69D0D3FBF1729C7BA6D12892D3E65E037F1",
+          "triangles": 552,
+          "uv_layers": 1,
+          "vertices": 286
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              202.4595,
+              158.4472,
+              7.55
+            ],
+            "maximum_cm": [
+              72.2158,
+              79.2233,
+              153.25
+            ],
+            "minimum_cm": [
+              -130.2437,
+              -79.2239,
+              145.7
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_Roof_LOD1.fbx",
+          "source_bytes": 30268,
+          "source_sha256": "55DE66C444CF7D71638D4605122C4CA888BC796BE3E016CB671C1566AA141E3E",
+          "triangles": 336,
+          "uv_layers": 1,
+          "vertices": 174
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              202.4595,
+              158.4472,
+              5.5
+            ],
+            "maximum_cm": [
+              72.2158,
+              79.2233,
+              153.25
+            ],
+            "minimum_cm": [
+              -130.2437,
+              -79.2239,
+              147.75
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_Roof_LOD2.fbx",
+          "source_bytes": 17372,
+          "source_sha256": "4B4E2550B76730EB4E260DBB4A9B6A4D79029E38B98B08FA54406BD99063735C",
+          "triangles": 52,
+          "uv_layers": 1,
+          "vertices": 28
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Roof.SM_LB_C2040_Roof",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Roof",
+      "role": "Roof",
+      "triangle_chain": [
+        552,
+        336,
+        52
+      ]
+    },
+    "RoofClosures": {
+      "asset_name": "SM_LB_C2040_RoofClosures",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RoofClosures.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              452.0,
+              190.5,
+              125.5
+            ],
+            "maximum_cm": [
+              230.0,
+              95.25,
+              157.5
+            ],
+            "minimum_cm": [
+              -222.0,
+              -95.25,
+              32.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_RoofClosures_LOD0.fbx",
+          "source_bytes": 154252,
+          "source_sha256": "DAB81017B750175A65103FB8A9B5255B54CBB0094211528EE7478F4381C5013A",
+          "triangles": 3588,
+          "uv_layers": 1,
+          "vertices": 1856
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              452.0,
+              190.5,
+              125.5
+            ],
+            "maximum_cm": [
+              230.0,
+              95.25,
+              157.5
+            ],
+            "minimum_cm": [
+              -222.0,
+              -95.25,
+              32.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_RoofClosures_LOD1.fbx",
+          "source_bytes": 114668,
+          "source_sha256": "0691ECD9A25F1588CAFA4F92DE45313A8825D2C74B88F26A52115352B4489F61",
+          "triangles": 2436,
+          "uv_layers": 1,
+          "vertices": 1264
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              452.0,
+              190.5,
+              121.25
+            ],
+            "maximum_cm": [
+              230.0,
+              95.25,
+              153.25
+            ],
+            "minimum_cm": [
+              -222.0,
+              -95.25,
+              32.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_RoofClosures_LOD2.fbx",
+          "source_bytes": 45548,
+          "source_sha256": "5A64DF3523934EC602BFCDD10B054B716B2584DE1AC506FBDD4EC1EBB5CE4726",
+          "triangles": 932,
+          "uv_layers": 1,
+          "vertices": 508
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RoofClosures.SM_LB_C2040_RoofClosures",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RoofClosures",
+      "role": "RoofClosures",
+      "triangle_chain": [
+        3588,
+        2436,
+        932
+      ]
+    },
+    "SideFrame_L": {
+      "asset_name": "SM_LB_C2040_SideFrame_L",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_L.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              15.25,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              -76.75,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              -92.0,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_SideFrame_L_LOD0.fbx",
+          "source_bytes": 78348,
+          "source_sha256": "8D1D7B8D72C723654C44E3348AEBB1673DDC42B0E9591973854674FF9FEA4669",
+          "triangles": 1592,
+          "uv_layers": 1,
+          "vertices": 824
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              13.0,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              -79.0,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              -92.0,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_SideFrame_L_LOD1.fbx",
+          "source_bytes": 57100,
+          "source_sha256": "9C64EBDA5EEA5C916F443AB62C849B738787F2B26109518B9A32D16608A6A322",
+          "triangles": 1016,
+          "uv_layers": 1,
+          "vertices": 528
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              13.0,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              -79.0,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              -92.0,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_SideFrame_L_LOD2.fbx",
+          "source_bytes": 26348,
+          "source_sha256": "654280C45D0CC96E38D9ADEA34B035D591ED95EDB8C28BF1891366BC4545CFDA",
+          "triangles": 336,
+          "uv_layers": 1,
+          "vertices": 184
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_L.SM_LB_C2040_SideFrame_L",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_L",
+      "role": "SideFrame_L",
+      "triangle_chain": [
+        1592,
+        1016,
+        336
+      ]
+    },
+    "SideFrame_R": {
+      "asset_name": "SM_LB_C2040_SideFrame_R",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_R.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              15.25,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              92.0,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              76.75,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_SideFrame_R_LOD0.fbx",
+          "source_bytes": 78380,
+          "source_sha256": "0D7D309F2869564F88F0093C12A99788027EF7659CA356CF856DD45F2E1BCC65",
+          "triangles": 1592,
+          "uv_layers": 1,
+          "vertices": 824
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              13.0,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              92.0,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              79.0,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_SideFrame_R_LOD1.fbx",
+          "source_bytes": 57116,
+          "source_sha256": "7DAA237044049E8082E0C551CAEDBC04F80D1CB1702AB21B59397729890798CD",
+          "triangles": 1016,
+          "uv_layers": 1,
+          "vertices": 528
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              372.5414,
+              13.0,
+              111.8089
+            ],
+            "maximum_cm": [
+              184.7707,
+              92.0,
+              153.4802
+            ],
+            "minimum_cm": [
+              -187.7707,
+              79.0,
+              41.6713
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_SideFrame_R_LOD2.fbx",
+          "source_bytes": 26316,
+          "source_sha256": "C27E88A49655B56D3BF283E6EE44A6ECD56D9B6213F1F9F4B6A19F9FEB0E94B8",
+          "triangles": 336,
+          "uv_layers": 1,
+          "vertices": 184
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_R.SM_LB_C2040_SideFrame_R",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_R",
+      "role": "SideFrame_R",
+      "triangle_chain": [
+        1592,
+        1016,
+        336
+      ]
+    },
+    "Tailgate": {
+      "asset_name": "SM_LB_C2040_Tailgate",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Tailgate.uasset",
+      "kind": "Panel",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              11.5,
+              156.8619,
+              64.4
+            ],
+            "maximum_cm": [
+              -178.0,
+              78.431,
+              132.2
+            ],
+            "minimum_cm": [
+              -189.5,
+              -78.431,
+              67.8
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD0/SM_LB_C2040_Tailgate_LOD0.fbx",
+          "source_bytes": 41420,
+          "source_sha256": "82B682B346A4AB21DFE1A48466CFD13222421B61E110BED76B0F1CB0DA4C2FF5",
+          "triangles": 540,
+          "uv_layers": 1,
+          "vertices": 280
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              11.5,
+              156.8619,
+              64.4
+            ],
+            "maximum_cm": [
+              -178.0,
+              78.431,
+              132.2
+            ],
+            "minimum_cm": [
+              -189.5,
+              -78.431,
+              67.8
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER",
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD1/SM_LB_C2040_Tailgate_LOD1.fbx",
+          "source_bytes": 30716,
+          "source_sha256": "C8D2B9E069E212770AD50FB2C7EBA9D7273F0C20DDB14027019089A562566508",
+          "triangles": 324,
+          "uv_layers": 1,
+          "vertices": 168
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              7.0,
+              156.8619,
+              64.4
+            ],
+            "maximum_cm": [
+              -182.5,
+              78.431,
+              132.2
+            ],
+            "minimum_cm": [
+              -189.5,
+              -78.431,
+              67.8
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BODY_STATE_OUTER"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Panels/LOD2/SM_LB_C2040_Tailgate_LOD2.fbx",
+          "source_bytes": 16908,
+          "source_sha256": "DD967939E265CDAE01FE9022AC2E2A213D82B9888BB5A094E10C2FA67E1C0E31",
+          "triangles": 44,
+          "uv_layers": 1,
+          "vertices": 24
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Tailgate.SM_LB_C2040_Tailgate",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Tailgate",
+      "role": "Tailgate",
+      "triangle_chain": [
+        540,
+        324,
+        44
+      ]
+    },
+    "Underbody": {
+      "asset_name": "SM_LB_C2040_Underbody",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_Underbody.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              426.0,
+              152.0,
+              42.0
+            ],
+            "maximum_cm": [
+              213.0,
+              76.0,
+              58.5
+            ],
+            "minimum_cm": [
+              -213.0,
+              -76.0,
+              16.5
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_Underbody_LOD0.fbx",
+          "source_bytes": 110812,
+          "source_sha256": "A5B1287FE7EAF3F0EA0D47E4928F9BE02206CCC752E287BCD04132B197D03CBE",
+          "triangles": 3124,
+          "uv_layers": 1,
+          "vertices": 1608
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              426.0,
+              152.0,
+              38.5
+            ],
+            "maximum_cm": [
+              213.0,
+              76.0,
+              55.0
+            ],
+            "minimum_cm": [
+              -213.0,
+              -76.0,
+              16.5
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_Underbody_LOD1.fbx",
+          "source_bytes": 72524,
+          "source_sha256": "FBEE4C8406845300026FA59573D59F1629A07C2AC5D9061A3CEE9B01A3D9701F",
+          "triangles": 1512,
+          "uv_layers": 1,
+          "vertices": 784
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              426.0,
+              152.0,
+              38.5
+            ],
+            "maximum_cm": [
+              213.0,
+              76.0,
+              55.0
+            ],
+            "minimum_cm": [
+              -213.0,
+              -76.0,
+              16.5
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_Underbody_LOD2.fbx",
+          "source_bytes": 26476,
+          "source_sha256": "24D57A3B677E811E5DF66B34EC8922255398C1F483477D096CB96C6BF7D9FEA1",
+          "triangles": 396,
+          "uv_layers": 1,
+          "vertices": 216
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_Underbody.SM_LB_C2040_Underbody",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_Underbody",
+      "role": "Underbody",
+      "triangle_chain": [
+        3124,
+        1512,
+        396
+      ]
+    },
+    "UpperStructure": {
+      "asset_name": "SM_LB_C2040_UpperStructure",
+      "collision": {
+        "convex_count": 0,
+        "mode": "NONE_MOVING_WIP",
+        "navigation_component_policy": "CanEverAffectNavigation=false",
+        "simple_count": 0,
+        "trace_flag": "CTF_USE_DEFAULT"
+      },
+      "disk_path": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_UpperStructure.uasset",
+      "kind": "Layer",
+      "lods": [
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              305.5,
+              173.0,
+              113.0
+            ],
+            "maximum_cm": [
+              139.0,
+              86.5,
+              154.0
+            ],
+            "minimum_cm": [
+              -166.5,
+              -86.5,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 0,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD0/SM_LB_C2040_UpperStructure_LOD0.fbx",
+          "source_bytes": 76636,
+          "source_sha256": "7D255AE4D919478B04B5ADA861E00B22C525898B432F6FBA00048556C556514E",
+          "triangles": 1676,
+          "uv_layers": 1,
+          "vertices": 872
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              261.5,
+              173.0,
+              113.0
+            ],
+            "maximum_cm": [
+              95.0,
+              86.5,
+              154.0
+            ],
+            "minimum_cm": [
+              -166.5,
+              -86.5,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 1,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD1/SM_LB_C2040_UpperStructure_LOD1.fbx",
+          "source_bytes": 57644,
+          "source_sha256": "14CCF92F3A15B4A847F401EE4B66DF21FFA92F0A1A45F733AEDBAB613E5DA329",
+          "triangles": 1080,
+          "uv_layers": 1,
+          "vertices": 560
+        },
+        {
+          "degenerate_triangles": 0,
+          "expected_unreal_bounds": {
+            "dimensions_cm": [
+              261.5,
+              173.0,
+              113.0
+            ],
+            "maximum_cm": [
+              95.0,
+              86.5,
+              154.0
+            ],
+            "minimum_cm": [
+              -166.5,
+              -86.5,
+              41.0
+            ],
+            "pivot_cm": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "lod": 2,
+          "material_slots": [
+            "LB_BIW_INTERNAL_STEEL",
+            "LB_BLACK_STRUCTURE"
+          ],
+          "source": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Exports/Layers/LOD2/SM_LB_C2040_UpperStructure_LOD2.fbx",
+          "source_bytes": 25676,
+          "source_sha256": "2FF472681FBB5F78148A1CE484539673C46E22421B6839C5BFFD11743FE23DA1",
+          "triangles": 352,
+          "uv_layers": 1,
+          "vertices": 192
+        }
+      ],
+      "mirror_recipe": null,
+      "object_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_UpperStructure.SM_LB_C2040_UpperStructure",
+      "package_path": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_UpperStructure",
+      "role": "UpperStructure",
+      "triangle_chain": [
+        1676,
+        1080,
+        352
+      ]
+    }
+  },
+  "destination": {
+    "disk_root": "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001",
+    "expected_asset_count": 16,
+    "expected_custom_lods_appended": 32,
+    "expected_lod_count_per_asset": 3,
+    "expected_source_fbx_count": 48,
+    "forbidden_existing_or_meshy_namespaces": [
+      "/Game/LineBoss/Candidates/Vehicles",
+      "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Validation",
+      "/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
+    ],
+    "must_be_absent_before_run": true,
+    "namespace": "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001"
+  },
+  "import_contract": {
+    "auto_compute_lod_screen_size": false,
+    "auto_generate_collision": false,
+    "bounds_tolerance_cm": 0.25,
+    "collision_policy": "zero simple/convex collision on every moving WIP mesh",
+    "combine_meshes": true,
+    "forward_axis": "+X",
+    "generate_lightmap_uvs": false,
+    "import_animations": false,
+    "import_materials": false,
+    "import_textures": false,
+    "lod_screen_sizes": [
+      1.0,
+      0.35,
+      0.12
+    ],
+    "material_policy": "preserve exact semantic slot names; runtime native materials bind later; create no FBX materials/textures",
+    "nanite_enabled": false,
+    "navigation_policy": "presentation components must set CanEverAffectNavigation=false",
+    "remove_degenerates": false,
+    "shared_pivot_cm": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "up_axis": "+Z"
+  },
+  "kit_id": "VehicleWIPNativeKit_v001",
+  "lane_files_to_pin_when_baseline_is_cut": [
+    "Scripts/vehicle_wip_native_kit_unreal_runtime_v001.py",
+    "Scripts/import_vehicle_wip_native_kit_v001.py",
+    "Scripts/validate_vehicle_wip_native_kit_v001.py",
+    "Scripts/run_vehicle_wip_native_kit_unreal_import_lane_v001.ps1",
+    "Scripts/prepare_vehicle_wip_native_kit_unreal_import_baseline_v001.py",
+    "Scripts/vehicle_wip_native_kit_unreal_import_contract_v001.json"
+  ],
+  "model_id": "Cairnwell2040",
+  "policy": {
+    "automatic_partial_cleanup": false,
+    "fresh_only": true,
+    "map_load_save_authorized": false,
+    "overwrite_reimport_delete_authorized": false,
+    "runtime_binding_or_promotion_authorized": false,
+    "source_content_config_map_save_modification_outside_new_namespace_authorized": false,
+    "whole_project_baseline_must_be_cut_only_after_shared_paint_integration_settles": true
+  },
+  "provenance_status": "PASS__AFFIRMATIVE_ALLOWLIST__NO_ZERO_CALL_INFERENCE",
+  "source": {
+    "authored_lod_count": 48,
+    "build_receipt": {
+      "bytes": 57418,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/build_receipt_v001.json",
+      "sha256": "767C6ADF753CF8E613293EE1DC859110C10AEB2743E62E81D91F0B4E4791E9EB"
+    },
+    "fbx_source_count": 48,
+    "fresh_fbx_glb_roundtrip_count": 96,
+    "frozen_receipt": {
+      "bytes": 22506,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/FROZEN_v001.json",
+      "sha256": "FAF90DE1050A4424D2A913D42860CBE75FF07D4E98DDEC55106956388A59C5EF"
+    },
+    "frozen_sidecar": {
+      "bytes": 90,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/FROZEN_v001.sha256",
+      "sha256": "BD8FDCB6F18B8F046DFAB36B7D4B0A37998F1086DFCECB322163182ADB599E1D"
+    },
+    "frozen_tree_sha256": "A7DBADC6B22F7EEE99B8E5A2E899AE22367376D374C90EF2392D99C4C306EC19",
+    "geometry_gate": {
+      "bytes": 28104,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/geometry_and_lod_gate_v001.json",
+      "sha256": "FC967C5269BA18889C95D17F4B581A84932FF3DC2D5705C40DA7B566A3E6DFB6"
+    },
+    "logical_asset_count": 16,
+    "manifest": {
+      "bytes": 28073,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/MANIFEST_v001.json",
+      "sha256": "1B0A0A3DEDFA24D247A900459C1E8A9943F65CFDFAAA144DCFB628A05A2346DA"
+    },
+    "provenance_gate": {
+      "bytes": 2255,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/provenance_and_asset_contract_v001.json",
+      "sha256": "C1723550535C27AC9934870E214C8761A012FB7574401713C768C13342C82449"
+    },
+    "root": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001",
+    "roundtrip_gate": {
+      "bytes": 156357,
+      "path": "SourceAssets/Candidate/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Audit/roundtrip_validation_v001.json",
+      "sha256": "FC94632737B513F9E95BF93418C9CDB114E1BF5C5B9AC7F465E2FF143C0945D2"
+    }
+  },
+  "status": "READY__STATIC_SOURCE_CONTRACT_ONLY__WAITING_FOR_SHARED_PROJECT_BASELINE"
+}

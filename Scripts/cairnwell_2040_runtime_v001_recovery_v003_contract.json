@@ -1,0 +1,469 @@
+{
+  "$schema": "lineboss/cairnwell-2040-runtime-v001/recovery-contract/v3",
+  "acknowledgement": "RECOVER_QUARANTINED_CAIRNWELL_2040_RUNTIME_V001_V003_ONCE",
+  "approved_source": {
+    "file_count": 26,
+    "inventory_sha256": "C5D7F19A1886EF6E9FAA80F0118343AEAF2DD773B9E8B8DB5EAA4025068A9C58"
+  },
+  "generated_utc": "2026-08-15T10:55:24.109757+00:00",
+  "incident_chain": {
+    "binding_sha256": "B8C301C65532248B742DECCBC8BA2E9FC6795115F9E0D7B51D757E2470090B58",
+    "old_success_receipts_present": false,
+    "v001": {
+      "failed_run_id": "20260815T094919Z-7dfb3c0a",
+      "files": {
+        "import_failure_v001.json": {
+          "bytes": 4288,
+          "mtime_ns": 1786787454191383300,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/import_failure_v001.json",
+          "sha256": "05F204CDE09BD22BED823101525C82F64E18F8EE56BC6004C9E0979AA73CFC2D"
+        },
+        "lane_summary_v001.json": {
+          "bytes": 1771,
+          "mtime_ns": 1786787462745829700,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/lane_summary_v001.json",
+          "sha256": "00DA69AEA08322AFFD099D5126BADA3F78265EDC9A38302D3C3CC2B3D118CEA5"
+        },
+        "unreal_import.log": {
+          "bytes": 344784,
+          "mtime_ns": 1786787462363829200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.log",
+          "sha256": "11AADD66D2C685202B1C07C9E1A2E493CEC7C796398FD8AE59A2AE4569CDA367"
+        },
+        "unreal_import.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786787381244292400,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import.stdout.log": {
+          "bytes": 344814,
+          "mtime_ns": 1786787462358823200,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/unreal_import.stdout.log",
+          "sha256": "5F173EEFEB82A3A6930B062CB8755AD7617C2F9B8851CE7782085A223E1DF8A2"
+        }
+      },
+      "import_failure": {
+        "bytes": 4288,
+        "mtime_ns": 1786787454191383300,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/20260815T094919Z-7dfb3c0a/import_failure_v001.json",
+        "sha256": "05F204CDE09BD22BED823101525C82F64E18F8EE56BC6004C9E0979AA73CFC2D"
+      }
+    },
+    "v002": {
+      "failed_run_id": "20260815T103132Z-3fc39714",
+      "files": {
+        "import_failure_recovery_v002.json": {
+          "bytes": 5460,
+          "mtime_ns": 1786790021159680000,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/import_failure_recovery_v002.json",
+          "sha256": "86AB67E0AD2C501EE8E49CFAF6061694DD78DFD616B81F22B53B80896E127EE1"
+        },
+        "lane_summary_recovery_v002.json": {
+          "bytes": 2921,
+          "mtime_ns": 1786790026702669500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/lane_summary_recovery_v002.json",
+          "sha256": "D152B33365F3CCBE005E7552468FDE90628AEBB21371A93831A7187BEF2146D6"
+        },
+        "quarantine_receipt_v002.json": {
+          "bytes": 3205,
+          "mtime_ns": 1786789933743132500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/quarantine_receipt_v002.json",
+          "sha256": "61185A4AF74711FEAD0E67D4026522BF5C48CB48D73CCCC0BAB76DE4A8F0CC57"
+        },
+        "unreal_import_recovery_v002.log": {
+          "bytes": 359433,
+          "mtime_ns": 1786790025548676500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.log",
+          "sha256": "138E4F06AC6B562325BE84EA8CEA4D6DBE27CCE6140FA718C9A6C6164487BB08"
+        },
+        "unreal_import_recovery_v002.stderr.log": {
+          "bytes": 0,
+          "mtime_ns": 1786789933762135600,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.stderr.log",
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        "unreal_import_recovery_v002.stdout.log": {
+          "bytes": 359416,
+          "mtime_ns": 1786790025533676500,
+          "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/unreal_import_recovery_v002.stdout.log",
+          "sha256": "DCBE73E2CA83CD6BAD6EC18ECC29983D1D20F2E82618642D7609C740BF927B69"
+        }
+      },
+      "import_failure": {
+        "bytes": 5460,
+        "mtime_ns": 1786790021159680000,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/import_failure_recovery_v002.json",
+        "sha256": "86AB67E0AD2C501EE8E49CFAF6061694DD78DFD616B81F22B53B80896E127EE1"
+      },
+      "lane_summary": {
+        "bytes": 2921,
+        "mtime_ns": 1786790026702669500,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/lane_summary_recovery_v002.json",
+        "sha256": "D152B33365F3CCBE005E7552468FDE90628AEBB21371A93831A7187BEF2146D6"
+      },
+      "primary_failure": "exact source material name .001 sanitized by UE to _001",
+      "quarantine_receipt": {
+        "bytes": 3205,
+        "mtime_ns": 1786789933743132500,
+        "path": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714/quarantine_receipt_v002.json",
+        "sha256": "61185A4AF74711FEAD0E67D4026522BF5C48CB48D73CCCC0BAB76DE4A8F0CC57"
+      },
+      "recovery_contract": {
+        "bytes": 15394,
+        "mtime_ns": 1786789677489047000,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v002_contract.json",
+        "sha256": "0D0E0ADE47D80F487A8E94547133323EF1C7622C9260177A948049BC09AA85E2"
+      },
+      "recovery_contract_sidecar": {
+        "bytes": 123,
+        "mtime_ns": 1786789677499053100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_recovery_v002_contract.sha256",
+        "sha256": "FEBE082E2A64EEC41EEB881D4A888E5C2C9C241865AE571D65BB6B979445F9B1"
+      },
+      "run_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v002/20260815T103132Z-3fc39714",
+      "wrapper_failure": "redirected stdout remained temporarily locked after process exit"
+    }
+  },
+  "lane": {
+    "file_count": 17,
+    "files": [
+      {
+        "bytes": 4560,
+        "mtime_ns": 1786789295417213800,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V002.md",
+        "sha256": "5B00801B63E1DFDDDF935BCE683CAB02B00EDB468C21A73E76460158E72301C9"
+      },
+      {
+        "bytes": 4461,
+        "mtime_ns": 1786790885680817400,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003.md",
+        "sha256": "B71C7572D8273617313D35E77E8FADD495ABDAFD65AD8D671C925DE1E02541D6"
+      },
+      {
+        "bytes": 15785,
+        "mtime_ns": 1786787045044191000,
+        "path": "Docs/OneFactory/CAIRNWELL_2040_RUNTIME_V001_UNREAL_IMPORT_LANE.md",
+        "sha256": "4C48B1113C7F1247653FC0A56E218B2591F56AD084DBE8891A39589C4C255043"
+      },
+      {
+        "bytes": 2649,
+        "mtime_ns": 1786790344973365100,
+        "path": "Scripts/cairnwell_2040_runtime_log_retry_v003.ps1",
+        "sha256": "218252FB28ED421E3B6700FDE9D44F7D3046A6E688FE010E20E75BA042939E38"
+      },
+      {
+        "bytes": 63678,
+        "mtime_ns": 1786790585572388600,
+        "path": "Scripts/cairnwell_2040_runtime_v001.py",
+        "sha256": "0034F775CBC7A9BE5F76326D44481ACB76EFA8741B315C5400B0EE7B36FF7DF6"
+      },
+      {
+        "bytes": 6590513,
+        "mtime_ns": 1786787267410217900,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.json",
+        "sha256": "493CEBCA0DAA09179D0F44BE2FE4E4D60658D8F42CD88A02268045591EE77882"
+      },
+      {
+        "bytes": 116,
+        "mtime_ns": 1786787267424218100,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.sha256",
+        "sha256": "3A7ED675CF10D08BBF70076A1FC510F2661CE6DDAF0362078D0309AF7AF62C21"
+      },
+      {
+        "bytes": 48402,
+        "mtime_ns": 1786787122308856700,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.json",
+        "sha256": "B0D276A85E8532B580098092384BD93D0E5F55E3A437922FFFC31D69B8816EB1"
+      },
+      {
+        "bytes": 116,
+        "mtime_ns": 1786787122323855900,
+        "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.sha256",
+        "sha256": "494AC94DFBD12D79E90285BF7E8C3436DB7E87E233D434924466194652A29EE6"
+      },
+      {
+        "bytes": 33125,
+        "mtime_ns": 1786790661766744200,
+        "path": "Scripts/import_cairnwell_2040_runtime_v001.py",
+        "sha256": "CE8BAAEA2C789A6BC84C2F05E2342D3ADC041F46E40B767D0BBF58415982D4FC"
+      },
+      {
+        "bytes": 17292,
+        "mtime_ns": 1786786970771940300,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_baseline.py",
+        "sha256": "A5122C77D74192C111A36F334CEFF118D116B39DAA07AB5ADB633733D886A0D5"
+      },
+      {
+        "bytes": 47112,
+        "mtime_ns": 1786786848756110100,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_contract.py",
+        "sha256": "F89C8B0E6BD3CD140D34788AF20FF4B7D38E1FBF3554ACE9F830D558C9345311"
+      },
+      {
+        "bytes": 24081,
+        "mtime_ns": 1786788973784317500,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v002.py",
+        "sha256": "C20D5E25C0E6C318824A69A81F9EC422988D12DF2B6E8AADB96E9A96E47BF571"
+      },
+      {
+        "bytes": 26982,
+        "mtime_ns": 1786790845764846700,
+        "path": "Scripts/prepare_cairnwell_2040_runtime_v001_recovery_v003.py",
+        "sha256": "8D21CDC140932559D9553D69BEB61A1425B2B92A62391AE930F25A37D448D897"
+      },
+      {
+        "bytes": 22920,
+        "mtime_ns": 1786790489769434000,
+        "path": "Scripts/run_cairnwell_2040_runtime_import_lane_v001.ps1",
+        "sha256": "0FAE6B192C7824F4E51BC9D4E97BD9EF1C68A0E771F0ACD717743DD66EE74685"
+      },
+      {
+        "bytes": 49691,
+        "mtime_ns": 1786791166230039000,
+        "path": "Scripts/tests/test_cairnwell_2040_runtime_import_lane_v001.py",
+        "sha256": "77504600D0894FDFDB135D9A8C4FC3B92D17175FF36FE0023D706D8C840FB025"
+      },
+      {
+        "bytes": 10395,
+        "mtime_ns": 1786790650615680800,
+        "path": "Scripts/validate_cairnwell_2040_runtime_fresh_process_v001.py",
+        "sha256": "DDE1880A7C95DD6FAB4408C4A23DA01099306C2D74DE355FFF27B11DA424942C"
+      }
+    ],
+    "inventory_sha256": "66CA8321FBD75FF9FB456EDBFE67AED769C2EFB436C4EB6D159ABBFCDD3D8DBD"
+  },
+  "original_authorities": {
+    "baseline": {
+      "bytes": 6590513,
+      "mtime_ns": 1786787267410217900,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.json",
+      "sha256": "493CEBCA0DAA09179D0F44BE2FE4E4D60658D8F42CD88A02268045591EE77882"
+    },
+    "baseline_sidecar": {
+      "bytes": 116,
+      "mtime_ns": 1786787267424218100,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_baseline.sha256",
+      "sha256": "3A7ED675CF10D08BBF70076A1FC510F2661CE6DDAF0362078D0309AF7AF62C21"
+    },
+    "contract": {
+      "bytes": 48402,
+      "mtime_ns": 1786787122308856700,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.json",
+      "sha256": "B0D276A85E8532B580098092384BD93D0E5F55E3A437922FFFC31D69B8816EB1"
+    },
+    "contract_sidecar": {
+      "bytes": 116,
+      "mtime_ns": 1786787122323855900,
+      "path": "Scripts/cairnwell_2040_runtime_v001_import_contract.sha256",
+      "sha256": "494AC94DFBD12D79E90285BF7E8C3436DB7E87E233D434924466194652A29EE6"
+    }
+  },
+  "partial_packages": {
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset": {
+      "bytes": 6002,
+      "mtime_ns": 1786790010826675900,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+      "sha256": "3B3A5D9B6195891522A219D27C19E62DDA3C891EDC664EE1E75B13615D5A3034",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset": {
+      "bytes": 11566,
+      "mtime_ns": 1786790010882676700,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset",
+      "sha256": "E74FA8C2EA49B1AD34D33CBD11CEF4D4A2C627490223C06A525487B8AE36208A",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_BodyPaintTintPBR_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.uasset": {
+      "bytes": 5960,
+      "mtime_ns": 1786790010938669000,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_EDCoat_v001.uasset",
+      "sha256": "765F924403E6278B8604F4700ACD9DC7F89E6FF813B5DF3758952C90E8C78274",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.uasset": {
+      "bytes": 7119,
+      "mtime_ns": 1786790010993668700,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Materials/M_LB_C2040_RollingGearPBR_v001.uasset",
+      "sha256": "57698E6F740E4D0F2C53C4FF3196AF2A4874BD04ADBE5D7A67238D713F8C8D02",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_RollingGearPBR_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset": {
+      "bytes": 3818680,
+      "mtime_ns": 1786790010622668900,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+      "sha256": "6F902C40D9117585711E383673990B3FA7501E53CA3B9CCF76DDD377F4FE044A",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset": {
+      "bytes": 5818244,
+      "mtime_ns": 1786790010667676200,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+      "sha256": "CFECE87484B903B5350D98A06D05D083E247273A227E8A7DBBCC88198F9FF2B1",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset": {
+      "bytes": 3973188,
+      "mtime_ns": 1786790010703676400,
+      "quarantine_path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+      "sha256": "39BA2B508646697BD09130525A14715218C54DFA72204F51B777136CDE7CF989",
+      "source_path": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset"
+    }
+  },
+  "policy": {
+    "map_load_save_authorized": false,
+    "panel_module_namespace_or_packages_authorized": false,
+    "post_receipt_fatal_or_crash_accepted": false,
+    "redirected_log_hash_requires_successful_bounded_read_open": true,
+    "runtime_binding_or_promotion_authorized": false,
+    "source_config_maps_saves_writes_authorized": false,
+    "strict_editor_exit_code_zero_required": true,
+    "unreal_launch_authorized_by_freeze": false
+  },
+  "prior_quarantines": {
+    "v001_partial_packages": {
+      "file_count": 4,
+      "files": [
+        {
+          "bytes": 6002,
+          "mtime_ns": 1786787454166374600,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Materials/M_LB_C2040_BIWGalvanized_v001.uasset",
+          "sha256": "FCE1DDBA01C45F7162297F6C5D048394F8FA5CCD01E43851044D517FDA1739D9"
+        },
+        {
+          "bytes": 3818680,
+          "mtime_ns": 1786787453931382900,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_BaseColor_v001.uasset",
+          "sha256": "D057B1C2A56F8F17CD0ED77321FD803EC733FA8E845504D34D52CA99F4180CFD"
+        },
+        {
+          "bytes": 5818244,
+          "mtime_ns": 1786787453981375100,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_MRBodyMask_v001.uasset",
+          "sha256": "F4ADBF3AC8E0ACE8D053D6BD3E73EA887EC3FF33C63CDF0F61FBC767DE400309"
+        },
+        {
+          "bytes": 3973188,
+          "mtime_ns": 1786787454019375700,
+          "path": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T094919Z-7dfb3c0a_v001/Textures/T_LB_C2040_Emerald_Normal_v001.uasset",
+          "sha256": "67465B09C9B5418F08EDE7E2195E297472AE35E0BA96A05545EB0FE179CBEB7A"
+        }
+      ],
+      "inventory_sha256": "01F4C5436A311027BAC80057C0B1A19256FC7E09548826FF2B1650885D6B1068"
+    }
+  },
+  "project_root": "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8",
+  "protected_project": {
+    "file_count": 15670,
+    "inventory_sha256": "EBBCE409A82768D6C0AE90F78C55656022D97B8A3A87E78D132A144A6B2E5559"
+  },
+  "quarantine": {
+    "automatic_delete_authorized": false,
+    "destination_root": "Saved/Quarantine/OneFactory/Vehicles/Cairnwell2040Runtime_v001/Incident_20260815T103132Z-3fc39714_v002",
+    "operation": "MOVE_DIRECTORY_ONLY__NO_DELETE",
+    "rerun_after_any_recovery_result_authorized": false,
+    "source_root": "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040Runtime_v001"
+  },
+  "result_topology": {
+    "audit_root": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003",
+    "fresh_validation": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v003/fresh-process-validation/v3",
+      "failure_filename": "fresh_process_validation_failure_recovery_v003.json",
+      "package_hash_fields": [
+        "package_sha256_before_loads",
+        "package_sha256_after_loads"
+      ],
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003_DISTINCT_FRESH_PROCESS__READ_ONLY_RELOAD__11_PACKAGE_HASHES_UNCHANGED",
+      "receipt_filename": "fresh_process_validation_receipt_recovery_v003.json"
+    },
+    "import": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v003/unreal-import/v3",
+      "failure_filename": "import_failure_recovery_v003.json",
+      "package_hash_field": "package_sha256",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003_FRESH_IMPORT__4_MESHES__12_AUTHORED_LODS__3_TEXTURES__4_MATERIALS__EXACT_11_PACKAGE_CLOSURE",
+      "receipt_filename": "import_receipt_recovery_v003.json"
+    },
+    "quarantine_receipt": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v003/quarantine/v3",
+      "filename": "quarantine_receipt_v003.json",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003_PARTIALS_QUARANTINED"
+    },
+    "required_incident_binding_fields": [
+      "recovery_contract_sha256",
+      "v001_failed_run_id",
+      "v001_import_failure_sha256",
+      "v002_failed_run_id",
+      "v002_import_failure_sha256",
+      "incident_chain_sha256",
+      "quarantine_receipt"
+    ],
+    "run_root_pattern": "Saved/Audits/OneFactory/Vehicles/Cairnwell2040Runtime_v001/UnrealImportLane_v001/Recovery_v003/<UTC>-<GUID8>",
+    "summary": {
+      "$schema": "lineboss/audit/cairnwell-2040-runtime-v001/recovery-v003/import-lane-summary/v3",
+      "filename": "lane_summary_recovery_v003.json",
+      "package_hash_field": "post_exit_package_sha256",
+      "pass_status": "PASS__CAIRNWELL_2040_RUNTIME_V001_RECOVERY_V003_GUARDED_IMPORT_AND_DISTINCT_READ_ONLY_RELOAD"
+    }
+  },
+  "slot_normalization": {
+    "BIW_AutomotiveSkeleton": {
+      "canonical_material_slot_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": true,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005.001",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_BIW_GalvanisedSteel_v005_001"
+    },
+    "BIW_UnderbodySubset": {
+      "canonical_material_slot_name": "MI_LB_C2040_EDCoat_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EDCoat_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EDCoat_v005"
+    },
+    "EmeraldBodyVisualAuthority": {
+      "canonical_material_slot_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EmeraldBody_TexturedTintPBR_v005"
+    },
+    "EmeraldRollingGearVisualAuthority": {
+      "canonical_material_slot_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005",
+      "engine_make_name_rule": "replace exact characters . , / ` % with underscore",
+      "normalize_gameplay_material_slot_name": false,
+      "required_static_material_count": 1,
+      "source_fbx_material_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005",
+      "source_occurrence_count_by_lod": [
+        1,
+        1,
+        1
+      ],
+      "ue_imported_material_slot_name": "MI_LB_C2040_EmeraldRollingGear_TexturedPBR_v005"
+    }
+  },
+  "status": "FROZEN__CAIRNWELL_2040_RUNTIME_V001_INCIDENT_CHAINED_RECOVERY_V003__READY_FOR_ONE_SHOT_QUARANTINE_AND_TWO_PROCESS_IMPORT",
+  "ue58_source_evidence": {
+    "lines": "1870-1888",
+    "path": "C:/Program Files/Epic Games/UE_5.8/Engine/Source/Editor/UnrealEd/Private/Fbx/FbxMainImport.cpp",
+    "proof": "MakeName replaces period with underscore",
+    "sha256": "506DE36CC110B754D70800E964A6BCF8D38D304B94C8D8AE3E947B0351B99EF8"
+  }
+}

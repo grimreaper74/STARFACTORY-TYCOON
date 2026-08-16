@@ -1,0 +1,30 @@
+"""Duplicate retained v108 to isolated support-hoist candidate v109."""
+
+from pathlib import Path
+import json
+from datetime import datetime, timezone
+import unreal
+
+BASE = "/Game/LineBoss/Maps/LB_PressShop_PR004PackageConditionCandidate_v108"
+MAP = "/Game/LineBoss/Maps/LB_PressShop_PR004SupportHoistCandidate_v109"
+OUT = Path(unreal.Paths.project_saved_dir()) / "Audits/press_shop_pr004_support_hoist_prepare_v109.json"
+lib = unreal.EditorAssetLibrary
+if not lib.does_asset_exist(BASE):
+    raise RuntimeError(f"Missing retained v108 base: {BASE}")
+created = False
+if not lib.does_asset_exist(MAP):
+    if not lib.duplicate_asset(BASE, MAP):
+        raise RuntimeError(f"Could not duplicate {BASE} to {MAP}")
+    created = True
+lib.save_asset(MAP, only_if_is_dirty=False)
+OUT.parent.mkdir(parents=True, exist_ok=True)
+OUT.write_text(json.dumps({
+    "$schema": "cairnwell/audit/press-shop-pr004-support-hoist-prepare-v109/v1",
+    "generated_utc": datetime.now(timezone.utc).isoformat(),
+    "status": "ISOLATED_MAP_PREPARED__NOT_LOADED__NOT_PROMOTED",
+    "base_map": BASE, "map": MAP, "created": created,
+    "authority_changed": False, "production_map_changed": False,
+    "promotion_authorized": False
+}, indent=2), encoding="utf-8")
+unreal.log(f"CAIRNWELL_PR004_SUPPORT_HOIST_V109_PREPARE_PASS created={created}")
+unreal.SystemLibrary.quit_editor()

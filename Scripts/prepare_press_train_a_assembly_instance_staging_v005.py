@@ -1,0 +1,92 @@
+"""Export deduplicated, local-pivot authored instance meshes for exact UE manifest reconstruction."""
+
+import bpy
+import hashlib
+import json
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+from mathutils import Matrix
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / "SourceAssets/Candidate/PressTrains/TrainA/AssemblyStudy_v001"
+BLEND = SOURCE / "CA_MW_PressTrainA_AssemblyStudy_v001.blend"
+MANIFEST_PATH = SOURCE / "PRESS_TRAIN_A_ASSEMBLY_STUDY_MANIFEST_v001.json"
+STAGING = ROOT / "Saved/ImportStaging/PressTrainAAssemblyInstances_v005"
+OUT = ROOT / "Saved/Audits/PressTrains/press_train_a_assembly_instance_staging_v005.json"
+if STAGING.exists() or OUT.exists():
+    raise RuntimeError("Refusing to overwrite v005 instance staging")
+STAGING.mkdir(parents=True)
+manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+bpy.ops.wm.open_mainfile(filepath=str(BLEND))
+collection = bpy.data.collections.get("TRAIN_A_ASSEMBLY")
+if collection is None:
+    raise RuntimeError("TRAIN_A_ASSEMBLY collection missing")
+by_name = {obj.name: obj for obj in collection.objects}
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
+
+
+def signature(obj):
+    mesh = obj.data
+    payload = {
+        "vertices": [[round(c, 7) for c in v.co] for v in mesh.vertices],
+        "polygons": [list(p.vertices) for p in mesh.polygons],
+        "materials": [slot.material.name if slot.material else None for slot in obj.material_slots],
+    }
+    return hashlib.sha256(json.dumps(payload, separators=(",", ":")).encode("utf-8")).hexdigest().upper()
+
+
+signature_to_asset = {}
+assets = []
+instances = []
+for record in manifest["instances"]:
+    if record["source_fbx"] != "ASSEMBLY_STUDY_AUTHORED":
+        continue
+    obj = by_name.get(record["name"])
+    if obj is None or obj.type != "MESH":
+        raise RuntimeError(f"Authored assembly object missing: {record['name']}")
+    sig = signature(obj)
+    asset_name = signature_to_asset.get(sig)
+    if asset_name is None:
+        asset_name = f"SM_CA_MW_PTA_Derived_{sig[:12]}_v005"
+        signature_to_asset[sig] = asset_name
+        duplicate = obj.copy()
+        duplicate.data = obj.data.copy()
+        duplicate.name = asset_name
+        duplicate.location = (0, 0, 0)
+        duplicate.rotation_euler = (0, 0, 0)
+        duplicate.scale = (1, 1, 1)
+        duplicate.data.transform(Matrix.Scale(100.0, 4))
+        bpy.context.scene.collection.objects.link(duplicate)
+        bpy.ops.object.select_all(action="DESELECT")
+        duplicate.select_set(True)
+        bpy.context.view_layer.objects.active = duplicate
+        target = STAGING / f"{asset_name}.fbx"
+        bpy.ops.export_scene.fbx(
+            filepath=str(target), use_selection=True, object_types={"MESH"},
+            global_scale=1.0, apply_unit_scale=False, apply_scale_options="FBX_SCALE_NONE",
+            axis_forward="-Z", axis_up="Y", use_mesh_modifiers=True,
+            mesh_smooth_type="FACE", add_leaf_bones=False, bake_anim=False,
+            use_triangles=True, path_mode="AUTO")
+        dims = [round(value * 1000, 3) for value in obj.dimensions]
+        assets.append({"asset": asset_name, "file": target.name, "sha256": sha(target),
+                       "geometry_signature": sig, "dimensions_mm": dims,
+                       "materials": [slot.material.name for slot in obj.material_slots if slot.material],
+                       "source_examples": [record["name"]]})
+        bpy.data.objects.remove(duplicate, do_unlink=True)
+    else:
+        next(row for row in assets if row["asset"] == asset_name)["source_examples"].append(record["name"])
+    instances.append({"object": record["name"], "asset": asset_name})
+
+report = {"generated_utc": datetime.now(timezone.utc).isoformat(),
+          "status": "PASS__DEDUPLICATED_AUTHORED_INSTANCE_STAGING__SOURCE_BLEND_UNCHANGED",
+          "source_blend": str(BLEND.relative_to(ROOT)).replace("\\", "/"), "source_sha256": sha(BLEND),
+          "authored_instance_count": len(instances), "unique_asset_count": len(assets),
+          "staging_root": str(STAGING.relative_to(ROOT)).replace("\\", "/"),
+          "assets": assets, "instances": instances}
+OUT.write_text(json.dumps(report, indent=2), encoding="utf-8")
+print(json.dumps({"status": report["status"], "instances": len(instances), "assets": len(assets)}, indent=2))

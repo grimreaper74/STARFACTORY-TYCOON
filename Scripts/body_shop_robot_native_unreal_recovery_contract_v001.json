@@ -1,0 +1,349 @@
+{
+  "$schema": "lineboss/bodyshop-robot-native-v001-clean-import-disposition-contract/v1",
+  "generated_utc": "2026-08-14T20:24:22.207466+00:00",
+  "status": "FROZEN__TWO_FAILED_RUNS_AND_EXACT_INVALID_NAMESPACE__ARCHIVE_AND_ATOMIC_MOVE__CLEAN_IMPORT_ONLY",
+  "project_root": "C:\\Users\\greg_\\Projects\\LineBossCarFactory_Unreal 5.8",
+  "disposition_mode_token": "ARCHIVE_TWO_FAILED_RUNS_MOVE_INVALID_NAMESPACE_AND_CLEAN_IMPORT_HIGH_ELBOW_MONOTONIC_V001_ONCE",
+  "baseline": {
+    "path": "Scripts/body_shop_robot_native_unreal_import_baseline_v001.json",
+    "sha256": "D967E8CD1596FC620066668138FEE14A47C702D55989FB1DB1C3AAF0ABF0FF31"
+  },
+  "failed_runs": [
+    {
+      "id": "screen_size_failure",
+      "root": "Saved/Audits/BodyShop/RobotNative_v001/UnrealImportLane/20260814T191133Z-7adb326b",
+      "file_count": 7,
+      "total_bytes": 387684,
+      "inventory_sha256": "F25A877C4F0388F7468E848FFE60CD1D8F627D215FF219004E0FBD7CA6DE04BA",
+      "files": [
+        {
+          "path": "import_failure_v001.json",
+          "bytes": 23878,
+          "sha256": "C2934345BC1F1619473D3640B7CA25D31C013941B24E63039CFAD1D9FDB4F38D"
+        },
+        {
+          "path": "lane_summary_v001.json",
+          "bytes": 2345,
+          "sha256": "69C73A12EFCFD449FA922BF2BCDC3E5864078646D4D6B0DA0026039EAF07B00D"
+        },
+        {
+          "path": "offline_preflight.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "offline_preflight.stdout.log",
+          "bytes": 169,
+          "sha256": "5B8DB42B8C86A964CE557EFBEA1E7BB536F07FE47F0EA10B8BF367292A6E6C94"
+        },
+        {
+          "path": "unreal_import.log",
+          "bytes": 361292,
+          "sha256": "4686D690A06194CA9BAB0B547F03317890D0F1734DB9A3838F0FD6E4085A4F75"
+        },
+        {
+          "path": "unreal_import.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "unreal_import.stdout.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        }
+      ],
+      "failure_status": "FAIL_CLOSED__BODYSHOP_ROBOT_NATIVE_V001_UNREAL_IMPORT",
+      "failure_error": "BODYSHOP_ROBOT_NATIVE_UNREAL_IMPORT_V001_FAIL: LOD screen-size persistence drift: Base:[0.0, 0.0, 0.0]",
+      "lane_status": "FAIL_CLOSED__BODYSHOP_ROBOT_NATIVE_V001_UNREAL_IMPORT_LANE",
+      "acknowledgement": "IMPORT_HIGH_ELBOW_BODYSHOP_ROBOT_NATIVE_V001_ONCE"
+    },
+    {
+      "id": "uv_precondition_failure",
+      "root": "Saved/Audits/BodyShop/RobotNative_v001/UnrealImportLane/20260814T193800Z-f02f2baa",
+      "file_count": 27,
+      "total_bytes": 1198787,
+      "inventory_sha256": "5AD7F15B28E41B8FC4023B6E5EECD48ECBDC0E20951AC930B5C3E56029111C3E",
+      "files": [
+        {
+          "path": "failed_attempt_evidence_archive/import_failure_v001.json",
+          "bytes": 23878,
+          "sha256": "C2934345BC1F1619473D3640B7CA25D31C013941B24E63039CFAD1D9FDB4F38D"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/lane_summary_v001.json",
+          "bytes": 2345,
+          "sha256": "69C73A12EFCFD449FA922BF2BCDC3E5864078646D4D6B0DA0026039EAF07B00D"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/offline_preflight.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/offline_preflight.stdout.log",
+          "bytes": 169,
+          "sha256": "5B8DB42B8C86A964CE557EFBEA1E7BB536F07FE47F0EA10B8BF367292A6E6C94"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/unreal_import.log",
+          "bytes": 361292,
+          "sha256": "4686D690A06194CA9BAB0B547F03317890D0F1734DB9A3838F0FD6E4085A4F75"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/unreal_import.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "failed_attempt_evidence_archive/unreal_import.stdout.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "import_failure_v001.json",
+          "bytes": 35852,
+          "sha256": "4749523C959B1DF4CBE63528A1412E35F92FB741BBFA0186DD2F8A413EA5B57D"
+        },
+        {
+          "path": "lane_summary_v001.json",
+          "bytes": 3869,
+          "sha256": "583B66CB6661F20798F8CD90CC588D3A847947992A8478691B168111E91A6375"
+        },
+        {
+          "path": "offline_preflight.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "offline_preflight.stdout.log",
+          "bytes": 169,
+          "sha256": "0CE894CA6637E7018C24739B1270F17AA58F5EDBC357D7CD4F9C80228B2B23AB"
+        },
+        {
+          "path": "offline_recovery_preflight.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "offline_recovery_preflight.stdout.log",
+          "bytes": 171,
+          "sha256": "DDC970E80DEEE5D6A20C6FB9F25AA5D0EDE985A7D0E866A905CA85417B1CD89D"
+        },
+        {
+          "path": "pre_recovery_archive.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "pre_recovery_archive.stdout.log",
+          "bytes": 268,
+          "sha256": "F5CFC693E1627C56F53370CBBB12DB9DAB1DCC3D0C4953B4CFD8365009B2FA38"
+        },
+        {
+          "path": "pre_recovery_archive_receipt_v001.json",
+          "bytes": 7768,
+          "sha256": "98E96270C73C2BFB79198BAE3EF4EE93003D76EB74E22A4BD3A6B720313A429E"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001.uasset",
+          "bytes": 249391,
+          "sha256": "7E1DB3F376CF83B245AD6C55718F7B6076D3A7EC53B5D34177BA46EE3C7E8B49"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001.uasset",
+          "bytes": 27162,
+          "sha256": "D08CC68E2073C9247E59BC596D5EA8563A49869568EAA17613F00C4E6D6C9AD3"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001.uasset",
+          "bytes": 24694,
+          "sha256": "8DE689EB5BB2087EC08570E23E7D1BA18E1591DE37A534EE1EB0B2664D1300B2"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001.uasset",
+          "bytes": 23880,
+          "sha256": "4FA06895F71B11572DC4798E31B7D666F55A96CF81F48F69D5329D57E8718F39"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001.uasset",
+          "bytes": 21099,
+          "sha256": "CCBF85A3C3F3DEB3EACADC9E056D8853663A58E90DCA7F8EB85E13C296E1994B"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.uasset",
+          "bytes": 19559,
+          "sha256": "9630E512D7BED3DA0A6670952E4745C8BA1DD907B5EE436764BD80C7A8CF6FF0"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.uasset",
+          "bytes": 21521,
+          "sha256": "FCF17F4485A698E5FBBB92639123D78A01A5F01BE0ABF7A543CADF7B95A34326"
+        },
+        {
+          "path": "pre_recovery_namespace_archive/Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.uasset",
+          "bytes": 29064,
+          "sha256": "E66AC3DAD4AA8C35D9052F281D208EA6481D78305E5B896FAA0331848946D64A"
+        },
+        {
+          "path": "unreal_import.log",
+          "bytes": 346636,
+          "sha256": "0A1C3070A5C8A73993B9C0ECF0D2AAD17EA73D15DD5407536431D4BA431AF8BD"
+        },
+        {
+          "path": "unreal_import.stderr.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        },
+        {
+          "path": "unreal_import.stdout.log",
+          "bytes": 0,
+          "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        }
+      ],
+      "failure_status": "FAIL_CLOSED__BODYSHOP_ROBOT_NATIVE_V001_HASH_GUARDED_RECOVERY",
+      "failure_error": "BODYSHOP_ROBOT_NATIVE_UNREAL_IMPORT_V001_FAIL: partial recovery UV precondition drift: Base:LOD1",
+      "lane_status": "FAIL_CLOSED__BODYSHOP_ROBOT_NATIVE_V001_HASH_GUARDED_RECOVERY_LANE",
+      "acknowledgement": "RECOVER_EXACT_FAILED_HIGH_ELBOW_BODYSHOP_ROBOT_NATIVE_V001_ONCE"
+    }
+  ],
+  "invalid_namespace": {
+    "namespace": "/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001",
+    "disk_path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001",
+    "package_count": 8,
+    "packages": [
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_Base_v001.uasset",
+        "bytes": 249391,
+        "sha256": "7E1DB3F376CF83B245AD6C55718F7B6076D3A7EC53B5D34177BA46EE3C7E8B49",
+        "asset_key": "Base",
+        "observed_lod_count": 3
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J1_v001.uasset",
+        "bytes": 27162,
+        "sha256": "D08CC68E2073C9247E59BC596D5EA8563A49869568EAA17613F00C4E6D6C9AD3",
+        "asset_key": "J1",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J2_v001.uasset",
+        "bytes": 24694,
+        "sha256": "8DE689EB5BB2087EC08570E23E7D1BA18E1591DE37A534EE1EB0B2664D1300B2",
+        "asset_key": "J2",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J3_v001.uasset",
+        "bytes": 23880,
+        "sha256": "4FA06895F71B11572DC4798E31B7D666F55A96CF81F48F69D5329D57E8718F39",
+        "asset_key": "J3",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J4_v001.uasset",
+        "bytes": 21099,
+        "sha256": "CCBF85A3C3F3DEB3EACADC9E056D8853663A58E90DCA7F8EB85E13C296E1994B",
+        "asset_key": "J4",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J5_v001.uasset",
+        "bytes": 19559,
+        "sha256": "9630E512D7BED3DA0A6670952E4745C8BA1DD907B5EE436764BD80C7A8CF6FF0",
+        "asset_key": "J5",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Robot/SM_LB_BodyShopRobotNative_J6_v001.uasset",
+        "bytes": 21521,
+        "sha256": "FCF17F4485A698E5FBBB92639123D78A01A5F01BE0ABF7A543CADF7B95A34326",
+        "asset_key": "J6",
+        "observed_lod_count": 1
+      },
+      {
+        "path": "Content/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.uasset",
+        "bytes": 29064,
+        "sha256": "E66AC3DAD4AA8C35D9052F281D208EA6481D78305E5B896FAA0331848946D64A",
+        "asset_key": "CGun",
+        "observed_lod_count": 1
+      }
+    ],
+    "inventory_sha256": "7BD0DC7F0B333C94D674A7373047D418F8386EEC48C6A2BA3E7D799709E0B7B6",
+    "outside_destination_content": {
+      "file_count": 15297,
+      "metadata_sha256": "0F74E99F24B4CE90EEA8D4C24577EC6EE203FC00EDC0DBD2408EED85E93E39BB"
+    }
+  },
+  "diagnosis": {
+    "first_failure": "SCREEN_SIZE_WRITE_WAS_INVALIDATED_BY_LATER_REBUILD",
+    "second_failure": "INTERCHANGE_CUSTOM_LOD_LOST_BASE_LOD1_UV_RENDER_DATA",
+    "source_uv_evidence": "CORRECTED_AUTHORITY_AND_EXACT_FBX_HAVE_ONE_UV_PER_ASSET_LOD",
+    "ue_uv_query_evidence": "USTATICMESH_GETNUMTEXCOORDS_READS_REQUESTED_RENDER_LOD",
+    "custom_lod_fix": "CAPTURE_INTERCHANGE_FBX_CVAR__SET_0_ONLY_AROUND_ALL_16_CUSTOM_LOD_IMPORTS__RESTORE_IN_FINALLY__VERIFY_RESTORED",
+    "screen_fix": "FINISH_ALL_ASSET_COMPILATION__SET_SAVE_COMPILE__REAPPLY_SET_SAVE__FRESH_PROCESS_READBACK",
+    "superseding_source": "HIGH_ELBOW__STRICT_PER_ASSET_LOD0_GT_LOD1_GT_LOD2__ONE_UV_LAYER",
+    "installed_engine_evidence": [
+      {
+        "path": "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Source\\Editor\\StaticMeshEditor\\Private\\StaticMeshEditorSubsystem.cpp",
+        "bytes": 89363,
+        "sha256": "8C9E71501320F6EF9CB4A3D6AB668EEE6184230A2F85A8B9E3748E1831CA6760",
+        "line_contract": "986-1096__AUTHORITATIVE_GET_SET_SCREEN_SIZES"
+      },
+      {
+        "path": "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Source\\Runtime\\Engine\\Private\\StaticMesh.cpp",
+        "bytes": 380614,
+        "sha256": "19AA05147F931D774F68BB3F4A921D5B659677D34B5DB821291E12788FAD3871",
+        "line_contract": "5012-5019__NONZERO_LOD_UV_READS_RENDER_DATA"
+      },
+      {
+        "path": "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Source\\Editor\\UnrealEd\\Private\\FbxMeshUtils.cpp",
+        "bytes": 50723,
+        "sha256": "8776725B682A1355C8CEF2C49C757BAD5E4203E3C66136D4908E1D3F49E76D4E",
+        "line_contract": "189-279__INTERCHANGE_OR_LEGACY_CUSTOM_LOD_BRANCH"
+      },
+      {
+        "path": "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Plugins\\Interchange\\Runtime\\Source\\Import\\Private\\Fbx\\InterchangeFbxTranslator.cpp",
+        "bytes": 38457,
+        "sha256": "D93D22384C6E55AF1A4EC1FF2B3F5E55936697A943820F9437ED4B5F922DD250",
+        "line_contract": "34-40_AND_260-269__FALSE_REMOVES_FBX_TRANSLATOR_FORMAT"
+      },
+      {
+        "path": "Intermediate/PythonStub/unreal.py",
+        "bytes": 36751726,
+        "sha256": "213EB7BDD30D2E2DAE622A23A01D0BB519C6B87CC65035E46DE0D2C1FD3B1D25",
+        "line_contract": "648978-649491__PYTHON_STATIC_MESH_EDITOR_API"
+      }
+    ]
+  },
+  "archive_and_move": {
+    "receipt_name": "pre_clean_import_disposition_receipt_v001.json",
+    "failure_name": "pre_clean_import_disposition_failure_v001.json",
+    "failed_runs_archive_folder": "failed_runs_byte_archive",
+    "invalid_namespace_copy_folder": "invalid_namespace_byte_archive",
+    "invalid_namespace_move_folder": "invalid_namespace_recoverable_move",
+    "copy_policy": "CREATE_NEW_EXCLUSIVE_FILES__VERIFY_BYTES_AND_SHA256",
+    "move_policy": "SAME_VOLUME_ATOMIC_DIRECTORY_RENAME__NEVER_DELETE",
+    "archive_files_marked_windows_read_only": true,
+    "move_target_leaf": "BodyShopRobotNative_v001",
+    "destination_must_be_absent_after_move": true
+  },
+  "fresh_import": {
+    "destination_must_be_absent_before_unreal_process": true,
+    "asset_registry_must_report_all_eight_object_paths_absent": true,
+    "replace_existing": false,
+    "reuse_existing_packages": false,
+    "lod0_packages_created": 8,
+    "legacy_custom_lods_appended": 16,
+    "existing_lods_reimported": 0
+  },
+  "policy": {
+    "one_shot_clean_import": true,
+    "archive_both_failed_runs_before_unreal": true,
+    "archive_invalid_packages_before_move": true,
+    "content_namespace_move_authorized": true,
+    "content_package_delete_authorized": false,
+    "automatic_failure_cleanup": false,
+    "maps_source_config_saves_and_content_outside_destination_writable": false,
+    "failure_must_leave_auditable_receipt_or_process_log": true
+  }
+}
