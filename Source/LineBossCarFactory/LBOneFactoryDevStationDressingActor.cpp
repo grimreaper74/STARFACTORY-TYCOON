@@ -266,18 +266,35 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                         Kinds[static_cast<int32>(
                             ELBOneFactoryDressingKind::PressTrain)].Path)))
                 {
-                    UStaticMeshComponent* Train =
-                        NewObject<UStaticMeshComponent>(this,
-                            TEXT("Dress_PressTrain_Mesh"));
-                    Train->SetupAttachment(SceneRoot);
-                    Train->SetMobility(EComponentMobility::Movable);
-                    Train->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-                    Train->SetCanEverAffectNavigation(false);
-                    Train->SetStaticMesh(TrainMesh);
-                    Train->SetWorldLocationAndRotation(TrainAt,
-                        Datum.GetRotation());
-                    Train->SetWorldScale3D(FVector(100.0));
-                    Train->RegisterComponent();
+                    // The full press shop, as the restored reference map lays
+                    // it out: four parallel trains at the measured 2251 cm
+                    // spacing (FullFactoryRestored centroids -4494, -2243, 9,
+                    // 2261). Train 0 is the working gameplay train on its
+                    // pinned datum; B, C and D stand deeper into the bay as
+                    // installed capacity. Making them playable trains is a
+                    // versioned press-layout contract change, deliberately not
+                    // smuggled in here.
+                    UStaticMeshComponent* Train = nullptr;
+                    for (int32 TrainIndex = 0; TrainIndex < 4; ++TrainIndex)
+                    {
+                        const FVector SiblingOffset =
+                            Datum.GetRotation().RotateVector(
+                                FVector(-2251.0 * TrainIndex, 0.0, 0.0));
+                        Train = NewObject<UStaticMeshComponent>(this,
+                            *FString::Printf(TEXT("Dress_PressTrain_Mesh_%d"),
+                                TrainIndex));
+                        Train->SetupAttachment(SceneRoot);
+                        Train->SetMobility(EComponentMobility::Movable);
+                        Train->SetCollisionEnabled(
+                            ECollisionEnabled::NoCollision);
+                        Train->SetCanEverAffectNavigation(false);
+                        Train->SetStaticMesh(TrainMesh);
+                        Train->SetWorldLocationAndRotation(
+                            TrainAt + SiblingOffset, Datum.GetRotation());
+                        Train->SetWorldScale3D(FVector(100.0));
+                        Train->RegisterComponent();
+                        ++PieceCount;
+                    }
                     const FBoxSphereBounds TrainBounds = Train->Bounds;
                     UE_LOG(LogTemp, Display,
                         TEXT("LINE_BOSS_DRESS_TRAIN_BOUNDS "
@@ -289,7 +306,6 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                         Train->GetComponentScale().X,
                         Train->GetComponentScale().Y,
                         Train->GetComponentScale().Z);
-                    ++PieceCount;
                 }
                 UE_LOG(LogTemp, Display,
                     TEXT("LINE_BOSS_DRESS_TRAIN datum=(%.0f,%.0f,%.0f) "
