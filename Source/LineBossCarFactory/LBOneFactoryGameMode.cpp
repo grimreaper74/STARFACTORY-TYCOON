@@ -6,6 +6,8 @@
 #include "LBManagementPawn.h"
 #include "LBOneFactoryBootstrap.h"
 #include "LBOneFactoryProductionFlow.h"
+#include "LBOneFactoryPlayerController.h"
+#include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryGameMode, Log, All);
@@ -67,7 +69,8 @@ ALBOneFactoryGameMode::ALBOneFactoryGameMode()
 {
     PrimaryActorTick.bCanEverTick = false;
     DefaultPawnClass = ALBManagementPawn::StaticClass();
-    HUDClass = ALBControlRoomHUD::StaticClass();
+    HUDClass = ALBOneFactoryProductionHUD::StaticClass();
+    PlayerControllerClass = ALBOneFactoryPlayerController::StaticClass();
     Tags.AddUnique(GetGameModeAuthorityTag());
 }
 

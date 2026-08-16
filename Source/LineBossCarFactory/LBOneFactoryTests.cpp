@@ -2,6 +2,7 @@
 
 #include "LBOneFactoryBootstrap.h"
 #include "LBOneFactoryGameMode.h"
+#include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryTypes.h"
@@ -227,8 +228,17 @@ bool FLBOneFactoryGameModeDefaultsTest::RunTest(const FString& Parameters)
     {
         TestEqual(TEXT("OneFactory reuses the proven management pawn"),
             Defaults->DefaultPawnClass.Get(), ALBManagementPawn::StaticClass());
-        TestEqual(TEXT("OneFactory reuses the active UMG ControlRoom HUD"),
-            Defaults->HUDClass.Get(), ALBControlRoomHUD::StaticClass());
+        // Versioned contract change, 2026-08-16: the shell now installs the
+        // production-flow HUD directly, so the factory is legible without a
+        // console swap. It derives from ALBControlRoomHUD, so every ControlRoom
+        // surface is still drawn - which this asserts, rather than merely
+        // dropping the old requirement.
+        TestEqual(TEXT("OneFactory installs the production-flow HUD"),
+            Defaults->HUDClass.Get(),
+            ALBOneFactoryProductionHUD::StaticClass());
+        TestTrue(TEXT("The production HUD still provides the ControlRoom surface"),
+            ALBOneFactoryProductionHUD::StaticClass()->IsChildOf(
+                ALBControlRoomHUD::StaticClass()));
         TestFalse(TEXT("OneFactory game mode never ticks"),
             Defaults->PrimaryActorTick.bCanEverTick);
         TestTrue(TEXT("GameMode authority tag is stable"),

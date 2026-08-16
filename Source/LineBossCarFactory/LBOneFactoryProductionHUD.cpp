@@ -260,74 +260,15 @@ void ALBOneFactoryProductionHUD::DrawHUD()
         return;
     }
 
-    DrawTopBar(Width, Height, Scale, UnitsLive, Dispatched, Alerts);
-    DrawFlowStrip(Width, Height, Scale, Groups);
+    DrawFlowStrip(Width, Height, Scale, Groups, UnitsLive, Dispatched,
+        Alerts.Num());
     DrawAlertToast(Width, Height, Scale, Alerts);
-}
-
-void ALBOneFactoryProductionHUD::DrawTopBar(const float Width,
-    const float Height, const float Scale, const int32 UnitsLive,
-    const int32 Dispatched, const TArray<FString>& Alerts)
-{
-    using namespace LBOneFactoryHUDPrivate;
-    UFont* Small = GEngine ? GEngine->GetSmallFont() : nullptr;
-    UFont* Large = GEngine ? GEngine->GetLargeFont() : nullptr;
-
-    const float BarH = 46.0f * Scale;
-    DrawRect(CharcoalDeep.CopyWithNewOpacity(0.90f), 0.0f, 0.0f, Width, BarH);
-    DrawRect(CairnwellLit.CopyWithNewOpacity(0.55f), 0.0f, BarH - 2.0f * Scale,
-        Width, 2.0f * Scale);
-
-    const float Pad = 18.0f * Scale;
-    if (Large)
-    {
-        DrawText(TEXT("CAIRNWELL AUTOMOTIVE"), Warm, Pad, 8.0f * Scale,
-            Large, Scale, false);
-    }
-    if (Small)
-    {
-        DrawText(TEXT("MOORCROSS WORKS"), Steel, Pad, 28.0f * Scale,
-            Small, Scale, false);
-    }
-
-    // Right-aligned readouts. Each is a live figure, never a placeholder.
-    float Cursor = Width - Pad;
-    const float TimeScale = 1.0f;
-    struct FReadout
-    {
-        FString Key;
-        FString Value;
-        FLinearColor Colour;
-    };
-    TArray<FReadout> Readouts;
-    Readouts.Add({ TEXT("ALERTS"),
-        FString::Printf(TEXT("%d"), Alerts.Num()),
-        Alerts.Num() > 0 ? Yellow : Steel });
-    Readouts.Add({ TEXT("DISPATCHED"),
-        FString::Printf(TEXT("%d"), Dispatched), Warm });
-    Readouts.Add({ TEXT("ON LINE"),
-        FString::Printf(TEXT("%d"), UnitsLive), Warm });
-
-    for (const FReadout& Readout : Readouts)
-    {
-        const float BlockW = 128.0f * Scale;
-        Cursor -= BlockW;
-        if (Small)
-        {
-            DrawText(Readout.Key, Steel, Cursor, 9.0f * Scale, Small,
-                Scale, false);
-        }
-        if (Large)
-        {
-            DrawText(Readout.Value, Readout.Colour, Cursor, 24.0f * Scale,
-                Large, Scale, false);
-        }
-    }
 }
 
 void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,
     const float Height, const float Scale,
-    const TArray<FLBOneFactoryProcessGroup>& Groups)
+    const TArray<FLBOneFactoryProcessGroup>& Groups, const int32 UnitsLive,
+    const int32 Dispatched, const int32 AlertCount)
 {
     using namespace LBOneFactoryHUDPrivate;
     UFont* Small = GEngine ? GEngine->GetSmallFont() : nullptr;
@@ -344,6 +285,13 @@ void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,
     {
         DrawText(TEXT("PRODUCTION FLOW"), Steel, Pad, StripY + 8.0f * Scale,
             Small, Scale, false);
+
+        const FString Summary = FString::Printf(
+            TEXT("ON LINE %d     DISPATCHED %d     ALERTS %d"),
+            UnitsLive, Dispatched, AlertCount);
+        DrawText(Summary, AlertCount > 0 ? Yellow : Steel,
+            Width - Pad - 280.0f * Scale, StripY + 8.0f * Scale, Small,
+            Scale, false);
     }
 
     const float CardsY = StripY + 28.0f * Scale;

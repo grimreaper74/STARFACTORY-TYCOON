@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/HUD.h"
+#include "LBControlRoomHUD.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryProductionHUD.generated.h"
 
@@ -45,12 +45,15 @@ struct FLBOneFactoryProcessGroup
  * throughput from the authored cycle times, occupancy and progress from the
  * ledger, and alert text from the coordinator's own reasons.
  *
- * Deliberately a separate HUD rather than a change to ALBControlRoomHUD, because
- * the OneFactory player-shell contract test asserts the game mode's default
- * classes. Swap it in at runtime with LB.OneFactory.HUD.
+ * Derives from ALBControlRoomHUD rather than replacing it, so every surface the
+ * ControlRoom HUD already draws is preserved and this only adds the production
+ * flow strip and alert toasts beneath it. The game mode installs this directly,
+ * so no console swap is needed; LB.OneFactory.HUD remains for editor sessions
+ * started another way.
  */
 UCLASS()
-class LINEBOSSCARFACTORY_API ALBOneFactoryProductionHUD : public AHUD
+class LINEBOSSCARFACTORY_API ALBOneFactoryProductionHUD :
+    public ALBControlRoomHUD
 {
     GENERATED_BODY()
 
@@ -68,10 +71,9 @@ public:
         ELBOneFactoryVehicleStage Stage);
 
 private:
-    void DrawTopBar(float Width, float Height, float Scale, int32 UnitsLive,
-        int32 Dispatched, const TArray<FString>& Alerts);
     void DrawFlowStrip(float Width, float Height, float Scale,
-        const TArray<FLBOneFactoryProcessGroup>& Groups);
+        const TArray<FLBOneFactoryProcessGroup>& Groups, int32 UnitsLive,
+        int32 Dispatched, int32 AlertCount);
     void DrawAlertToast(float Width, float Height, float Scale,
         const TArray<FString>& Alerts);
 };
