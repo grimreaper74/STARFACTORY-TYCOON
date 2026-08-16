@@ -57,6 +57,14 @@ public:
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void ReworkOldestQualityHold();
 
+    /** Saves the whole factory - layouts, ledger and mid-cycle runtime state. */
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void SaveFactory();
+
+    /** Restores the last save, rebuilding presentation from the snapshot. */
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void LoadFactory();
+
 private:
     void ApplyTimeScale(float TimeScale);
     bool ResolveOldestHold(FName& OutUnitId, FString& OutReason) const;

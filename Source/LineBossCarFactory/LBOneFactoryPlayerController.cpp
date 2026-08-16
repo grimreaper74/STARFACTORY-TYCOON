@@ -9,6 +9,7 @@
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactorySaveSubsystem.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryPlayer, Display, All);
@@ -79,6 +80,10 @@ void ALBOneFactoryPlayerController::SetupInputComponent()
         &ALBOneFactoryPlayerController::PassOldestQualityHold);
     InputComponent->BindKey(EKeys::R, IE_Pressed, this,
         &ALBOneFactoryPlayerController::ReworkOldestQualityHold);
+    InputComponent->BindKey(EKeys::F5, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::SaveFactory);
+    InputComponent->BindKey(EKeys::F9, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::LoadFactory);
 }
 
 void ALBOneFactoryPlayerController::CommissionFactory()
@@ -289,4 +294,38 @@ void ALBOneFactoryPlayerController::ReworkOldestQualityHold()
     UE_LOG(LogLineBossOneFactoryPlayer, Display,
         TEXT("LINE_BOSS_PLAYER_REWORK ok=%d unit=%s %s"),
         bOk ? 1 : 0, *UnitId.ToString(), *Reason);
+}
+
+void ALBOneFactoryPlayerController::SaveFactory()
+{
+    ULBOneFactorySaveSubsystem* Saves =
+        GetWorld() ? GetWorld()->GetSubsystem<ULBOneFactorySaveSubsystem>()
+                   : nullptr;
+    if (!Saves)
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_SAVE no save subsystem"));
+        return;
+    }
+    FString Reason;
+    const bool bOk = Saves->SaveOneFactory(Reason);
+    UE_LOG(LogLineBossOneFactoryPlayer, Display,
+        TEXT("LINE_BOSS_PLAYER_SAVE ok=%d %s"), bOk ? 1 : 0, *Reason);
+}
+
+void ALBOneFactoryPlayerController::LoadFactory()
+{
+    ULBOneFactorySaveSubsystem* Saves =
+        GetWorld() ? GetWorld()->GetSubsystem<ULBOneFactorySaveSubsystem>()
+                   : nullptr;
+    if (!Saves)
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_LOAD no save subsystem"));
+        return;
+    }
+    FString Reason;
+    const bool bOk = Saves->LoadOneFactory(Reason);
+    UE_LOG(LogLineBossOneFactoryPlayer, Display,
+        TEXT("LINE_BOSS_PLAYER_LOAD ok=%d %s"), bOk ? 1 : 0, *Reason);
 }
