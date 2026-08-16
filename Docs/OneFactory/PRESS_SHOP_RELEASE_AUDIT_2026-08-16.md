@@ -80,6 +80,14 @@ Captures: `Captures/20260816_21_AuditFix*`.
     `/Engine/BasicShapes` is now an explicit always-cook root instead of a
     side effect of unrelated ConstructorHelpers.
 
+18. **Coil geometry cost addressed with Nanite** (fix 7, first half): the
+    1,906,162-triangle `SM_CA_MW_WrappedCoil_Repaired_v003` had a single LOD
+    and Nanite disabled; LOD-chain authoring via the deprecated python API
+    silently no-oped (verified `num_lods=1` after the call), so the mesh now
+    has **Nanite enabled** (verified re-read `enabled=True` after save) —
+    the correct tool for a 1.9M-triangle opaque mesh. The measured frame
+    budget remains open and lands with the next packaged performance capture.
+
 ## Remaining from the fix list (open, in dependency order)
 
 - **East-end dressing** (PR-039 first-off scan, PR-040 quarantine, PR-043
