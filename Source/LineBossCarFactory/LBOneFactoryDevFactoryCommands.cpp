@@ -22,6 +22,7 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
+#include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryDev, Display, All);
@@ -1108,6 +1109,41 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryHUD(
+    TEXT("LB.OneFactory.HUD"),
+    TEXT("Swaps in the production-flow HUD: top bar, seven-stage flow strip and "
+         "alert toasts, all read from the coordinator and ledger."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            APlayerController* Controller =
+                World ? World->GetFirstPlayerController() : nullptr;
+            if (!Controller)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Error,
+                    TEXT("LINE_BOSS_DEV_HUD no player controller"));
+                return;
+            }
+            if (AHUD* Old = Controller->GetHUD())
+            {
+                Old->Destroy();
+            }
+            FActorSpawnParameters Params;
+            Params.Owner = Controller;
+            Params.Instigator = Controller->GetInstigator();
+            Params.SpawnCollisionHandlingOverride =
+                ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            ALBOneFactoryProductionHUD* Hud =
+                World->SpawnActor<ALBOneFactoryProductionHUD>(
+                    ALBOneFactoryProductionHUD::StaticClass(), Params);
+            if (Hud)
+            {
+                Controller->MyHUD = Hud;
+            }
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_HUD ok=%d"), Hud ? 1 : 0);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryMaterials(
