@@ -1,6 +1,6 @@
 #include "LBOneFactoryWIPPresentationActor.h"
 
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -38,12 +38,12 @@ namespace LBOneFactoryWIPPresentationPrivate
      * line tells the player how far each body has travelled.
      */
     const TCHAR* const BatchColour[VisualCount] = {
-        TEXT("8A9099"),   // coil: mill steel
-        TEXT("A8AEB6"),   // pressed panels: brighter cut steel
-        TEXT("6E7681"),   // body in white: welded shell
-        TEXT("55606B"),   // primed: dull e-coat grey
-        TEXT("2FA8A0"),   // painted: Cairnwell teal
-        TEXT("35C4B8")    // finished: brighter trimmed car
+        TEXT("C2C8D0"),   // coil: mill steel
+        TEXT("D8DDE3"),   // pressed panels: brighter cut steel
+        TEXT("9AA3AF"),   // body in white: welded shell
+        TEXT("7A848F"),   // primed: dull e-coat grey
+        TEXT("3FD4C8"),   // painted: Cairnwell teal
+        TEXT("58E6DA")    // finished: brighter trimmed car
     };
 
     /**
@@ -84,8 +84,8 @@ ALBOneFactoryWIPPresentationActor::ALBOneFactoryWIPPresentationActor()
     Batches.Reserve(VisualCount);
     for (int32 Index = 0; Index < VisualCount; ++Index)
     {
-        UHierarchicalInstancedStaticMeshComponent* Batch =
-            CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(
+        UInstancedStaticMeshComponent* Batch =
+            CreateDefaultSubobject<UInstancedStaticMeshComponent>(
                 FName(BatchComponentNames[Index]));
         Batch->SetupAttachment(SceneRoot);
         Batch->SetMobility(EComponentMobility::Movable);
@@ -142,7 +142,7 @@ ELBOneFactoryWIPVisual ALBOneFactoryWIPPresentationActor::VisualForStage(
 
 void ALBOneFactoryWIPPresentationActor::ClearPresentation()
 {
-    for (UHierarchicalInstancedStaticMeshComponent* Batch : Batches)
+    for (UInstancedStaticMeshComponent* Batch : Batches)
     {
         if (Batch)
         {
@@ -239,9 +239,35 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         StationTransforms.Add(Step.StationId, Step.WorldTransform);
     }
 
+    const FLBOneFactoryProductionLedgerState Ledger = Production->CaptureLedger();
+
+    // A hierarchical ISM builds its cluster tree asynchronously. Clearing and
+    // refilling every tick leaves it permanently mid-build and it draws
+    // nothing, so only rebuild when the line has actually changed. Units move
+    // station rarely, so in practice this rebuilds a handful of times a minute.
+    uint32 Signature = static_cast<uint32>(Route.Num());
+    for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
+    {
+        if (Unit.bDispatched)
+        {
+            continue;
+        }
+        Signature = HashCombine(Signature, GetTypeHash(Unit.UnitId));
+        Signature = HashCombine(Signature, GetTypeHash(Unit.CurrentStationId));
+        Signature = HashCombine(Signature,
+            static_cast<uint32>(Unit.Stage) + 1u);
+    }
+    if (bHasBuiltOnce && Signature == LastSignature)
+    {
+        OutReason = FString::Printf(TEXT("%d unit(s) on the line"),
+            VisibleUnitCount);
+        return true;
+    }
+    LastSignature = Signature;
+    bHasBuiltOnce = true;
+
     ClearPresentation();
 
-    const FLBOneFactoryProductionLedgerState Ledger = Production->CaptureLedger();
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
         // A dispatched car has left the building; it is no longer on the line.
@@ -279,8 +305,30 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
     {
         LastLoggedUnitCount = VisibleUnitCount;
         UE_LOG(LogTemp, Display,
-            TEXT("LINE_BOSS_WIP_VISIBLE units=%d ledger=%d route=%d"),
-            VisibleUnitCount, Ledger.Units.Num(), Route.Num());
+            TEXT("LINE_BOSS_WIP_VISIBLE units=%d ledger=%d route=%d "
+                 "actorHidden=%d"),
+            VisibleUnitCount, Ledger.Units.Num(), Route.Num(),
+            IsHidden() ? 1 : 0);
+        for (int32 Index = 0; Index < Batches.Num(); ++Index)
+        {
+            UInstancedStaticMeshComponent* Batch = Batches[Index];
+            if (!Batch || Batch->GetInstanceCount() == 0)
+            {
+                continue;
+            }
+            const FBoxSphereBounds B = Batch->Bounds;
+            UE_LOG(LogTemp, Display,
+                TEXT("LINE_BOSS_WIP_BATCH %d count=%d mesh=%s visible=%d "
+                     "registered=%d origin=(%.0f,%.0f,%.0f) "
+                     "extent=(%.0f,%.0f,%.0f)"),
+                Index, Batch->GetInstanceCount(),
+                Batch->GetStaticMesh()
+                    ? *Batch->GetStaticMesh()->GetName() : TEXT("NONE"),
+                Batch->IsVisible() ? 1 : 0,
+                Batch->IsRegistered() ? 1 : 0,
+                B.Origin.X, B.Origin.Y, B.Origin.Z,
+                B.BoxExtent.X, B.BoxExtent.Y, B.BoxExtent.Z);
+        }
         for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
         {
             if (!Unit.bDispatched)

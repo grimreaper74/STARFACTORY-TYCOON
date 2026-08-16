@@ -509,7 +509,7 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                     if (UPointLightComponent* BayComponent =
                         Cast<UPointLightComponent>(Bay->GetLightComponent()))
                     {
-                        BayComponent->SetIntensity(180000.0f);
+                        BayComponent->SetIntensity(42000.0f);
                         BayComponent->SetAttenuationRadius(
                             FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
                         BayComponent->SetLightColor(
@@ -600,8 +600,12 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
             }
             if (const FTransform* At = ByStation.Find(Unit.CurrentStationId))
             {
+                // Frame the first live unit only. Framing every unit averages
+                // across departments hundreds of metres apart and puts the cars
+                // at the edge of frame or outside it entirely.
                 Bounds += At->GetLocation();
                 ++Counted;
+                break;
             }
         }
         if (Counted == 0)
@@ -644,8 +648,8 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         FMath::Max3<double>(Extent.X, Extent.Y, 400.0);
     // A WIP shot wants the cars legible, so sit much closer to them.
     const double Distance = bWIP
-        ? FMath::Max<double>(HalfSpan * 0.9, 900.0)
-        : FMath::Max<double>(HalfSpan * 1.25, 1800.0);
+        ? 1600.0
+        : FMath::Max<double>(HalfSpan * 0.80, 1500.0);
     const FVector Eye = Centre
         + FVector(-Distance * 0.66, -Distance * 0.46, Distance * 0.45);
 

@@ -5,7 +5,7 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryWIPPresentationActor.generated.h"
 
-class UHierarchicalInstancedStaticMeshComponent;
+class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
 
@@ -82,12 +82,14 @@ private:
     TObjectPtr<USceneComponent> SceneRoot;
 
     UPROPERTY()
-    TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Batches;
+    TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
 
     UPROPERTY()
     TArray<TObjectPtr<UMaterialInstanceDynamic>> BatchMaterials;
 
     bool bMaterialsResolved = false;
+    bool bHasBuiltOnce = false;
+    uint32 LastSignature = 0;
     int32 VisibleUnitCount = 0;
     int32 LastLoggedUnitCount = INDEX_NONE;
 };
