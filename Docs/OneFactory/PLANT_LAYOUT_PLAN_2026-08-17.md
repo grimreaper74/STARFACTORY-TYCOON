@@ -550,3 +550,52 @@ exit and paint entry. Arithmetic is checked: pitch 1800 > footprint 1700 (no in-
 overlap), row separation 4200 > 3200 (no cross-row overlap), all links under the
 frozen 6200 cm maximum, all transforms Z=0 and unit scale. It goes through
 `MoveStation`, so it is a data re-seed, not a contract change.
+
+---
+
+# Weld kit calibration (2026-08-17) — closes uncertainty U-2
+
+Measured every vendor mesh the weld design plans to use. Two plan claims are wrong
+and two assets carry placement traps.
+
+| Mesh | Measured size (cm) | Note |
+| --- | --- | --- |
+| `SM_IndustrialPlatform01` | 700 x 300 x 71.5 | Mezzanine deck tiles at 700 in X, 300 in Y |
+| `SM_IndustrialPlatform02` / `03` | 400 x 300 / 300 x 300 | Infill decks |
+| `SM_PlatformRailing_01` | 7.6 x 352 x 127 | Runs along **Y** - needs 90 deg yaw to edge an X-running deck |
+| `SM_PlatformPillar_01` | 32.5 x 50 x 282 | Deck at 282 clears a 2.2 m walkway beneath |
+| `SM_FloorStairs01` | 284.6 x 143.8 x 176.7 | **minZ -176.7**: placing at floor level buries it. Offset +176.7 |
+| `SM_ElectricalPanel_01` | 105.8 x 55.1 x 158.8 | **minZ -79.4**: same trap, offset +79.4 |
+| `SM_HeavyArch01` / `02` | 400 x 120 x **600** | See correction below |
+| `SM_LampArch01` | 121 x 788 x **588** | See correction below |
+| `SM_LargeWindowFramed` | 830.6 x 29.7 x 854.7 | Good clerestory unit, 3 material slots |
+| `SM_LargeWindowFramed_02` | — | **DOES NOT EXIST.** The plan lists it |
+| `SM_StorageShelvesBottom/Middle/Top01` | 300 x ~155 x 200 / 210 / 230 | Stack to 640 per bay; middle and top unwired |
+| `SM_ElectricalSupply_Switchboard01` | 140 x 45 x 200 | South switchroom line |
+| `SM_LB_BodyShop_ClosureTurntable_v001` | 280 x 303 x 162.5 | 5 slots |
+| `SM_LB_BodyShop_VisionGate_v001` | 107 x 572.5 x 320 | 7 slots; spans the line in Y |
+| `SM_LB_C2040_BIWBaseSkid_v001` | 560 x 212 x 65 | 5.6 m body skid, 3 slots |
+| `SM_LB_C2040_DOOR_FRONT_LEFT_v001` | 86 x 4.1 x 63.5 | minZ 44.5 - authored at its in-body height |
+| `SM_LB_C2040_ROOF_PANEL_v001` | 192 x 135.6 x 6.8 | minZ 149.2 - likewise |
+
+## Correction: the arch family is NOT shop-scale
+
+The design calls `SM_HeavyArch01-04` and `SM_LampArch01` "shop-scale gantries over
+each line". They are **6.0 m and 5.9 m tall**. The weld shop's walls are **22 m**, so
+these are *machine-scale* arches - right over a single cell, useless as a hall
+gantry. Reaching shop scale would need roughly 3.5x uniform scaling, which would
+thicken every member and read as a toy.
+
+**Decision:** use the arch family for what it is - per-cell gantries over the 18
+stations, which the shop genuinely lacks - and treat shop-scale overhead steelwork as
+an authoring item rather than a reuse item. Added to the missing list as
+`SM_LB_Weld_ShopGantry_18000_v001` (a 180 m truss run spanning the bay) and
+`SM_LB_Weld_CraneRunway_v001`. This is the same mistake as the earlier density
+ratios: a number quoted from reasoning rather than measured.
+
+## Two placement traps to honour
+
+`SM_FloorStairs01` (minZ -176.7) and `SM_ElectricalPanel_01` (minZ -79.4) both extend
+below their origin. Placed at Z=0 they sink into the slab. Every placement script must
+offset by -minZ, not assume floor pivots - the `SM_LB_*` family uses floor pivots, the
+vendor pack does not.
