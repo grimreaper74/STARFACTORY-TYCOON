@@ -430,3 +430,43 @@ as misplaced. The true shop is about 111 m deep between its own walls.
 now. Exclude cameras, re-pose or omit those 10 arm actors, and the remaining 3,976
 actors drop in. The footprint ratification the plan puts in Phase 0 is still needed
 for weld, paint and assembly, but it does not block press.
+
+---
+
+# Transplant landed, and it broke commissioning as predicted
+
+Press is now saved content in the playable map: **5,129 mesh actors + 144 light
+actors**, 0 failures, 99 runtime MaterialInstanceDynamics resolved to their parents.
+The reference map is untouched. Offset (-13700, +8000), **no rotation** - the +90
+degree yaw in LBOneFactoryDevRestoredShopActor was the bug.
+
+**Consequence, exactly as the level-instance analysis predicted:**
+
+```
+LINE_BOSS_ONEFACTORY_BOOTSTRAP_REJECTED reason=ONEFACTORY FOUND 40 NON-NATIVE PRESENTATION ACTORS
+LINE_BOSS_DEV_BUILD_WHOLE_FACTORY ok=0 NEW FACTORY IS LOCKED UNTIL BOOTSTRAP READY
+```
+
+Codex's four press trains bind `SM_CA_Factory_*_MeshyMaster_v632` materials. Placing
+one actor per mesh component turned those 4 trains into 40 rejected actors.
+Acceptable while gameplay is deferred - but it **cost the verification tool**: the
+tour's framing needs the runtime coordinator, so with commissioning blocked every
+capture silently fell back to the pawn's default unframed view. Three different
+camera solves returned pixel-identical frames and I mistook that for a geometry
+problem, then for a HUD-toggle problem, before the restored HUD showed the real
+message "no commissioned factory yet".
+
+**Lesson for the next capture: read the HUD text in the frame before theorising.**
+It said what was wrong the whole time.
+
+## Next, in order
+
+1. **Coordinator-free framing** for captures - a command that frames a fixed world
+   box so verification never depends on a commissioned factory again. Without this
+   the plant cannot be inspected while gameplay is deferred.
+2. **Narrow `AuditWorld` to the persistent level** (or exclude transplant-tagged
+   actors) so the 40 Meshy-bound actors stop blocking commissioning. This is the
+   real fix and was already identified as such; do not delete Codex's content for it.
+3. Only then judge whether the component-world-transform fix was needed - it is
+   correct in principle (5,129 components across 3,793 actors, so over a thousand
+   were being collapsed onto their actor pivot) but has never actually been seen.

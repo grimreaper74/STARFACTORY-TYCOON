@@ -118,10 +118,16 @@ for actor in ACTOR_SUB.get_all_level_actors():
                 REPORT["dynamic_materials_resolved"] += 1
                 bound = parent
             slots.append(bound)
+        # Record each component's WORLD transform, not the actor's. Placing every
+        # mesh at its actor origin collapses multi-component actors onto their pivot
+        # and drops any component offset - which put large structural panels on top
+        # of the camera and made every capture identical regardless of pitch.
+        # 3,793 actors carry 5,129 mesh components, so this affects over a thousand
+        # of them. Taking the world transform avoids composing rotations by hand.
         entry["meshes"].append({
             "asset": asset,
             "slots": slots,
-            "relative": component.get_relative_transform(),
+            "world": component.get_world_transform(),
         })
 
     if isinstance(actor, unreal.Light):
@@ -203,12 +209,16 @@ for entry in records:
             unreal.Name("LB.NotProcessWIP")]
 
     for mesh_entry in entry["meshes"]:
+        world = mesh_entry["world"]
+        source = world.translation
+        component_location = unreal.Vector(source.x + OFFSET.x,
+                                           source.y + OFFSET.y, source.z)
         actor = ACTOR_SUB.spawn_actor_from_object(
-            mesh_entry["asset"], target_location, entry["rot"])
+            mesh_entry["asset"], component_location, world.rotation.rotator())
         if actor is None:
             failures.append("mesh spawn failed: {}".format(entry["label"]))
             continue
-        actor.set_actor_scale3d(entry["scale"])
+        actor.set_actor_scale3d(world.scale3d)
         component = actor.static_mesh_component
         if component:
             for index, material in enumerate(mesh_entry["slots"]):
