@@ -1336,6 +1336,134 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
         }));
 
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryEDLinePreview(
+    TEXT("LB.OneFactory.EDLinePreview"),
+    TEXT("Usage: LB.OneFactory.EDLinePreview [standing=1]. Stands the ED "
+         "line as the owner's reference draws it: carrier gantry bays over "
+         "the tank row at pretreatment and ED coat, then oven segments "
+         "end-to-end through the cure stations. Preview only - nothing is "
+         "committed to the frozen paint contract."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            static const FName PreviewTag(TEXT("LB.OneFactory.EDLinePreview"));
+            const bool bStanding = Args.Num() < 1
+                || FCString::Atoi(*Args[0]) != 0;
+            int32 Removed = 0;
+            for (TActorIterator<AStaticMeshActor> It(World); It; ++It)
+            {
+                if (IsValid(*It) && It->Tags.Contains(PreviewTag))
+                {
+                    It->Destroy();
+                    ++Removed;
+                }
+            }
+            if (!bStanding)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Display,
+                    TEXT("LINE_BOSS_DEV_ED_LINE_PREVIEW standing=0 "
+                         "removed=%d"), Removed);
+                return;
+            }
+
+            ALBOneFactoryRuntimeCoordinator* Coordinator =
+                ULBOneFactoryDevFactory::FindCoordinator(World);
+            TArray<FLBOneFactoryRuntimeStationStep> Route;
+            FName TopologyId = NAME_None;
+            FString Reason;
+            if (!Coordinator
+                || !Coordinator->GetConfiguredStationRoute(Route, TopologyId,
+                        Reason))
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Warning,
+                    TEXT("LINE_BOSS_DEV_ED_LINE_PREVIEW no route: %s"),
+                    *Reason);
+                return;
+            }
+            UStaticMesh* Gantry = Cast<UStaticMesh>(StaticLoadObject(
+                UStaticMesh::StaticClass(), nullptr,
+                TEXT("/Game/LineBoss/Candidates/PaintShop/EDLineGantry_v001"
+                     "/SM_LB_EDLine_CarrierGantryBay_v001")));
+            UStaticMesh* Oven = Cast<UStaticMesh>(StaticLoadObject(
+                UStaticMesh::StaticClass(), nullptr,
+                TEXT("/Game/LineBoss/Candidates/PaintShop/EDLineOven_v002"
+                     "/SM_LB_EDLine_OvenSegment_v002")));
+            if (!Gantry || !Oven)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Warning,
+                    TEXT("LINE_BOSS_DEV_ED_LINE_PREVIEW meshes unresolved"));
+                return;
+            }
+
+            auto Stand = [&](UStaticMesh* Mesh, const FVector& Where,
+                const FRotator& Rotation)
+            {
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
+                    AStaticMeshActor::StaticClass(), Where, Rotation, Params);
+                if (!Actor)
+                {
+                    return false;
+                }
+                Actor->Tags.AddUnique(PreviewTag);
+                if (UStaticMeshComponent* Component =
+                        Actor->GetStaticMeshComponent())
+                {
+                    Component->SetMobility(EComponentMobility::Movable);
+                    Component->SetStaticMesh(Mesh);
+                    Component->SetCollisionEnabled(
+                        ECollisionEnabled::NoCollision);
+                }
+                return true;
+            };
+
+            // Gantry bays straddle the authored tank pitch of 324 cm at the
+            // two wet stages; oven segments tile through the cure stages.
+            int32 Gantries = 0;
+            int32 Ovens = 0;
+            for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+            {
+                const FVector At = Step.WorldTransform.GetLocation();
+                const FRotator Facing = Step.WorldTransform.Rotator();
+                const FVector Along =
+                    Step.WorldTransform.GetRotation().GetForwardVector();
+                if (Step.SemanticStage
+                        == ELBOneFactoryVehicleStage::Pretreatment
+                    || Step.SemanticStage
+                        == ELBOneFactoryVehicleStage::EDCoat)
+                {
+                    for (int32 Bay = -1; Bay <= 1; ++Bay)
+                    {
+                        if (Stand(Gantry, At + Along * (324.0 * Bay), Facing))
+                        {
+                            ++Gantries;
+                        }
+                    }
+                }
+                else if (Step.SemanticStage
+                    == ELBOneFactoryVehicleStage::Cure)
+                {
+                    for (int32 Bay = -2; Bay <= 2; ++Bay)
+                    {
+                        if (Stand(Oven, At + Along * (355.0 * Bay), Facing))
+                        {
+                            ++Ovens;
+                        }
+                    }
+                }
+            }
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_ED_LINE_PREVIEW standing=1 gantries=%d "
+                     "ovenSegments=%d removed=%d"),
+                Gantries, Ovens, Removed);
+        }));
+
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryPaintEDPreview(
     TEXT("LB.OneFactory.PaintEDPreview"),
     TEXT("Usage: LB.OneFactory.PaintEDPreview [standing=1] [stations=all]. "
