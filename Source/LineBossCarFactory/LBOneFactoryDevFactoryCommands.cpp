@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshActor.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "Components/DirectionalLightComponent.h"
@@ -1333,6 +1334,115 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryView(
                 World, Department, Reason);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_VIEW ok=%d %s"), bOk ? 1 : 0, *Reason);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryPaintEDPreview(
+    TEXT("LB.OneFactory.PaintEDPreview"),
+    TEXT("Usage: LB.OneFactory.PaintEDPreview [standing=1] [stations=all]. "
+         "Stands the commissioned ED dip tunnel at the ED coat stations for "
+         "comparison against the presentation's tracked open ED line, which "
+         "it encloses. A preview only - nothing is committed to the frozen "
+         "paint contract. 'stations' may be 'all', 'first' or 'second' so "
+         "one station can show the enclosure while the other shows the open "
+         "line."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            static const FName PreviewTag(
+                TEXT("LB.OneFactory.PaintEDPreview"));
+            const bool bStanding = Args.Num() < 1
+                || FCString::Atoi(*Args[0]) != 0;
+            const FString Which = Args.Num() > 1 ? Args[1] : TEXT("all");
+
+            int32 Removed = 0;
+            for (TActorIterator<AStaticMeshActor> It(World); It; ++It)
+            {
+                if (IsValid(*It) && It->Tags.Contains(PreviewTag))
+                {
+                    It->Destroy();
+                    ++Removed;
+                }
+            }
+            if (!bStanding)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Display,
+                    TEXT("LINE_BOSS_DEV_PAINT_ED_PREVIEW standing=0 "
+                         "removed=%d"), Removed);
+                return;
+            }
+
+            ALBOneFactoryRuntimeCoordinator* Coordinator =
+                ULBOneFactoryDevFactory::FindCoordinator(World);
+            TArray<FLBOneFactoryRuntimeStationStep> Route;
+            FName TopologyId = NAME_None;
+            FString Reason;
+            if (!Coordinator
+                || !Coordinator->GetConfiguredStationRoute(Route, TopologyId,
+                        Reason))
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Warning,
+                    TEXT("LINE_BOSS_DEV_PAINT_ED_PREVIEW no route: %s"),
+                    *Reason);
+                return;
+            }
+            UStaticMesh* Tunnel = Cast<UStaticMesh>(StaticLoadObject(
+                UStaticMesh::StaticClass(), nullptr,
+                TEXT("/Game/LineBoss/Candidates/PaintShop/EDDipTunnel_v001"
+                     "/SM_LB_Paint_EDDipTunnel_v001")));
+            if (!Tunnel)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Warning,
+                    TEXT("LINE_BOSS_DEV_PAINT_ED_PREVIEW tunnel mesh "
+                         "unresolved"));
+                return;
+            }
+
+            int32 EDIndex = 0;
+            int32 Placed = 0;
+            for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+            {
+                if (Step.SemanticStage
+                    != ELBOneFactoryVehicleStage::EDCoat)
+                {
+                    continue;
+                }
+                const int32 ThisIndex = EDIndex++;
+                if ((Which.Equals(TEXT("first"), ESearchCase::IgnoreCase)
+                        && ThisIndex != 0)
+                    || (Which.Equals(TEXT("second"), ESearchCase::IgnoreCase)
+                        && ThisIndex != 1))
+                {
+                    continue;
+                }
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                AStaticMeshActor* Actor = World->SpawnActor<AStaticMeshActor>(
+                    AStaticMeshActor::StaticClass(),
+                    Step.WorldTransform.GetLocation(),
+                    Step.WorldTransform.Rotator(), Params);
+                if (!Actor)
+                {
+                    continue;
+                }
+                Actor->Tags.AddUnique(PreviewTag);
+                if (UStaticMeshComponent* Mesh =
+                        Actor->GetStaticMeshComponent())
+                {
+                    Mesh->SetMobility(EComponentMobility::Movable);
+                    Mesh->SetStaticMesh(Tunnel);
+                    Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                }
+                ++Placed;
+            }
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_PAINT_ED_PREVIEW standing=1 which=%s "
+                     "placed=%d removed=%d edStations=%d"),
+                *Which, Placed, Removed, EDIndex);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryPressBlockout(
