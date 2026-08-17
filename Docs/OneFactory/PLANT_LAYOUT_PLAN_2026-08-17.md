@@ -984,3 +984,29 @@ Read paths, do not compose them.
 | Station density (597 vs press's 5,089) | Largest remaining gap |
 | Mezzanine, marshalling racks | Need authoring |
 | Wall shell | Blocked on the cube-walls decision |
+
+## Paint and assembly roofed too — all four shops now have steelwork
+
+`Tools/build_shop_trusses.py` generalises the verified weld pass to any bay via
+`LB_SHOP`. Same grid copied from press: 4000 cm X pitch, 1500 cm Y rows, Z 1740,
+scale 100.
+
+| Shop | Trusses | Grid |
+| --- | --- | --- |
+| Body/weld | 24 | 4 x 6 |
+| Paint | 25 | 5 x 5 |
+| Assembly | 42 | 6 x 7 |
+
+Verified low-angle in `Roofed_02_Assembly@0p14~8.png`: lattice steelwork spanning
+overhead with the wall band behind and the robot line along the floor. Assembly reads
+as an industrial hall rather than machines on a plane.
+
+Press already had its own 12 trusses, so **all four shops now carry roof structure**,
+and it is Codex's own authored steelwork throughout rather than anything invented.
+
+### Honest note on what the frame also shows
+
+Assembly's floor is largely empty. Roofing changes how a shop reads at eye level but it
+does not add density, and assembly carries 95 presentation instances against press's
+5,089. The vertical layering problem is solved for all four shops; the density problem
+is untouched and remains the single largest gap in the plant.
