@@ -848,3 +848,30 @@ and it is a bigger item than any single piece of dressing.
    which need authoring.
 
 Press is unaffected and complete. Weld's layout and gantries are done and verified.
+
+## Envelope kit measured — a saved building is ~150 actors, not ~1,500
+
+| Asset | Measured (cm) | Use |
+| --- | --- | --- |
+| `SM_FrontWall01` | **454 x 2357 x 3032**, 3 slots | The wall unit. 23.6 m wide and 30 m tall, so a 175 m side needs **8 panels**, not 134 x 11 courses of `SM_ConcreteWall` |
+| `SM_ConcretePillar02` | **150 x 258 x 2800**, 3 slots | Shop columns. 28 m tall covers a 22 m eaves at 0.8 scale |
+| `SM_FactoryFloorLarge01` | 1600 x 1600 x 10 | Floor tiles; 11 x 6 covers the weld bay |
+| `SM_LargeWindowFramed` | 830.6 x 29.7 x 854.7, 3 slots | Real clerestory glazing, replacing the runtime tinted band |
+| `SM_MetalBeam01` | 600 x 90.7 x 54.7 | Roof beams |
+| `SM_ConcreteWall` | 402.5 x 43.5 x 200 | Too small for shell walls - keep for low boundary walls only |
+| `SM_Background2_Hangar` | 6277 x 14540 x 3385, 1 slot | A whole shed, but a *background* mesh with one material. Keep it for the skyline, not for a building you stand inside |
+
+**Consequence:** a saved shop shell is roughly 8 + 8 + 4 + 4 wall panels, ~24 columns,
+66 floor tiles and a glazing course - order of **150 actors per shop**, not the ~1,500
+that stacking 200 cm concrete panels would need. That makes converting the runtime
+envelope to saved content genuinely tractable for all three shops.
+
+**Also found:** `SM_LB_ShutterBay_Frame_v001`, `SM_LB_ShutterBay_StaticWall_v001` and
+`SM_LB_ShutterLeaf_v001` do **not** exist at the
+`Candidates/Architecture/FactoryEnvelopeKitRuntime_v001` paths the plan cites, and
+`SM_Roof_01` / `SM_RoofPart_01` do not exist at all. Third and fourth wrong asset
+paths in the plan - treat every path in it as unverified until checked.
+
+**Weld footprint note:** after the re-layout the station footprint is 16000 x 4200 and
+the freed strips fill the rest, so for weld "sized to contents" and "the authored bay"
+now coincide at 18000 x 10000. The oversizing problem was press-specific.
