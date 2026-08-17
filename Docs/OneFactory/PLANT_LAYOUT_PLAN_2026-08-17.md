@@ -470,3 +470,40 @@ It said what was wrong the whole time.
 3. Only then judge whether the component-world-transform fix was needed - it is
    correct in principle (5,129 components across 3,793 actors, so over a thousand
    were being collapsed onto their actor pivot) but has never actually been seen.
+
+---
+
+# Commissioning restored, and a recorded content gap
+
+The 40 rejected actors were **exactly two dressing meshes**, each used 20 times
+across the four press-train authority actors:
+
+- `SM_CA_Factory_Elect_net_MeshyMaster_v632` - an electrical net
+- `SM_CA_Factory_Opera_HMI_MeshyMaster_v632` - an operator HMI panel
+
+Neither is a press. The transplant now skips any component whose mesh or bound
+material carries `Meshy` / `ExternalGenerated`, placing **5,089 mesh + 144 light
+actors**, and commissioning works again:
+
+```
+LINE_BOSS_ONEFACTORY_BOOTSTRAP_READY layout=MOORCROSS_WORKS_ONE_FACTORY_V001
+LINE_BOSS_DEV_BUILD_WHOLE_FACTORY ok=1 WHOLE FACTORY CREATED, COMMISSIONED AND VALIDATED
+```
+
+**Why skip rather than exempt.** The earlier plan proposed narrowing `AuditWorld` to
+the persistent level, or exempting transplanted actors by tag. Both are wrong here.
+The transplant lands *in* the persistent level, so narrowing changes nothing; and a
+tag exemption would defeat the guard rather than satisfy it, because this content
+genuinely is Meshy-generated and the project's policy is Blender-native only. The
+guard is right and stays intact.
+
+## Gap: two press-train dressing meshes need Blender-authored replacements
+
+| Proposed | Replaces | Notes |
+| --- | --- | --- |
+| `SM_LB_PressTrain_ElectricalNet` | `SM_CA_Factory_Elect_net_MeshyMaster_v632` | Cable/conduit net over the train; 20 placements |
+| `SM_LB_PressTrain_OperatorHMI` | `SM_CA_Factory_Opera_HMI_MeshyMaster_v632` | Operator HMI pedestal panel; 20 placements |
+
+Add these to the missing-machine list. Until authored, the press trains stand
+without their electrical net and HMI panels - a small loss at shop framing, and a
+policy-clean plant is worth more than two dressing meshes.

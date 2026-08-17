@@ -101,6 +101,27 @@ for actor in ACTOR_SUB.get_all_level_actors():
         asset = component.static_mesh
         if asset is None:
             continue
+        # Skip anything carrying Meshy / ExternalGenerated provenance. The bootstrap
+        # guard rejects it, and that guard is right: the project's policy is
+        # Blender-native art only. Exempting it by tag would defeat the guard rather
+        # than satisfy it, so the content is left out and recorded as a gap instead.
+        # In practice this costs exactly two dressing meshes across the four press
+        # trains - an electrical net and an operator HMI panel - not the presses.
+        poisoned = None
+        candidates = [asset.get_path_name()]
+        for slot_index in range(component.get_num_materials()):
+            bound_material = component.get_material(slot_index)
+            if bound_material is not None:
+                candidates.append(bound_material.get_path_name())
+        for candidate in candidates:
+            lowered = candidate.lower()
+            if "meshy" in lowered or "externalgenerated" in lowered:
+                poisoned = candidate
+                break
+        if poisoned is not None:
+            REPORT.setdefault("skipped_provenance", []).append(
+                poisoned.rsplit("/", 1)[-1])
+            continue
         # Per-slot materials, in slot order, so overrides survive.
         slots = []
         for index in range(component.get_num_materials()):
