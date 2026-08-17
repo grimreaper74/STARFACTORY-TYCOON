@@ -744,3 +744,38 @@ That is the next weld job, and it needs the asset question settled first: the ve
 kit was rejected for reading wrongly, so the choice is a curated selection made after
 inspecting rendered thumbnails, or authored `SM_LB_*` machines from the missing list
 (28 for weld). Do not place more of the vendor kit untested.
+
+---
+
+# Vendor kit contact sheet: rendered and judged (2026-08-17)
+
+Stood 24 candidate meshes in a 6-wide grid on the empty paint bay floor, photographed
+them, and cleared them again. Method note: the bay-level framing was far too wide -
+each asset was about 3% of frame height and unjudgeable. `Paint@0.16~24` at 2769 cm
+is the useful contact-sheet distance. Grid placement reused the existing bay framing,
+so no new camera tooling was needed.
+
+**The kit is a mix, not a uniform rejection.** Correcting my earlier blanket verdict:
+
+**Usable as-is:**
+- `SM_LampArch01` - a genuine slender lit gantry arch with a lamp head. Reads
+  correctly and is the best thing in the kit. Use it for the per-cell gantries
+  instead of `SM_HeavyArch01`.
+- `SM_FloorStairs01` - proper stairs with visible treads and a side stringer. Good.
+- `SM_ElectricalPanel_01`, `SM_ElectricalSupply_Switchboard01`, `SM_FloorDrainage01`,
+  `SM_Container01_01` - small detail props, fine at their own scale.
+
+**Not usable without work:**
+- `SM_IndustrialPlatform01/02/03` - thin flat plates. At deck height with thin
+  pillars they read as painted floor, which is exactly what the reverted fabric pass
+  showed. A convincing mezzanine needs the deck, grill, railing and pillars
+  assembled as one unit with a fascia, not decks scattered on a pitch.
+- `SM_StorageShelves*` - perforated panels that read as fencing rather than racking.
+- `SM_HeavyArch01/02/03` - brackets, not portals. Superseded by `SM_LampArch01`.
+
+**Consequence for weld dressing:** the per-cell gantries can be built from owned
+assets after all, by swapping `SM_HeavyArch01` for `SM_LampArch01`. The mezzanine and
+the marshalling racks stay on the authoring list. That is a smaller authoring bill
+than the earlier blanket rejection implied, and it is the second time today a blanket
+verdict turned out too coarse - first "the bays cannot hold their contents", now "the
+vendor kit reads wrongly".
