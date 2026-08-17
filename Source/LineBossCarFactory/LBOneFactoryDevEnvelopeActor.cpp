@@ -151,12 +151,36 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
     // production route crosses open yard between them. The departments
     // already stand tens of metres apart, so no machine moves - only the
     // walls change.
+    // Build each shop from its AUTHORED buildable bay, not from the stations
+    // that happen to be commissioned. Line Boss is build-your-own: the bay is
+    // the floor the player may fill, so a shop sized to today's machines is
+    // too small by design - paint's bay is nearly seven times its station
+    // footprint. The bays are also authored not to overlap.
+    const FLBOneFactoryLayoutDefinition Layout =
+        ULBOneFactoryLayoutLibrary::MakeMoorcrossWorksShellLayout();
     FBox SiteBounds(ForceInit);
     FBox DepartmentBounds[4];
     for (FBox& Box : DepartmentBounds)
     {
         Box.Init();
     }
+    for (const FLBOneFactoryDepartmentBay& Bay : Layout.DepartmentBays)
+    {
+        const int32 Index = static_cast<int32>(Bay.Department);
+        if (Index < 0 || Index >= 4)
+        {
+            continue;
+        }
+        const FVector Centre = Bay.WorldTransform.GetLocation();
+        const FVector Half = Bay.SizeCm * 0.5;
+        const FBox BayBox(
+            FVector(Centre.X - Half.X, Centre.Y - Half.Y, 0.0),
+            FVector(Centre.X + Half.X, Centre.Y + Half.Y, 0.0));
+        DepartmentBounds[Index] += BayBox;
+        SiteBounds += BayBox;
+    }
+    // The route still decides where portals go, and any station standing
+    // outside its bay must still end up indoors.
     for (const FLBOneFactoryRuntimeStationStep& Step : Route)
     {
         const FVector At = Step.WorldTransform.GetLocation();
@@ -242,7 +266,7 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         }
         // A tight skirt around the department's own machines: the wide
         // site padding made neighbouring shops overlap.
-        constexpr double ShopSkirtCm = 1600.0;
+        constexpr double ShopSkirtCm = 400.0;
         const FBox Box =
             RawBox.ExpandBy(FVector(ShopSkirtCm, ShopSkirtCm, 0.0));
         const FVector BuildingMin = Box.Min;
