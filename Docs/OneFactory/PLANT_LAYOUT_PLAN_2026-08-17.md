@@ -779,3 +779,31 @@ the marshalling racks stay on the authoring list. That is a smaller authoring bi
 than the earlier blanket rejection implied, and it is the second time today a blanket
 verdict turned out too coarse - first "the bays cannot hold their contents", now "the
 vendor kit reads wrongly".
+
+## Weld per-cell gantries LANDED
+
+18 `SM_LampArch01` arches, one over each station on the re-laid serpentine, scaled
+1.6x. Capture `Gantry_01_Body@0p75~30.png` shows them reading as slender lit gantries
+with lamp heads at the apex, spanning across both lines and giving the shop the
+vertical structure and lit pools it completely lacked.
+
+Two measured details that mattered:
+- **No rotation.** The arch spans 788 cm in Y natively, and the lines run along X, so
+  it already straddles them.
+- **1.6x scale is not cosmetic.** At native height the arch is 588 cm against a 650 cm
+  station envelope - it would clip through the machine it is meant to span. 1.6x gives
+  941 cm of clearance and a 12.6 m span, right for a gantry over a cell.
+
+This is the first weld dressing that survived a capture. It came from the one asset the
+contact sheet proved good, which is the process working: render, judge, then place.
+
+### Weld remaining
+
+| Item | Status |
+| --- | --- |
+| 18 station positions | DONE - east-opening serpentine, suite green |
+| Per-cell gantries | DONE - 18 lit arches |
+| Mezzanine over the central aisle | Needs authoring; vendor platforms read as painted floor |
+| Marshalling racks in the receiving lane | Needs authoring; vendor shelves read as fencing |
+| Station density (597 instances vs press's 5,089) | The largest remaining gap |
+| Clerestory glazing | `SM_LargeWindowFramed` exists and is usable; not yet placed |
