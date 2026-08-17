@@ -380,3 +380,53 @@ Confidence: high
 | Press (extraction of /Game/LineBoss/Maps/LB_PressShop_FullFactoryRestored_v001 into the Moorcross press bay) | SM_LB_BlankStackTransferAGV_v001 plus SM_LB_BlankStackCassette_v001 | [420, 200, 90] | The only genuine break in the press material flow. PR-010's four lane stops discharge inside reference Y -1400 | /Game/LineBoss/IndustrialKit/MaterialHandling/CoilAGV/SM_LB_ |
 | Press (extraction of /Game/LineBoss/Maps/LB_PressShop_FullFactoryRestored_v001 into the Moorcross press bay) | SM_LB_ElectricalCabinetNet_v001 | [180, 60, 210] | Blender-native replacement for SM_CA_Factory_Elect_net_MeshyMaster_v632. This mesh is bound by all four LBPres | /Game/LineBoss/Vendor/FactoryEnvironment/Meshes/SM_Electrica |
 | Press (extraction of /Game/LineBoss/Maps/LB_PressShop_FullFactoryRestored_v001 into the Moorcross press bay) | SM_LB_OperatorHMIStand_v001 | [70, 45, 160] | Blender-native replacement for SM_CA_Factory_Opera_HMI_MeshyMaster_v632, the second and last Meshy mesh in the | /Game/LineBoss/Shared/HMI/IND_HMI_001_V004_Modeling and Mode |
+
+---
+
+# VERIFIED CORRECTION (2026-08-17, measured directly from the dump)
+
+The plan states that the authored department bays "cannot hold their own contents"
+and that press content overflows. **For press that is wrong**, and the footprint
+work it implies is not needed.
+
+Re-measured from the 4,092-actor reference dump:
+
+| Set | Actors | Footprint |
+| --- | --- | --- |
+| All actors | 4,092 | 265.0 x 205.0 m |
+| Excluding cameras and 10 stray robot-arm actors | **3,976** | **236.0 x 120.0 m** |
+
+The press bay is 32,000 x 13,000 cm (320 x 130 m), so the real content **fits in
+both axes**, with about 84 m spare in X and 10 m in Y. No bay resize, no building
+regrade and no re-layout is required to transplant press.
+
+The 205 m Y figure was inflated by two things that are not shop content:
+
+1. **106 `CameraActor`s** - `LB_CAM_PressShop_ManagementOverview` sits at Y 14500,
+   8,500 cm south of the south wall. Cameras are viewpoints, not geometry, and must
+   never be counted in a footprint or transplanted.
+2. **10 stretched robot-arm actors** on the PTC and PTD S07 stations, listed below.
+   These are a genuine authoring defect - a robot chain posed far outside the shell -
+   and the only real fix needed:
+
+```
+LB_INST_PTD_PTD_S07_RuntimeVacuumCup_-600_v003      Y = 12945
+LB_INST_PTD_PTD_S07_RuntimeVacuumCup_600_v003       Y = 12825
+LB_INST_PTD_PTD_S07_RuntimeRobotGripper_v003        Y = 11385
+LB_INST_PTD_PTD_S07_RuntimeRobotWrist_v003          Y =  9885
+LB_INST_PTD_PTD_S07_RuntimeRobotForearm_v003        Y =  8535
+LB_INST_PTC_PTC_S07_RuntimeVacuumCup_-600_v003      Y =  7245
+LB_INST_PTC_PTC_S07_RuntimeVacuumCup_600_v003       Y =  7125
+LB_INST_PTD_PTD_S07_RuntimeRobotElbow_v003          Y =  7035
+LB_INST_PTC_PTC_S07_RuntimeRobotGripper_v003        Y =  6185
+LB_INST_PTD_PTD_S07_RuntimeRobotUpperArm_v003       Y =  5600
+```
+
+The south wall (`LB_PRESS_Wall_South`) and the `LB_PRESS_Column_*_5250` row sit at
+Y ~5250 and are legitimate structure, not outliers - an earlier reading counted them
+as misplaced. The true shop is about 111 m deep between its own walls.
+
+**Consequence for the build order:** press can be transplanted into its existing bay
+now. Exclude cameras, re-pose or omit those 10 arm actors, and the remaining 3,976
+actors drop in. The footprint ratification the plan puts in Phase 0 is still needed
+for weld, paint and assembly, but it does not block press.
