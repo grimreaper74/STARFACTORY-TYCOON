@@ -720,3 +720,27 @@ Not done for weld: the freed strips are still empty. The receiving lane, service
 corridor and mezzanine need content, and the vendor kit was rejected for reading
 wrongly - so those need either authored assets or a curated selection made after
 inspecting rendered thumbnails.
+
+## Weld re-layout verified on screen
+
+Capture `WeldNew_01_Body@0p9~34.png`, with the factory commissioned and dressed:
+
+```
+LINE_BOSS_DEV_BUILD_WHOLE_FACTORY ok=1 WHOLE FACTORY CREATED, COMMISSIONED AND VALIDATED
+LINE_BOSS_DEV_TOUR_STOP Body@0.9~34 :: framed 18 Body station(s); footprint 16000x4200
+```
+
+Footprint is **16000 x 4200**, down from 16000 x 5600 - the row change freed 14 m of
+depth exactly as intended. The frame shows two clean parallel runs of nine stations
+with yellow zone pads, status beacons and the green flow route crossing between them,
+and an open central aisle where there was none.
+
+**What the capture also shows honestly:** each station is still a thin frame plus a
+zone pad. The 597-instance presentation is sparse against press's 5,089, so the
+*layout* is now right and the *density* is not. The freed receiving lane, service
+corridor and central aisle are empty.
+
+That is the next weld job, and it needs the asset question settled first: the vendor
+kit was rejected for reading wrongly, so the choice is a curated selection made after
+inspecting rendered thumbnails, or authored `SM_LB_*` machines from the missing list
+(28 for weld). Do not place more of the vendor kit untested.
