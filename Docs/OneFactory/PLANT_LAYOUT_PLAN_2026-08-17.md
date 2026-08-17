@@ -907,3 +907,47 @@ assembled from owned assets, and the "~150 actors per shop" estimate is withdraw
 
 Option 2 is the next thing to try, and it should have been the first thought: the one
 shop that already looks right is the best source for the three that do not.
+
+## Press's shell is cubes too — and there is an authored 40 m truss
+
+Queried every wall / column / roof / truss / floor actor in the reference dump for the
+meshes it binds. The result reframes the saved-building problem:
+
+| Element | Actors | What they bind |
+| --- | --- | --- |
+| "wall" | 58 | **44 are `Cube`**, 14 `SM_MetalBeam01` |
+| "column" | 125 | **76 are `Cube`**, 20 `SM_LB_Crane_Column_14300_v001` |
+| "roof" | 139 | **118 are `Cube`**, plus PR010 roof pods and utility routes |
+| "floor" | 22 | 14 `Cube`, 1 `SM_FloorZoning_Static` |
+| "truss" | 12 | `SM_CA_MW_PressShop_WideSpanTruss_40m_TBC_v372` |
+
+**So Codex built the press shell from scaled engine cubes as well.** There is no
+authored wall kit anywhere in the project - not in the vendor pack, not in the
+reference map. Press reads as a real building because of its ~2,800 authored *machine*
+pieces, not its shell; the cubes are invisible behind the density.
+
+That retracts last tick's plan of harvesting press's wall kit. There is nothing to
+harvest.
+
+**The genuine find:** `SM_CA_MW_PressShop_WideSpanTruss_40m_TBC_v372` is an authored
+40 m wide-span truss with 12 placements. Two ticks ago I added
+`SM_LB_Weld_ShopGantry_18000_v001` to the authoring list as missing shop-scale
+steelwork. It is not missing - this is it, at the right scale and in the project's own
+style. Remove that item from the authoring list and reuse this truss across weld,
+paint and assembly.
+
+### Where this leaves the saved building
+
+Three honest options, in preference order:
+
+1. **Author one small wall kit** - a cladding panel, an eaves unit and a corner, three
+   Blender meshes reused across all three shops. This is the only route to a shell that
+   is not cubes, and it is a genuinely small job.
+2. **Reuse the 40 m truss for the roof structure** regardless of which wall route is
+   taken - that part is solved and needs no authoring.
+3. **Accept cube walls for now**, consistent with what press already ships, and spend
+   the effort on machine density instead - which is what actually makes press read well.
+
+Option 3 deserves stating plainly rather than being dismissed: the owner rejected
+cube-built *site* scenery, but the press shop he approves of has cube walls. Density,
+not shell fidelity, is what carried it.
