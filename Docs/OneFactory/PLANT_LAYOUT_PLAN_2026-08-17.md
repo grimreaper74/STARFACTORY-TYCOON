@@ -951,3 +951,36 @@ Three honest options, in preference order:
 Option 3 deserves stating plainly rather than being dismissed: the owner rejected
 cube-built *site* scenery, but the press shop he approves of has cube walls. Density,
 not shell fidelity, is what carried it.
+
+## Weld roof steelwork LANDED
+
+24 placements of `SM_CA_MW_PressShop_WideSpanTruss_40m_TBC_v372` - Codex's authored
+40 m wide-span truss - on a grid copied from press's own 12 placements rather than
+invented: 4000 cm pitch in X, rows every 1500 cm in Y, Z 1740, zero rotation,
+**scale 100** (the mesh is authored small, so a native placement would be invisible).
+
+Verified low-angle in `Low_01_Body@0p14~8.png`: proper lattice steelwork spanning the
+hall, with the lit gantry arches beneath and floor equipment below. Weld finally has
+vertical layering.
+
+**Capture note worth keeping:** the trusses are invisible in any overhead shot, because
+Z 1740 is above the 900 cm roof-hide threshold and the cutaway correctly removes them.
+Roof structure must be verified at a low pitch - `Body@0.14~8` puts the eye at about
+230 cm, below the threshold, so the roof stays on. An overhead capture "missing" the
+roof is the cutaway working, not a placement failure.
+
+**Path note:** my first attempt invented a plausible `CleanRebuild/PressTrains` path for
+the truss and failed to load. The real path is
+`Candidates/PressShop/Structure/WideSpanTruss_v373/`, read from the reference dump.
+Read paths, do not compose them.
+
+### Weld status
+
+| Item | Status |
+| --- | --- |
+| 18 station positions | DONE - east-opening serpentine, suite green |
+| Per-cell gantries | DONE - 18 lit arches |
+| Roof steelwork | DONE - 24 authored 40 m trusses |
+| Station density (597 vs press's 5,089) | Largest remaining gap |
+| Mezzanine, marshalling racks | Need authoring |
+| Wall shell | Blocked on the cube-walls decision |
