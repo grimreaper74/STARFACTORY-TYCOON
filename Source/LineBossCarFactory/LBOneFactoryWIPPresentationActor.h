@@ -12,8 +12,8 @@ class USceneComponent;
 struct FLBOneFactoryRuntimeStationStep;
 
 /**
- * Visual families for work in progress. Each value maps to one HISM batch, so a
- * unit's appearance changes as it earns its next stage.
+ * Visual families for work in progress. Each value maps to one instanced
+ * batch, so a unit's appearance changes as it earns its next stage.
  */
 UENUM(BlueprintType)
 enum class ELBOneFactoryWIPVisual : uint8
@@ -44,10 +44,12 @@ enum class ELBOneFactoryWIPVisual : uint8
  * instance per live unit at its current station. If the ledger disagrees with
  * the route it simply draws less, never more.
  *
- * VehicleWIPNativeKit_v001 is prepared offline but not yet imported, so the
- * batches currently resolve engine primitives. Swapping BatchMeshPath for the
- * native kit is the only change required once that lane has run: the stage
- * mapping, transforms and lifecycle stay exactly as they are.
+ * The batches resolve the authored meshes: the wrapped coil, the panel
+ * stillage, the body-in-white skeleton, the ED-coated and painted Cairnwell
+ * shells and the finished car. Plain instanced components are used rather
+ * than hierarchical ones deliberately - the batches are rebuilt whenever the
+ * ledger's membership changes, and an HISM's async cluster tree never settles
+ * under that pattern.
  */
 UCLASS(BlueprintType)
 class LINEBOSSCARFACTORY_API ALBOneFactoryWIPPresentationActor : public AActor
