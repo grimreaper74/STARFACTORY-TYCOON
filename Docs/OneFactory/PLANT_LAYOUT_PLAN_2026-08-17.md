@@ -507,3 +507,46 @@ guard is right and stays intact.
 Add these to the missing-machine list. Until authored, the press trains stand
 without their electrical net and HMI panels - a small loss at shop framing, and a
 policy-clean plant is worth more than two dressing meshes.
+
+---
+
+# Weld reuse-first list: VERIFIED present (2026-08-17)
+
+Spot-checked 16 of the assets the weld design plans to wire. **All exist**, so the
+reuse-first pass is real work that needs no authoring:
+
+- Ten Cairnwell 2040 closure panels in
+  `LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes`
+  (`DOOR_FRONT_LEFT`, `DOOR_REAR_RIGHT`, `HOOD_PANEL`, `TAILGATE_PANEL`,
+  `ROOF_PANEL`, `QUARTER_PANEL_LEFT` and siblings) - authored and unplaced.
+- `SM_LB_C2040_BIWBaseSkid_v001`, `SM_LB_BodyShop_ClosureTurntable_v001`,
+  `SM_LB_BodyShop_VisionGate_v001`.
+- Vendor kit: `SM_IndustrialPlatform01`, `SM_PlatformRailing_01`, `SM_FloorStairs01`,
+  `SM_LargeWindowFramed`, `SM_HeavyArch01`, `SM_StorageShelvesMiddle01`,
+  `SM_ElectricalPanel_01`.
+
+**Wrinkle worth knowing (the plan's open question O-4).** The kit is split across two
+roots: `SM_IndustrialPlatform01` and `SM_PlatformRailing_01` live in the curated
+`LineBoss/Vendor/FactoryEnvironment/Meshes`, while `SM_FloorStairs01`,
+`SM_LargeWindowFramed`, `SM_HeavyArch01`, `SM_StorageShelvesMiddle01` and
+`SM_ElectricalPanel_01` are still in the raw `/Game/Meshes` import folder.
+
+**Decision:** place from wherever each asset currently lives and do the curation
+repath later as a single tidy-up. Referencing the raw folder is functionally fine;
+consistency is cosmetic and repathing mid-build would invalidate placements for no
+visual gain. Recorded so it is a deliberate choice rather than drift.
+
+## Weld: what the design changes, for the record
+
+The current 18 positions put panel receipt in the south-WEST corner and the BIW
+handoff in the north-WEST - **170 m of backhaul from paint**, whose west wall is at
+X=-1000. Two 32 m rows plus a 24 m aisle eat 88 of the bay's 100 m, leaving 6 m at
+each wall: no receiving lane, no service corridor, no subassembly space. That, not
+the station count, is why weld reads sparse.
+
+The re-layout keeps all 18 frozen positions, ids and programme order, re-running them
+at 1800 cm pitch on a serpentine opening EAST so both heads sit nearest the press
+exit and paint entry. Arithmetic is checked: pitch 1800 > footprint 1700 (no in-row
+overlap), row separation 4200 > 3200 (no cross-row overlap), all links under the
+frozen 6200 cm maximum, all transforms Z=0 and unit scale. It goes through
+`MoveStation`, so it is a data re-seed, not a contract change.
