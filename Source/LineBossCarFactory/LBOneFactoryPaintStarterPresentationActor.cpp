@@ -9,11 +9,11 @@
 
 namespace LBOneFactoryPaintPresentationPrivate
 {
-    constexpr int32 ExpectedComponentCount = 25;
-    constexpr int32 ExpectedBatchCount = 23;
-    constexpr int32 ExpectedInstanceCount = 113;
+    constexpr int32 ExpectedComponentCount = 24;
+    constexpr int32 ExpectedBatchCount = 22;
+    constexpr int32 ExpectedInstanceCount = 119;
     constexpr int32 NativeProfileAssetCount = 10;
-    constexpr int32 SupplementalEDAssetCount = 15;
+    constexpr int32 SupplementalEDAssetCount = 14;
     constexpr float TransformTolerance = 0.01f;
 
     constexpr float TreatmentScaleX = 0.18f;
@@ -66,18 +66,16 @@ namespace LBOneFactoryPaintPresentationPrivate
         "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Modules/"
         "SM_LB_EDLine_DrainInspectionModule_Blockout_v001."
         "SM_LB_EDLine_DrainInspectionModule_Blockout_v001");
-    const TCHAR* EDOvenEntryPath = TEXT(
-        "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Modules/"
-        "SM_LB_EDLine_OvenEntryModule_Blockout_v001."
-        "SM_LB_EDLine_OvenEntryModule_Blockout_v001");
-    const TCHAR* EDOvenProcessPath = TEXT(
-        "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Modules/"
-        "SM_LB_EDLine_OvenProcessModule_Blockout_v001."
-        "SM_LB_EDLine_OvenProcessModule_Blockout_v001");
-    const TCHAR* EDOvenExitPath = TEXT(
-        "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Modules/"
-        "SM_LB_EDLine_OvenExitModule_Blockout_v001."
-        "SM_LB_EDLine_OvenExitModule_Blockout_v001");
+    // v002: the blockout oven modules give way to one production oven bay
+    // tiled end to end, and the carrier gantry the bodies hang from.
+    const TCHAR* EDOvenSegmentPath = TEXT(
+        "/Game/LineBoss/Candidates/PaintShop/EDLineOven_v002/"
+        "SM_LB_EDLine_OvenSegment_v002."
+        "SM_LB_EDLine_OvenSegment_v002");
+    const TCHAR* EDCarrierGantryPath = TEXT(
+        "/Game/LineBoss/Candidates/PaintShop/EDLineGantry_v001/"
+        "SM_LB_EDLine_CarrierGantryBay_v001."
+        "SM_LB_EDLine_CarrierGantryBay_v001");
     const TCHAR* EDTreatmentLiquidPath = TEXT(
         "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Process/"
         "SM_LB_EDLine_TreatmentLiquidSurface_Blockout_v001."
@@ -109,9 +107,8 @@ namespace LBOneFactoryPaintPresentationPrivate
         EDTreatmentStartPath,
         EDTreatmentEndPath,
         EDDrainInspectionPath,
-        EDOvenEntryPath,
-        EDOvenProcessPath,
-        EDOvenExitPath,
+        EDOvenSegmentPath,
+        EDCarrierGantryPath,
         EDTreatmentLiquidPath,
         EDImmersedBIWPath,
         EDLiquidMaterialPaths[0],
@@ -290,6 +287,11 @@ namespace LBOneFactoryPaintPresentationPrivate
                 FVector(CentreXCm + TreatmentModuleHalfOffsetCm, 0.0f, 0.0f),
                 ModuleScale));
         AddItem(Items, Station,
+            FString::Printf(TEXT("TANK_%02d_GANTRY"), TankIndex + 1),
+            ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay,
+            FTransform(FRotator::ZeroRotator,
+                FVector(CentreXCm, 0.0f, 0.0f), FVector::OneVector));
+        AddItem(Items, Station,
             FString::Printf(TEXT("TANK_%02d_LIQUID"), TankIndex + 1),
             LiquidBatch,
             FTransform(FRotator::ZeroRotator,
@@ -398,15 +400,12 @@ ALBOneFactoryPaintStarterPresentationActor::
     EDDrainInspectionBatch =
         CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(
             TEXT("EDDrainInspectionBatch"));
-    EDOvenEntryBatch =
+    EDOvenSegmentBatch =
         CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(
-            TEXT("EDOvenEntryBatch"));
-    EDOvenProcessBatch =
+            TEXT("EDOvenSegmentBatch"));
+    EDCarrierGantryBatch =
         CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(
-            TEXT("EDOvenProcessBatch"));
-    EDOvenExitBatch =
-        CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(
-            TEXT("EDOvenExitBatch"));
+            TEXT("EDCarrierGantryBatch"));
 
     for (UHierarchicalInstancedStaticMeshComponent* Batch : GetAllBatches())
     {
@@ -436,9 +435,10 @@ ALBOneFactoryPaintStarterPresentationActor::
         EDTreatmentEndPath);
     EDDrainInspectionMesh = FindConstructorObject<UStaticMesh>(
         EDDrainInspectionPath);
-    EDOvenEntryMesh = FindConstructorObject<UStaticMesh>(EDOvenEntryPath);
-    EDOvenProcessMesh = FindConstructorObject<UStaticMesh>(EDOvenProcessPath);
-    EDOvenExitMesh = FindConstructorObject<UStaticMesh>(EDOvenExitPath);
+    EDOvenSegmentMesh =
+        FindConstructorObject<UStaticMesh>(EDOvenSegmentPath);
+    EDCarrierGantryMesh =
+        FindConstructorObject<UStaticMesh>(EDCarrierGantryPath);
     EDTreatmentLiquidMesh = FindConstructorObject<UStaticMesh>(
         EDTreatmentLiquidPath);
     EDImmersedBIWMesh = FindConstructorObject<UStaticMesh>(
@@ -506,9 +506,8 @@ ALBOneFactoryPaintStarterPresentationActor::GetAllBatches() const
         EDProfiledRailBatch.Get(),
         EDImmersedBodyBatch.Get(),
         EDDrainInspectionBatch.Get(),
-        EDOvenEntryBatch.Get(),
-        EDOvenProcessBatch.Get(),
-        EDOvenExitBatch.Get()
+        EDOvenSegmentBatch.Get(),
+        EDCarrierGantryBatch.Get()
     };
 }
 
@@ -562,12 +561,10 @@ ALBOneFactoryPaintStarterPresentationActor::FindBatchComponent(
         return EDImmersedBodyBatch.Get();
     case ELBOneFactoryPaintPresentationBatch::EDDrainInspectionModule:
         return EDDrainInspectionBatch.Get();
-    case ELBOneFactoryPaintPresentationBatch::EDOvenEntryModule:
-        return EDOvenEntryBatch.Get();
-    case ELBOneFactoryPaintPresentationBatch::EDOvenProcessModule:
-        return EDOvenProcessBatch.Get();
-    case ELBOneFactoryPaintPresentationBatch::EDOvenExitModule:
-        return EDOvenExitBatch.Get();
+    case ELBOneFactoryPaintPresentationBatch::EDOvenSegment:
+        return EDOvenSegmentBatch.Get();
+    case ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay:
+        return EDCarrierGantryBatch.Get();
     default:
         return nullptr;
     }
@@ -642,8 +639,8 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
     }
     const TArray<UStaticMesh*> SupplementalMeshes = {
         EDTreatmentStartMesh.Get(), EDTreatmentEndMesh.Get(),
-        EDDrainInspectionMesh.Get(), EDOvenEntryMesh.Get(),
-        EDOvenProcessMesh.Get(), EDOvenExitMesh.Get(),
+        EDDrainInspectionMesh.Get(), EDOvenSegmentMesh.Get(),
+        EDCarrierGantryMesh.Get(),
         EDTreatmentLiquidMesh.Get(), EDImmersedBIWMesh.Get()};
     for (int32 Index = 0; Index < SupplementalMeshes.Num(); ++Index)
     {
@@ -696,7 +693,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
         || Batches.Contains(nullptr))
     {
         OutReason = TEXT(
-            "PAINT PRESENTATION COULD NOT RESOLVE ITS MATERIAL OR 25 COMPONENTS");
+            "PAINT PRESENTATION COULD NOT RESOLVE ITS MATERIAL OR 24 COMPONENTS");
         ClearPresentation();
         return false;
     }
@@ -724,9 +721,8 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
     EDImmersedBodyBatch->SetStaticMesh(EDImmersedBIWMesh.Get());
     EDImmersedBodyBatch->SetMaterial(0, EDImmersedBIWMaterial.Get());
     EDDrainInspectionBatch->SetStaticMesh(EDDrainInspectionMesh.Get());
-    EDOvenEntryBatch->SetStaticMesh(EDOvenEntryMesh.Get());
-    EDOvenProcessBatch->SetStaticMesh(EDOvenProcessMesh.Get());
-    EDOvenExitBatch->SetStaticMesh(EDOvenExitMesh.Get());
+    EDOvenSegmentBatch->SetStaticMesh(EDOvenSegmentMesh.Get());
+    EDCarrierGantryBatch->SetStaticMesh(EDCarrierGantryMesh.Get());
 
     UHierarchicalInstancedStaticMeshComponent* LiquidBatches[] = {
         EDLiquidDegreaseBatch.Get(), EDLiquidRinse1Batch.Get(),
@@ -803,7 +799,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
     bPresentationConfigured = true;
     SetActorHiddenInGame(false);
     OutReason = FString::Printf(TEXT(
-        "NATIVE PAINT STARTER ACTIVE: 23 VISIBLE BATCHES, 113 INSTANCES, "
+        "NATIVE PAINT STARTER ACTIVE: 22 VISIBLE BATCHES, 119 INSTANCES, "
         "6 OPEN TANKS, 1 ED BAKE OVEN, %s, WIP 0"),
         *ULBOneFactoryPaintStarterLayoutLibrary::GetColourDisplayName(
             Layout.SelectedBodyColour));
@@ -899,9 +895,10 @@ int32 ALBOneFactoryPaintStarterPresentationActor::GetExpectedInstanceCountForBat
     case ELBOneFactoryPaintPresentationBatch::EDProfiledRailCube: return 60;
     case ELBOneFactoryPaintPresentationBatch::EDImmersedBody: return 1;
     case ELBOneFactoryPaintPresentationBatch::EDDrainInspectionModule: return 1;
-    case ELBOneFactoryPaintPresentationBatch::EDOvenEntryModule: return 1;
-    case ELBOneFactoryPaintPresentationBatch::EDOvenProcessModule: return 2;
-    case ELBOneFactoryPaintPresentationBatch::EDOvenExitModule: return 1;
+    // Four bays of the production oven, and one carrier gantry bay over
+    // each of the six dip tanks.
+    case ELBOneFactoryPaintPresentationBatch::EDOvenSegment: return 4;
+    case ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay: return 6;
     default: return 0;
     }
 }
@@ -912,8 +909,8 @@ int32 ALBOneFactoryPaintStarterPresentationActor::GetExpectedInstanceCountForRol
     switch (Role)
     {
     case ELBOneFactoryPaintStarterRole::BodySkidReceiving: return 3;
-    case ELBOneFactoryPaintStarterRole::PretreatmentWash: return 56;
-    case ELBOneFactoryPaintStarterRole::EDCoatLogicalProcess: return 31;
+    case ELBOneFactoryPaintStarterRole::PretreatmentWash: return 60;
+    case ELBOneFactoryPaintStarterRole::EDCoatLogicalProcess: return 33;
     case ELBOneFactoryPaintStarterRole::FlashOff: return 8;
     case ELBOneFactoryPaintStarterRole::BlackBoxSprayBooth: return 6;
     case ELBOneFactoryPaintStarterRole::CuringOven: return 4;
@@ -941,9 +938,8 @@ ALBOneFactoryPaintStarterPresentationActor::GetRequiredNativeAssetPaths()
         FSoftObjectPath(EDTreatmentStartPath),
         FSoftObjectPath(EDTreatmentEndPath),
         FSoftObjectPath(EDDrainInspectionPath),
-        FSoftObjectPath(EDOvenEntryPath),
-        FSoftObjectPath(EDOvenProcessPath),
-        FSoftObjectPath(EDOvenExitPath),
+        FSoftObjectPath(EDOvenSegmentPath),
+        FSoftObjectPath(EDCarrierGantryPath),
         FSoftObjectPath(EDTreatmentLiquidPath),
         FSoftObjectPath(EDImmersedBIWPath),
         FSoftObjectPath(EDLiquidMaterialPaths[0]),
@@ -989,7 +985,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::
         || Profile.AllowedAssets.Num() != NativeProfileAssetCount)
     {
         OutReason = TEXT(
-            "PAINT PRESENTATION REQUIRES EXACTLY 10 PROFILE AND 15 ED/BIW REFERENCES");
+            "PAINT PRESENTATION REQUIRES EXACTLY 10 PROFILE AND 14 ED/BIW REFERENCES");
         return false;
     }
     TSet<FString> ExactIdentities;
@@ -1113,22 +1109,18 @@ ALBOneFactoryPaintStarterPresentationActor::BuildExpectedPresentationItems(
         ELBOneFactoryPaintPresentationBatch::EDDrainInspectionModule,
         FTransform(FRotator::ZeroRotator, FVector(-360.0f, 0.0f, 0.0f),
             EDOvenScale));
-    AddItem(Items, *Flash, TEXT("ED_OVEN_ENTRY"),
-        ELBOneFactoryPaintPresentationBatch::EDOvenEntryModule,
-        FTransform(FRotator::ZeroRotator, FVector(-180.0f, 0.0f, 0.0f),
-            EDOvenScale));
-    AddItem(Items, *Flash, TEXT("ED_OVEN_PROCESS_01"),
-        ELBOneFactoryPaintPresentationBatch::EDOvenProcessModule,
-        FTransform(FRotator::ZeroRotator, FVector(0.0f, 0.0f, 0.0f),
-            EDOvenScale));
-    AddItem(Items, *Flash, TEXT("ED_OVEN_PROCESS_02"),
-        ELBOneFactoryPaintPresentationBatch::EDOvenProcessModule,
-        FTransform(FRotator::ZeroRotator, FVector(180.0f, 0.0f, 0.0f),
-            EDOvenScale));
-    AddItem(Items, *Flash, TEXT("ED_OVEN_EXIT"),
-        ELBOneFactoryPaintPresentationBatch::EDOvenExitModule,
-        FTransform(FRotator::ZeroRotator, FVector(360.0f, 0.0f, 0.0f),
-            EDOvenScale));
+    // The oven runs on from the tank row as one long enclosure: four
+    // production bays butted end to end at the module's measured 355 cm
+    // length, at authored scale.
+    for (int32 Bay = 0; Bay < 4; ++Bay)
+    {
+        AddItem(Items, *Flash,
+            FString::Printf(TEXT("ED_OVEN_BAY_%02d"), Bay + 1),
+            ELBOneFactoryPaintPresentationBatch::EDOvenSegment,
+            FTransform(FRotator::ZeroRotator,
+                FVector(-180.0f + 355.0f * Bay, 0.0f, 0.0f),
+                FVector::OneVector));
+    }
 
     AddItem(Items, *Spray, TEXT("OPEN_END_BLACK_BOX_BOOTH"),
         ELBOneFactoryPaintPresentationBatch::BlackBoxSprayBooth);
@@ -1177,7 +1169,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ValidatePresentationContract(
     if (Expected.Num() != ExpectedInstanceCount
         || Items.Num() != ExpectedInstanceCount)
     {
-        OutReason = TEXT("PAINT PRESENTATION REQUIRES EXACTLY 113 VISUAL ITEMS");
+        OutReason = TEXT("PAINT PRESENTATION REQUIRES EXACTLY 119 VISUAL ITEMS");
         return false;
     }
 
@@ -1210,7 +1202,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ValidatePresentationContract(
     for (int32 Value = static_cast<int32>(
             ELBOneFactoryPaintPresentationBatch::CuringOvenTunnel);
         Value <= static_cast<int32>(
-            ELBOneFactoryPaintPresentationBatch::EDOvenExitModule); ++Value)
+            ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay); ++Value)
     {
         const ELBOneFactoryPaintPresentationBatch Batch =
             static_cast<ELBOneFactoryPaintPresentationBatch>(Value);
@@ -1234,7 +1226,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ValidatePresentationContract(
         }
     }
     OutReason = TEXT(
-        "PAINT PRESENTATION VALID: 23 VISIBLE BATCHES, 113 ITEMS, 6 OPEN "
+        "PAINT PRESENTATION VALID: 22 VISIBLE BATCHES, 119 ITEMS, 6 OPEN "
         "TANKS, 60 PROFILED RAILS, 1 ED BAKE OVEN, 1 SPRAY BOOTH, WIP 0");
     return true;
 }
@@ -1246,5 +1238,5 @@ const TCHAR* ALBOneFactoryPaintStarterPresentationActor::GetPresentationClassPat
 
 FName ALBOneFactoryPaintStarterPresentationActor::GetPresentationTag()
 {
-    return FName(TEXT("LB.OneFactory.PaintStarter.Presentation.v001"));
+    return FName(TEXT("LB.OneFactory.PaintStarter.Presentation.v002"));
 }

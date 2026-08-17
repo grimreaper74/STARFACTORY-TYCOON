@@ -40,9 +40,8 @@ enum class ELBOneFactoryPaintPresentationBatch : uint8
     EDProfiledRailCube,
     EDImmersedBody,
     EDDrainInspectionModule,
-    EDOvenEntryModule,
-    EDOvenProcessModule,
-    EDOvenExitModule
+    EDOvenSegment,
+    EDCarrierGantryBay
 };
 
 /** One deterministic visual item derived from a validated Paint snapshot. */
@@ -264,13 +263,10 @@ private:
     TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDDrainInspectionBatch;
 
     UPROPERTY(VisibleAnywhere, Category="Line Boss|OneFactory|Paint|Presentation")
-    TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDOvenEntryBatch;
+    TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDOvenSegmentBatch;
 
     UPROPERTY(VisibleAnywhere, Category="Line Boss|OneFactory|Paint|Presentation")
-    TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDOvenProcessBatch;
-
-    UPROPERTY(VisibleAnywhere, Category="Line Boss|OneFactory|Paint|Presentation")
-    TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDOvenExitBatch;
+    TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDCarrierGantryBatch;
 
     UPROPERTY(Transient)
     TSoftObjectPtr<UStaticMesh> CuringOvenMesh;
@@ -313,13 +309,10 @@ private:
     TObjectPtr<UStaticMesh> EDDrainInspectionMesh;
 
     UPROPERTY()
-    TObjectPtr<UStaticMesh> EDOvenEntryMesh;
+    TObjectPtr<UStaticMesh> EDOvenSegmentMesh;
 
     UPROPERTY()
-    TObjectPtr<UStaticMesh> EDOvenProcessMesh;
-
-    UPROPERTY()
-    TObjectPtr<UStaticMesh> EDOvenExitMesh;
+    TObjectPtr<UStaticMesh> EDCarrierGantryMesh;
 
     UPROPERTY()
     TObjectPtr<UStaticMesh> EDTreatmentLiquidMesh;

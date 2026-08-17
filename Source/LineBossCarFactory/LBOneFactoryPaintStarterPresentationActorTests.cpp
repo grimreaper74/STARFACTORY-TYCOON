@@ -24,8 +24,8 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         ULBOneFactoryPaintStarterLayoutLibrary::MakeCanonicalStarterLayout();
     const TArray<FSoftObjectPath> Paths =
         ALBOneFactoryPaintStarterPresentationActor::GetRequiredNativeAssetPaths();
-    TestEqual(TEXT("Presentation has 10 profile plus 15 ED/BIW dependencies"),
-        Paths.Num(), 25);
+    TestEqual(TEXT("Presentation has 10 profile plus 14 ED/BIW dependencies"),
+        Paths.Num(), 24);
     TestTrue(TEXT("Exact native presentation references validate"),
         ALBOneFactoryPaintStarterPresentationActor::
             ValidateNativePresentationReferences(
@@ -40,14 +40,14 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
             Reference.Contains(TEXT("ExternalGenerated"),
                 ESearchCase::IgnoreCase));
     }
-    TestEqual(TEXT("Immersed bath body uses the approved C2040 BIW authority"),
-        Paths[17].ToString(), FString(TEXT(
+    TestTrue(TEXT("Immersed bath body uses the approved C2040 BIW authority"),
+        Paths.Contains(FSoftObjectPath(TEXT(
             "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
             "Cairnwell2040Runtime_v001/Meshes/"
             "SM_LB_C2040_BIW_AutomotiveSkeleton_v001."
-            "SM_LB_C2040_BIW_AutomotiveSkeleton_v001")));
+            "SM_LB_C2040_BIW_AutomotiveSkeleton_v001"))));
     TestEqual(TEXT("Immersed BIW uses its V013 galvanized material"),
-        Paths[24].ToString(), FString(TEXT(
+        Paths.Last().ToString(), FString(TEXT(
             "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
             "Cairnwell2040Runtime_v001/Materials/"
             "M_LB_C2040_BIWGalvanized_v001."
@@ -78,8 +78,8 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
             ->GetDefaultObject<ALBOneFactoryPaintStarterPresentationActor>();
     const FName HardMeshProperties[] = {
         TEXT("EDTreatmentStartMesh"), TEXT("EDTreatmentEndMesh"),
-        TEXT("EDDrainInspectionMesh"), TEXT("EDOvenEntryMesh"),
-        TEXT("EDOvenProcessMesh"), TEXT("EDOvenExitMesh"),
+        TEXT("EDDrainInspectionMesh"), TEXT("EDOvenSegmentMesh"),
+        TEXT("EDCarrierGantryMesh"),
         TEXT("EDTreatmentLiquidMesh"), TEXT("EDImmersedBIWMesh")};
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(HardMeshProperties); ++Index)
     {
@@ -99,8 +99,15 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         TestNotNull(TEXT("Every CDO ED mesh hard reference resolves"), Object);
         if (Object)
         {
-            TestEqual(TEXT("Every CDO ED mesh path is exact"),
-                Object->GetPathName(), Paths[10 + Index].ToString());
+            // Assert membership, not position: the ED asset list's order
+            // is free to change as the contract is versioned.
+            TestTrue(TEXT("Every CDO ED mesh is in the frozen asset list"),
+                Paths.ContainsByPredicate(
+                    [Object](const FSoftObjectPath& Candidate)
+                    {
+                        return Candidate.ToString()
+                            == Object->GetPathName();
+                    }));
         }
     }
     const FArrayProperty* LiquidMaterialProperty =
@@ -132,8 +139,14 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
                     Object);
                 if (Object)
                 {
-                    TestEqual(TEXT("Every CDO ED liquid material path is exact"),
-                        Object->GetPathName(), Paths[18 + Index].ToString());
+                    // Membership, not position - see the mesh loop above.
+                    TestTrue(TEXT("Every CDO ED liquid material is frozen"),
+                        Paths.ContainsByPredicate(
+                            [Object](const FSoftObjectPath& Candidate)
+                            {
+                                return Candidate.ToString()
+                                    == Object->GetPathName();
+                            }));
                 }
             }
         }
@@ -158,21 +171,21 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         if (Object)
         {
             TestEqual(TEXT("C2040 BIW material path is exact"),
-                Object->GetPathName(), Paths[24].ToString());
+                Object->GetPathName(), Paths.Last().ToString());
         }
     }
 
     const TArray<FLBOneFactoryPaintPresentationItem> Items =
         ALBOneFactoryPaintStarterPresentationActor::
             BuildExpectedPresentationItems(Layout);
-    TestEqual(TEXT("Deterministic contract has 113 visual items"),
-        Items.Num(), 113);
+    TestEqual(TEXT("Deterministic contract has 119 visual items"),
+        Items.Num(), 119);
     TestTrue(TEXT("Deterministic Paint presentation validates"),
         ALBOneFactoryPaintStarterPresentationActor::
             ValidatePresentationContract(Layout, Items, Reason));
-    TestEqual(TEXT("Presentation uses 23 non-empty HISM batches"),
+    TestEqual(TEXT("Presentation uses 22 non-empty HISM batches"),
         ALBOneFactoryPaintStarterPresentationActor::
-            GetExpectedVisualBatchCount(), 23);
+            GetExpectedVisualBatchCount(), 22);
     TestEqual(TEXT("Only one spray booth shell is shown"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForBatch(
@@ -206,16 +219,14 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForBatch(
                 ELBOneFactoryPaintPresentationBatch::EDImmersedBody), 1);
-    TestEqual(TEXT("ED bake oven uses entry, two process, and exit modules"),
+    TestEqual(TEXT("The ED bake oven runs as four production bays"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForBatch(
-                ELBOneFactoryPaintPresentationBatch::EDOvenEntryModule)
-        + ALBOneFactoryPaintStarterPresentationActor::
+                ELBOneFactoryPaintPresentationBatch::EDOvenSegment), 4);
+    TestEqual(TEXT("A carrier gantry bay stands over each of the six tanks"),
+        ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForBatch(
-                ELBOneFactoryPaintPresentationBatch::EDOvenProcessModule)
-        + ALBOneFactoryPaintStarterPresentationActor::
-            GetExpectedInstanceCountForBatch(
-                ELBOneFactoryPaintPresentationBatch::EDOvenExitModule), 4);
+                ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay), 6);
     TestEqual(TEXT("Every responsibility has one semantic status marker"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForBatch(
@@ -223,11 +234,11 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
     TestEqual(TEXT("Pretreatment role carries four complete open tanks"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForRole(
-                ELBOneFactoryPaintStarterRole::PretreatmentWash), 56);
+                ELBOneFactoryPaintStarterRole::PretreatmentWash), 60);
     TestEqual(TEXT("ED role carries two baths plus one immersed C2040 BIW"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForRole(
-                ELBOneFactoryPaintStarterRole::EDCoatLogicalProcess), 31);
+                ELBOneFactoryPaintStarterRole::EDCoatLogicalProcess), 33);
     TestEqual(TEXT("Existing flash role carries drain and ED bake oven"),
         ALBOneFactoryPaintStarterPresentationActor::
             GetExpectedInstanceCountForRole(
@@ -284,17 +295,20 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         Items.FindByPredicate([](const FLBOneFactoryPaintPresentationItem& Item)
         {
             return Item.Batch ==
-                ELBOneFactoryPaintPresentationBatch::EDOvenExitModule;
+                ELBOneFactoryPaintPresentationBatch::EDOvenSegment;
         });
-    TestNotNull(TEXT("ED route ends with a visible bake-oven exit"), EDOvenExit);
+    TestNotNull(TEXT("ED route ends with visible production oven bays"),
+        EDOvenExit);
     if (EDOvenExit)
     {
-        TestTrue(TEXT("ED oven remains inside the existing flash station"),
+        TestTrue(TEXT("The oven run starts at the flash station"),
             EDOvenExit->WorldTransform.GetLocation().Equals(
-                FVector(5160.0f, -8500.0f, 0.0f), 0.001f));
-        TestTrue(TEXT("ED oven uses the frozen station-fit scale"),
+                FVector(4620.0f, -8500.0f, 0.0f), 0.001f));
+        // v002: the production bay is authored at true size, so it stands at
+        // scale one instead of the blockout's station-fit squeeze.
+        TestTrue(TEXT("The oven bay stands at authored scale"),
             EDOvenExit->WorldTransform.GetScale3D().Equals(
-                FVector(0.20f, 0.75f, 0.65f), 0.001f));
+                FVector::OneVector, 0.001f));
     }
     return true;
 }
@@ -332,8 +346,8 @@ bool FLBOneFactoryPaintPresentationConfigureTest::RunTest(
             TEXT("LB.Paint.TrackedEDLineVisible"))));
     TArray<UHierarchicalInstancedStaticMeshComponent*> VisualComponents;
     Presentation->GetComponents(VisualComponents);
-    TestEqual(TEXT("Actor owns the exact 25 visual components"),
-        VisualComponents.Num(), 25);
+    TestEqual(TEXT("Actor owns the exact 24 visual components"),
+        VisualComponents.Num(), 24);
     for (const UHierarchicalInstancedStaticMeshComponent* Component
         : VisualComponents)
     {
@@ -389,13 +403,13 @@ bool FLBOneFactoryPaintPresentationConfigureTest::RunTest(
                 "SM_LB_C2040_BIW_AutomotiveSkeleton_v001")));
     }
     TestEqual(TEXT("Exact visible item count committed"),
-        Presentation->GetVisibleInstanceCount(), 113);
+        Presentation->GetVisibleInstanceCount(), 119);
     TestEqual(TEXT("Every expected HISM batch is non-empty"),
-        Presentation->GetVisualBatchCount(), 23);
+        Presentation->GetVisualBatchCount(), 22);
     for (int32 Value = static_cast<int32>(
             ELBOneFactoryPaintPresentationBatch::CuringOvenTunnel);
         Value <= static_cast<int32>(
-            ELBOneFactoryPaintPresentationBatch::EDOvenExitModule); ++Value)
+            ELBOneFactoryPaintPresentationBatch::EDCarrierGantryBay); ++Value)
     {
         const ELBOneFactoryPaintPresentationBatch Batch =
             static_cast<ELBOneFactoryPaintPresentationBatch>(Value);
