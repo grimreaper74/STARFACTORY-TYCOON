@@ -228,20 +228,50 @@ namespace LBOneFactoryBodyWeldStarterPrivate
         return true;
     }
 
+    /**
+     * The 18 positions on a serpentine that opens EAST.
+     *
+     * The previous grid ran at 2000 cm pitch with rows at Y -11300 and -5700, and
+     * run B travelling east-to-west - which put panel receipt (position 1) in the
+     * south-west corner and the BIW handoff (position 18) at the north-WEST wall,
+     * about 170 m of backhaul from paint, whose west wall is at X -1000. It also
+     * spent 88 of the bay's 100 m of depth on two rows plus an aisle, leaving 6 m at
+     * each wall: no receiving lane, no service corridor and no subassembly space.
+     * That, not the station count, is why the shop read sparse.
+     *
+     * Both heads now sit at the east end, nearest the press exit and the paint
+     * entry, as a real two-bay body shop is fed.
+     *
+     * The pitch stays at 2000, NOT the 1800 the layout study proposed. 1800 clears
+     * the 1700 footprint on paper, but the player can nudge a station a metre east
+     * (ExecuteUMGAction 4), which consumes all 100 cm of that slack and makes
+     * neighbours touch - the validator then refuses the move and
+     * BodyWeldLifecycleRobotProgrammeRollbackMoveWIPAndRemoval fails. 2000 leaves
+     * 300 cm, so a one-metre nudge in either direction still clears. The depth
+     * saving that mattered comes from the row change, not the pitch.
+     *
+     * Arithmetic: 9 positions at 2000 span 16000, plus the 1700 footprint gives
+     * 17700 inside the bay's 18000, so the run starts at -3050 to keep the west end
+     * at -19900 rather than 50 cm outside BodyBayBounds(). Row separation 4200
+     * exceeds the 3200 footprint in Y; the 9-to-10 link is 4200 cm and every other
+     * 2000 cm, all under the frozen MaximumRouteLengthCm of 6200.
+     */
     FVector CanonicalLocation(const int32 LinePosition)
     {
         if (LinePosition <= 9)
         {
-            return FVector(-19000.0f + (LinePosition - 1) * 2000.0f,
-                -11300.0f, 0.0f);
+            return FVector(-3050.0f - (LinePosition - 1) * 2000.0f,
+                -7000.0f, 0.0f);
         }
-        return FVector(-3000.0f - (LinePosition - 10) * 2000.0f,
-            -5700.0f, 0.0f);
+        return FVector(-19050.0f + (LinePosition - 10) * 2000.0f,
+            -11200.0f, 0.0f);
     }
 
     FRotator CanonicalRotation(const int32 LinePosition)
     {
-        return FRotator(0.0f, LinePosition <= 9 ? 0.0f : 180.0f, 0.0f);
+        // Run A travels east to west, run B west to east: each station faces the
+        // direction the body is moving, which is inverted from the old grid.
+        return FRotator(0.0f, LinePosition <= 9 ? 180.0f : 0.0f, 0.0f);
     }
 }
 

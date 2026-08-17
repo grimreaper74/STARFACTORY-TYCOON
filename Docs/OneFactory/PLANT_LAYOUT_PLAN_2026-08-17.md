@@ -686,3 +686,37 @@ move; it does not change the canonical layout the shop is built from.
 
 Not started - it needs room to do the test regeneration properly rather than
 half-landing a frozen-contract change.
+
+---
+
+# Weld re-layout LANDED (2026-08-17) — and why the pitch stayed at 2000
+
+`CanonicalLocation` / `CanonicalRotation` now run the 18 positions on a serpentine
+that opens EAST, so both the inbound and outbound heads sit nearest the press exit and
+the paint entry instead of the BIW handoff sitting 170 m of backhaul away at the west
+wall. Rows moved to Y -7000 and -11200. **Suite 278/278, 0 failed, 0 notRun.**
+
+Only ONE test failed on the first attempt, not the four the plan feared - and it
+found a design flaw in the study rather than a stale expectation:
+
+`LineBoss.OneFactory.PlayerBuilder.BodyWeldLifecycleRobotProgrammeRollbackMoveWIPAndRemoval`
+exercises `ExecuteUMGAction(4)`, the player's "move station east 1 m". At the study's
+proposed **1800 pitch** that action consumes all 100 cm of slack over the 1700
+footprint, neighbours touch, and the validator refuses the move. The study's
+arithmetic ("pitch 1800 > footprint 1700, so no in-row overlap") was right about the
+static layout and wrong about the game: the player can move things.
+
+**So the pitch stays at 2000**, which leaves 300 cm and lets a one-metre nudge clear in
+either direction. Nothing of value was lost - the depth saving that mattered comes from
+the row separation, not the pitch. The run now starts at X -3050 rather than -3200,
+because 9 positions at 2000 plus the footprint need 17700 of the bay's 18000 and the
+old start put the west end 50 cm outside `BodyBayBounds()`.
+
+**Lesson worth keeping:** a layout that satisfies static clearance can still be wrong,
+because the player's own edit actions need slack too. Check the interactive envelope,
+not just the placement envelope.
+
+Not done for weld: the freed strips are still empty. The receiving lane, service
+corridor and mezzanine need content, and the vendor kit was rejected for reading
+wrongly - so those need either authored assets or a curated selection made after
+inspecting rendered thumbnails.
