@@ -4,7 +4,10 @@
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "EngineUtils.h"
+#include "Internationalization/Text.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+
+#define LOCTEXT_NAMESPACE "LineBossProductionHUD"
 
 namespace LBOneFactoryHUDPrivate
 {
@@ -30,25 +33,40 @@ namespace LBOneFactoryHUDPrivate
     /** The seven coarse stages of the car's journey, in physical order. */
     struct FGroupSpec
     {
-        const TCHAR* Label;
         ELBOneFactoryVehicleStage First;
         ELBOneFactoryVehicleStage Last;
     };
+    /** Player-facing group names, gathered for localisation. */
+    FText GroupDisplayLabel(const int32 GroupIndex)
+    {
+        switch (GroupIndex)
+        {
+        case 0: return LOCTEXT("GroupCoilIntake", "Coil intake");
+        case 1: return LOCTEXT("GroupPress", "Press");
+        case 2: return LOCTEXT("GroupPanelStillages", "Panel stillages");
+        case 3: return LOCTEXT("GroupBodyWeld", "Body weld");
+        case 4: return LOCTEXT("GroupPaint", "Paint");
+        case 5: return LOCTEXT("GroupAssembly", "Assembly");
+        default: return LOCTEXT("GroupDispatch", "Dispatch");
+        }
+    }
+
+    // Names live in GroupDisplayLabel; this table is stage ranges only.
     const FGroupSpec GroupSpecs[] = {
-        { TEXT("Coil intake"),     ELBOneFactoryVehicleStage::InboundCoil,
-                                   ELBOneFactoryVehicleStage::BlankPreparation },
-        { TEXT("Press"),           ELBOneFactoryVehicleStage::Pressing,
-                                   ELBOneFactoryVehicleStage::Pressing },
-        { TEXT("Panel stillages"), ELBOneFactoryVehicleStage::PressedPanelStillage,
-                                   ELBOneFactoryVehicleStage::PressedPanelStillage },
-        { TEXT("Body weld"),       ELBOneFactoryVehicleStage::BodyFraming,
-                                   ELBOneFactoryVehicleStage::BodyQualityInspection },
-        { TEXT("Paint"),           ELBOneFactoryVehicleStage::Pretreatment,
-                                   ELBOneFactoryVehicleStage::PaintQualityInspection },
-        { TEXT("Assembly"),        ELBOneFactoryVehicleStage::GeneralAssemblyTrim,
-                                   ELBOneFactoryVehicleStage::EndOfLineInspection },
-        { TEXT("Dispatch"),        ELBOneFactoryVehicleStage::FinishedVehicle,
-                                   ELBOneFactoryVehicleStage::Dispatched },
+        { ELBOneFactoryVehicleStage::InboundCoil,
+          ELBOneFactoryVehicleStage::BlankPreparation },
+        { ELBOneFactoryVehicleStage::Pressing,
+          ELBOneFactoryVehicleStage::Pressing },
+        { ELBOneFactoryVehicleStage::PressedPanelStillage,
+          ELBOneFactoryVehicleStage::PressedPanelStillage },
+        { ELBOneFactoryVehicleStage::BodyFraming,
+          ELBOneFactoryVehicleStage::BodyQualityInspection },
+        { ELBOneFactoryVehicleStage::Pretreatment,
+          ELBOneFactoryVehicleStage::PaintQualityInspection },
+        { ELBOneFactoryVehicleStage::GeneralAssemblyTrim,
+          ELBOneFactoryVehicleStage::EndOfLineInspection },
+        { ELBOneFactoryVehicleStage::FinishedVehicle,
+          ELBOneFactoryVehicleStage::Dispatched },
     };
     constexpr int32 GroupCount = UE_ARRAY_COUNT(GroupSpecs);
 
@@ -77,14 +95,24 @@ namespace LBOneFactoryHUDPrivate
         }
     }
 
-    const TCHAR* StateLabel(const ELBOneFactoryGroupState State)
+    /** One decimal place, matching the HUD's original rate formatting. */
+    const FNumberFormattingOptions RateFormat =
+        FNumberFormattingOptions()
+            .SetMinimumFractionalDigits(1)
+            .SetMaximumFractionalDigits(1);
+
+    FText StateLabel(const ELBOneFactoryGroupState State)
     {
         switch (State)
         {
-        case ELBOneFactoryGroupState::Running: return TEXT("Running");
-        case ELBOneFactoryGroupState::Waiting: return TEXT("Waiting");
-        case ELBOneFactoryGroupState::Hold:    return TEXT("Hold");
-        default:                               return TEXT("Idle");
+        case ELBOneFactoryGroupState::Running:
+            return LOCTEXT("StateRunning", "Running");
+        case ELBOneFactoryGroupState::Waiting:
+            return LOCTEXT("StateWaiting", "Waiting");
+        case ELBOneFactoryGroupState::Hold:
+            return LOCTEXT("StateHold", "Hold");
+        default:
+            return LOCTEXT("StateIdle", "Idle");
         }
     }
 }
@@ -139,7 +167,7 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
     SlowestCycle.Init(0.0f, GroupCount);
     for (int32 Index = 0; Index < GroupCount; ++Index)
     {
-        OutGroups[Index].Label = GroupSpecs[Index].Label;
+        OutGroups[Index].Label = GroupDisplayLabel(Index).ToString();
     }
 
     TArray<FLBOneFactoryRuntimeStationStep> Route;
@@ -200,9 +228,14 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
         if (Status.bAwaitingQualityResult)
         {
             Group.State = ELBOneFactoryGroupState::Hold;
-            OutAlerts.Add(FString::Printf(
-                TEXT("%s held at %s awaiting a quality result."),
-                *Group.Label, *Status.CurrentStationId.ToString()));
+            OutAlerts.Add(FText::Format(
+                LOCTEXT("AlertQualityHold",
+                    "{Group} held at {Station} awaiting a quality result."),
+                FFormatNamedArguments{
+                    { TEXT("Group"), FText::FromString(Group.Label) },
+                    { TEXT("Station"),
+                      FText::FromName(Status.CurrentStationId) } })
+                .ToString());
         }
         else if (Status.NormalizedCycleProgress >= 0.999f)
         {
@@ -210,9 +243,15 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
             {
                 Group.State = ELBOneFactoryGroupState::Waiting;
             }
-            OutAlerts.Add(FString::Printf(
-                TEXT("%s finished its cycle at %s and cannot move on."),
-                *Group.Label, *Status.CurrentStationId.ToString()));
+            OutAlerts.Add(FText::Format(
+                LOCTEXT("AlertBlockedTransfer",
+                    "{Group} finished its cycle at {Station} and cannot "
+                    "move on."),
+                FFormatNamedArguments{
+                    { TEXT("Group"), FText::FromString(Group.Label) },
+                    { TEXT("Station"),
+                      FText::FromName(Status.CurrentStationId) } })
+                .ToString());
         }
         else if (Group.State == ELBOneFactoryGroupState::Idle)
         {
@@ -253,8 +292,9 @@ void ALBOneFactoryProductionHUD::DrawHUD()
             Width, 44.0f * Scale);
         if (Font)
         {
-            DrawText(TEXT("MOORCROSS WORKS  -  no commissioned factory yet.  "
-                          "Run LB.OneFactory.BuildWholeFactory"),
+            DrawText(LOCTEXT("BannerNoFactory",
+                    "MOORCROSS WORKS  -  no commissioned factory yet.  "
+                    "Run LB.OneFactory.BuildWholeFactory").ToString(),
                 Warm, 20.0f * Scale, 13.0f * Scale, Font, Scale, false);
         }
         return;
@@ -283,7 +323,8 @@ void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,
     const float Pad = 18.0f * Scale;
     if (Small)
     {
-        DrawText(TEXT("PRODUCTION FLOW"), Steel, Pad, StripY + 8.0f * Scale,
+        DrawText(LOCTEXT("HeaderProductionFlow", "PRODUCTION FLOW")
+                .ToString(), Steel, Pad, StripY + 8.0f * Scale,
             Small, Scale, false);
 
         const FString Summary = FString::Printf(
@@ -327,10 +368,13 @@ void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,
         }
         if (Small)
         {
-            DrawText(FString::Printf(TEXT("%d station%s%s"),
-                    Group.StationCount, Group.StationCount == 1
-                        ? TEXT("") : TEXT("s"),
-                    Group.bHasQualityGate ? TEXT("  QA GATE") : TEXT("")),
+            DrawText(FText::Format(
+                    LOCTEXT("StationCount", "{0} {0}|plural(one=station,"
+                        "other=stations){1}"),
+                    FText::AsNumber(Group.StationCount),
+                    Group.bHasQualityGate
+                        ? LOCTEXT("QualityGateSuffix", "  QA GATE")
+                        : FText::GetEmpty()).ToString(),
                 Steel, X + 10.0f * Scale, CardsY + 27.0f * Scale, Small,
                 Scale, false);
         }
@@ -349,16 +393,23 @@ void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,
 
         if (Small)
         {
-            DrawText(FString::Printf(TEXT("%s  %d unit%s"),
-                    StateLabel(Group.State), Group.UnitCount,
-                    Group.UnitCount == 1 ? TEXT("") : TEXT("s")),
+            DrawText(FText::Format(
+                    LOCTEXT("StateAndUnits",
+                        "{State}  {Count} {Count}|plural(one=unit,"
+                        "other=units)"),
+                    FFormatNamedArguments{
+                        { TEXT("State"), StateLabel(Group.State) },
+                        { TEXT("Count"),
+                          FText::AsNumber(Group.UnitCount) } }).ToString(),
                 Accent, X + 10.0f * Scale, BarY + 10.0f * Scale, Small,
                 Scale, false);
 
             if (Group.ThroughputPerHour > 0.0f)
             {
-                DrawText(FString::Printf(TEXT("%.1f/hr"),
-                        Group.ThroughputPerHour),
+                DrawText(FText::Format(
+                        LOCTEXT("ThroughputPerHour", "{0}/hr"),
+                        FText::AsNumber(Group.ThroughputPerHour,
+                            &RateFormat)).ToString(),
                     Warm, X + CardW - 62.0f * Scale, BarY + 10.0f * Scale,
                     Small, Scale, false);
             }
@@ -407,3 +458,5 @@ void ALBOneFactoryProductionHUD::DrawAlertToast(const float Width,
         Y -= ToastH + 6.0f * Scale;
     }
 }
+
+#undef LOCTEXT_NAMESPACE
