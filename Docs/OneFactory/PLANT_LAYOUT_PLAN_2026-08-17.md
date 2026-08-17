@@ -875,3 +875,35 @@ paths in the plan - treat every path in it as unverified until checked.
 **Weld footprint note:** after the re-layout the station footprint is 16000 x 4200 and
 the freed strips fill the rest, so for weld "sized to contents" and "the authored bay"
 now coincide at 18000 x 10000. The oversizing problem was press-specific.
+
+## Shell candidates rendered: the ~150-actor plan does not hold
+
+Photographed the four shell candidates before designing a building from them. The
+previous entry's conclusion was wrong and is retracted.
+
+- **`SM_FrontWall01` is not a wall.** Its bounding box measures 454 x 2357 x 3032, but
+  the geometry inside it is a small lattice panel, not a 23.6 x 30 m solid elevation.
+  **Bounds are not geometry** - a large box can contain sparse framework. This is the
+  same error class as "bounds are not appearance", one level deeper.
+- **`SM_ConcretePillar02` is genuinely good** - reads as a tall industrial column with
+  a yellow safety base. Usable for shop columns as measured.
+- **`SM_FactoryFloorLarge01` renders as a plain white slab**, not factory concrete.
+  Press's floor comes from Codex's own authored floor actors, which is the better
+  precedent.
+
+**So there is no wall unit in the vendor pack.** The saved shop shell cannot be
+assembled from owned assets, and the "~150 actors per shop" estimate is withdrawn.
+
+### Revised options for a saved building
+
+1. **Author the shell** - `SM_LB_ShopWall_Panel_v001`, an eaves/roof unit and a
+   corner. Three or four Blender meshes reused across all three shops, which is a small
+   authoring job for a large payoff and matches how press already looks (Codex authored
+   its walls).
+2. **Extract press's wall kit** - the transplant brought `LB_PRESS_Wall_South`,
+   `LB_PRESS_Column_*` and the roof across as saved actors. Whatever meshes those bind
+   are, by definition, a working shop shell at the right scale and in the right style.
+   **Check these first** - it may need no authoring at all.
+
+Option 2 is the next thing to try, and it should have been the first thought: the one
+shop that already looks right is the best source for the three that do not.
