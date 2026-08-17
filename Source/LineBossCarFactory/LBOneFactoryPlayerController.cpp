@@ -221,7 +221,23 @@ void ALBOneFactoryPlayerController::EnsureSitePresentation()
             FVector::ZeroVector, FRotator::ZeroRotator, Params);
     }
 
-    ULBOneFactoryDevFactory::FrameProductionLine(this, TEXT("All"), StepReason);
+    // Frame onto the player's own pawn, not a dev camera. Passing true here
+    // handed the view target to a transient ACameraActor that was never given
+    // back, so from this point on every camera control moved an off-screen pawn
+    // while the screen stayed frozen on one fixed shot for the whole session.
+    ULBOneFactoryDevFactory::FrameProductionLine(this, TEXT("All"), StepReason,
+        /*bDriveViewTarget=*/false);
+
+    // Report who actually owns the view. This regressed silently once and cost a
+    // great deal of confusion: the camera controls all worked, so nothing looked
+    // broken except the screen. viewIsPawn=1 is the contract.
+    const AActor* ViewTarget = GetViewTarget();
+    UE_LOG(LogLineBossOneFactoryPlayer, Display,
+        TEXT("LINE_BOSS_PLAYER_VIEW viewIsPawn=%d viewTarget=%s pawn=%s %s"),
+        (ViewTarget && ViewTarget == GetPawn()) ? 1 : 0,
+        ViewTarget ? *ViewTarget->GetName() : TEXT("<none>"),
+        GetPawn() ? *GetPawn()->GetName() : TEXT("<none>"),
+        *StepReason);
 }
 
 void ALBOneFactoryPlayerController::PlaceOrder()

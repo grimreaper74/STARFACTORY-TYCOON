@@ -228,7 +228,13 @@ public:
     UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMinimumManagementZoomDistance() { return 1000.0f; }
     UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMinimumPlacementZoomDistance() { return 6500.0f; }
     /** Wide enough to frame the complete 189 m ED line without clipping either process port. */
-    UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMaximumManagementZoomDistance() { return 30000.0f; }
+    /**
+     * 30,000 cm could not frame a shop, let alone the works: the department bays
+     * span 310 m and the station envelope 562 m, which need roughly 35,000 and
+     * 63,000 cm at this pawn's field of view. The camera was capped below the
+     * size of its own subject.
+     */
+    UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMaximumManagementZoomDistance() { return 70000.0f; }
     UFUNCTION(BlueprintCallable, Category="Cairnwell|Management") void SetReturnPawn(ALBControlRoomPawn* InReturnPawn) { ReturnPawn = InReturnPawn; }
     UFUNCTION(BlueprintCallable, Category="Cairnwell|Management") bool ReturnToControlRoom();
     UFUNCTION(BlueprintPure, Category="Cairnwell|Management") ALBControlRoomPawn* GetReturnPawn() const { return ReturnPawn.Get(); }

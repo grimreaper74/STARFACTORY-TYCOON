@@ -134,8 +134,20 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
         meta=(WorldContext="WorldContextObject"))
+    /**
+     * Solves a management framing for a department and applies it.
+     *
+     * bDriveViewTarget=true keeps the historic behaviour: a transient dev
+     * ACameraActor becomes the view target. That is right for tours and
+     * captures, but it must NOT be used on the live player path - taking the
+     * view target and never handing it back is why every camera control
+     * appeared broken, with pan, orbit and zoom all still driving an
+     * off-screen pawn. Pass false to push the same solved pose into the
+     * player's own ALBManagementPawn and leave it as the view target.
+     */
     static bool FrameProductionLine(UObject* WorldContextObject,
-        const FString& Department, FString& OutReason);
+        const FString& Department, FString& OutReason,
+        bool bDriveViewTarget = true);
 
     /**
      * Binds a brand material to every semantic material slot in the world.

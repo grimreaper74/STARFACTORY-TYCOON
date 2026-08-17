@@ -18,6 +18,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "UnrealClient.h"
+#include "LBManagementPawn.h"
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
@@ -585,7 +586,7 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
 }
 
 bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
-    const FString& Department, FString& OutReason)
+    const FString& Department, FString& OutReason, const bool bDriveViewTarget)
 {
     UWorld* World = ResolveWorld(WorldContextObject);
     ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
@@ -756,6 +757,51 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     FString RoofReason;
     SetRoofHidden(WorldContextObject, Eye.Z > RoofHideAboveZCm,
         RoofHideAboveZCm, RoofReason);
+
+    // The live player path hands the solved pose to the player's own pawn and
+    // keeps it as the view target. Spawning a dev camera here instead is what
+    // made the whole management camera look broken: AutoManageActiveCameraTarget
+    // only re-evaluates on possess or restart, so a transient ACameraActor held
+    // the view for the rest of the session while pan, orbit, zoom and Home all
+    // still moved the pawn correctly, off screen.
+    if (!bDriveViewTarget)
+    {
+        ALBManagementPawn* Pawn = Controller->GetPawn<ALBManagementPawn>();
+        if (!Pawn)
+        {
+            OutReason = TEXT("NO MANAGEMENT PAWN TO FRAME");
+            return false;
+        }
+        // Clear any dev camera left over from an earlier tour in this world,
+        // otherwise it keeps the view and the pawn move stays invisible.
+        static const FName StaleDevCameraTag(TEXT("LB.OneFactory.DevCamera"));
+        for (TActorIterator<ACameraActor> It(World); It; ++It)
+        {
+            if (IsValid(*It) && It->Tags.Contains(StaleDevCameraTag))
+            {
+                It->Destroy();
+            }
+        }
+        if (Controller->GetViewTarget() != Pawn)
+        {
+            Controller->SetViewTargetWithBlend(Pawn, 0.0f);
+        }
+        // SetAutomationCamera places the pawn at the pivot, yaws it, and sets
+        // the boom length; its boom pitch of -35 degrees already matches this
+        // solve's default 34-degree management pitch.
+        if (!Pawn->SetAutomationCamera(Centre,
+            static_cast<float>(ViewDir.Rotation().Yaw),
+            static_cast<float>(Distance)))
+        {
+            OutReason = TEXT("MANAGEMENT PAWN REJECTED THE SOLVED FRAMING");
+            return false;
+        }
+        OutReason = FString::Printf(
+            TEXT("framed %d %s station(s) on the player pawn; footprint "
+                 "%.0fx%.0f; distance=%.0f"),
+            Counted, *Wanted, Size.X, Size.Y, Distance);
+        return true;
+    }
 
     // One dev camera per world: every framing used to leak a live camera
     // actor.

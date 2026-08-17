@@ -18,6 +18,7 @@
 #include "LBBodyWeldLineActor.h"
 #include "LBGameMode.h"
 #include "LBManagementPawn.h"
+#include "LBOneFactoryTypes.h"
 #include "LBPressShopBuildAuthority.h"
 #include "LBPressShopCampaignController.h"
 #include "LBPressShopStorageZone.h"
@@ -235,6 +236,26 @@ bool FLBManagementHUDControllerWorkflowTest::RunTest(const FString& Parameters)
         ManagementDefaults && ManagementDefaults->GetMinimumPlacementZoomDistance() >= 6500.0f);
     TestTrue(TEXT("Management camera can frame the complete 189 m ED line"),
         ManagementDefaults && ManagementDefaults->GetMaximumManagementZoomDistance() >= 30000.0f);
+    // The 30,000 cm floor above is satisfied by a camera that still cannot frame
+    // a single shop, which is how the cap sat below the size of its own subject
+    // unnoticed. Tie the requirement to the authored layout instead of a magic
+    // number: the department bays span 31,000 cm north-south, which needs roughly
+    // 35,000 cm of standoff at this pawn's field of view, and the full 62,000 cm
+    // envelope needs about 70,000.
+    {
+        const FLBOneFactoryLayoutDefinition Layout =
+            ULBOneFactoryLayoutLibrary::MakeMoorcrossWorksShellLayout();
+        const float BayDepthCm =
+            static_cast<float>(Layout.FactoryEnvelopeSizeCm.Y);
+        const float HalfFovRadians = FMath::DegreesToRadians(48.0f * 0.5f);
+        const float StandoffForBayDepthCm =
+            (BayDepthCm * 0.5f) / FMath::Tan(HalfFovRadians);
+        TestTrue(
+            TEXT("Management camera can frame the authored department bay depth"),
+            ManagementDefaults
+                && ManagementDefaults->GetMaximumManagementZoomDistance()
+                    >= StandoffForBayDepthCm);
+    }
 
     World->DestroyWorld(false);
     GEngine->DestroyWorldContext(World);
