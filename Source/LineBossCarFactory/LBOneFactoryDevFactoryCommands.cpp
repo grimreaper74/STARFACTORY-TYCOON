@@ -589,18 +589,28 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     const FString& Department, FString& OutReason, const bool bDriveViewTarget)
 {
     UWorld* World = ResolveWorld(WorldContextObject);
-    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
-    if (!World || !Coordinator)
+    if (!World)
     {
-        OutReason = TEXT("NEED A WORLD AND EXACTLY ONE COORDINATOR");
+        OutReason = TEXT("NEED A WORLD");
         return false;
     }
 
+    // A coordinator is preferred but no longer required. Framing used to hard-fail
+    // without one, which meant the plant could not be looked at whenever the
+    // factory would not commission - and transplanting authored content into the
+    // map does exactly that, because it trips the bootstrap provenance guard. The
+    // result was worse than an error: every capture silently fell back to the
+    // pawn's default view, so three different camera solves returned identical
+    // frames and the failure looked like a rendering bug for two rounds. When there
+    // is no route, fall back to the authored department bays, which are static
+    // layout data and always available.
+    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
     TArray<FLBOneFactoryRuntimeStationStep> Route;
     FName TopologyId = NAME_None;
-    if (!Coordinator->GetConfiguredStationRoute(Route, TopologyId, OutReason))
+    if (Coordinator)
     {
-        return false;
+        FString RouteReason;
+        Coordinator->GetConfiguredStationRoute(Route, TopologyId, RouteReason);
     }
 
     // "Press@0.25~16" frames Press at a quarter of the solved distance from a
@@ -696,9 +706,35 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         Picked.Add(Step.WorldTransform.GetLocation());
         ++Counted;
     }
+    // Fall back to the authored bays when no station route is available, so the
+    // plant stays inspectable while gameplay is deferred.
+    bool bFramedFromBays = false;
     if (Counted == 0)
     {
-        OutReason = FString::Printf(TEXT("no stations matched '%s'"), *Wanted);
+        const FLBOneFactoryLayoutDefinition Layout =
+            ULBOneFactoryLayoutLibrary::MakeMoorcrossWorksShellLayout();
+        const bool bWantsAll = Wanted.Equals(TEXT("All"), ESearchCase::IgnoreCase);
+        for (const FLBOneFactoryDepartmentBay& Bay : Layout.DepartmentBays)
+        {
+            const FString BayName =
+                StaticEnum<ELBOneFactoryDepartment>()
+                    ->GetNameStringByValue(static_cast<int64>(Bay.Department));
+            if (!bWantsAll && !Wanted.StartsWith(BayName, ESearchCase::IgnoreCase))
+            {
+                continue;
+            }
+            const FVector BayCentre = Bay.WorldTransform.GetLocation();
+            const FVector Half = Bay.SizeCm * 0.5;
+            Bounds += FVector(BayCentre.X - Half.X, BayCentre.Y - Half.Y, 0.0);
+            Bounds += FVector(BayCentre.X + Half.X, BayCentre.Y + Half.Y, 0.0);
+            ++Counted;
+            bFramedFromBays = true;
+        }
+    }
+    if (Counted == 0)
+    {
+        OutReason = FString::Printf(
+            TEXT("no stations or authored bay matched '%s'"), *Wanted);
         return false;
     }
 
@@ -797,9 +833,10 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
             return false;
         }
         OutReason = FString::Printf(
-            TEXT("framed %d %s station(s) on the player pawn; footprint "
+            TEXT("framed %d %s %s on the player pawn; footprint "
                  "%.0fx%.0f; distance=%.0f"),
-            Counted, *Wanted, Size.X, Size.Y, Distance);
+            Counted, *Wanted, bFramedFromBays ? TEXT("authored bay(s)")
+                : TEXT("station(s)"), Size.X, Size.Y, Distance);
         return true;
     }
 
@@ -841,8 +878,9 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
     Controller->SetViewTargetWithBlend(Camera, 0.0f);
 
     OutReason = FString::Printf(
-        TEXT("framed %d %s station(s); footprint %.0fx%.0f; distance=%.0f"),
-        Counted, *Wanted, Size.X, Size.Y, Distance);
+        TEXT("framed %d %s %s; footprint %.0fx%.0f; distance=%.0f"),
+        Counted, *Wanted, bFramedFromBays ? TEXT("authored bay(s)")
+            : TEXT("station(s)"), Size.X, Size.Y, Distance);
     return true;
 }
 
