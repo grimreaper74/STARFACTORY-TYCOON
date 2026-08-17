@@ -807,3 +807,44 @@ contact sheet proved good, which is the process working: render, judge, then pla
 | Marshalling racks in the receiving lane | Needs authoring; vendor shelves read as fencing |
 | Station density (597 instances vs press's 5,089) | The largest remaining gap |
 | Clerestory glazing | `SM_LargeWindowFramed` exists and is usable; not yet placed |
+
+---
+
+# Blocker found: the shop buildings are not in the map at all
+
+Clerestory glazing was the next weld item. It cannot land yet, and checking why
+surfaced something that affects the whole goal.
+
+`ALBOneFactoryDevEnvelopeActor` is **runtime-only**. Its own header states the
+geometry is "spawned at runtime and never saved, so the protected map is untouched"
+and that "a permanent envelope belongs in the map or in an authored native kit. This
+exists so the factory can be looked at and judged now." It also already draws its own
+clerestory: a tinted `E8F0FA` band 420 cm tall near the eaves
+(`LBOneFactoryDevEnvelopeActor.cpp:198, 335`).
+
+So placing `SM_LargeWindowFramed` now would z-fight that band whenever
+`LB.OneFactory.Envelope` has run, and float in mid-air whenever it has not.
+
+## Why this matters beyond glazing
+
+The stated goal is that **opening the map shows a complete plant with no console
+commands**. Press meets it: the transplant brought Codex's own walls, columns and
+roof as saved actors (`LB_PRESS_Wall_South`, the `LB_PRESS_Column_*` row and the rest
+of the 5,089). **Weld, paint and assembly have no saved building at all** - their
+walls and roofs exist only while a dev console command is running.
+
+That is the honest reason the plant still needs a console command to look complete,
+and it is a bigger item than any single piece of dressing.
+
+## Next task, in order
+
+1. **Convert the shop envelope to saved content** for weld, paint and assembly -
+   authored walls, columns, roof and eaves placed as level actors, sized to each
+   shop's CONTENTS rather than to its buildable bay. Press already has its own, so
+   this is three buildings, not four.
+2. Retire the runtime envelope's clerestory band in favour of real
+   `SM_LargeWindowFramed` units, which the contact sheet cleared as usable.
+3. Only then the remaining weld dressing: mezzanine and marshalling racks, both of
+   which need authoring.
+
+Press is unaffected and complete. Weld's layout and gantries are done and verified.
