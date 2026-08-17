@@ -43,6 +43,13 @@ private:
     int32 StopIndex = INDEX_NONE;
     float SecondsPerStop = 0.0f;
     bool bAwaitingCapture = false;
+
+    /**
+     * Tour shots are taken with the HUD hidden so the frame shows the world
+     * rather than the interface; this records that it must be put back when the
+     * tour finishes.
+     */
+    bool bRestoreHUDOnFinish = false;
     bool bFinished = false;
 };
 

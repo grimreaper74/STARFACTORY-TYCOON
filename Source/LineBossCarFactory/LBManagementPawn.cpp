@@ -1081,13 +1081,11 @@ void ALBManagementPawn::Tick(float DeltaSeconds)
         UpdateInfrastructureEditPreview();
         return;
     }
-    if (IsManagementOpen())
-    {
-        ForwardInput = 0.0f;
-        RightInput = 0.0f;
-        RotateInput = 0.0f;
-        return;
-    }
+    // No management gate here. This ran every frame, zeroed the movement inputs
+    // and returned before the offset below was ever applied - so it silently
+    // overrode the axis handlers and the camera stayed frozen. Since Tick opens
+    // the build catalogue on this pawn at startup, the game booted immovable.
+    // The target HUD is always-on, so panning with the UI up is the normal case.
     const FRotator YawOnly(0.0f, GetActorRotation().Yaw, 0.0f);
     const FVector Delta =
         (YawOnly.Vector() * ForwardInput + FRotationMatrix(YawOnly).GetUnitAxis(EAxis::Y) * RightInput)

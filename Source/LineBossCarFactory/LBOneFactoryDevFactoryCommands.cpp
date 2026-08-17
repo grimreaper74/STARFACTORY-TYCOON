@@ -1217,6 +1217,26 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
         // A dot in a close-up stop like Press@0.3~20 would read as a file
         // extension and cost the shot its .png suffix.
         Name.ReplaceInline(TEXT("."), TEXT("p"));
+        // Shoot the world, not the interface. Tour captures exist to judge
+        // geometry, lighting and density, and the HUD covered the bottom third of
+        // every frame - including the shop floor the shot was taken for. The HUD
+        // stays hidden for the whole tour and is restored in FinishTour: a
+        // screenshot resolves at end of frame, so re-showing it here would put it
+        // back before the capture actually happened.
+        if (const UWorld* TourWorld = GetWorld())
+        {
+            if (const APlayerController* PC = TourWorld->GetFirstPlayerController())
+            {
+                if (AHUD* TourHUD = PC->GetHUD())
+                {
+                    if (TourHUD->bShowHUD)
+                    {
+                        bRestoreHUDOnFinish = true;
+                        TourHUD->bShowHUD = false;
+                    }
+                }
+            }
+        }
         FScreenshotRequest::RequestScreenshot(Name, false, false);
         UE_LOG(LogLineBossOneFactoryDev, Display,
             TEXT("LINE_BOSS_DEV_TOUR_SHOT %s"), *Name);
@@ -1229,6 +1249,21 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
     if (!Departments.IsValidIndex(StopIndex))
     {
         bFinished = true;
+        // Give the interface back now the captures are done.
+        if (bRestoreHUDOnFinish)
+        {
+            if (const UWorld* TourWorld = GetWorld())
+            {
+                if (const APlayerController* PC = TourWorld->GetFirstPlayerController())
+                {
+                    if (AHUD* TourHUD = PC->GetHUD())
+                    {
+                        TourHUD->bShowHUD = true;
+                    }
+                }
+            }
+            bRestoreHUDOnFinish = false;
+        }
         UE_LOG(LogLineBossOneFactoryDev, Display,
             TEXT("LINE_BOSS_DEV_TOUR_COMPLETE stops=%d"), Departments.Num());
         // The tour is one-shot; a finished tour actor lingering in the world
