@@ -73,11 +73,11 @@ private:
     TArray<TObjectPtr<UMaterialInstanceDynamic>> Materials;
 
     /**
-     * The roof deck lives on its own untagged actor, so the camera-height
-     * roof toggle governs it while the envelope's walls stay exempt.
+     * One roof deck per shop building, each on its own untagged actor so the
+     * camera-height roof toggle governs them while the walls stay exempt.
      */
     UPROPERTY()
-    TObjectPtr<AActor> RoofDeck;
+    TArray<TObjectPtr<AActor>> RoofDecks;
 
     int32 PieceCount = 0;
 };

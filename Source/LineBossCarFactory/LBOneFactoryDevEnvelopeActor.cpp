@@ -146,147 +146,241 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         Materials.Add(Material);
     }
 
-    FBox Bounds(ForceInit);
+    // Separate shop buildings, per the owner's 2026-08-17 direction: press,
+    // weld, paint and assembly each get their own envelope and the
+    // production route crosses open yard between them. The departments
+    // already stand tens of metres apart, so no machine moves - only the
+    // walls change.
+    FBox SiteBounds(ForceInit);
+    FBox DepartmentBounds[4];
+    for (FBox& Box : DepartmentBounds)
+    {
+        Box.Init();
+    }
     for (const FLBOneFactoryRuntimeStationStep& Step : Route)
     {
-        Bounds += Step.WorldTransform.GetLocation();
+        const FVector At = Step.WorldTransform.GetLocation();
+        SiteBounds += At;
+        const int32 Index = static_cast<int32>(Step.Department);
+        if (Index >= 0 && Index < 4)
+        {
+            DepartmentBounds[Index] += At;
+        }
     }
-    Bounds = Bounds.ExpandBy(FVector(PaddingCm, PaddingCm, 0.0));
-
-    const FVector Min = Bounds.Min;
-    const FVector Max = Bounds.Max;
-    const double SizeX = Max.X - Min.X;
-    const double SizeY = Max.Y - Min.Y;
-    const FVector Centre = Bounds.GetCenter();
+    SiteBounds = SiteBounds.ExpandBy(FVector(PaddingCm, PaddingCm, 0.0));
 
     constexpr double WallThicknessCm = 60.0;
     const double DadoHeightCm = FMath::Min(320.0, WallHeightCm * 0.25);
     const double ClerestoryHeightCm = 420.0;
+    // Walls go up in segments so an opening can be left wherever the route
+    // crosses: the line leaves one shop and enters the next through a real
+    // portal instead of clipping a solid wall.
+    constexpr double WallSegmentCm = 400.0;
+    constexpr double OpeningClearanceCm = 150.0;
 
     PieceCount = 0;
-
-    // Four walls. Each is one stretched cube, with a darker dado band along the
-    // bottom and a bright glazing strip at the top so a flat wall still has
-    // horizontal banding to read against.
-    struct FWall
+    for (AActor* OldDeck : RoofDecks)
     {
-        FVector Centre;
-        FVector Scale;
-    };
-    const FWall WallSpecs[] = {
-        // Along X at each Y extreme.
-        { FVector(Centre.X, Min.Y, WallHeightCm * 0.5),
-          FVector(SizeX / CubeCm, WallThicknessCm / CubeCm,
-              WallHeightCm / CubeCm) },
-        { FVector(Centre.X, Max.Y, WallHeightCm * 0.5),
-          FVector(SizeX / CubeCm, WallThicknessCm / CubeCm,
-              WallHeightCm / CubeCm) },
-        // Along Y at each X extreme.
-        { FVector(Min.X, Centre.Y, WallHeightCm * 0.5),
-          FVector(WallThicknessCm / CubeCm, SizeY / CubeCm,
-              WallHeightCm / CubeCm) },
-        { FVector(Max.X, Centre.Y, WallHeightCm * 0.5),
-          FVector(WallThicknessCm / CubeCm, SizeY / CubeCm,
-              WallHeightCm / CubeCm) },
-    };
-
-    for (const FWall& Wall : WallSpecs)
-    {
-        FTransform WallTransform;
-        WallTransform.SetLocation(Wall.Centre);
-        WallTransform.SetScale3D(Wall.Scale);
-        if (Walls->AddInstance(WallTransform, true) != INDEX_NONE)
+        if (IsValid(OldDeck))
         {
-            ++PieceCount;
-        }
-
-        // Dado sits just inboard of the wall face at floor level.
-        FTransform DadoTransform;
-        DadoTransform.SetLocation(
-            FVector(Wall.Centre.X, Wall.Centre.Y, DadoHeightCm * 0.5));
-        DadoTransform.SetScale3D(FVector(
-            Wall.Scale.X * 1.001, Wall.Scale.Y * 1.001,
-            DadoHeightCm / CubeCm));
-        if (Dado->AddInstance(DadoTransform, true) != INDEX_NONE)
-        {
-            ++PieceCount;
-        }
-
-        // Glazing strip just below the eaves.
-        FTransform GlazeTransform;
-        GlazeTransform.SetLocation(FVector(Wall.Centre.X, Wall.Centre.Y,
-            WallHeightCm - ClerestoryHeightCm * 0.5 - 60.0));
-        GlazeTransform.SetScale3D(FVector(
-            Wall.Scale.X * 0.985, Wall.Scale.Y * 0.985,
-            ClerestoryHeightCm / CubeCm));
-        if (Clerestory->AddInstance(GlazeTransform, true) != INDEX_NONE)
-        {
-            ++PieceCount;
+            OldDeck->Destroy();
         }
     }
+    RoofDecks.Reset();
 
-    // The roof deck sits just under the eaves on its own untagged actor:
-    // the camera-height toggle in FrameProductionLine hides it for
-    // management shots looking in from above and restores it for
-    // floor-level views, which otherwise top out in black void above the
-    // restored shop's trusses.
-    if (RoofDeck)
+    TArray<TPair<FVector, FVector>> Legs;
+    for (int32 Index = 0; Index + 1 < Route.Num(); ++Index)
     {
-        RoofDeck->Destroy();
-        RoofDeck = nullptr;
+        Legs.Emplace(Route[Index].WorldTransform.GetLocation(),
+            Route[Index + 1].WorldTransform.GetLocation());
     }
-    if (AStaticMeshActor* Deck = World->SpawnActor<AStaticMeshActor>(
-            AStaticMeshActor::StaticClass(),
-            FVector(Centre.X, Centre.Y, WallHeightCm - 50.0),
-            FRotator::ZeroRotator))
+    // A segment opens only when a leg crosses its wall plane between the
+    // segment's own ends. Proximity is not enough: the line runs parallel to
+    // the long walls for most of each shop, and testing distance alone
+    // punched out 51 segments and shredded the buildings.
+    auto RouteCrossesSegment = [&Legs](const FVector& SegmentCentre,
+        const bool bAlongX, const double HalfLength)
     {
-        if (UStaticMeshComponent* DeckMesh = Deck->GetStaticMeshComponent())
+        for (const TPair<FVector, FVector>& Leg : Legs)
         {
-            DeckMesh->SetMobility(EComponentMobility::Movable);
-            DeckMesh->SetStaticMesh(Cube);
-            DeckMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            if (UMaterialInstanceDynamic* DeckMaterial =
-                    UMaterialInstanceDynamic::Create(Base, this))
+            const double FromSide = bAlongX
+                ? Leg.Key.Y - SegmentCentre.Y : Leg.Key.X - SegmentCentre.X;
+            const double ToSide = bAlongX
+                ? Leg.Value.Y - SegmentCentre.Y
+                : Leg.Value.X - SegmentCentre.X;
+            if ((FromSide > 0.0) == (ToSide > 0.0))
             {
-                const FLinearColor DeckColour =
-                    FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("26292E")));
-                DeckMaterial->SetVectorParameterValue(TEXT("Color"), DeckColour);
-                DeckMaterial->SetVectorParameterValue(TEXT("BaseColor"),
-                    DeckColour);
-                DeckMesh->SetMaterial(0, DeckMaterial);
-                Materials.Add(DeckMaterial);
+                continue;
+            }
+            const double Denominator = ToSide - FromSide;
+            if (FMath::IsNearlyZero(Denominator))
+            {
+                continue;
+            }
+            const double Alpha = -FromSide / Denominator;
+            const double CrossAlong = bAlongX
+                ? FMath::Lerp(Leg.Key.X, Leg.Value.X, Alpha)
+                : FMath::Lerp(Leg.Key.Y, Leg.Value.Y, Alpha);
+            const double SegmentAlong =
+                bAlongX ? SegmentCentre.X : SegmentCentre.Y;
+            if (FMath::Abs(CrossAlong - SegmentAlong)
+                <= HalfLength + OpeningClearanceCm)
+            {
+                return true;
             }
         }
-        Deck->SetActorScale3D(FVector(SizeX / CubeCm, SizeY / CubeCm, 0.2));
-        RoofDeck = Deck;
-        ++PieceCount;
+        return false;
+    };
 
-        // A rebuild must not resurrect the roof over a management camera:
-        // re-apply the world's current roof state to the fresh deck.
-        if (ULBOneFactoryDevFactory::IsRoofHidden(this))
+    int32 Buildings = 0;
+    int32 Openings = 0;
+    for (const FBox& RawBox : DepartmentBounds)
+    {
+        if (!RawBox.IsValid)
         {
-            FString RoofReason;
-            ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0,
-                RoofReason);
+            continue;
+        }
+        // A tight skirt around the department's own machines: the wide
+        // site padding made neighbouring shops overlap.
+        constexpr double ShopSkirtCm = 1600.0;
+        const FBox Box =
+            RawBox.ExpandBy(FVector(ShopSkirtCm, ShopSkirtCm, 0.0));
+        const FVector BuildingMin = Box.Min;
+        const FVector BuildingMax = Box.Max;
+        const double BuildingX = BuildingMax.X - BuildingMin.X;
+        const double BuildingY = BuildingMax.Y - BuildingMin.Y;
+        const FVector BuildingCentre = Box.GetCenter();
+        ++Buildings;
+
+        for (int32 Side = 0; Side < 4; ++Side)
+        {
+            const bool bAlongX = Side < 2;
+            const double Span = bAlongX ? BuildingX : BuildingY;
+            const int32 Segments = FMath::Max(1,
+                FMath::CeilToInt32(Span / WallSegmentCm));
+            const double SegmentLength = Span / Segments;
+            for (int32 Segment = 0; Segment < Segments; ++Segment)
+            {
+                const double Along = (bAlongX ? BuildingMin.X : BuildingMin.Y)
+                    + SegmentLength * (Segment + 0.5);
+                const FVector SegmentCentre = bAlongX
+                    ? FVector(Along,
+                        Side == 0 ? BuildingMin.Y : BuildingMax.Y, 0.0)
+                    : FVector(Side == 2 ? BuildingMin.X : BuildingMax.X,
+                        Along, 0.0);
+                const FVector SegmentScale = bAlongX
+                    ? FVector(SegmentLength / CubeCm,
+                        WallThicknessCm / CubeCm, WallHeightCm / CubeCm)
+                    : FVector(WallThicknessCm / CubeCm,
+                        SegmentLength / CubeCm, WallHeightCm / CubeCm);
+                const bool bOpening = RouteCrossesSegment(
+                    SegmentCentre, bAlongX, SegmentLength * 0.5);
+
+                if (!bOpening)
+                {
+                    FTransform WallTransform;
+                    WallTransform.SetLocation(FVector(SegmentCentre.X,
+                        SegmentCentre.Y, WallHeightCm * 0.5));
+                    WallTransform.SetScale3D(SegmentScale);
+                    if (Walls->AddInstance(WallTransform, true) != INDEX_NONE)
+                    {
+                        ++PieceCount;
+                    }
+
+                    FTransform DadoTransform;
+                    DadoTransform.SetLocation(FVector(SegmentCentre.X,
+                        SegmentCentre.Y, DadoHeightCm * 0.5));
+                    DadoTransform.SetScale3D(FVector(SegmentScale.X * 1.001,
+                        SegmentScale.Y * 1.001, DadoHeightCm / CubeCm));
+                    if (Dado->AddInstance(DadoTransform, true) != INDEX_NONE)
+                    {
+                        ++PieceCount;
+                    }
+                }
+                else
+                {
+                    ++Openings;
+                }
+
+                // The glazing band runs unbroken over both walls and
+                // portals, so an opening reads as a doorway with a header
+                // rather than a missing wall.
+                FTransform GlazeTransform;
+                GlazeTransform.SetLocation(FVector(SegmentCentre.X,
+                    SegmentCentre.Y,
+                    WallHeightCm - ClerestoryHeightCm * 0.5 - 60.0));
+                GlazeTransform.SetScale3D(FVector(SegmentScale.X * 0.985,
+                    SegmentScale.Y * 0.985, ClerestoryHeightCm / CubeCm));
+                if (Clerestory->AddInstance(GlazeTransform, true)
+                    != INDEX_NONE)
+                {
+                    ++PieceCount;
+                }
+            }
+        }
+
+        // One roof deck per shop, each on its own untagged actor so the
+        // camera-height roof toggle governs them all together.
+        if (AStaticMeshActor* Deck = World->SpawnActor<AStaticMeshActor>(
+                AStaticMeshActor::StaticClass(),
+                FVector(BuildingCentre.X, BuildingCentre.Y,
+                    WallHeightCm - 50.0),
+                FRotator::ZeroRotator))
+        {
+            if (UStaticMeshComponent* DeckMesh =
+                    Deck->GetStaticMeshComponent())
+            {
+                DeckMesh->SetMobility(EComponentMobility::Movable);
+                DeckMesh->SetStaticMesh(Cube);
+                DeckMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                if (UMaterialInstanceDynamic* DeckMaterial =
+                        UMaterialInstanceDynamic::Create(Base, this))
+                {
+                    const FLinearColor DeckColour =
+                        FLinearColor::FromSRGBColor(
+                            FColor::FromHex(TEXT("26292E")));
+                    DeckMaterial->SetVectorParameterValue(TEXT("Color"),
+                        DeckColour);
+                    DeckMaterial->SetVectorParameterValue(TEXT("BaseColor"),
+                        DeckColour);
+                    DeckMesh->SetMaterial(0, DeckMaterial);
+                    Materials.Add(DeckMaterial);
+                }
+            }
+            Deck->SetActorScale3D(
+                FVector(BuildingX / CubeCm, BuildingY / CubeCm, 0.2));
+            RoofDecks.Add(Deck);
+            ++PieceCount;
         }
     }
 
-    // A floor slab as well. The map's authored floor is smaller than the
-    // configured station route, so stations at the far ends of Press and
-    // Assembly stand over void and render as black holes with machines
-    // apparently floating. This covers the whole routed footprint, sitting just
-    // below the authored floor so it fills the gaps without z-fighting it.
-    FTransform FloorTransform;
-    FloorTransform.SetLocation(FVector(Centre.X, Centre.Y, -6.0));
-    FloorTransform.SetScale3D(
-        FVector(SizeX / CubeCm, SizeY / CubeCm, 0.1));
-    if (Ceiling->AddInstance(FloorTransform, true) != INDEX_NONE)
+    if (ULBOneFactoryDevFactory::IsRoofHidden(this))
+    {
+        FString RoofReason;
+        ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, RoofReason);
+    }
+
+    // One site slab under everything, so the yards between the shops read as
+    // hardstanding rather than void.
+    const FVector SiteCentre = SiteBounds.GetCenter();
+    const FVector SiteSize = SiteBounds.GetSize();
+    FTransform GroundTransform;
+    GroundTransform.SetLocation(FVector(SiteCentre.X, SiteCentre.Y, -6.0));
+    GroundTransform.SetScale3D(
+        FVector(SiteSize.X / CubeCm, SiteSize.Y / CubeCm, 0.1));
+    if (Ceiling->AddInstance(GroundTransform, true) != INDEX_NONE)
     {
         ++PieceCount;
     }
 
+    const double SizeX = SiteSize.X;
+    const double SizeY = SiteSize.Y;
+    UE_LOG(LogTemp, Display,
+        TEXT("LINE_BOSS_ENVELOPE buildings=%d routeOpenings=%d"),
+        Buildings, Openings);
+
     OutReason = FString::Printf(
-        TEXT("envelope %.0f x %.0f cm, height %.0f, %d piece(s)"),
+        TEXT("site %.0f x %.0f cm, shop height %.0f, %d piece(s) across separate shop buildings"),
         SizeX, SizeY, WallHeightCm, PieceCount);
     return true;
 }
