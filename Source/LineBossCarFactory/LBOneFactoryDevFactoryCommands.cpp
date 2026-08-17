@@ -540,7 +540,12 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                             FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
                         BayComponent->SetLightColor(
                             FLinearColor(1.0f, 0.894f, 0.804f));
-                        BayComponent->SetCastShadows(false);
+                        // A sparse quarter of the grid casts shadows, so
+                        // machines are grounded by contact shadows instead
+                        // of floating as flat marks - without paying for a
+                        // shadow-casting light in every bay.
+                        BayComponent->SetCastShadows(
+                            (X % 2) == 0 && (Y % 2) == 0);
                     }
                     ++BayLights;
                 }
