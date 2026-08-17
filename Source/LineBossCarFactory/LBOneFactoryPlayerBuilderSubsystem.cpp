@@ -691,6 +691,9 @@ bool ULBOneFactoryPlayerBuilderSubsystem::ValidateAssemblyStarterPair(
         return false;
     }
     if (!Presentation.IsPresentationConfigured()
+        // Fail closed on visibility, like Body/Weld: a hidden presentation
+        // passes every count check while rendering nothing.
+        || Presentation.IsHidden()
         || Presentation.GetConfiguredLayoutId() != State.LayoutId
         || Presentation.GetConfiguredLayoutRevision() != State.Revision
         || Presentation.GetVisualBatchCount()
@@ -858,6 +861,8 @@ bool ULBOneFactoryPlayerBuilderSubsystem::ValidatePaintStarterPair(
         return false;
     }
     if (!Presentation.IsPresentationConfigured()
+        // Fail closed on visibility, like Body/Weld.
+        || Presentation.IsHidden()
         || Presentation.GetConfiguredLayoutId() != State.LayoutId
         || Presentation.GetConfiguredLayoutRevision() != State.Revision
         || Presentation.GetConfiguredBodyColour() != State.SelectedBodyColour

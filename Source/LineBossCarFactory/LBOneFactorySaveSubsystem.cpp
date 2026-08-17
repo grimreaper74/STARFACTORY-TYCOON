@@ -281,6 +281,8 @@ namespace LBOneFactorySaveSubsystemPrivate
             return false;
         }
         if (!Actors.PaintPresentation->IsPresentationConfigured()
+            // Fail closed on visibility, like Body/Weld.
+            || Actors.PaintPresentation->IsHidden()
             || Actors.PaintPresentation->GetConfiguredLayoutId()
                 != State.PaintLayout.LayoutId
             || Actors.PaintPresentation->GetConfiguredLayoutRevision()
@@ -292,6 +294,8 @@ namespace LBOneFactorySaveSubsystemPrivate
             return false;
         }
         if (!Actors.AssemblyPresentation->IsPresentationConfigured()
+            // Fail closed on visibility, like Body/Weld.
+            || Actors.AssemblyPresentation->IsHidden()
             || Actors.AssemblyPresentation->GetConfiguredLayoutId()
                 != State.AssemblyLayout.LayoutId
             || Actors.AssemblyPresentation->GetConfiguredLayoutRevision()
