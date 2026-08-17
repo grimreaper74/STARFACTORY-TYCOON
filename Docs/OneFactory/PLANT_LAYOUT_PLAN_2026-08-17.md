@@ -599,3 +599,43 @@ ratios: a number quoted from reasoning rather than measured.
 below their origin. Placed at Z=0 they sink into the slab. Every placement script must
 offset by -minZ, not assume floor pivots - the `SM_LB_*` family uses floor pivots, the
 vendor pack does not.
+
+---
+
+# Weld fabric pass: attempted, rejected, reverted (2026-08-17)
+
+Placed 282 fabric actors into the weld bay from the idle vendor kit - 40 mezzanine
+decks, 40 pillars, 78 railings, 2 stair flights, 18 per-cell gantries, 38 clerestory
+windows, 42 racking tiers, 24 switchboards - captured it, and **removed all 282**.
+
+The capture is the reason. Every pitch was correct and nothing overlapped, but:
+
+- The mezzanine read as a **flat blue ribbon**, not a raised walkway.
+  `SM_IndustrialPlatform01` is a blue-tinted deck panel; 40 of them in two 3 m lanes
+  across a 10 m-deep bay is geometrically a narrow strip, and with thin pillars it
+  reads as painted floor rather than structure.
+- The 18 gantries read as **small dark brackets**, not portals. `SM_HeavyArch01` is a
+  bracket/half-arch, so 18 of them in a row look like flags on the floor.
+- The racking read as **orange fencing** - `SM_StorageShelves*` stacked three tiers
+  high does not resemble a marshalling rack at this framing.
+
+## The mistake, precisely
+
+I measured the kit's **bounds** and treated that as knowing the kit. Bounds tell you
+pitch and whether things fit; they say nothing about whether an asset *reads as* the
+thing you are using it for. Last tick's calibration correctly caught two wrong
+dimensions and then I placed 282 actors without ever looking at a single one of these
+meshes rendered.
+
+**Rule for the remaining shops:** before designing placement around any vendor asset,
+render it once - a thumbnail grid of the candidate kit, inspected - and only then
+commit to a layout. The asset ledger's "unused: 764 meshes" is an inventory, not a
+recommendation; unused sometimes means unsuitable.
+
+## What this does not change
+
+Press stands unaffected (5,089 mesh + 144 light actors, commissioning green at
+278/278). The weld **re-layout** analysis still holds and is independent of the kit:
+the 18 positions genuinely are misplaced, with the BIW handoff 170 m of backhaul from
+paint, and the re-seed through `MoveStation` remains the right first weld change.
+Do that before any more dressing.
