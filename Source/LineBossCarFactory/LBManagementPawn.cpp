@@ -1287,21 +1287,29 @@ void ALBManagementPawn::EndPointerInteraction()
     }
 }
 
+// The camera must keep moving while the management HUD is visible. These axes
+// used to zero themselves on IsManagementOpen(), and Tick opens the factory
+// build catalogue on this pawn at startup "so the clean game always opens with a
+// visible mouse catalogue" - so the game booted with every camera control dead
+// and no indication why. The target HUD is always-on by design, which makes
+// "UI visible" the normal state rather than a modal one. Text entry is still
+// safe: Slate consumes keys while an editable text box holds keyboard focus, so
+// these axis mappings do not fire while a name is being typed.
 void ALBManagementPawn::MoveForward(float Value)
 {
-    ForwardInput = IsManagementOpen() ? 0.0f : Value;
+    ForwardInput = Value;
     if (!FMath::IsNearlyZero(ForwardInput)) bFactoryFocusTransitionActive = false;
 }
 
 void ALBManagementPawn::MoveRight(float Value)
 {
-    RightInput = IsManagementOpen() ? 0.0f : Value;
+    RightInput = Value;
     if (!FMath::IsNearlyZero(RightInput)) bFactoryFocusTransitionActive = false;
 }
 
 void ALBManagementPawn::Rotate(float Value)
 {
-    RotateInput = IsManagementOpen() ? 0.0f : Value;
+    RotateInput = Value;
     if (!FMath::IsNearlyZero(RotateInput)) bFactoryFocusTransitionActive = false;
 }
 
