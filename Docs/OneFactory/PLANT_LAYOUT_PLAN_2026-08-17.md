@@ -1010,3 +1010,29 @@ Assembly's floor is largely empty. Roofing changes how a shop reads at eye level
 does not add density, and assembly carries 95 presentation instances against press's
 5,089. The vertical layering problem is solved for all four shops; the density problem
 is untouched and remains the single largest gap in the plant.
+
+## Assembly gantries LANDED
+
+24 `SM_LampArch01` arches at 1.6x, one per assembly station, from
+`CanonicalLocation` in `LBOneFactoryAssemblyStarterLayout.cpp:143` - two runs of 12 at
+2200 cm pitch, trim/chassis at Y 5500 running east, final at Y 11500 running back west.
+No rotation: the arch spans Y natively and the runs travel along X.
+
+Verified in `AsmG_01_Assembly@0p16~9.png`: lit arches marching down both runs beneath
+the truss roof, with the robot line to the right. Assembly now has the same vertical
+layering as weld.
+
+**Paint deferred, deliberately.** Paint does not use a `CanonicalLocation` formula like
+weld and assembly - it uses a per-station contract table
+(`LBOneFactoryPaintStarterLayout.cpp:48`), so its 8 positions must be read from that
+table rather than computed. Doing that properly is the next tick; guessing a pitch
+would repeat the invented-path mistake.
+
+### Plant status: vertical structure complete except paint gantries
+
+| Shop | Stations | Roof trusses | Lit gantries |
+| --- | --- | --- | --- |
+| Press | 7 (+5,089 transplanted actors) | 12 (Codex) | n/a - has its own crane and structure |
+| Body/weld | 18, re-laid | 24 | 18 |
+| Paint | 8 | 25 | **pending - contract table** |
+| Assembly | 24 | 42 | 24 |
