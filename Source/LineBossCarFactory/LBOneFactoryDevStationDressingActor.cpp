@@ -625,71 +625,39 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         }
 
         case ELBOneFactoryDepartment::Paint:
-        {
-            // The native paint kit, on the line: each process stage is a
-            // drive-through module straddling its station, the way the
-            // approved mockup draws the ED coat card, so bodies pass through
-            // real tunnels instead of between pack-box stand-ins. Each module
-            // is scaled to at most 92% of its cell so neighbouring tunnels
-            // never interpenetrate; never scaled above authored size.
-            auto TunnelScale = [&](const ELBOneFactoryDressingKind Kind)
-            {
-                const double Length =
-                    Kinds[static_cast<int32>(Kind)].LengthCm;
-                return FMath::Min(1.0, (CellHalf * 2.0 * 0.92) / Length);
-            };
-            switch (Step.SemanticStage)
-            {
-            case ELBOneFactoryVehicleStage::Pretreatment:
-                Place(ELBOneFactoryDressingKind::PaintWashTunnel, At, Facing,
-                    TunnelScale(ELBOneFactoryDressingKind::PaintWashTunnel));
-                break;
-            case ELBOneFactoryVehicleStage::EDCoat:
-                Place(ELBOneFactoryDressingKind::PaintEDTunnel, At, Facing,
-                    TunnelScale(ELBOneFactoryDressingKind::PaintEDTunnel));
-                break;
-            case ELBOneFactoryVehicleStage::ColourCoat:
-                Place(ELBOneFactoryDressingKind::PaintSprayBooth, At, Facing,
-                    TunnelScale(ELBOneFactoryDressingKind::PaintSprayBooth));
-                // The booth's services stand on its service side.
-                Place(ELBOneFactoryDressingKind::PaintAirExtract,
-                    At + Across * (CellHalf * 1.15), FacingOut, 1.0);
-                Place(ELBOneFactoryDressingKind::PaintServiceSet,
-                    At + Across * (CellHalf * 1.15) + Along * 400.0,
-                    FacingOut, 1.0);
-                break;
-            case ELBOneFactoryVehicleStage::Cure:
-                Place(ELBOneFactoryDressingKind::PaintCureOven, At, Facing,
-                    TunnelScale(ELBOneFactoryDressingKind::PaintCureOven));
-                break;
-            case ELBOneFactoryVehicleStage::PaintQualityInspection:
-                Place(ELBOneFactoryDressingKind::PaintQualityTunnel, At,
-                    Facing, TunnelScale(
-                        ELBOneFactoryDressingKind::PaintQualityTunnel));
-                break;
-            default:
-                // A stage without a native module keeps the enclosed booth
-                // stand-ins rather than an empty station.
-                Place(ELBOneFactoryDressingKind::Booth,
-                    At + Across * (CellHalf * 0.95), FacingOut, Fit);
-                Place(ELBOneFactoryDressingKind::Booth,
-                    At - Across * (CellHalf * 0.95), FacingIn, Fit);
-                break;
-            }
+            // Deliberately no process modules here. The frozen paint starter
+            // presentation already stands the native kit at these exact
+            // canonical station transforms - wash tunnel, the tracked ED
+            // line with its open treatment tanks and immersed body, the
+            // spray booth with its extraction and service sets, the cure
+            // oven and the quality light tunnel - under its own exact-count
+            // contract. The dressing used to place a second copy of each at
+            // the same transform: same mesh, same place, total z-fight, and
+            // the ED enclosure hid the very tracked line the contract exists
+            // to show. This is the Body-branch lesson (a duplicate robot set
+            // over release content) applied to Paint.
+            //
+            // Standing the commissioned SM_LB_Paint_EDDipTunnel_v001 as
+            // real content belongs in a versioned paint presentation v002,
+            // following the weld v002/v003 template - not as an overlay.
             break;
-        }
 
         case ELBOneFactoryDepartment::Assembly:
         default:
             // The native assembly kit by stage, keeping the readable
             // "station + robot + next part" model where no native module
             // maps.
+            // The frozen assembly presentation owns the station centre: a
+            // skillet carrier at every one of the 24 positions plus the
+            // per-operation fixture (the marriage gantry among them). The
+            // dressing adds only what the contract lacks, and never at the
+            // centre - a second skillet at the same transform z-fought, and
+            // the lift platform and alignment bed ran through the carrier.
             switch (Step.SemanticStage)
             {
             case ELBOneFactoryVehicleStage::GeneralAssemblyTrim:
-                // The body rides a skillet carrier; the fitting robot works
-                // one side with the sequenced parts behind the bench side.
-                Place(ELBOneFactoryDressingKind::AssemblySkillet, At, Facing);
+                // The fitting robot works one side with the sequenced parts
+                // behind the bench side; the carrier is release content.
                 Place(ELBOneFactoryDressingKind::Robot,
                     At + Across * (CellHalf * 0.80), FacingOut, Fit * 0.9);
                 Place(ELBOneFactoryDressingKind::Bench,
@@ -698,22 +666,25 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                     At - Across * (CellHalf * 1.5), FacingIn);
                 break;
             case ELBOneFactoryVehicleStage::PowertrainMarriage:
-                Place(ELBOneFactoryDressingKind::AssemblyMarriageGantry, At,
-                    Facing);
+                // The presentation stands the gantry itself.
                 Place(ELBOneFactoryDressingKind::Bench,
                     At - Across * (CellHalf * 1.1), FacingIn, Fit);
                 break;
             case ELBOneFactoryVehicleStage::RollingChassis:
-                Place(ELBOneFactoryDressingKind::AssemblyLiftPlatform, At,
-                    Facing);
+                // The ergonomic platform stands beside the line as station
+                // equipment rather than through the carrier.
+                Place(ELBOneFactoryDressingKind::AssemblyLiftPlatform,
+                    At + Across * (CellHalf * 1.55), FacingOut);
                 Place(ELBOneFactoryDressingKind::AssemblyWheelRack,
                     At + Across * (CellHalf * 0.95), FacingOut);
                 Place(ELBOneFactoryDressingKind::AssemblyWheelRack,
                     At - Across * (CellHalf * 0.95), FacingIn);
                 break;
             case ELBOneFactoryVehicleStage::EndOfLineInspection:
-                Place(ELBOneFactoryDressingKind::AssemblyAlignmentBed, At,
-                    Facing);
+                // The alignment bed sits off-line; the arch spans the line
+                // downstream of the station centre, clear of the carrier.
+                Place(ELBOneFactoryDressingKind::AssemblyAlignmentBed,
+                    At + Across * (CellHalf * 1.55), FacingOut);
                 Place(ELBOneFactoryDressingKind::AssemblyEOLArch,
                     At + Along * 350.0, Facing);
                 break;
