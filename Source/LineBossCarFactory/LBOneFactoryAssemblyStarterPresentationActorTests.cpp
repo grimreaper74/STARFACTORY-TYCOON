@@ -4,6 +4,8 @@
 
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FLBOneFactoryAssemblyPresentationContractTest,
@@ -167,5 +169,64 @@ bool FLBOneFactoryAssemblyPresentationConfigureAndReassignTest::RunTest(
     return true;
 }
 
-#endif
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FLBOneFactoryAssemblyCookManifestContractTest,
+    "LineBoss.OneFactory.AssemblyStarter.Presentation.CookManifestCoversEveryFrozenBinding",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
+bool FLBOneFactoryAssemblyCookManifestContractTest::RunTest(
+    const FString& Parameters)
+{
+    (void)Parameters;
+    // The frozen presentation resolves every binding by path string, which
+    // the cooker cannot see: without an always-cook root the shop ships
+    // empty. Mirrors FLBOneFactoryBodyWeldCookManifestContractTest.
+    const FString ConfigPath =
+        FPaths::ProjectConfigDir() / TEXT("DefaultGame.ini");
+    FString ConfigContents;
+    TestTrue(TEXT("Project packaging configuration is readable"),
+        FFileHelper::LoadFileToString(ConfigContents, *ConfigPath));
+
+    for (const FSoftObjectPath& Asset :
+        ALBOneFactoryAssemblyStarterPresentationActor::
+            GetRequiredNativeAssetPaths())
+    {
+        const FString Path = Asset.ToString();
+        if (!Path.StartsWith(TEXT("/Game/")))
+        {
+            continue;
+        }
+        FString PackagePath = Path;
+        int32 DotIndex = INDEX_NONE;
+        if (PackagePath.FindChar(TEXT('.'), DotIndex))
+        {
+            PackagePath.LeftInline(DotIndex);
+        }
+        // Every /Game binding must sit under some always-cook root.
+        FString Folder = PackagePath;
+        bool bCovered = false;
+        while (!bCovered)
+        {
+            int32 SlashIndex = INDEX_NONE;
+            if (!Folder.FindLastChar(TEXT('/'), SlashIndex)
+                || SlashIndex <= 6)
+            {
+                break;
+            }
+            Folder.LeftInline(SlashIndex);
+            bCovered = ConfigContents.Contains(FString::Printf(
+                TEXT("DirectoriesToAlwaysCook=(Path=\"%s\")"), *Folder));
+        }
+        TestTrue(FString::Printf(
+            TEXT("Cook manifest covers frozen binding %s"), *Path), bCovered);
+
+        const FString FilePath = FPaths::ProjectContentDir()
+            / PackagePath.RightChop(6) + TEXT(".uasset");
+        TestTrue(FString::Printf(
+            TEXT("Frozen binding exists on disk: %s"), *Path),
+            FPaths::FileExists(FilePath));
+    }
+    return true;
+}
+
+#endif
