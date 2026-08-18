@@ -23,6 +23,8 @@ public:
 
     virtual void Tick(float DeltaSeconds) override;
 
+    /** Script-exposed so editor placement tooling can commission saved robots. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Body Shop|Robot")
     bool ConfigureForAuthoredSlot(const FName InCellId,
         const FLBBodyShopRobotSlotDefinition& InSlot,
         const FLBBodyShopRobotAssignment& InAssignment, FString& OutReason);
