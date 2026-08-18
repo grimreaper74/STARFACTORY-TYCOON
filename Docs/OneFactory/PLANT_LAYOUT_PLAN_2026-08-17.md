@@ -1383,3 +1383,12 @@ weld's respot fixtures and paint pretreatment detailing.
 Suite 278/0/0; assembly capture shows both runs carrying content - plates,
 cells, staging and guarding - with the zone lighting reading correctly.
 36 machines and 7 batches this session, all verified and committed.
+
+## Overnight checkpoint (2026-08-19, autonomous)
+
+Suite 278/0/0 after batch 08. Overnight additions: respot fixtures behind
+both framing gates, wheel carousel at station 17, flash gantries at 19/20,
+door line hung with real Cairnwell doors, and the finished-car WIP visual
+now composites body + rolling gear (the flagged worst visual gap, fixed in
+C++ with a mirrored gear ISM batch). Session total: 40 machines authored,
+8 placement batches, ~590 new saved actors. Task 30: 40 of ~83.
