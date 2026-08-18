@@ -1377,3 +1377,9 @@ with carriers. Doors themselves not yet hung on the carriers - the
 SM_LB_C2040_DOOR_* pivots need measuring before they hang believably;
 next authoring stretch should measure and hang them, then continue with
 weld's respot fixtures and paint pretreatment detailing.
+
+## Gate after batch 07 (2026-08-18, autonomous)
+
+Suite 278/0/0; assembly capture shows both runs carrying content - plates,
+cells, staging and guarding - with the zone lighting reading correctly.
+36 machines and 7 batches this session, all verified and committed.
