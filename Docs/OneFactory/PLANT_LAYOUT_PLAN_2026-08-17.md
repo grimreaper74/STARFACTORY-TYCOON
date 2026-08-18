@@ -1073,3 +1073,34 @@ decision:
 4. **Paint's 22,000 cm bay holds 11,800 cm of stations**, all on one line in its western
    half. Even fully dressed it will read as half a shop until the ED line and booths
    are built out to the plan's process layout.
+
+## Weld cell guarding LANDED — 702 instances, no authoring
+
+Fenced all 18 weld robot cells with the project's own authored guarding, following
+press's recipe (press uses 130 `SM_LB_GuardPost_1500` and 119 `SM_LB_GuardPanel_2000`,
+which is what actually carries its density):
+
+| Item | Count |
+| --- | --- |
+| `SM_LB_GuardPanel_2000_v001` | 324 |
+| `SM_LB_GuardPost_1500_v001` | 360 |
+| `SM_LB_GuardInterlockBox_v001` | 18 |
+| **Total** | **702** |
+
+Cells are fenced on the two sides parallel to travel and open at the line ends, which
+is how a robot cell is really guarded - the conveyor runs through, people do not - with
+one interlocked access point per cell.
+
+Weld's density goes from 597 to roughly 1,300. Against press's 5,089 that is still
+short, but it is a real step and it needed no authoring at all.
+
+### The naming convention is MILLIMETRES, not centimetres
+
+First attempt spaced the panels 2000 cm apart because the asset is called
+`GuardPanel_2000`. Measured, it is **200.0 x 7.6 x 128.5 cm** - the name is in
+millimetres, as is `GuardPost_1500` at 153.7 cm tall. The 18 m gaps made the fence read
+as scattered frames; corrected to a 200 cm pitch it reads as continuous safety fence.
+
+**Rule:** `SM_LB_*` dimensional suffixes are millimetres. Never derive a pitch from an
+asset name - measure it. This is the fifth time this session that a number taken from a
+name or a plan rather than a measurement was wrong.
