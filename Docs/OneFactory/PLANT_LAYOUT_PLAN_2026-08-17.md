@@ -1161,3 +1161,33 @@ Verified in `Lit2_01_Body@0p3~16.png`: broad warm pools along both weld runs, th
 cell guarding catching the light, and the shop reading as a working lit hall.
 
 `LB_GANTRY_LUMENS` re-tunes without editing the file.
+
+## Robot-to-line offset: NOT a defect in assembly
+
+The owner asked whether the assembly line sits behind the robots, from a low-angle
+capture. Checked in source and settled with a plan view (`Plan_01_Assembly@0p34~78`).
+
+**The robots are correctly beside their stations.** Assembly's presentation places no
+robots at all (only `SM_LB_Assembly_CockpitInstallAssist_v001` and
+`SM_LB_Assembly_HeavyMarriageGantry_v001`); the yellow arms come from the runtime
+dressing pass and sit immediately adjacent to their station boxes. Weld had a genuine
+version of this defect - robots 10.7 m from work their arms could not reach - fixed to a
++/-300 cm offset (`LBOneFactoryBodyWeldStarterPresentationActor.cpp:222-228`). Assembly
+was never broken the same way.
+
+**Method note: a shallow pitch caused the illusion.** At 8-9 degrees the camera
+compresses lateral separation and exaggerates longitudinal gaps, so a robot 3 m to one
+side of a conveyor reads as a separate row. That is the second time a shallow angle
+misled a diagnosis this session; both were settled in one frame by a near-top-down shot.
+**Use a plan view to judge spatial relationships, a low angle only to judge vertical
+structure.**
+
+## What the plan view DID reveal
+
+The two assembly runs sit **60 m apart with nothing between them**, and stations are
+sparse along each run. That bare central strip is what makes assembly read as
+disconnected - not the robot placement. It is the same density problem already recorded
+(95 instances against press's 5,089), seen from above.
+
+The plan's assembly design fills that strip with the trim/chassis sub-assembly loop,
+kitting racks and line-side supermarkets. Those are on the authoring list.
