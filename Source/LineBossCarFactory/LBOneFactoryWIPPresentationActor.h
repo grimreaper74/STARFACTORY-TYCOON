@@ -87,6 +87,9 @@ private:
 
     UPROPERTY()
     TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
+    /** FinishedCar units also render rolling gear, so a car leaving GA
+     *  stops looking identical to the painted shell entering it. */
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GearBatch;
 
     UPROPERTY()
     TArray<TObjectPtr<UMaterialInstanceDynamic>> BatchMaterials;

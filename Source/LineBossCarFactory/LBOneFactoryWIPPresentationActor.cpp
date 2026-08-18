@@ -120,6 +120,16 @@ ALBOneFactoryWIPPresentationActor::ALBOneFactoryWIPPresentationActor()
         Batches.Add(Batch);
     }
 
+    GearBatch = CreateDefaultSubobject<UInstancedStaticMeshComponent>(
+        TEXT("WIP_FinishedCarGear"));
+    GearBatch->SetupAttachment(SceneRoot);
+    GearBatch->SetMobility(EComponentMobility::Movable);
+    GearBatch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GearBatch->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GearBatch->SetGenerateOverlapEvents(false);
+    GearBatch->SetCanEverAffectNavigation(false);
+    GearBatch->SetReceivesDecals(false);
+
     Tags.AddUnique(GetPresentationTag());
     Tags.AddUnique(TEXT("LB.Environment.VisualOnly"));
     Tags.AddUnique(TEXT("LB.NotProcessWIP"));
@@ -292,6 +302,10 @@ void ALBOneFactoryWIPPresentationActor::ClearPresentation()
             Batch->ClearInstances();
         }
     }
+    if (GearBatch)
+    {
+        GearBatch->ClearInstances();
+    }
     VisibleUnitCount = 0;
 }
 
@@ -349,6 +363,19 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
                 return false;
             }
             Batches[Index]->SetStaticMesh(Mesh);
+            if (Index == static_cast<int32>(ELBOneFactoryWIPVisual::FinishedCar)
+                && GearBatch)
+            {
+                UStaticMesh* Gear = Cast<UStaticMesh>(
+                    StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
+                        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
+                             "/Cairnwell2040Runtime_v001/Meshes"
+                             "/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001")));
+                if (Gear)
+                {
+                    GearBatch->SetStaticMesh(Gear);
+                }
+            }
             if (BatchMaterialOverride[Index])
             {
                 UMaterialInterface* Override = Cast<UMaterialInterface>(
@@ -465,6 +492,11 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         }
 
         const int32 Added = Batches[VisualIndex]->AddInstance(Instance, true);
+        if (VisualIndex == static_cast<int32>(ELBOneFactoryWIPVisual::FinishedCar)
+            && GearBatch && GearBatch->GetStaticMesh())
+        {
+            GearBatch->AddInstance(Instance, true);
+        }
         if (Added != INDEX_NONE)
         {
             FInstanceRef Ref;
