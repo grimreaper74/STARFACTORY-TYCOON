@@ -1335,3 +1335,14 @@ soft mesh ptr and LoadCompleteArt branch in C++), headlamp aim rig, rolls
 dyno bed, water leak test booth (one fix round: walls extended to the roof).
 Next: batch-04 import/placement at the assembly test end, then the paint
 process build-out (Task 32) using the existing _Blockout_ ED modules.
+
+## Batch 04 landed; session checkpoint (2026-08-18, autonomous)
+
+Water test booth, rolls dyno and headlamp aim rig placed at the assembly
+test end; all four booth robots re-tooled to SprayApplicator with complete
+art. Post-C++ suite: 278 total / 0 failed / 0 notRun (nullrhi recipe), same
+23-warning profile as before the enum addition. Session running total: 21
+machines authored, 3 batch placements (~340 new saved actors), press Meshy
+debt cleared, robots standing. Next authoring: paint process build-out
+(Task 32) - re-author the _Blockout_ ED modules to full detail, sealer
+robots' deck, and weld's mezzanine marshalling racks.
