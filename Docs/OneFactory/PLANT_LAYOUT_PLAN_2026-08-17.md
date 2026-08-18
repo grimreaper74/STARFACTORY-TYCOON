@@ -1326,3 +1326,12 @@ and paint interiors need their own lighting pass as density grows (weld and
 press verify easily because their gantries light the floor). The robot tool
 is VacuumEightCup everywhere: a paint spray applicator end effector does not
 exist as authored art and goes on the authoring list.
+
+## Batch 04 authored (2026-08-18, autonomous)
+
+Four more: SM_LB_Paint_SprayApplicatorTool_v001 (rotary-bell end effector -
+wiring it onto the booth robots needs a new ELBBodyShopToolType enum entry,
+soft mesh ptr and LoadCompleteArt branch in C++), headlamp aim rig, rolls
+dyno bed, water leak test booth (one fix round: walls extended to the roof).
+Next: batch-04 import/placement at the assembly test end, then the paint
+process build-out (Task 32) using the existing _Blockout_ ED modules.
