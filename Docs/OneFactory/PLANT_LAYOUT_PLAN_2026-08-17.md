@@ -1239,3 +1239,28 @@ them.
 **Revised paint plan:** detail and place the existing ED modules rather than author new
 ones, then author only what is genuinely absent - the spray booth shell with glazing, air
 plenum and extract, which is the piece the owner specifically called out.
+
+---
+
+# Batch 01 imported, placed and verified (2026-08-18)
+
+Six authored machines imported in one pass and placed as 155 saved actors:
+
+| Model | Imported size (cm) | Placed |
+| --- | --- | --- |
+| PowertrainMarriage_v003 | 640 x 490 x 307 | 1 (replaces failed v001 at position 12) |
+| PedestalWelder_v001 | 160 x 94 x 243 | 8, inside the fenced cells |
+| TipDresser_v001 | 94 x 56 x 138 | 18, one per station |
+| GeoPinUnit_v001 | 33 x 32 x 94 | 54, three per station face |
+| ClampUnit_v001 | 64 x 23 x 57 | 72, four per station pad |
+| SprayBoothShell_v001 | 1375 x 746 x 555 | 2, paint east half, clear of the frozen presentation |
+
+Verified in `Batch01_01_Body@0p35~22` and `Batch01_02_Paint@0p5~26`: weld's cells now
+carry visible hardware under the lit gantries, and paint's empty east half has its first
+real booths. Weld instance count roughly 1,300 -> ~1,450 plus the batch.
+
+Remaining on the missing list after reuse findings and this batch: destack magazine,
+framing gates, skid conveyor modules, roof magazine, index turntables for weld; the
+detailing pass over paint's existing blockout ED modules; assembly's 33; the marriage
+station deck-population pass. MAT_BoothGlazing needs a glass instance in the runtime
+palette table.
