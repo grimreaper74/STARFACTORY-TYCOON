@@ -1264,3 +1264,23 @@ framing gates, skid conveyor modules, roof magazine, index turntables for weld; 
 detailing pass over paint's existing blockout ED modules; assembly's 33; the marriage
 station deck-population pass. MAT_BoothGlazing needs a glass instance in the runtime
 palette table.
+
+## Batch 02 authoring complete (2026-08-18, autonomous)
+
+Six models authored, self-reviewed via bounds-framed previews, committed:
+
+| Asset | Folder | Result |
+| --- | --- | --- |
+| SM_LB_Weld_FramingGate_v001 | WeldShop/FramingGate_v001 | Passed after 2 fix rounds (tray, frame feet, air drops routed per pod) |
+| SM_LB_Weld_SkidConveyorModule_3000_v001 | WeldShop/SkidConveyor_v001 | Passed first render |
+| SM_LB_Weld_IndexTurntable_v001 | WeldShop/IndexTurntable_v001 | First render FAILED as a blank board; wall ribbed + jig towers added |
+| SM_LB_Weld_RoofMagazine_v001 | WeldShop/RoofMagazine_v001 | Passed after end-wall X-braces |
+| SM_LB_ElectricalCabinetNet_v001 | PressShop/ElectricalCabinetNet_v001 | Passed first render |
+| SM_LB_OperatorHMIStand_v001 | PressShop/OperatorHMIStand_v001 | Passed after screen re-seated on the angled face |
+
+Next: batch-02 Unreal import/placement. The two press pieces should stand at
+the 40 skipped Meshy component positions - read those transforms LIVE from the
+reference's four LB_INST_PT*_NativeAuthority_v223 actors the same way
+transplant_press_shop.py does, then place per-train. Weld placements: framing
+gate at the run-A/run-B handoff stations, skid conveyors chained between
+stations, turntable + roof magazine beside the framing cell.
