@@ -152,6 +152,14 @@ for actor in ACTOR_SUB.get_all_level_actors():
         })
 
     if isinstance(actor, unreal.Light):
+        # Skip DirectionalLights. The reference map is a standalone press shop with its
+        # own directional fill; the playable map has a real sun. Unreal uses only ONE
+        # directional light for forward shading, translucency and volumetric fog, so
+        # extra ones produce "Multiple directional lights are competing..." on screen
+        # and the chosen light becomes a brightness accident. The sun is authoritative.
+        if isinstance(actor, unreal.DirectionalLight):
+            REPORT.setdefault("skipped_directional", []).append(label)
+            continue
         component = actor.light_component
         props = {"class": actor.get_class()}
         if component:

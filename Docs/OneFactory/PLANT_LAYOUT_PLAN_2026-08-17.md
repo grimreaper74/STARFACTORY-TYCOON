@@ -1104,3 +1104,40 @@ as scattered frames; corrected to a 200 cm pitch it reads as continuous safety f
 **Rule:** `SM_LB_*` dimensional suffixes are millimetres. Never derive a pitch from an
 asset name - measure it. This is the fifth time this session that a number taken from a
 name or a plan rather than a measurement was wrong.
+
+## Assembly guarding landed; two owner observations answered
+
+Assembly's 24 stations fenced: **1,032 instances** (480 panels, 528 posts, 24 interlock
+boxes). Paint is deliberately excluded - its 8 stations are dip tanks, spray booths and
+ovens, enclosed process structures rather than fenced robot cells, so fencing them would
+misrepresent the process. Booth enclosures stay an authoring item.
+
+### "Are those lights in the arches?" — No
+
+`SM_LampArch01` is a static mesh with an emissive lamp head. All 50 placed arches are
+mesh actors only, with **no light components**, so they look lit but illuminate nothing.
+Real pooled light needs a SpotLight per arch. Worth doing: it is the difference between
+painted-on glow and the shops actually being lit at floor level.
+
+### "Is the line behind the robots?" — Looks wrong, and matches a known defect
+
+In the assembly frame the yellow robots sit in a row offset from the conveyor and its
+gantries rather than flanking their own stations. That is the same shape as a defect an
+earlier audit found in weld - *robots 10.7 m from work their arms cannot reach*. The
+robots come from the runtime `LB.OneFactory.Dressing` pass, not saved content, so they
+cannot be queried in the editor; this needs checking in a running session against the
+station transforms. **Flagged, not yet confirmed.**
+
+### Bug I introduced and fixed: three competing directional lights
+
+The owner's screenshot showed *"Multiple directional lights are competing to be the
+single one used for forward shading"*. Cause: the press transplant carried Codex's two
+directional lights into the map (`PT_LB_PRESS_DirectionalFill` at 1.12 and
+`PT_LB_INT_FRONT_FrontEndAmbientBounce` at 0.0), and the site sun made a third. Unreal
+uses only one for forward shading, translucency and volumetric fog, so the winner became
+a brightness accident.
+
+Fixed: both transplanted directionals removed, and `transplant_press_shop.py` now skips
+`DirectionalLight` entirely so a re-run cannot reintroduce them. The sun is the map's
+single authoritative directional light. Point, spot and rect lights still transplant
+normally - all 144 of press's other lights are unaffected.
