@@ -1356,3 +1356,15 @@ need the gantry-light treatment weld got before density there can be judged
 on screen. One GPU note: a -game capture crashed at frame 1 and succeeded
 on retry at 1600x900; the driver is fragile after long editor churn, so
 prefer lower-res captures late in a session.
+
+## Session checkpoint after batches 05-06 (2026-08-18, autonomous)
+
+Suite 278/0/0 (nullrhi recipe) with everything landed. Session totals: 33
+machines authored to full detail across weld, press, paint and assembly;
+six placement batches (~560 new saved actors incl. 6 commissioned robots
+with the new spray tool); the ED process line standing and lit; press's
+Meshy debt cleared. Task 30 progress: 33 of ~83. Remaining headline items:
+assembly's door line and body store (overhead loop + lowerator + two-deck
+store), paint's pretreatment detailing and flash-off, weld's framing-cell
+respot fixtures, and the finished-car/painted-body WIP mesh split flagged
+as the most damaging visual gap.
