@@ -1141,3 +1141,23 @@ Fixed: both transplanted directionals removed, and `transplant_press_shop.py` no
 `DirectionalLight` entirely so a re-run cannot reintroduce them. The sun is the map's
 single authoritative directional light. Point, spot and rect lights still transplant
 normally - all 144 of press's other lights are unaffected.
+
+## Gantry lights LANDED — the arches now actually light the shops
+
+50 SpotLights, one per arch: weld 18, assembly 24, paint 8. Until now the arches were
+mesh-only with emissive lamp heads, so they looked lit and illuminated nothing.
+
+Settings and why:
+
+- **60,000 lumens, absolute.** `LB_OF_ENV_FixedExposureAuthority_v001` pins auto-exposure
+  min AND max to 1.0, so the camera never adapts and intensities cannot be left to
+  eye-adaptation. Chosen against the existing 800,000 lumen overhead RectLight.
+- **Shadows off.** 50 shadow-casting spots across three shops is a large cost for little
+  gain: high-bay lighting reads through the pool it lays on the floor, not its shadows.
+- 4200 K, 58 deg outer cone, 24 deg inner, 3600 cm attenuation, at Z 880 just under the
+  941 cm apex of a 1.6x arch.
+
+Verified in `Lit2_01_Body@0p3~16.png`: broad warm pools along both weld runs, the yellow
+cell guarding catching the light, and the shop reading as a working lit hall.
+
+`LB_GANTRY_LUMENS` re-tunes without editing the file.
