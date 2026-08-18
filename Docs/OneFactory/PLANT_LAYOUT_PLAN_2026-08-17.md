@@ -1368,3 +1368,12 @@ assembly's door line and body store (overhead loop + lowerator + two-deck
 store), paint's pretreatment detailing and flash-off, weld's framing-cell
 respot fixtures, and the finished-car/painted-body WIP mesh split flagged
 as the most damaging visual gap.
+
+## Batch 07: door line and store corner (2026-08-18, autonomous)
+
+36 machines authored this session; 7 placement batches. The Z01/Z02 corner
+now exists: lowerator, two-deck store with banked bodies, door sub-line
+with carriers. Doors themselves not yet hung on the carriers - the
+SM_LB_C2040_DOOR_* pivots need measuring before they hang believably;
+next authoring stretch should measure and hang them, then continue with
+weld's respot fixtures and paint pretreatment detailing.
