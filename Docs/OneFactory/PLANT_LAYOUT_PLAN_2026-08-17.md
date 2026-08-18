@@ -1284,3 +1284,26 @@ reference's four LB_INST_PT*_NativeAuthority_v223 actors the same way
 transplant_press_shop.py does, then place per-train. Weld placements: framing
 gate at the run-A/run-B handoff stations, skid conveyors chained between
 stations, turntable + roof magazine beside the framing cell.
+
+## Batch 02 placed and verified (2026-08-18, autonomous)
+
+59 actors saved (report C:/Temp/lb_batch02.json): 20 electrical cabinet nets +
+20 HMI stands at the exact positions of the transplant's skipped Meshy
+components (anchor-derived offset came out exactly -13700,+8000), 2 framing
+gates, 14 return skid conveyors under the aisle mezzanine, turntable and 2
+roof magazines. Verified by a 4-stop tour capture (Batch02_01..04): weld
+additions visible and clear of gantries/guarding; press trains untouched with
+the replacement row lit along the operator aisle.
+
+SUITE: 278 total / 0 failed / 0 notRun - but only under -nullrhi. With the
+GPU, the suite now deterministically dies at ~161 tests inside
+LineBoss.OneFactory.Inbound.NativeAGVArrivalExactProvenanceAndSave with
+DXGI_ERROR_DRIVER_INTERNAL_ERROR (device removed), twice in a row, same spot.
+The same map renders fine for minutes in -game (the tour), so this is
+cumulative VRAM/driver pressure from 160 world create/teardown cycles on this
+machine, not a content regression. Until the suite is split, the verification
+recipe is: suite via -nullrhi for logic + a tour capture for rendering.
+
+Batch 03 authoring underway (assembly): skillet deck plate, overhead track
+segment, chassis hanger, HV battery install lift done; fluid fill, seat
+manipulator, nutrunner rail, headlamp aim, dyno bed, water test booth next.
