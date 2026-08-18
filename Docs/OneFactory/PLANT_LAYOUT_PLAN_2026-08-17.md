@@ -1191,3 +1191,51 @@ disconnected - not the robot placement. It is the same density problem already r
 
 The plan's assembly design fills that strip with the trim/chassis sub-assembly loop,
 kitting racks and line-side supermarkets. Those are on the authoring list.
+
+---
+
+# Decision: no human workers, and paint has far more source than assumed
+
+## Lights-out plant (owner, 2026-08-18)
+
+Asked whether to add workers or stay robotic, the owner chose robotic. Decisive
+evidence: his own gameplay mockup shows machines, arms and AGVs and **no human
+figures**. Going robotic also deletes the hard problem rather than solving it - the
+owned mannequin (`/Game/Meshes/Mannequin`, in `DirectoriesToNeverCook`) has 9
+locomotion animations and nothing industrial, so workers would idle and walk while
+machines worked around them. Human animation was the expense; the mesh never was.
+
+Consequences: leave the mannequin excluded. Take human scale reference from
+human-sized fixtures instead - HMI pedestals, walkways, handrails, stairs, mezzanines -
+so the plant does not lose its sense of scale. And lean on the existing AGV/AMR
+controllers for visible motion, because an all-robot plant risks reading static rather
+than merely unpeopled.
+
+## Paint already has most of its ED line authored
+
+Diffing the missing list against `SourceAssets/Candidate` before authoring more - the
+check I should have run before adding 22 paint machines to the list. Paint has **13
+source families**, not the near-nothing implied: `EDTreatmentTank`, `EDCuringOven`,
+`EDDipTunnel_v001`, `EDCarrierHanger`, `EDLineAssembly`, `EDLineGantry_v001`,
+`EDLineOven_v002`, `SprayBoothRuntime_v001` and `v002`, `PaintLineNativeKit_v001`.
+
+And 20+ ED meshes are already **imported into Content**, including
+`OpenTreatmentModule_Blockout_v001`, the `NoRail_Start/Middle/End_v002` set,
+`DrainInspectionModule`, `OvenEntry/Process/Exit` modules, `OvenFanAssembly`,
+`CarrierTrolley`, `CarrierHanger`, `CarrierHoistCables`, access stairs and a beacon set
+with amber, green and red lenses.
+
+**So paint is not an authoring problem so much as a placement-and-quality problem.** The
+open treatment modules, drain module, oven modules and carrier kit all exist. Most are
+named `_Blockout_`, which matches the owner calling the booths too simple - the parts are
+there but at blockout fidelity, so they need detailing to the new bar rather than
+inventing.
+
+Two caveats found in the source: `EDTreatmentTank` contains **Meshy-generated .blend
+files**, so anything derived from it must be checked before it enters a shipping map; and
+`EDLineMeshyReview_v002` is named for the same reason. The provenance guard will reject
+them.
+
+**Revised paint plan:** detail and place the existing ED modules rather than author new
+ones, then author only what is genuinely absent - the spray booth shell with glazing, air
+plenum and extract, which is the piece the owner specifically called out.
