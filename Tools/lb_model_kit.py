@@ -84,27 +84,73 @@ def cyl(name, radius, depth, loc, mat, axis="Z", verts=20):
 
 
 def scissor(prefix, centre, span, height, mat):
+    """A crossed scissor pair with pivot bosses, a guide rail and a cross tie.
+
+    A lift table is recognised by its linkage, so this is deliberately more than two
+    angled bars: each arm gets an end boss, the pair shares a centre pin with visible
+    bosses either side, and a guide rail plus tie bar read as the parts that stop the
+    deck racking.
+    """
     length = math.hypot(span, height)
     angle = math.atan2(height, span)
     for sign in (1.0, -1.0):
-        box(prefix + "Arm", (length, 0.09, 0.16), centre, mat,
+        box(prefix + "Arm", (length, 0.075, 0.17), centre, mat,
             rot=(0.0, sign * angle, 0.0))
-    cyl(prefix + "Pin", 0.05, 0.34, centre, STEEL, axis="Y")
+        # End bosses where the arm pins into the frame and the deck.
+        for end in (-1.0, 1.0):
+            ex = centre[0] + end * math.cos(angle) * length * 0.5
+            ez = centre[2] + end * sign * math.sin(angle) * length * 0.5
+            cyl(prefix + "Boss", 0.055, 0.13, (ex, centre[1], ez), STEEL, axis="Y")
+    # Centre pin with a boss each side.
+    cyl(prefix + "Pin", 0.032, 0.4, centre, STEEL, axis="Y")
+    for side in (-1.0, 1.0):
+        cyl(prefix + "PinBoss", 0.06, 0.07,
+            (centre[0], centre[1] + side * 0.16, centre[2]), CHARCOAL, axis="Y")
+    # Guide rail the lower arm end runs in, and a tie bar across the pair.
+    box(prefix + "Rail", (span * 1.05, 0.07, 0.06),
+        (centre[0], centre[1], centre[2] - height * 0.5), STEEL)
+    box(prefix + "Tie", (0.05, 0.3, 0.05),
+        (centre[0], centre[1], centre[2] + height * 0.32), CHARCOAL)
 
 
 def column(prefix, base, height, mat, width=0.24):
-    box(prefix + "Plate", (width * 2.1, width * 2.1, 0.05),
+    """A fabricated column: bolted base plate, tapered shaft, gussets, tray, junction box.
+
+    Plain extrusions read as posts. What makes a column look fabricated is the
+    hardware at its ends and the services strapped to it, so the base plate gets
+    corner bolts, the shaft steps in above mid height, and a junction box sits on the
+    cable tray.
+    """
+    plate = width * 2.1
+    box(prefix + "Plate", (plate, plate, 0.05),
         (base[0], base[1], base[2] + 0.025), CHARCOAL)
-    box(prefix + "Shaft", (width, width, height),
-        (base[0], base[1], base[2] + height / 2 + 0.05), mat)
-    box(prefix + "Cap", (width * 1.5, width * 1.5, 0.06),
+    # Holding-down bolts at the plate corners.
+    for bx in (-1.0, 1.0):
+        for by in (-1.0, 1.0):
+            cyl(prefix + "Bolt", 0.022, 0.06,
+                (base[0] + bx * plate * 0.36, base[1] + by * plate * 0.36,
+                 base[2] + 0.07), STEEL, verts=10)
+    # Shaft in two stages so it tapers rather than reading as one bar.
+    lower = height * 0.58
+    box(prefix + "Shaft", (width, width, lower),
+        (base[0], base[1], base[2] + lower / 2 + 0.05), mat)
+    box(prefix + "ShaftUpper", (width * 0.78, width * 0.78, height - lower),
+        (base[0], base[1], base[2] + lower + (height - lower) / 2 + 0.05), mat)
+    box(prefix + "Splice", (width * 1.12, width * 1.12, 0.05),
+        (base[0], base[1], base[2] + lower + 0.05), CHARCOAL)
+    box(prefix + "Cap", (width * 1.4, width * 1.4, 0.06),
         (base[0], base[1], base[2] + height + 0.08), CHARCOAL)
     for sign in (1.0, -1.0):
-        box(prefix + "Gusset", (0.05, width * 1.6, width * 1.6),
-            (base[0] + sign * width * 0.55, base[1], base[2] + width * 0.9),
+        box(prefix + "Gusset", (0.05, width * 1.7, width * 1.7),
+            (base[0] + sign * width * 0.55, base[1], base[2] + width * 0.95),
             CHARCOAL, rot=(0.0, sign * math.radians(38.0), 0.0))
-    box(prefix + "Tray", (0.09, 0.05, height * 0.8),
-        (base[0] - width * 0.62, base[1], base[2] + height * 0.45), STEEL)
+    # Cable tray up the column with a junction box and a conduit drop.
+    box(prefix + "Tray", (0.1, 0.06, height * 0.8),
+        (base[0] - width * 0.66, base[1], base[2] + height * 0.45), STEEL)
+    box(prefix + "JBox", (0.16, 0.13, 0.2),
+        (base[0] - width * 0.78, base[1], base[2] + height * 0.62), GREEN)
+    cyl(prefix + "Conduit", 0.028, height * 0.5,
+        (base[0] - width * 0.66, base[1] + 0.09, base[2] + height * 0.3), STEEL)
 
 
 def export(asset, folder):
@@ -118,35 +164,65 @@ def export(asset, folder):
     print("EXPORTED", asset)
 
 
-def preview(asset, folder, distance=11.0, height=6.0):
-    bpy.ops.mesh.primitive_plane_add(size=40.0, location=(0, 0, 0))
+def preview(asset, folder, distance=None, height=None):
+    """Render a three-quarter view framed on the model's own bounds.
+
+    Earlier previews used hand-picked camera distances and cropped the top off tall
+    machines while filling half the frame with floor, which made judging the detail
+    level unreliable. Measure the geometry and place the camera from that instead.
+    """
+    import mathutils
+
+    meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
+    lo = mathutils.Vector((1e9, 1e9, 1e9))
+    hi = mathutils.Vector((-1e9, -1e9, -1e9))
+    for obj in meshes:
+        for corner in obj.bound_box:
+            world = obj.matrix_world @ mathutils.Vector(corner)
+            lo = mathutils.Vector(map(min, lo, world))
+            hi = mathutils.Vector(map(max, hi, world))
+    centre = (lo + hi) * 0.5
+    radius = max((hi - lo).length * 0.5, 0.5)
+
+    bpy.ops.mesh.primitive_plane_add(size=radius * 14.0,
+                                     location=(centre.x, centre.y, lo.z - 0.01))
     floor = bpy.context.active_object
     floor.data.materials.append(material("MAT_PreviewFloor", (0.19, 0.19, 0.18, 1.0)))
+
     cam_data = bpy.data.cameras.new("Cam")
-    cam_data.lens = 45.0
+    cam_data.lens = 50.0
     cam = bpy.data.objects.new("Cam", cam_data)
     bpy.context.collection.objects.link(cam)
-    cam.location = (distance, -distance * 0.85, height)
-    cam.rotation_euler = (math.radians(64.0), 0.0, math.radians(49.0))
+    # Pull back proportionally to the model, on a fixed three-quarter bearing.
+    reach = radius * 2.9
+    cam.location = (centre.x + reach * 0.72, centre.y - reach * 0.72,
+                    centre.z + reach * 0.52)
+    direction = centre - mathutils.Vector(cam.location)
+    cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
     bpy.context.scene.camera = cam
-    for name, energy, loc, rot in (
-            ("Key", 5000.0, (7.0, -7.0, 10.0), (0.85, 0.0, 0.8)),
-            ("Fill", 1500.0, (-8.0, 6.0, 7.0), (1.0, 0.0, -2.2))):
+
+    for name, energy, offset in (
+            ("Key", 1.0, (1.0, -1.0, 1.5)),
+            ("Fill", 0.28, (-1.2, 0.9, 1.0))):
         light = bpy.data.objects.new(name, bpy.data.lights.new(name, type="AREA"))
-        light.data.energy = energy
-        light.data.size = 14.0
-        light.location = loc
-        light.rotation_euler = rot
+        light.data.energy = energy * 220.0 * radius * radius
+        light.data.size = radius * 3.0
+        light.location = (centre.x + offset[0] * reach, centre.y + offset[1] * reach,
+                          centre.z + offset[2] * reach)
+        aim = centre - mathutils.Vector(light.location)
+        light.rotation_euler = aim.to_track_quat("-Z", "Y").to_euler()
         bpy.context.collection.objects.link(light)
+
     scene = bpy.context.scene
     scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 1400
-    scene.render.resolution_y = 900
+    scene.render.resolution_y = 1000
     scene.world = bpy.data.worlds.new("W_" + asset)
     scene.world.use_nodes = True
     bg = scene.world.node_tree.nodes.get("Background")
     if bg:
-        bg.inputs["Color"].default_value = (0.05, 0.06, 0.08, 1.0)
+        bg.inputs["Color"].default_value = (0.06, 0.07, 0.09, 1.0)
+        bg.inputs["Strength"].default_value = 0.6
     scene.render.filepath = os.path.join(OUT_ROOT, folder, asset + "_preview.png")
     bpy.ops.render.render(write_still=True)
     print("PREVIEW", asset)

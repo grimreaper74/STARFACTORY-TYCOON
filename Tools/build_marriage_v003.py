@@ -70,5 +70,5 @@ box("HMIScreen", (0.5, 0.04, 0.3), (W / 2 - 0.6, -D / 2 + 0.36, 1.4), WARMWHITE,
     rot=(math.radians(-18.0), 0.0, 0.0))
 cyl("EStop", 0.07, 0.07, (W / 2 - 0.6, -D / 2 + 0.34, 1.08), RED, axis="Y")
 
-export("SM_LB_Assembly_PowertrainMarriage_v002", "AssemblyShop/PowertrainMarriage_v002")
-preview("SM_LB_Assembly_PowertrainMarriage_v002", "AssemblyShop/PowertrainMarriage_v002")
+export("SM_LB_Assembly_PowertrainMarriage_v003", "AssemblyShop/PowertrainMarriage_v003")
+preview("SM_LB_Assembly_PowertrainMarriage_v003", "AssemblyShop/PowertrainMarriage_v003")
