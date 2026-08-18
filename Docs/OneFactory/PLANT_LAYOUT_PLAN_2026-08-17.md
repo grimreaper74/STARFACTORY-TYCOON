@@ -1346,3 +1346,13 @@ machines authored, 3 batch placements (~340 new saved actors), press Meshy
 debt cleared, robots standing. Next authoring: paint process build-out
 (Task 32) - re-author the _Blockout_ ED modules to full detail, sealer
 robots' deck, and weld's mezzanine marshalling racks.
+
+## Batch 05: the ED line stands (2026-08-18, autonomous)
+
+Task 32's spine is in the map: tanks -> drain gap -> oven with the PF track
+and carriers over it, four shells hung mid-process. Capture confirms
+placement but the north band is unlit - the paint (and assembly) interiors
+need the gantry-light treatment weld got before density there can be judged
+on screen. One GPU note: a -game capture crashed at frame 1 and succeeded
+on retry at 1600x900; the driver is fragile after long editor churn, so
+prefer lower-res captures late in a session.
