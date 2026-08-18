@@ -1307,3 +1307,22 @@ recipe is: suite via -nullrhi for logic + a tour capture for rendering.
 Batch 03 authoring underway (assembly): skillet deck plate, overhead track
 segment, chassis hanger, HV battery install lift done; fluid fill, seat
 manipulator, nutrunner rail, headlamp aim, dyno bed, water test booth next.
+
+## Batch 03 placed; robots standing (2026-08-18, autonomous)
+
+133 actors saved (C:/Temp/lb_batch03.json): 93 skillet plates with station
+windows, 18 overhead track segments + 6 chassis hangers, 2 HV battery lifts
+(stations 10/11), 4 fluid fill machines, seat cell, 3 nutrunner rails, and
+SIX ALBBodyShopRobotActor instances - 4 in the paint booths, 2 as the
+glazing pair at assembly station 7 - each configured through the newly
+script-exposed ConfigureForAuthoredSlot (UFUNCTION added, 22 s rebuild) and
+reporting HasCompleteArtPresentation()=true. Note the python binding for it
+returns an empty tuple, not (bool, reason); gate on the art flag.
+
+Verification honesty: plates, gates and conveyors confirmed in captures;
+booths visible; the robots and marriage-zone items are dark green under a
+dark bay and could not be visually confirmed at tour distances - assembly
+and paint interiors need their own lighting pass as density grows (weld and
+press verify easily because their gantries light the floor). The robot tool
+is VacuumEightCup everywhere: a paint spray applicator end effector does not
+exist as authored art and goes on the authoring list.
