@@ -1036,3 +1036,40 @@ would repeat the invented-path mistake.
 | Body/weld | 18, re-laid | 24 | 18 |
 | Paint | 8 | 25 | **pending - contract table** |
 | Assembly | 24 | 42 | 24 |
+
+## Paint gantries LANDED — vertical structure complete in all four shops
+
+8 `SM_LampArch01` arches at 1.6x over paint's stations, positions **read** from the
+per-station contract table at `LBOneFactoryPaintStarterLayout.cpp:64-85`.
+
+Reading rather than computing mattered: paint's pitches are irregular and
+process-driven - 1700, 1700, 1400, 1800, 2200, 1700, 1300 - with all 8 stations on a
+single line at Y -8500 and X from 0 to 11800. Any assumed uniform grid would have been
+wrong at every station but the first.
+
+### Vertical structure is now complete
+
+| Shop | Stations | Roof trusses | Lit gantries |
+| --- | --- | --- | --- |
+| Press | 7 + 5,089 transplanted actors | 12 (Codex's) | own crane and structure |
+| Body/weld | 18, re-laid east-opening | 24 | 18 |
+| Paint | 8 | 25 | 8 |
+| Assembly | 24 | 42 | 24 |
+
+**Totals added this session: 103 roof trusses and 50 lit gantries**, all from two
+assets already in the project - Codex's 40 m wide-span truss and `SM_LampArch01`. No
+authoring was needed for any of it.
+
+### What remains, honestly
+
+The reuse seam is now exhausted. Everything left needs authored content or an owner
+decision:
+
+1. **Density** - the single largest gap. Weld 597, paint 119, assembly 95 presentation
+   instances against press's 5,089. No amount of placing existing assets closes this.
+2. **Wall shell** - blocked on the cube-walls decision, given press itself ships cube
+   walls.
+3. **Mezzanine and marshalling racks** - the vendor equivalents read wrongly.
+4. **Paint's 22,000 cm bay holds 11,800 cm of stations**, all on one line in its western
+   half. Even fully dressed it will read as half a shop until the ED line and booths
+   are built out to the plan's process layout.
