@@ -35,6 +35,8 @@ namespace LBBodyShopRobotPrivate
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopUnderbodySlice_v001/Tools/SM_LB_BodyShopTool_PanelPick8Cup_v001.SM_LB_BodyShopTool_PanelPick8Cup_v001");
     const TCHAR* SpotCGunToolPath =
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001");
+    const TCHAR* SprayApplicatorToolPath =
+        TEXT("/Game/LineBoss/Candidates/PaintShop/SprayApplicator_v001/SM_LB_Paint_SprayApplicatorTool_v001.SM_LB_Paint_SprayApplicatorTool_v001");
 
     const FVector PivotLocations[JointCount] = {
         FVector(0.0f, 0.0f, 35.0f),
@@ -219,6 +221,8 @@ ALBBodyShopRobotActor::ALBBodyShopRobotActor()
     PanelPick8CupToolMesh = TSoftObjectPtr<UStaticMesh>(
         FSoftObjectPath(LBBodyShopRobotPrivate::PanelPick8CupToolPath));
     SpotCGunToolMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(LBBodyShopRobotPrivate::SpotCGunToolPath));
+    SprayApplicatorToolMesh = TSoftObjectPtr<UStaticMesh>(
+        FSoftObjectPath(LBBodyShopRobotPrivate::SprayApplicatorToolPath));
     CurrentJointAngles.Init(0.0f, LBBodyShopRobotPrivate::JointCount);
     TargetJointAngles.Init(0.0f, LBBodyShopRobotPrivate::JointCount);
     ConfigureHierarchy();
@@ -254,8 +258,19 @@ bool ALBBodyShopRobotActor::LoadCompleteArt(const ELBBodyShopToolType InTool, FS
     UStaticMesh* Meshes[] = {BaseMesh.LoadSynchronous(), J1Mesh.LoadSynchronous(),
         J2Mesh.LoadSynchronous(), J3Mesh.LoadSynchronous(), J4Mesh.LoadSynchronous(),
         J5Mesh.LoadSynchronous(), J6Mesh.LoadSynchronous()};
-    UStaticMesh* Tool = InTool == ELBBodyShopToolType::VacuumEightCup
-        ? PanelPick8CupToolMesh.LoadSynchronous() : SpotCGunToolMesh.LoadSynchronous();
+    UStaticMesh* Tool = nullptr;
+    switch (InTool)
+    {
+    case ELBBodyShopToolType::VacuumEightCup:
+        Tool = PanelPick8CupToolMesh.LoadSynchronous();
+        break;
+    case ELBBodyShopToolType::SprayApplicator:
+        Tool = SprayApplicatorToolMesh.LoadSynchronous();
+        break;
+    default:
+        Tool = SpotCGunToolMesh.LoadSynchronous();
+        break;
+    }
     if (!Meshes[0] || !Meshes[1] || !Meshes[2] || !Meshes[3] || !Meshes[4] || !Meshes[5]
         || !Meshes[6] || !Tool)
     {

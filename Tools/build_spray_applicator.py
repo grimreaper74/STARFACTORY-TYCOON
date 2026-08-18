@@ -9,8 +9,15 @@ import math
 import sys
 
 sys.path.insert(0, r"C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8/Tools")
-from lb_model_kit import (CHARCOAL, GREEN, STEEL, WARMWHITE, box, cyl, export,
-                          preview, reset)
+from lb_model_kit import box, cyl, export, preview, reset
+
+# Robot tools live under the body-shop palette contract, which maps
+# M_LB_BS_* slot names - not the plant kit's MAT_* names. Same colours,
+# palette-native slots, so LoadCompleteArt's semantic check passes.
+GREEN = ("M_LB_BS_EmeraldPanel", (0.047, 0.153, 0.137, 1.0))
+CHARCOAL = ("M_LB_BS_GraphiteTooling", (0.055, 0.063, 0.071, 1.0))
+STEEL = ("M_LB_BS_BrushedSteel", (0.44, 0.46, 0.48, 1.0))
+WARMWHITE = ("M_LB_BS_CreamPaint", (0.88, 0.86, 0.80, 1.0))
 
 reset()
 
