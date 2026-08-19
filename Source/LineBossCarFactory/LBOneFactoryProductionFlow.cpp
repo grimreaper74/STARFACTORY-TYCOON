@@ -404,6 +404,25 @@ bool ALBOneFactoryProductionFlowAuthority::SetLinePaused(
     return true;
 }
 
+bool ALBOneFactoryProductionFlowAuthority::AdvanceSimulationClock(
+    const float DeltaSeconds, FString& OutReason)
+{
+    if (!FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.0f)
+    {
+        OutReason = TEXT("ONEFACTORY CLOCK DELTA MUST BE FINITE AND POSITIVE");
+        return false;
+    }
+    if (CurrentState.bLinePaused)
+    {
+        OutReason = TEXT("ONEFACTORY CLOCK HELD: LINE PAUSED");
+        return true;
+    }
+    CurrentState.SimClockSeconds += DeltaSeconds;
+    ++CurrentState.Revision;
+    OutReason = TEXT("ONEFACTORY CLOCK ADVANCED");
+    return true;
+}
+
 bool ALBOneFactoryProductionFlowAuthority::SetDepartmentFaulted(
     const ELBOneFactoryDepartment InDepartment, const bool bFaulted,
     FString& OutReason)
@@ -514,6 +533,7 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
     Unit.Stage = ELBOneFactoryVehicleStage::InboundCoil;
     Unit.Department = ELBOneFactoryDepartment::Press;
     Unit.CurrentStationId = InboundStationId;
+    Unit.CreatedAtSimSeconds = CurrentState.SimClockSeconds;
     Unit.SourceMaterialUnitIds.Add(SourceCoilLotId);
     CurrentState.Units.Add(Unit);
     OutUnitId = Unit.UnitId;
@@ -586,6 +606,7 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
     else if (NextStage == ELBOneFactoryVehicleStage::Dispatched)
     {
         Unit->bDispatched = true;
+        Unit->DispatchedAtSimSeconds = CurrentState.SimClockSeconds;
         ++CurrentState.DispatchedVehicleCount;
     }
     ++CurrentState.Revision;

@@ -151,6 +151,14 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     /** Start/stop is explicit so a newly reserved inbound unit is saveable. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     bool bRuntimeStarted = false;
+
+    /** Ledger sim-clock when the order was created; never wall-clock time. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    double CreatedAtSimSeconds = 0.0;
+
+    /** Ledger sim-clock at dispatch; negative until the unit dispatches. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    double DispatchedAtSimSeconds = -1.0;
 };
 
 /** Complete versioned cross-department production and runtime gate snapshot. */
@@ -182,6 +190,14 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryProductionLedgerState
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     bool bLinePaused = false;
+
+    /**
+     * The deterministic simulation clock every deadline, cost bucket and
+     * timestamp hangs off. Advanced only by AdvanceSimulationClock while the
+     * line is unpaused; pause freezes factory time by design.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    double SimClockSeconds = 0.0;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FLBOneFactoryDepartmentCommissioningState Commissioning;
@@ -249,6 +265,10 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SetLinePaused(bool bPaused, FString& OutReason);
+
+    /** Advances SimClockSeconds; a paused line holds factory time still. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    bool AdvanceSimulationClock(float DeltaSeconds, FString& OutReason);
 
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SetDepartmentFaulted(ELBOneFactoryDepartment InDepartment,

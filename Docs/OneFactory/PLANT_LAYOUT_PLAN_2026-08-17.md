@@ -1582,3 +1582,18 @@ complete art. Every named asset from the plan's MISSING list now exists
 in the map as itself or a recorded equivalent. Session: 77 machines
 authored, 17 placement batches. Next: palette comparison shots (Task
 36), then gameplay P1.
+
+## Gameplay P1 landed - the simulation clock (2026-08-19, autonomous)
+
+The ledger now carries SimClockSeconds (SaveGame), advanced by the
+production authority from TickAutomaticFlow's scaled delta and held
+still while bLinePaused - pause freezes factory time by design. Units
+are stamped with CreatedAtSimSeconds and DispatchedAtSimSeconds, giving
+deadlines, per-hour costs and lead-time KPIs their time base. All fields
+are additive with safe defaults, so existing saves restore cleanly.
+Suite is 280: 257 clean + 23 warnings, 0 failed (new test:
+LineBoss.OneFactory.ProductionFlow.
+SimClockAdvancesHoldsOnPauseAndStampsUnits, including a capture/restore
+round trip). Palette variant A captured this tick (PaletteA_01/02);
+variants B and C follow one render per tick. Next: gameplay P2, the
+economy bridge.

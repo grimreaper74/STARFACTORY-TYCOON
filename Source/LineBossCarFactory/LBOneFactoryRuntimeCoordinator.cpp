@@ -1141,6 +1141,10 @@ bool ALBOneFactoryRuntimeCoordinator::TickAutomaticFlow(
     }
     FAuthorities Actors;
     if (!ResolveAuthorities(*this, Actors, OutReason)) return false;
+    // Factory time flows whenever the line is unpaused, even with no started
+    // units - deadlines and running costs do not wait for orders.
+    FString ClockReason;
+    Actors.Production->AdvanceSimulationClock(DeltaSeconds, ClockReason);
     TArray<FName> StartedUnits;
     for (const FLBOneFactoryVehicleUnitState& Unit :
         Actors.Production->CaptureLedger().Units)
