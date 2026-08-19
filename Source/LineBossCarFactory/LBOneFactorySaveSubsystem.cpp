@@ -628,8 +628,36 @@ bool ULBOneFactorySaveSubsystem::CaptureCurrentFactory(
                 "ONEFACTORY CAPTURE RUNTIME BACKBONE OR 57-STATION TOPOLOGY FAILED");
         return false;
     }
+    if (ULBFactoryManagementSubsystem* Management =
+            GetWorld()->GetSubsystem<ULBFactoryManagementSubsystem>())
+    {
+        OutState.Management = Management->CaptureSaveState();
+        OutState.bHasManagementState = true;
+    }
     OutReason = TEXT("ONEFACTORY CAPTURE VALID; PRESENTATION PROXIES EXCLUDED");
     return true;
+}
+
+void ULBOneFactorySaveSubsystem::RestoreManagementState(
+    const FLBOneFactorySaveState& State) const
+{
+    // Money is auxiliary to the factory restore: a missing or invalid
+    // management payload never fails the transaction, because the economy
+    // bridge re-initialises a fresh campaign idempotently on the next tick.
+    if (!State.bHasManagementState)
+    {
+        return;
+    }
+    UWorld* World = GetWorld();
+    ULBFactoryManagementSubsystem* Management =
+        World ? World->GetSubsystem<ULBFactoryManagementSubsystem>() : nullptr;
+    FString Ignored;
+    if (Management
+        && ULBFactoryManagementSubsystem::ValidateSaveState(State.Management,
+            Ignored))
+    {
+        Management->RestoreSaveState(State.Management);
+    }
 }
 
 bool ULBOneFactorySaveSubsystem::RestoreFactoryState(
@@ -715,6 +743,7 @@ bool ULBOneFactorySaveSubsystem::RestoreFactoryState(
             return false;
         }
 
+        RestoreManagementState(State);
         OutReason = TEXT(
             "ONEFACTORY FRESH RESTORE COMMITTED; FOUR DATA/PRESENTATION PAIRS MATERIALISED AND 57-STATION RUNTIME VALIDATED");
         return true;
@@ -784,6 +813,7 @@ bool ULBOneFactorySaveSubsystem::RestoreFactoryState(
         return false;
     }
 
+    RestoreManagementState(State);
     OutReason = TEXT(
         "ONEFACTORY RESTORE COMMITTED; FOUR PRESENTATION PAIRS REBUILT");
     return true;

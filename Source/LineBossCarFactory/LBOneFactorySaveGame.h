@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryAssemblyStarterLayout.h"
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
@@ -51,6 +52,18 @@ struct LINEBOSSCARFACTORY_API FLBOneFactorySaveState
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FLBOneFactoryProductionLedgerState ProductionLedger;
+
+    /**
+     * The management economy travels with the factory so money survives the
+     * isolated OneFactory slot. Additive: old saves restore with
+     * bHasManagementState false and the economy bridge re-initialises the
+     * campaign on the next tick.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FLBFactoryManagementSaveState Management;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    bool bHasManagementState = false;
 };
 
 /** Isolated save root. It has no inheritance or migration path to campaign saves. */

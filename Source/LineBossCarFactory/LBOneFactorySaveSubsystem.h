@@ -53,6 +53,9 @@ public:
 #endif
 
 private:
+    /** Applies the saved management economy after a committed restore. */
+    void RestoreManagementState(const FLBOneFactorySaveState& State) const;
+
 #if WITH_DEV_AUTOMATION_TESTS
     bool bForcePresentationFailureForTests = false;
 #endif
