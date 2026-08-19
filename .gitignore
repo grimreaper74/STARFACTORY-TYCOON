@@ -38,3 +38,4 @@ CON
 # Python bytecode from editor automation
 __pycache__/
 *.py[cod]
+Packaged/
