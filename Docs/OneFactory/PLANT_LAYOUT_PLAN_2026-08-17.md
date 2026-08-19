@@ -1411,3 +1411,17 @@ Session: 51 machines authored, 12 placement batches. New standing rule
 honoured throughout: Unreal is killed the moment each run's work is done
 (owner: the PC gets hot). Remaining on Task 30: press-side dressing
 variants and misc small kit - the shaped machine list is nearly cleared.
+
+## Task-30 reconciliation (2026-08-19, autonomous)
+
+53 machines authored this session. Reconciled against the plan's named
+MISSING list: several entries are covered by equivalents (PFTrack covers
+OverheadPowerFreeConveyor_Track, PFCarrier the carrier, StoreBay the
+PBS_RackModule pattern, Lowerator the BodyLift, OvenSegment_v003 the oven
+modules, SprayApplicator the atomiser tool). True remainder is ~20 named
+pieces, mostly paint plant-room skids (UF membrane, sludge dewatering, mix
+room, AHU, pipe bridge, oven stack) and weld quality-area kit (metal
+finish bench, respot gun stand, rework booth frame, BIW buffer rack,
+closure door fixture, overhead drop lift). CMM bed and rectifier cabinet
+done this tick. The list is finite and shrinking - continue in batches of
+2-4 with placement passes every 2-3 batches.
