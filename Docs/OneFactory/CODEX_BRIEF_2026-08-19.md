@@ -58,3 +58,19 @@ later without re-authoring. Claude will wire any provided articulation.
 
 Gameplay C++ (contracts/economy/save), placement scripts, tests, site
 layout - all in-flight with Claude and collision-prone.
+
+## Two-day budget plan (owner: usage will last ~2 days)
+
+Strict order, stop wherever the budget runs out:
+
+1. **Day 1 morning - vegetation set** (Job 1). Small, fills the only
+   true asset gap in the project, unblocks site planting immediately.
+2. **Day 1 afternoon - Cairnwell colourways** (Job 3). Four body
+   authority recolours; small meshes, big gameplay payoff - contracts
+   can demand visible colours the moment they land.
+3. **Day 2 morning - car transporter** (Job 4). One asset, completes
+   the dispatch story.
+4. **Day 2 afternoon - texture pass, ED line only** (Job 2 scoped
+   down: dip tanks, PF track/carriers, oven segments). The rest of the
+   fleet's texture pass waits for the next usage window.
+5. **Only if time remains - animation-ready splits** (Job 5).
