@@ -1402,3 +1402,12 @@ GAMEPLAY_RESEARCH_2026-08-19.md (19-agent verified pass): core loop is
 observe-diagnose-pause-adjust-scale, the watchable plant is the product,
 name recommendation "Line Boss: Car Factory Tycoon", five owner decisions
 pending with recommended defaults.
+
+## Batches 11-12 gated (2026-08-19, autonomous)
+
+Suite 278/0/0. Door climb into the door loop, closure gauges at trim 2,
+flash-off modules after the topcoat booths, sealer decks before them.
+Session: 51 machines authored, 12 placement batches. New standing rule
+honoured throughout: Unreal is killed the moment each run's work is done
+(owner: the PC gets hot). Remaining on Task 30: press-side dressing
+variants and misc small kit - the shaped machine list is nearly cleared.
