@@ -1611,3 +1611,17 @@ warnings, 0 failed. Palette variant B (exposure +1.2) captured this
 tick. Remaining for P2: embed the management save state in the
 OneFactory save root so money survives the isolated slot; then P3
 contracts replace the placeholder price.
+
+## The grey plant was a materials bug (2026-08-19, owner caught it)
+
+The owner said the palette shots "still look grey" - and they were.
+Importing FBX with materials disabled binds every slot to the engine's
+WorldGridMaterial rather than leaving it null, and ApplySemanticMaterials
+only filled null slots, so the entire imported fleet (3,541 slots) has
+been rendering default grey in every capture to date; only 16 slots were
+being coloured. The pass now also overrides engine-default bindings
+while still leaving genuinely authored materials alone. bound went
+16 -> 3,541; the plant finally shows Cairnwell emerald, charcoal, steel
+and cream on screen. All palette judgments restart from the PaletteA2
+captures; the owner's dark-vs-light decision (Task 36) is now being made
+against a true baseline.

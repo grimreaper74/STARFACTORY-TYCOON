@@ -1079,11 +1079,18 @@ bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
             ++Components;
             for (int32 Index = 0; Index < Slots.Num(); ++Index)
             {
-                // Only fill genuinely unbound slots. Several native families
-                // (the press trains, the paint line, the oven) already carry
-                // authored materials, and overwriting those would make the
-                // factory worse, not better.
-                if (Slots[Index].MaterialInterface != nullptr)
+                // Fill unbound slots AND slots the FBX importer parked on the
+                // engine default grey - importing with materials disabled
+                // binds WorldGridMaterial rather than leaving null, which
+                // silently kept the brand palette off every imported machine
+                // (the whole plant rendered grey; owner caught it 2026-08-19).
+                // Genuinely authored materials are still left alone.
+                UMaterialInterface* Existing = Slots[Index].MaterialInterface;
+                const bool bEngineDefault = Existing
+                    && (Existing == UMaterial::GetDefaultMaterial(MD_Surface)
+                        || Existing->GetName().Contains(
+                            TEXT("WorldGridMaterial")));
+                if (Existing && !bEngineDefault)
                 {
                     ++AlreadyAuthored;
                     continue;
