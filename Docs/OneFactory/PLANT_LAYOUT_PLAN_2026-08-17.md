@@ -1789,3 +1789,16 @@ Tomorrow: Codex's two-day window (vegetation, colourways, transporter,
 ED texture pass per CODEX_BRIEF_2026-08-19.md) with imports and gates
 here as drops arrive; then flagship-contract escalation data and the
 first packaged build of the complete game.
+
+## Packaged-build gate passed (2026-08-19 evening, autonomous)
+
+The first package of the complete game (UAT BuildCookRun, Development,
+~7 min) built clean but smoke-booted into the OLD press-only map -
+GameDefaultMap/EditorStartupMap still pointed at
+LB_PressShop_RebuildFromLorry_v20260810_v913. A real ship-blocker only a
+packaged smoke test could catch. Both defaults now point at
+LB_MoorcrossWorks_OneFactory_v001; the re-package boots the real map,
+commissions the whole factory, starts production and binds 3,604
+palette slots from a cold packaged start. Archive at
+Packaged/Dev_2026-08-19. All Unreal and game processes killed after
+each step per the heat rule.
