@@ -1541,3 +1541,20 @@ the ledger. New test LineBoss.OneFactory.ActualPlayer.
 PauseKeyDrivesDurableLedgerPause proves pause-blocks-advance and
 resume-restores-chosen-speed. Suite is now 279: 256 clean + 23 warnings,
 0 failed. Next: P1, the simulation clock and unit timestamps.
+
+## Unused Meshy content deleted (2026-08-19, owner request)
+
+Deleted after referencer checks: the 7 Meshy dev/validation maps
+(CleanMeshyBuild_v720, CleanMeshyTrains_v722, PR009_PR010_UserMeshy_
+Isolated_v864, CleanMeshyTrainsReview_v723, MeshyPressVisuals_v714/716/
+717) and the PR009_PR010_UserMeshy_v864 folder (12 assets, 6.2 MB).
+Editor delete_asset reported success without flushing files to disk for
+6 of 7 maps; files were removed directly after a fresh-session
+referencer pass confirmed zero external referencers. Suite green after
+(256+23, 0 failed). Kept, because they are genuinely bound: the two
+SM_CA_Factory_*_MeshyMaster_v632 meshes (press-train authorities in
+both maps), SM_CA_MW_PR005_dHMI_Meshy_v001 (hard C++ reference in
+LBFactoryBuildMachine.cpp:488), and the two MeshyPBR materials on the
+approved inbound lorry and coil stand. Those four remain the documented
+rename-and-reparent debt from U-6; deleting them needs the C++ reference
+and both maps edited first.
