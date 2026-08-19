@@ -1511,3 +1511,20 @@ unmatched entry. Verified at log level; the capture framed the ED band
 rather than the booths, so an eyeball pass on the glass tint rides along
 with the next paint capture. Task 32's remaining item is the frozen
 119-instance presentation re-version (documented debt).
+
+## Morning close (2026-08-19 ~08:30, autonomous)
+
+Overnight run complete. Since the last close: 12 more machines authored
+(69 total this session), placement batches 14-16 landed and suite-gated
+at 278/0/0, batches verified in-game, the booth glazing palette gap
+fixed in C++, and Task 30 closed - the reconciled named machine list is
+fully authored, placed and verified. Task 32's one remaining item is the
+frozen 119-instance presentation re-version; that is a frozen contract
+with test co-edits, so it stays parked as documented debt rather than
+being iterated autonomously (measure-first rule). With the plant
+standing, the next established work is Task 34: the v1 gameplay loop per
+the five accepted decisions (sandbox spine + contracts, finish line +
+escalation, soft failure, minimal defects, pause-first tick
+architecture). Next ticks begin its groundwork: survey the existing
+runtime/economy systems, write a bounded implementation plan, then land
+the pause-first tick spine as the first gated piece.
