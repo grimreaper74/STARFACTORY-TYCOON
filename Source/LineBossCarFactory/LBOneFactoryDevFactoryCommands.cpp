@@ -1007,6 +1007,9 @@ bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
     }
 
     // Semantic slot name fragment -> colour, roughness, metallic.
+    // Palette variant D, chosen by the owner 2026-08-19 from rendered
+    // comparisons: lighter emerald and graphite than the original sheets,
+    // paired with the global midtone lift in DefaultEngine.ini.
     // Colours are BRAND_IDENTITY_AUTHORITY tokens. Safety Yellow and Signal Red
     // appear only where the authored slot name asks for a safety colour, so they
     // stay functional rather than becoming decoration.
@@ -1019,17 +1022,17 @@ bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
     };
     static const FSemantic Semantics[] = {
         { TEXT("CreamPaint"),      TEXT("F3F1E9"), 0.45f, 0.00f },
-        { TEXT("EmeraldPanel"),    TEXT("1F4B44"), 0.38f, 0.00f },
-        { TEXT("GraphiteTooling"), TEXT("202428"), 0.55f, 0.25f },
+        { TEXT("EmeraldPanel"),    TEXT("2F6E5F"), 0.38f, 0.00f },
+        { TEXT("GraphiteTooling"), TEXT("3B4148"), 0.55f, 0.25f },
         { TEXT("SafetyYellow"),    TEXT("F2C300"), 0.50f, 0.00f },
         { TEXT("BlackMotor"),      TEXT("14171A"), 0.45f, 0.30f },
-        { TEXT("BrushedSteel"),    TEXT("70777C"), 0.30f, 0.85f },
+        { TEXT("BrushedSteel"),    TEXT("8A9198"), 0.30f, 0.85f },
         // Broader fallbacks for the support kit and other native families.
-        { TEXT("Steel"),           TEXT("70777C"), 0.32f, 0.80f },
-        { TEXT("Emerald"),         TEXT("1F4B44"), 0.38f, 0.00f },
-        { TEXT("Green"),           TEXT("1F4B44"), 0.38f, 0.00f },
-        { TEXT("Graphite"),        TEXT("202428"), 0.55f, 0.25f },
-        { TEXT("Charcoal"),        TEXT("202428"), 0.55f, 0.20f },
+        { TEXT("Steel"),           TEXT("8A9198"), 0.32f, 0.80f },
+        { TEXT("Emerald"),         TEXT("2F6E5F"), 0.38f, 0.00f },
+        { TEXT("Green"),           TEXT("2F6E5F"), 0.38f, 0.00f },
+        { TEXT("Graphite"),        TEXT("3B4148"), 0.55f, 0.25f },
+        { TEXT("Charcoal"),        TEXT("3B4148"), 0.55f, 0.20f },
         { TEXT("Cream"),           TEXT("F3F1E9"), 0.45f, 0.00f },
         { TEXT("White"),           TEXT("F3F1E9"), 0.45f, 0.00f },
         { TEXT("Yellow"),          TEXT("F2C300"), 0.50f, 0.00f },

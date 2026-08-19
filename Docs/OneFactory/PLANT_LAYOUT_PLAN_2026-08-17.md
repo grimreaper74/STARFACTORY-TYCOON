@@ -1625,3 +1625,14 @@ while still leaving genuinely authored materials alone. bound went
 and cream on screen. All palette judgments restart from the PaletteA2
 captures; the owner's dark-vs-light decision (Task 36) is now being made
 against a true baseline.
+
+## Palette variant D shipped (2026-08-19, owner decision)
+
+From the corrected-baseline comparison set the owner chose D: the
+lighter machine palette (emerald 2F6E5F, graphite 3B4148, steel 8A9198)
+plus the global midtone lift. Landed as: the semantic materials table in
+LBOneFactoryDevFactoryCommands.cpp, r.Color.Mid=0.62 in
+DefaultEngine.ini's SystemSettings (the exact approved grade), and the
+matching Blender kit colours in Tools/lb_model_kit.py so future
+authoring previews true. Suite 281 green; PaletteFinal captures confirm
+the shipped look with no manual overrides. Task 36 closed.

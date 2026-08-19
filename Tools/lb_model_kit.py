@@ -15,9 +15,9 @@ import bpy
 OUT_ROOT = (r"C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8"
             r"/SourceAssets/Candidate")
 MATERIALS = {}
-GREEN = ("MAT_CairnwellGreen", (0.047, 0.153, 0.137, 1.0))
-CHARCOAL = ("MAT_FoundryCharcoal", (0.055, 0.063, 0.071, 1.0))
-STEEL = ("MAT_MachinedSteel", (0.44, 0.46, 0.48, 1.0))
+GREEN = ("MAT_CairnwellGreen", (0.028, 0.155, 0.116, 1.0))
+CHARCOAL = ("MAT_FoundryCharcoal", (0.044, 0.053, 0.065, 1.0))
+STEEL = ("MAT_MachinedSteel", (0.25, 0.28, 0.31, 1.0))
 WARMWHITE = ("MAT_WarmWhite", (0.88, 0.86, 0.80, 1.0))
 YELLOW = ("MAT_SafetyYellow", (0.83, 0.68, 0.0, 1.0))
 RED = ("MAT_SignalRed", (0.62, 0.11, 0.09, 1.0))
