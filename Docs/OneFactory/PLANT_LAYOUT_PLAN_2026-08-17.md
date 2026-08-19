@@ -1749,3 +1749,13 @@ The whole accepted v1 loop now exists end to end: pause as a play mode
 failure with rescue work and reputation (P4), deterministic worn-fleet
 defects with paid maintenance (P5), and the HUD that shows it all (P6).
 Suite 284: 261 clean + 23 warnings, 0 failed.
+
+## Site batch 08 - solar canopies and road markings (2026-08-19, autonomous)
+
+Suite 284 green. The authored solar canopy module (tilted PV deck with
+cell grid on raking columns, render-reviewed) now runs ten modules long
+over the dispatch lanes, and 451 centreline dashes mark the ring and
+spine roads in a light structural material. Task 37's remaining items
+are Codex-dependent (trees) or minor (gate-node beacon dressing); the
+site otherwise matches the plan. Open tasks now: #32's frozen-
+presentation debt (parked, owner-gated) and #37's tail.
