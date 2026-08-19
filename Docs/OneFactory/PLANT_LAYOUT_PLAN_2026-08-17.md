@@ -1636,3 +1636,14 @@ DefaultEngine.ini's SystemSettings (the exact approved grade), and the
 matching Blender kit colours in Tools/lb_model_kit.py so future
 authoring previews true. Suite 281 green; PaletteFinal captures confirm
 the shipped look with no manual overrides. Task 36 closed.
+
+## Site batch 01 - the perimeter stands (2026-08-19, autonomous)
+
+Suite 281 green. The site plan's perimeter fence is real: 1,564 panels
+of SM_Fence06 (1.85 m, the tallest vendor fence by measured probe -
+blind discovery first picked a 1.1 m barrier rail and was corrected) on
+the 740 x 400 m rectangle, with the NE main-gate and west service-gate
+openings and SM_GateDoor01 leaf pairs. Placement is idempotent via
+LB.Site01 and the probe records every fence-family height for later
+batches. Next site batches: roads and yard slabs, then coil yard and
+dispatch compound dressing, then skyline and the substation.
