@@ -83,12 +83,15 @@ def place(name, x, y, yaw=0.0, label=None):
     REPORT["placed"][key] = REPORT["placed"].get(key, 0) + 1
 
 
-# North service strip, west end: ED support (UF recovery beside the tanks).
+# North service strip, west end: pretreatment and ED support - UF recovery
+# beside the tanks, and the phosphate sludge press with the pretreat kit
+# (owner, 2026-08-19: the filter press serves the phosphate stage, not the
+# booths).
 place("SM_LB_Paint_UFMembraneSkid_v001", 1200.0, -4150.0, 0.0, "Paint_UFSkid")
-# East end: booth support cluster - mix room, sludge press, air house.
+place("SM_LB_Paint_SludgeDewateringSkid_v001", 2700.0, -4150.0, 0.0,
+      "Paint_PhosphateSludgePress")
+# East end: booth support cluster - mix room and air house.
 place("SM_LB_Paint_MixRoomSkid_v001", 14200.0, -4150.0, 0.0, "Paint_MixRoom")
-place("SM_LB_Paint_SludgeDewateringSkid_v001", 15700.0, -4150.0, 0.0,
-      "Paint_SludgePress")
 place("SM_LB_Paint_AHU_Module_v001", 17600.0, -4150.0, 0.0, "Paint_AHU")
 # Services run bridging the rectifier row toward the booth cluster.
 for n in range(4):

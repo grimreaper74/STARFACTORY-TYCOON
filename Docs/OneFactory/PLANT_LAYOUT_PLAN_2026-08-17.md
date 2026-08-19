@@ -1558,3 +1558,11 @@ LBFactoryBuildMachine.cpp:488), and the two MeshyPBR materials on the
 approved inbound lorry and coil stand. Those four remain the documented
 rename-and-reparent debt from U-6; deleting them needs the C++ reference
 and both maps edited first.
+
+## Sludge press moved to the phosphate end (2026-08-19, owner feedback)
+
+The owner recognised the filter press as phosphate-stage equipment. It
+now stands at (2700, -4150) beside the pretreat dosing kit as
+Paint_PhosphateSludgePress (batch 14 re-run, cleared 9 / placed 9);
+the booth cluster keeps the mix room and AHU, with overspray sludge
+handled by the scrubber trench's drag chain.
