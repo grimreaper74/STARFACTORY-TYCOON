@@ -464,11 +464,66 @@ int32 ALBOneFactoryProductionFlowAuthority::SweepContractDeadlines(
     }
     if (Expired > 0)
     {
+        // Soft failure: a missed deadline costs standing, never the game.
+        CurrentState.ReputationScore =
+            FMath::Max(0, CurrentState.ReputationScore - 5 * Expired);
         ++CurrentState.Revision;
     }
     OutReason = FString::Printf(
         TEXT("ONEFACTORY CONTRACT SWEEP EXPIRED %d"), Expired);
     return Expired;
+}
+
+bool ALBOneFactoryProductionFlowAuthority::ApplyFinancialPolicy(
+    const int64 CashBalancePence, FString& OutReason)
+{
+    // GBP 250k floor gives the player warning room before the crisis.
+    constexpr int64 WarningFloorPence = 25000000;
+    const ELBOneFactoryFinancialState NewState =
+        CashBalancePence < 0 ? ELBOneFactoryFinancialState::Emergency
+        : CashBalancePence < WarningFloorPence
+            ? ELBOneFactoryFinancialState::Warning
+            : ELBOneFactoryFinancialState::Healthy;
+    if (NewState != CurrentState.FinancialState)
+    {
+        CurrentState.FinancialState = NewState;
+        ++CurrentState.Revision;
+    }
+    if (NewState != ELBOneFactoryFinancialState::Emergency)
+    {
+        OutReason = TEXT("ONEFACTORY FINANCES INSIDE POLICY");
+        return true;
+    }
+    // One open rescue offer at a time: premium price, short deadline,
+    // and a real reputation cost.
+    const bool bRescueOpen = CurrentState.Contracts.ContainsByPredicate(
+        [](const FLBOneFactoryVehicleContract& Contract)
+        { return Contract.bEmergency
+              && Contract.State == ELBOneFactoryContractState::Open; });
+    if (bRescueOpen)
+    {
+        OutReason = TEXT("ONEFACTORY EMERGENCY RESCUE ALREADY OPEN");
+        return true;
+    }
+    FLBOneFactoryVehicleContract Rescue;
+    Rescue.ContractId = FName(*FString::Printf(TEXT("CON_EMERGENCY_%d"),
+        ++CurrentState.EmergencyContractSerial));
+    Rescue.VehicleModelId = FName(TEXT("C2040"));
+    Rescue.Quantity = 6;
+    Rescue.PricePerVehiclePence = 4200000;
+    Rescue.DeadlineSimSeconds = CurrentState.SimClockSeconds + 6.0 * 3600.0;
+    Rescue.bEmergency = true;
+    FString AddReason;
+    if (!AddVehicleContract(Rescue, AddReason))
+    {
+        OutReason = AddReason;
+        return false;
+    }
+    CurrentState.ReputationScore =
+        FMath::Max(0, CurrentState.ReputationScore - 10);
+    ++CurrentState.Revision;
+    OutReason = TEXT("ONEFACTORY EMERGENCY RESCUE CONTRACT OFFERED");
+    return true;
 }
 
 bool ALBOneFactoryProductionFlowAuthority::SeedStarterContracts(

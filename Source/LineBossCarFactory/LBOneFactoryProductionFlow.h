@@ -173,6 +173,14 @@ enum class ELBOneFactoryContractState : uint8
     Expired
 };
 
+UENUM(BlueprintType)
+enum class ELBOneFactoryFinancialState : uint8
+{
+    Healthy,
+    Warning,
+    Emergency
+};
+
 /**
  * One customer order for vehicles: the pacing backbone of the v1 loop.
  * Soft failure by design - an expired contract stops paying but never
@@ -204,6 +212,10 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleContract
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     ELBOneFactoryContractState State = ELBOneFactoryContractState::Open;
+
+    /** Rescue work taken in crisis; it paid well and cost reputation. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    bool bEmergency = false;
 };
 
 /** Complete versioned cross-department production and runtime gate snapshot. */
@@ -259,6 +271,18 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryProductionLedgerState
     /** Customer contracts in creation order; oldest open settles first. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     TArray<FLBOneFactoryVehicleContract> Contracts;
+
+    /** Soft-failure currency: expiries and rescues spend it, never end it. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 ReputationScore = 100;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 EmergencyContractSerial = 0;
+
+    /** Derived from cash each economy tick; stored so the HUD reads state. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    ELBOneFactoryFinancialState FinancialState =
+        ELBOneFactoryFinancialState::Healthy;
 };
 
 UCLASS()
@@ -331,6 +355,14 @@ public:
     /** Seeds the sandbox's starter contract chain once; idempotent. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SeedStarterContracts(FString& OutReason);
+
+    /**
+     * Soft failure: derives the financial state from the cash balance and,
+     * in emergency, offers rescue work - one open emergency contract at a
+     * premium price and a reputation cost. Never ends the game.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    bool ApplyFinancialPolicy(int64 CashBalancePence, FString& OutReason);
 
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SetDepartmentFaulted(ELBOneFactoryDepartment InDepartment,

@@ -1245,6 +1245,9 @@ bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
         }
     }
     LastChargedOpexHour = FMath::Max(LastChargedOpexHour, CompletedHours);
+    FString PolicyReason;
+    Actors.Production->ApplyFinancialPolicy(
+        Management->GetCashBalancePence(), PolicyReason);
     OutReason = FString::Printf(
         TEXT("ONEFACTORY ECONOMY RECONCILED: %d revenue, %d opex hour(s)"),
         RevenuePosted, HoursCharged);

@@ -1702,3 +1702,15 @@ and expire softly. Commissioning seeds the starter chain: 3 cars at
 warnings, 0 failed (new lifecycle test covers validation, idempotent
 seeding, expiry and save round-trip). Remaining for the loop: P4 soft-
 failure warnings, P5 defects, P6 the HUD strip that shows all of this.
+
+## Gameplay P4 - soft failure (2026-08-19, autonomous)
+
+The ledger carries ReputationScore (starts 100) and a FinancialState the
+economy tick derives from cash: Healthy above the GBP 250k warning
+floor, Warning below it, Emergency below zero. In emergency, one rescue
+contract is offered at a time - 6 cars at a premium GBP 42k with a 6-hour
+deadline, flagged bEmergency, costing 10 reputation; contract expiries
+cost 5. No state ends the game, matching the accepted decision. Suite
+283: 260 clean + 23 warnings, 0 failed (new test walks
+healthy->warning->emergency, rescue idempotency, expiry and re-offer).
+Next: P5 worn-robot defects, then the P6 HUD strip.
