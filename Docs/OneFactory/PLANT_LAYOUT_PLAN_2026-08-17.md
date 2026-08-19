@@ -1647,3 +1647,13 @@ openings and SM_GateDoor01 leaf pairs. Placement is idempotent via
 LB.Site01 and the probe records every fence-family height for later
 batches. Next site batches: roads and yard slabs, then coil yard and
 dispatch compound dressing, then skyline and the substation.
+
+## Site batch 02 - roads and yards (2026-08-19, autonomous)
+
+Suite 281 green. 291 tiles of SM_FactoryFloorLarge01 (16 m slabs, tiled
+at native size so the texture never stretches) now form the ring road,
+spine road, both north links and the four working yards (coil, dispatch,
+chemical, container). Overhead capture SiteV1 verifies fence, roads and
+yards aligned around the four shops. Noted for batches 03/04: a ground
+plane must extend beyond the fence (blue void shows at low angles), and
+road markings would help the roads read as routes rather than strips.
