@@ -1566,3 +1566,19 @@ now stands at (2700, -4150) beside the pretreat dosing kit as
 Paint_PhosphateSludgePress (batch 14 re-run, cleared 9 / placed 9);
 the booth cluster keeps the mix room and AHU, with overspray sludge
 handled by the scrubber trench's drag chain.
+
+## Task 35 closed - the audited tail is placed (2026-08-19, autonomous)
+
+Suite 279 green (256+23, 0 failed) after batch 17. The name-by-name
+audit's 8 remaining pieces are authored and stood: hemming presses
+mid-gap on weld run A with two roller-hem robots behind them, water
+chiller skids on the weld north strip, scrubber trenches under both
+spray booths, sealer robots flanking the sealer decks with the new
+nozzle tool, the PF switch at the head of the ED run, the PF drive at
+the oven entry, and sander decks before the tack-off tunnel. The robot
+tool system gained RollerHem and SealerApplicator end to end (enum,
+soft pointers, LoadCompleteArt branches); all four new robots report
+complete art. Every named asset from the plan's MISSING list now exists
+in the map as itself or a recorded equivalent. Session: 77 machines
+authored, 17 placement batches. Next: palette comparison shots (Task
+36), then gameplay P1.

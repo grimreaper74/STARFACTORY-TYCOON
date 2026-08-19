@@ -172,6 +172,8 @@ private:
     UPROPERTY() TSoftObjectPtr<UStaticMesh> PanelPick8CupToolMesh;
     UPROPERTY() TSoftObjectPtr<UStaticMesh> SpotCGunToolMesh;
     UPROPERTY() TSoftObjectPtr<UStaticMesh> SprayApplicatorToolMesh;
+    UPROPERTY() TSoftObjectPtr<UStaticMesh> RollerHemToolMesh;
+    UPROPERTY() TSoftObjectPtr<UStaticMesh> SealerApplicatorToolMesh;
     void ConfigureHierarchy();
     bool LoadCompleteArt(ELBBodyShopToolType InTool, FString& OutReason);
     void ApplyJointTransforms();

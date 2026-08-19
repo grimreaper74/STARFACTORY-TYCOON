@@ -37,6 +37,10 @@ namespace LBBodyShopRobotPrivate
         TEXT("/Game/LineBoss/Candidates/WeldShop/BodyShopRobotNative_v001/Tools/SM_LB_BodyShopToolNative_OpenCGun_v001.SM_LB_BodyShopToolNative_OpenCGun_v001");
     const TCHAR* SprayApplicatorToolPath =
         TEXT("/Game/LineBoss/Candidates/PaintShop/SprayApplicator_v001/SM_LB_Paint_SprayApplicatorTool_v001.SM_LB_Paint_SprayApplicatorTool_v001");
+    const TCHAR* RollerHemToolPath =
+        TEXT("/Game/LineBoss/Candidates/WeldShop/RollerHemTool_v001/SM_LB_Weld_RollerHemTool_v001.SM_LB_Weld_RollerHemTool_v001");
+    const TCHAR* SealerApplicatorToolPath =
+        TEXT("/Game/LineBoss/Candidates/PaintShop/SealerNozzleTool_v001/SM_LB_Paint_SealerNozzleTool_v001.SM_LB_Paint_SealerNozzleTool_v001");
 
     const FVector PivotLocations[JointCount] = {
         FVector(0.0f, 0.0f, 35.0f),
@@ -223,6 +227,10 @@ ALBBodyShopRobotActor::ALBBodyShopRobotActor()
     SpotCGunToolMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(LBBodyShopRobotPrivate::SpotCGunToolPath));
     SprayApplicatorToolMesh = TSoftObjectPtr<UStaticMesh>(
         FSoftObjectPath(LBBodyShopRobotPrivate::SprayApplicatorToolPath));
+    RollerHemToolMesh = TSoftObjectPtr<UStaticMesh>(
+        FSoftObjectPath(LBBodyShopRobotPrivate::RollerHemToolPath));
+    SealerApplicatorToolMesh = TSoftObjectPtr<UStaticMesh>(
+        FSoftObjectPath(LBBodyShopRobotPrivate::SealerApplicatorToolPath));
     CurrentJointAngles.Init(0.0f, LBBodyShopRobotPrivate::JointCount);
     TargetJointAngles.Init(0.0f, LBBodyShopRobotPrivate::JointCount);
     ConfigureHierarchy();
@@ -266,6 +274,12 @@ bool ALBBodyShopRobotActor::LoadCompleteArt(const ELBBodyShopToolType InTool, FS
         break;
     case ELBBodyShopToolType::SprayApplicator:
         Tool = SprayApplicatorToolMesh.LoadSynchronous();
+        break;
+    case ELBBodyShopToolType::RollerHem:
+        Tool = RollerHemToolMesh.LoadSynchronous();
+        break;
+    case ELBBodyShopToolType::SealerApplicator:
+        Tool = SealerApplicatorToolMesh.LoadSynchronous();
         break;
     default:
         Tool = SpotCGunToolMesh.LoadSynchronous();

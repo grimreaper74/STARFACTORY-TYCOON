@@ -30,7 +30,9 @@ enum class ELBBodyShopToolType : uint8
     None,
     VacuumEightCup,
     SpotCGun,
-    SprayApplicator
+    SprayApplicator,
+    RollerHem,
+    SealerApplicator
 };
 
 UENUM(BlueprintType)
