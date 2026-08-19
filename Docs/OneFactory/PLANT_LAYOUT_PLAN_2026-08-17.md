@@ -1528,3 +1528,16 @@ escalation, soft failure, minimal defects, pause-first tick
 architecture). Next ticks begin its groundwork: survey the existing
 runtime/economy systems, write a bounded implementation plan, then land
 the pause-first tick spine as the first gated piece.
+
+## Task 34 started - runtime surveyed, P0 landed (2026-08-19, autonomous)
+
+Full survey of the runtime/economy seams is distilled into
+GAMEPLAY_V1_PLAN_2026-08-19.md (P0-P6). P0 landed: the player pause key
+was dead - TogglePause sent rate 0 to SetRuntimeTimeScale, whose
+[0.25, 4.0] clamp rejected it, so Space only logged a warning. It now
+routes through ULBOneFactoryOperationsSubsystem::SetSimulationRate
+(rate 0 = the ledger's durable bLinePaused) and reads pause state from
+the ledger. New test LineBoss.OneFactory.ActualPlayer.
+PauseKeyDrivesDurableLedgerPause proves pause-blocks-advance and
+resume-restores-chosen-speed. Suite is now 279: 256 clean + 23 warnings,
+0 failed. Next: P1, the simulation clock and unit timestamps.

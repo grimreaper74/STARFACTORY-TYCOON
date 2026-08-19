@@ -7,6 +7,7 @@
 #include "LBOneFactoryDevFactoryCommands.h"
 #include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
+#include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
@@ -251,22 +252,27 @@ void ALBOneFactoryPlayerController::PlaceOrder()
 
 void ALBOneFactoryPlayerController::ApplyTimeScale(const float TimeScale)
 {
-    using namespace LBOneFactoryPlayerPrivate;
-
-    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(GetWorld());
-    if (!Coordinator)
+    // Routed through the operations subsystem, not the coordinator directly:
+    // rate 0 must become the ledger's durable bLinePaused, and the
+    // coordinator's SetRuntimeTimeScale clamp ([0.25, 4.0]) rejects 0, which
+    // is how the pause key shipped dead.
+    UWorld* World = GetWorld();
+    ULBOneFactoryOperationsSubsystem* Operations =
+        World ? World->GetSubsystem<ULBOneFactoryOperationsSubsystem>()
+              : nullptr;
+    if (!Operations)
     {
         return;
     }
     FString Reason;
-    if (Coordinator->SetRuntimeTimeScale(TimeScale, Reason))
+    if (Operations->SetSimulationRate(TimeScale, Reason))
     {
         if (TimeScale > KINDA_SMALL_NUMBER)
         {
             LastRunningTimeScale = TimeScale;
         }
         UE_LOG(LogLineBossOneFactoryPlayer, Display,
-            TEXT("LINE_BOSS_PLAYER_SPEED %.2fx"), TimeScale);
+            TEXT("LINE_BOSS_PLAYER_SPEED %.2fx %s"), TimeScale, *Reason);
     }
     else
     {
@@ -280,14 +286,16 @@ void ALBOneFactoryPlayerController::TogglePause()
 {
     using namespace LBOneFactoryPlayerPrivate;
 
-    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(GetWorld());
-    if (!Coordinator)
+    ALBOneFactoryProductionFlowAuthority* Production =
+        FindProduction(GetWorld());
+    if (!Production)
     {
         return;
     }
-    const bool bRunning =
-        Coordinator->GetRuntimeTimeScale() > KINDA_SMALL_NUMBER;
-    ApplyTimeScale(bRunning ? 0.0f : LastRunningTimeScale);
+    // Pause state lives on the ledger, not in the time scale: the scale
+    // never goes below 0.25, so reading it always claimed "running".
+    const bool bPaused = Production->CaptureLedger().bLinePaused;
+    ApplyTimeScale(bPaused ? LastRunningTimeScale : 0.0f);
 }
 
 void ALBOneFactoryPlayerController::SetSpeedNormal() { ApplyTimeScale(1.0f); }
