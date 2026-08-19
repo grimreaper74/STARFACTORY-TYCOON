@@ -194,7 +194,9 @@ def preview(asset, folder, distance=None, height=None):
     cam = bpy.data.objects.new("Cam", cam_data)
     bpy.context.collection.objects.link(cam)
     # Pull back proportionally to the model, on a fixed three-quarter bearing.
-    reach = radius * 2.9
+    # Tall, thin pieces (stacks, columns) under-frame at the default pull because
+    # height dominates the bounds diagonal; pass an absolute distance to back off.
+    reach = distance if distance else radius * 2.9
     cam.location = (centre.x + reach * 0.72, centre.y - reach * 0.72,
                     centre.z + reach * 0.52)
     direction = centre - mathutils.Vector(cam.location)
@@ -205,7 +207,9 @@ def preview(asset, folder, distance=None, height=None):
             ("Key", 1.0, (1.0, -1.0, 1.5)),
             ("Fill", 0.28, (-1.2, 0.9, 1.0))):
         light = bpy.data.objects.new(name, bpy.data.lights.new(name, type="AREA"))
-        light.data.energy = energy * 220.0 * radius * radius
+        # Lights sit at offsets of reach, so brightness must track reach, not the
+        # model radius, or a distance override leaves the render underexposed.
+        light.data.energy = energy * 220.0 * (reach / 2.9) ** 2
         light.data.size = radius * 3.0
         light.location = (centre.x + offset[0] * reach, centre.y + offset[1] * reach,
                           centre.z + offset[2] * reach)
