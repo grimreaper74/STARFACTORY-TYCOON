@@ -1657,3 +1657,18 @@ chemical, container). Overhead capture SiteV1 verifies fence, roads and
 yards aligned around the four shops. Noted for batches 03/04: a ground
 plane must extend beyond the fence (blue void shows at low angles), and
 road markings would help the roads read as routes rather than strips.
+
+## Site batches 03-05 - yards dressed, U-6 debt cleared, ground laid (2026-08-19)
+
+Suite 281 green after 03-04. Batch 03: the approved inbound lorry and
+coil stand materials renamed (MeshyPBR -> ApprovedPBR, clearing the last
+actionable U-6 provenance items), then 48 actors placed - two docked
+lorries and six coil stands in the coil yard, eight containers in two
+staggered rows, and four guard-panel rows forming the dispatch
+marshalling lanes. Batch 04: ten skyline pieces (hangar, towers,
+antenna, box buildings) in NW/NE/S clusters beyond the fence. Batch 05:
+a single sealed-concrete ground plane (1300 x 900 m) under everything -
+the wide SiteDone capture had shown the works floating in void.
+SiteFinal captures sent to the owner. Task 37 remaining: gatehouse
+building, road markings, solar canopy over dispatch, the substation/
+battery farm as an authored piece, trees (vegetation gap).
