@@ -269,3 +269,18 @@ Claims:
 - [medium] Dyson Sphere Program (96% positive from ~24,600 reviews, made by a 5-person team) is repeatedly credited in reviews and coverage for 'excellent optimization' as a headline virtue alongside its gameplay loop — even mid-late game slowdown only takes it from 60 to ~45-50 FPS — demonstrating a small team can make performance-at-scale a marketable selling point rather than a liability. (https://steamcommunity.com/app/1366540/reviews/)
 - [medium] Game Dev Tycoon's negative user reviews on Metacritic cite 'shallow mechanics, repetitive gameplay, and lack of depth' and reduced replayability — the canonical form of the tycoon complaint: a strong first playthrough whose systems don't generate different stories on the second run. (https://www.metacritic.com/game/game-dev-tycoon/user-reviews/?platform=pc)
 - [medium] Captain of Industry negative reviews also flag 'time sink difficulty' and semi-soft-lock death spirals — players who mismanage get stuck in unrecoverable states that feel like wasted hours rather than challenge; a management game needs guardrails (recoverable failure, warnings before spirals) or the failure state itself becomes the negative review. (https://steamcommunity.com/app/1594320/discussions/0/689745260424840217/)
+---
+
+# DECISIONS (owner, 2026-08-19)
+
+The owner accepted all five recommended defaults verbatim: sandbox spine
+with contract goals (never reset the plant); flagship-contract finish line
+plus play-past-the-win escalation; soft failure with a hardcore toggle;
+defects/quality v1 minimal (robot condition -> defect probability, one
+inspection/rework station, quality gates on contracts); working title
+"Line Boss: Car Factory Tycoon" with trademark clearance as an owner-side
+action and the subtitle finalised by capsule testing (clear of Car Factory
+Tycoon's 29 Sept 2026 window).
+
+These decisions bind the gameplay build phase, which per the standing
+order begins after the plant authoring (Task 30) completes.
