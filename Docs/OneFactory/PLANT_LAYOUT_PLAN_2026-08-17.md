@@ -1453,3 +1453,15 @@ reach-scaled lighting for tall pieces. Remaining on Task 30 (~12): paint
 oven burner house, tack-off tunnel, polish/sander decks, carrier
 turntable; weld BIW buffer rack, closure door fixture, overhead drop
 lift, rework booth frame, stud feeder, skid-lift transfer.
+
+## Batch 15 gated - weld quality and handoff kit placed (2026-08-19, autonomous)
+
+Suite 278/0/0. The weld shop's missing-list is cleared: stud feeders
+flank P15 with hose runs toward the line, three BIW buffer racks bank
+the P17 south band, two curtained rework booths with extraction face the
+line from the north, closure door fixtures stand in the west quality
+corner, and the P18 handoff to paint now reads as a process - two
+scissor skid-lift transfers feeding the guyed portal drop lift at the
+east wall. Session: 67 machines authored, 15 placement batches. Task 30
+remainder is paint-only: oven burner house, tack-off tunnel,
+polish/sander deck, carrier turntable.
