@@ -2,6 +2,7 @@
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "LBFactoryManagementSubsystem.h"
 #include "Misc/Crc.h"
 
 namespace LBOneFactoryRuntimeCoordinatorPrivate
@@ -1159,9 +1160,78 @@ bool ALBOneFactoryRuntimeCoordinator::TickAutomaticFlow(
         if (!TickVehicle(UnitId, DeltaSeconds, OutReason)) return false;
         ++OutProcessedUnitCount;
     }
+    // Non-fatal: the economy reconciles from deterministic ids, so a missing
+    // management subsystem (some validation worlds) must not stop the line.
+    FString EconomyReason;
+    ReconcileEconomy(EconomyReason);
     OutReason = StartedUnits.IsEmpty()
         ? TEXT("ONEFACTORY AUTOMATIC FLOW IDLE")
         : TEXT("ONEFACTORY AUTOMATIC FLOW TICKED STARTED UNITS DETERMINISTICALLY");
+    return true;
+}
+
+bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
+{
+    using namespace LBOneFactoryRuntimeCoordinatorPrivate;
+    // Placeholder economy constants until P3 contracts carry real prices:
+    // one dispatched Cairnwell pays a flat price; the plant burns a flat
+    // operating cost for every completed simulation hour.
+    constexpr int64 VehicleRevenuePence = 3200000;
+    constexpr int64 PlantOperatingCostPencePerHour = 150000;
+
+    UWorld* World = GetWorld();
+    ULBFactoryManagementSubsystem* Management =
+        World ? World->GetSubsystem<ULBFactoryManagementSubsystem>() : nullptr;
+    FAuthorities Actors;
+    if (!Management || !ResolveAuthorities(*this, Actors, OutReason))
+    {
+        OutReason = TEXT("ONEFACTORY ECONOMY REQUIRES MANAGEMENT AND PRODUCTION AUTHORITIES");
+        return false;
+    }
+    if (!Management->IsCampaignInitialised()
+        && !Management->InitialiseNewCampaign(
+            ULBFactoryManagementSubsystem::DefaultStartingCashPence, 0))
+    {
+        OutReason = TEXT("ONEFACTORY ECONOMY COULD NOT INITIALISE THE CAMPAIGN");
+        return false;
+    }
+    const FLBOneFactoryProductionLedgerState Ledger =
+        Actors.Production->CaptureLedger();
+    int32 RevenuePosted = 0;
+    for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
+    {
+        if (!Unit.bDispatched)
+        {
+            continue;
+        }
+        const FName TransactionId(*FString::Printf(TEXT("OF_REV_%s"),
+            *Unit.UnitId.ToString()));
+        if (Management->TryRecordOrderRevenue(TransactionId, Unit.UnitId,
+                VehicleRevenuePence))
+        {
+            ++RevenuePosted;
+        }
+    }
+    int32 HoursCharged = 0;
+    const int64 CompletedHours =
+        static_cast<int64>(Ledger.SimClockSeconds / 3600.0);
+    // Hour h completes when the clock passes h*3600, so charging starts at
+    // hour 1 - there is no hour zero to pay for.
+    for (int64 Hour = FMath::Max<int64>(LastChargedOpexHour + 1, 1);
+         Hour <= CompletedHours; ++Hour)
+    {
+        const FName TransactionId(*FString::Printf(TEXT("OF_OPEX_H%lld"),
+            Hour));
+        if (Management->TryChargeOperatingCost(TransactionId,
+                FName(TEXT("OF_PLANT")), PlantOperatingCostPencePerHour))
+        {
+            ++HoursCharged;
+        }
+    }
+    LastChargedOpexHour = FMath::Max(LastChargedOpexHour, CompletedHours);
+    OutReason = FString::Printf(
+        TEXT("ONEFACTORY ECONOMY RECONCILED: %d revenue, %d opex hour(s)"),
+        RevenuePosted, HoursCharged);
     return true;
 }
 

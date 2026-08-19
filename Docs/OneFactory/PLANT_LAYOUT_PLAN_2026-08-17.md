@@ -1597,3 +1597,17 @@ SimClockAdvancesHoldsOnPauseAndStampsUnits, including a capture/restore
 round trip). Palette variant A captured this tick (PaletteA_01/02);
 variants B and C follow one render per tick. Next: gameplay P2, the
 economy bridge.
+
+## Gameplay P2 (runtime half) - the economy bridge (2026-08-19, autonomous)
+
+ReconcileEconomy on the runtime coordinator now posts into the tested
+double-entry management economy every automatic-flow tick: a flat
+placeholder price per dispatched Cairnwell (transaction id OF_REV_<unit>)
+and a flat plant operating cost per completed simulation hour
+(OF_OPEX_H<n>) - all idempotent by id, campaign self-initialising at the
+default 2.5M pounds. The new test caught a real off-by-one (an "hour
+zero" charge at time 0) before it shipped. Suite 281: 258 clean + 23
+warnings, 0 failed. Palette variant B (exposure +1.2) captured this
+tick. Remaining for P2: embed the management save state in the
+OneFactory save root so money survives the isolated slot; then P3
+contracts replace the placeholder price.

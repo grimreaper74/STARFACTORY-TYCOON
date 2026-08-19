@@ -139,6 +139,18 @@ public:
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Runtime")
     bool SetRuntimeTimeScale(float InTimeScale, FString& OutReason);
 
+    /**
+     * Posts dispatch revenue and completed-hour operating cost into the
+     * management economy. Every transaction id is deterministic (unit id or
+     * hour index), and the management ledger is idempotent by id, so replays
+     * after a load are safe no-ops.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Runtime")
+    bool ReconcileEconomy(FString& OutReason);
+
+    /** Highest operating-cost hour already charged this session (transient). */
+    int64 LastChargedOpexHour = -1;
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Runtime")
     float GetRuntimeTimeScale() const { return RuntimeTimeScale; }
 
