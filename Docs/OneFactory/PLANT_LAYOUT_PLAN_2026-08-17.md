@@ -1440,3 +1440,16 @@ pieces (paint plant-room skids and small weld kit).
 
 Next session picks up: remaining Task-30 pieces in 2-4 piece batches, then
 Task 34 (v1 gameplay loop) per the accepted decisions.
+
+## Batch 14 gated - the paint plant room stands (2026-08-19, autonomous)
+
+Suite 278/0/0. The north service strip now carries the paint plant room:
+UF membrane skid at the ED end, mix room + sludge press + AHU cluster at
+the booth end, a four-module pipe-bridge services run bridging the
+rectifier row toward that cluster, and the oven stack (8.3 m, guyed, caged
+ladder) beside the enclosed oven band. Session: 61 machines authored, 14
+placement batches. The kit preview gained a distance override with
+reach-scaled lighting for tall pieces. Remaining on Task 30 (~12): paint
+oven burner house, tack-off tunnel, polish/sander decks, carrier
+turntable; weld BIW buffer rack, closure door fixture, overhead drop
+lift, rework booth frame, stud feeder, skid-lift transfer.
