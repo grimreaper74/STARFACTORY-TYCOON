@@ -1688,3 +1688,17 @@ press->body feed, the body->paint bridge, the paint->assembly link and
 the assembly dispatch shutter. Suite 281 green; SiteWalls captures sent.
 The old C1-C7 "press at wrong datum" concern is closed by measurement:
 no move needed, and the runtime stations stay aligned with the visuals.
+
+## Gameplay P3 - vehicle contracts (2026-08-19, autonomous)
+
+Contracts live on the production ledger (SaveGame, so they travel with
+the factory save): FLBOneFactoryVehicleContract with model, quantity,
+price, sim-clock deadline and Open/Complete/Expired state. A dispatched
+unit settles against the oldest open contract for its model and is
+stamped with the contract id; the economy bridge pays the contract price
+(spot price when uncontracted); deadlines sweep each automatic-flow tick
+and expire softly. Commissioning seeds the starter chain: 3 cars at
+30k in 4h, 5 at 33k in 10h, 8 at 36k in 20h. Suite 282: 259 clean + 23
+warnings, 0 failed (new lifecycle test covers validation, idempotent
+seeding, expiry and save round-trip). Remaining for the loop: P4 soft-
+failure warnings, P5 defects, P6 the HUD strip that shows all of this.

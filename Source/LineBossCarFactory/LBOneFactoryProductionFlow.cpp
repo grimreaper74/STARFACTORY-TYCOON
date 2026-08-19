@@ -423,6 +423,87 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceSimulationClock(
     return true;
 }
 
+bool ALBOneFactoryProductionFlowAuthority::AddVehicleContract(
+    const FLBOneFactoryVehicleContract& Contract, FString& OutReason)
+{
+    if (Contract.ContractId.IsNone() || Contract.VehicleModelId.IsNone()
+        || Contract.Quantity <= 0 || Contract.PricePerVehiclePence <= 0)
+    {
+        OutReason = TEXT("ONEFACTORY CONTRACT REQUIRES ID, MODEL, QUANTITY AND PRICE");
+        return false;
+    }
+    if (CurrentState.Contracts.ContainsByPredicate(
+        [&Contract](const FLBOneFactoryVehicleContract& Existing)
+        { return Existing.ContractId == Contract.ContractId; }))
+    {
+        OutReason = TEXT("ONEFACTORY CONTRACT ALREADY EXISTS");
+        return true;
+    }
+    FLBOneFactoryVehicleContract Added = Contract;
+    Added.DispatchedCount = 0;
+    Added.State = ELBOneFactoryContractState::Open;
+    CurrentState.Contracts.Add(Added);
+    ++CurrentState.Revision;
+    OutReason = TEXT("ONEFACTORY CONTRACT ADDED");
+    return true;
+}
+
+int32 ALBOneFactoryProductionFlowAuthority::SweepContractDeadlines(
+    FString& OutReason)
+{
+    int32 Expired = 0;
+    for (FLBOneFactoryVehicleContract& Contract : CurrentState.Contracts)
+    {
+        if (Contract.State == ELBOneFactoryContractState::Open
+            && Contract.DeadlineSimSeconds > 0.0
+            && CurrentState.SimClockSeconds > Contract.DeadlineSimSeconds)
+        {
+            Contract.State = ELBOneFactoryContractState::Expired;
+            ++Expired;
+        }
+    }
+    if (Expired > 0)
+    {
+        ++CurrentState.Revision;
+    }
+    OutReason = FString::Printf(
+        TEXT("ONEFACTORY CONTRACT SWEEP EXPIRED %d"), Expired);
+    return Expired;
+}
+
+bool ALBOneFactoryProductionFlowAuthority::SeedStarterContracts(
+    FString& OutReason)
+{
+    // The sandbox's opening chain: volumes and prices escalate, and every
+    // deadline is generous at 1x speed - soft pressure, not a fail wall.
+    struct FSeed
+    {
+        const TCHAR* Id;
+        int32 Quantity;
+        int64 PricePence;
+        double DeadlineSeconds;
+    };
+    static const FSeed Seeds[] = {
+        { TEXT("CON_STARTER_1"), 3, 3000000, 4.0 * 3600.0 },
+        { TEXT("CON_STARTER_2"), 5, 3300000, 10.0 * 3600.0 },
+        { TEXT("CON_STARTER_3"), 8, 3600000, 20.0 * 3600.0 },
+    };
+    for (const FSeed& Seed : Seeds)
+    {
+        FLBOneFactoryVehicleContract Contract;
+        Contract.ContractId = FName(Seed.Id);
+        Contract.VehicleModelId = FName(TEXT("C2040"));
+        Contract.Quantity = Seed.Quantity;
+        Contract.PricePerVehiclePence = Seed.PricePence;
+        Contract.DeadlineSimSeconds =
+            CurrentState.SimClockSeconds + Seed.DeadlineSeconds;
+        FString Ignored;
+        AddVehicleContract(Contract, Ignored);
+    }
+    OutReason = TEXT("ONEFACTORY STARTER CONTRACTS SEEDED");
+    return true;
+}
+
 bool ALBOneFactoryProductionFlowAuthority::SetDepartmentFaulted(
     const ELBOneFactoryDepartment InDepartment, const bool bFaulted,
     FString& OutReason)
@@ -608,6 +689,23 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
         Unit->bDispatched = true;
         Unit->DispatchedAtSimSeconds = CurrentState.SimClockSeconds;
         ++CurrentState.DispatchedVehicleCount;
+        // Settle against the oldest open contract for this model; creation
+        // order makes the array's first open match the oldest.
+        for (FLBOneFactoryVehicleContract& Contract : CurrentState.Contracts)
+        {
+            if (Contract.State != ELBOneFactoryContractState::Open
+                || Contract.VehicleModelId != Unit->VehicleModelId)
+            {
+                continue;
+            }
+            ++Contract.DispatchedCount;
+            Unit->FulfilledContractId = Contract.ContractId;
+            if (Contract.DispatchedCount >= Contract.Quantity)
+            {
+                Contract.State = ELBOneFactoryContractState::Complete;
+            }
+            break;
+        }
     }
     ++CurrentState.Revision;
     OutReason = TEXT("ONEFACTORY VEHICLE ADVANCED");

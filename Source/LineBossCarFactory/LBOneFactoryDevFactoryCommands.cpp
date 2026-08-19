@@ -172,6 +172,15 @@ bool ULBOneFactoryDevFactory::BuildAndCommissionWholeFactory(
         return false;
     }
 
+    // A fresh factory opens with the starter contract chain waiting, so the
+    // first thing a player sees is work to be won; idempotent on re-runs.
+    if (ALBOneFactoryProductionFlowAuthority* Production =
+            FindProductionFlow(World))
+    {
+        FString SeedReason;
+        Production->SeedStarterContracts(SeedReason);
+    }
+
     OutReason = TEXT("WHOLE FACTORY CREATED, COMMISSIONED AND VALIDATED");
     UE_LOG(LogLineBossOneFactoryDev, Display,
         TEXT("LINE_BOSS_DEV_BUILD_COMPLETE %s"), *OutReason);

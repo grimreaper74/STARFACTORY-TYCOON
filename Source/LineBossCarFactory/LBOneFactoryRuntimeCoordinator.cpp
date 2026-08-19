@@ -1146,6 +1146,8 @@ bool ALBOneFactoryRuntimeCoordinator::TickAutomaticFlow(
     // units - deadlines and running costs do not wait for orders.
     FString ClockReason;
     Actors.Production->AdvanceSimulationClock(DeltaSeconds, ClockReason);
+    FString SweepReason;
+    Actors.Production->SweepContractDeadlines(SweepReason);
     TArray<FName> StartedUnits;
     for (const FLBOneFactoryVehicleUnitState& Unit :
         Actors.Production->CaptureLedger().Units)
@@ -1204,10 +1206,24 @@ bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
         {
             continue;
         }
+        // Contract price when the unit settled one; spot price otherwise.
+        int64 UnitPrice = VehicleRevenuePence;
+        if (!Unit.FulfilledContractId.IsNone())
+        {
+            for (const FLBOneFactoryVehicleContract& Contract :
+                Ledger.Contracts)
+            {
+                if (Contract.ContractId == Unit.FulfilledContractId)
+                {
+                    UnitPrice = Contract.PricePerVehiclePence;
+                    break;
+                }
+            }
+        }
         const FName TransactionId(*FString::Printf(TEXT("OF_REV_%s"),
             *Unit.UnitId.ToString()));
         if (Management->TryRecordOrderRevenue(TransactionId, Unit.UnitId,
-                VehicleRevenuePence))
+                UnitPrice))
         {
             ++RevenuePosted;
         }

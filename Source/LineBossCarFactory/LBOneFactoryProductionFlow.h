@@ -159,6 +159,51 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     /** Ledger sim-clock at dispatch; negative until the unit dispatches. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     double DispatchedAtSimSeconds = -1.0;
+
+    /** Contract this dispatched unit settled against, if any. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FName FulfilledContractId = NAME_None;
+};
+
+UENUM(BlueprintType)
+enum class ELBOneFactoryContractState : uint8
+{
+    Open,
+    Complete,
+    Expired
+};
+
+/**
+ * One customer order for vehicles: the pacing backbone of the v1 loop.
+ * Soft failure by design - an expired contract stops paying but never
+ * ends the game.
+ */
+USTRUCT(BlueprintType)
+struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleContract
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FName ContractId = NAME_None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FName VehicleModelId = NAME_None;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 Quantity = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int64 PricePerVehiclePence = 0;
+
+    /** Ledger sim-clock deadline; non-positive means no deadline. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    double DeadlineSimSeconds = 0.0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 DispatchedCount = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    ELBOneFactoryContractState State = ELBOneFactoryContractState::Open;
 };
 
 /** Complete versioned cross-department production and runtime gate snapshot. */
@@ -210,6 +255,10 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryProductionLedgerState
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     TArray<FLBOneFactoryVehicleUnitState> Units;
+
+    /** Customer contracts in creation order; oldest open settles first. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    TArray<FLBOneFactoryVehicleContract> Contracts;
 };
 
 UCLASS()
@@ -269,6 +318,19 @@ public:
     /** Advances SimClockSeconds; a paused line holds factory time still. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool AdvanceSimulationClock(float DeltaSeconds, FString& OutReason);
+
+    /** Adds one open contract; idempotent by ContractId. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    bool AddVehicleContract(const FLBOneFactoryVehicleContract& Contract,
+        FString& OutReason);
+
+    /** Expires open contracts past their deadline; returns how many. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    int32 SweepContractDeadlines(FString& OutReason);
+
+    /** Seeds the sandbox's starter contract chain once; idempotent. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    bool SeedStarterContracts(FString& OutReason);
 
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SetDepartmentFaulted(ELBOneFactoryDepartment InDepartment,
