@@ -1392,3 +1392,13 @@ door line hung with real Cairnwell doors, and the finished-car WIP visual
 now composites body + rolling gear (the flagged worst visual gap, fixed in
 C++ with a mirrored gear ISM batch). Session total: 40 machines authored,
 8 placement batches, ~590 new saved actors. Task 30: 40 of ~83.
+
+## Batches 09-10 gated; gameplay research delivered (2026-08-19, autonomous)
+
+Suite 278/0/0. Pretreatment head, andon boards and shield carts placed.
+Session totals: 47 machines authored, 10 placement batches. The owner
+commissioned gameplay/naming research - delivered as
+GAMEPLAY_RESEARCH_2026-08-19.md (19-agent verified pass): core loop is
+observe-diagnose-pause-adjust-scale, the watchable plant is the product,
+name recommendation "Line Boss: Car Factory Tycoon", five owner decisions
+pending with recommended defaults.
