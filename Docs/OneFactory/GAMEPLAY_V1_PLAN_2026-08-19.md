@@ -56,3 +56,13 @@ must stay green after each:
 Out of scope for v1: multiple vehicle models, research tree, staffing
 (lights-out), map expansion, the frozen-presentation re-version
 (documented debt).
+
+## Standing requirements added 2026-08-19 (owner)
+
+- **Localisation-ready text**: every player-facing string in P1-P6 work
+  uses FText/string tables from the first line. Target languages at EA:
+  German, Simplified Chinese, French, Spanish, Portuguese-BR, Polish,
+  Russian, Japanese, Korean.
+- **Palette review pending**: the owner may lighten the colour scheme
+  ("too dark, too borg like"). Comparison renders are queued (Task 36);
+  no HUD colour language gets locked until he picks.
