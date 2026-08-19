@@ -37,6 +37,31 @@ struct FLBOneFactoryProcessGroup
     ELBOneFactoryGroupState State = ELBOneFactoryGroupState::Idle;
 };
 
+/** One contract row for the HUD panel. */
+struct FLBOneFactoryContractRow
+{
+    FString ContractId;
+    int32 DispatchedCount = 0;
+    int32 Quantity = 0;
+    double SecondsRemaining = 0.0;
+    ELBOneFactoryContractState State = ELBOneFactoryContractState::Open;
+    bool bEmergency = false;
+};
+
+/** Everything the management band needs, read in one pass. */
+struct FLBOneFactoryManagementBand
+{
+    bool bHasCash = false;
+    int64 CashPence = 0;
+    double SimClockSeconds = 0.0;
+    bool bPaused = false;
+    int32 Reputation = 100;
+    double FleetWear01 = 0.0;
+    ELBOneFactoryFinancialState FinancialState =
+        ELBOneFactoryFinancialState::Healthy;
+    TArray<FLBOneFactoryContractRow> Contracts;
+};
+
 /**
  * The production-flow overlay for Moorcross Works.
  *
@@ -70,10 +95,16 @@ public:
     static ELBOneFactoryGroupState StateForStage(
         ELBOneFactoryVehicleStage Stage);
 
+    /** Reads cash, clock, reputation, wear and contracts in one pass. */
+    static bool CollectManagement(const UWorld* World,
+        FLBOneFactoryManagementBand& OutBand);
+
 private:
     void DrawFlowStrip(float Width, float Height, float Scale,
         const TArray<FLBOneFactoryProcessGroup>& Groups, int32 UnitsLive,
         int32 Dispatched, int32 AlertCount);
     void DrawAlertToast(float Width, float Height, float Scale,
         const TArray<FString>& Alerts);
+    void DrawManagementBand(float Width, float Scale,
+        const FLBOneFactoryManagementBand& Band);
 };

@@ -5,6 +5,7 @@
 #include "Engine/Font.h"
 #include "EngineUtils.h"
 #include "Internationalization/Text.h"
+#include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 
 #define LOCTEXT_NAMESPACE "LineBossProductionHUD"
@@ -303,6 +304,159 @@ void ALBOneFactoryProductionHUD::DrawHUD()
     DrawFlowStrip(Width, Height, Scale, Groups, UnitsLive, Dispatched,
         Alerts.Num());
     DrawAlertToast(Width, Height, Scale, Alerts);
+
+    FLBOneFactoryManagementBand Band;
+    if (CollectManagement(GetWorld(), Band))
+    {
+        DrawManagementBand(Width, Scale, Band);
+    }
+}
+
+bool ALBOneFactoryProductionHUD::CollectManagement(const UWorld* World,
+    FLBOneFactoryManagementBand& OutBand)
+{
+    if (!World)
+    {
+        return false;
+    }
+    ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+    for (TActorIterator<ALBOneFactoryProductionFlowAuthority>
+        It(const_cast<UWorld*>(World)); It; ++It)
+    {
+        Production = *It;
+        break;
+    }
+    if (!Production)
+    {
+        return false;
+    }
+    const FLBOneFactoryProductionLedgerState Ledger =
+        Production->CaptureLedger();
+    OutBand.SimClockSeconds = Ledger.SimClockSeconds;
+    OutBand.bPaused = Ledger.bLinePaused;
+    OutBand.Reputation = Ledger.ReputationScore;
+    OutBand.FleetWear01 = Ledger.FleetWear01;
+    OutBand.FinancialState = Ledger.FinancialState;
+    for (const FLBOneFactoryVehicleContract& Contract : Ledger.Contracts)
+    {
+        FLBOneFactoryContractRow Row;
+        Row.ContractId = Contract.ContractId.ToString();
+        Row.DispatchedCount = Contract.DispatchedCount;
+        Row.Quantity = Contract.Quantity;
+        Row.SecondsRemaining = Contract.DeadlineSimSeconds > 0.0
+            ? Contract.DeadlineSimSeconds - Ledger.SimClockSeconds : 0.0;
+        Row.State = Contract.State;
+        Row.bEmergency = Contract.bEmergency;
+        OutBand.Contracts.Add(Row);
+    }
+    if (const ULBFactoryManagementSubsystem* Management =
+            World->GetSubsystem<ULBFactoryManagementSubsystem>())
+    {
+        if (Management->IsCampaignInitialised())
+        {
+            OutBand.bHasCash = true;
+            OutBand.CashPence = Management->GetCashBalancePence();
+        }
+    }
+    return true;
+}
+
+void ALBOneFactoryProductionHUD::DrawManagementBand(const float Width,
+    const float Scale, const FLBOneFactoryManagementBand& Band)
+{
+    using namespace LBOneFactoryHUDPrivate;
+    UFont* Font = GEngine ? GEngine->GetSmallFont() : nullptr;
+    if (!Font)
+    {
+        return;
+    }
+    const float BandW = 300.0f * Scale;
+    const float RowH = 18.0f * Scale;
+    const float X = Width - BandW - 14.0f * Scale;
+    float Y = 12.0f * Scale;
+
+    // Header rows: cash, clock/pause, reputation and wear.
+    int32 Rows = 3 + FMath::Min(Band.Contracts.Num(), 4);
+    DrawRect(CharcoalDeep.CopyWithNewOpacity(0.88f), X - 8.0f * Scale,
+        Y - 6.0f * Scale, BandW, Rows * RowH + 16.0f * Scale);
+    const FLinearColor StateColour =
+        Band.FinancialState == ELBOneFactoryFinancialState::Emergency
+            ? Red
+            : Band.FinancialState == ELBOneFactoryFinancialState::Warning
+                ? Yellow : CairnwellLit;
+    const FText CashText = Band.bHasCash
+        ? FText::Format(LOCTEXT("BandCash", "CASH  £{0}"),
+            FText::AsNumber(Band.CashPence / 100))
+        : LOCTEXT("BandCashPending", "CASH  -");
+    DrawText(CashText.ToString(), StateColour, X, Y, Font, Scale, false);
+    Y += RowH;
+
+    const int32 TotalMinutes =
+        FMath::FloorToInt32(Band.SimClockSeconds / 60.0);
+    FNumberFormattingOptions TwoDigits;
+    TwoDigits.MinimumIntegralDigits = 2;
+    const FText ClockText = FText::Format(
+        LOCTEXT("BandClock", "DAY {0}  {1}:{2}{3}"),
+        FText::AsNumber(1 + TotalMinutes / (24 * 60)),
+        FText::AsNumber((TotalMinutes / 60) % 24),
+        FText::AsNumber(TotalMinutes % 60, &TwoDigits),
+        Band.bPaused ? LOCTEXT("BandPaused", "   PAUSED")
+                     : FText::GetEmpty());
+    DrawText(ClockText.ToString(), Band.bPaused ? Yellow : Warm, X, Y, Font,
+        Scale, false);
+    Y += RowH;
+
+    const int32 WearPercent = FMath::RoundToInt(Band.FleetWear01 * 100.0);
+    const FText WearText = FText::Format(
+        LOCTEXT("BandRepWear", "REP {0}   WEAR {1}%{2}"),
+        FText::AsNumber(Band.Reputation), FText::AsNumber(WearPercent),
+        Band.FleetWear01 > 0.6 ? LOCTEXT("BandServiceDue", "   SERVICE DUE")
+                               : FText::GetEmpty());
+    DrawText(WearText.ToString(),
+        Band.FleetWear01 > 0.6 ? Yellow : Steel, X, Y, Font, Scale, false);
+    Y += RowH;
+
+    // Up to four contracts, open first (creation order preserved).
+    int32 Drawn = 0;
+    for (const FLBOneFactoryContractRow& Row : Band.Contracts)
+    {
+        if (Drawn >= 4)
+        {
+            break;
+        }
+        FText Status;
+        if (Row.State == ELBOneFactoryContractState::Complete)
+        {
+            Status = LOCTEXT("ContractComplete", "COMPLETE");
+        }
+        else if (Row.State == ELBOneFactoryContractState::Expired)
+        {
+            Status = LOCTEXT("ContractExpired", "EXPIRED");
+        }
+        else
+        {
+            const int32 MinutesLeft = FMath::Max(0,
+                FMath::FloorToInt32(Row.SecondsRemaining / 60.0));
+            Status = FText::Format(LOCTEXT("ContractDue", "due {0}h {1}m"),
+                FText::AsNumber(MinutesLeft / 60),
+                FText::AsNumber(MinutesLeft % 60));
+        }
+        const FText RowText = FText::Format(
+            LOCTEXT("ContractRow", "{0}{1}  {2}/{3}  {4}"),
+            Row.bEmergency ? LOCTEXT("ContractRescue", "RESCUE ")
+                           : FText::GetEmpty(),
+            FText::FromString(Row.ContractId),
+            FText::AsNumber(Row.DispatchedCount),
+            FText::AsNumber(Row.Quantity), Status);
+        const FLinearColor RowColour =
+            Row.State == ELBOneFactoryContractState::Expired ? Steel
+            : Row.bEmergency ? Yellow
+            : Row.State == ELBOneFactoryContractState::Complete
+                ? CairnwellLit : Warm;
+        DrawText(RowText.ToString(), RowColour, X, Y, Font, Scale, false);
+        Y += RowH;
+        ++Drawn;
+    }
 }
 
 void ALBOneFactoryProductionHUD::DrawFlowStrip(const float Width,

@@ -94,8 +94,8 @@ def place(mesh, x, y, yaw, label):
 
 # Coil intake yard (centre -32200, 8000): two docked lorries nose-west,
 # coil stands in a service row alongside.
-place(LORRY, -32800.0, 5500.0, 180.0, "Site_CoilYard_Lorry_A")
-place(LORRY, -32800.0, 10500.0, 180.0, "Site_CoilYard_Lorry_B")
+place(LORRY, -32800.0, 5500.0, 180.0, "Site_CoilYard_HGV_A")
+place(LORRY, -32800.0, 10500.0, 180.0, "Site_CoilYard_HGV_B")
 for n in range(6):
     place(STAND, -31200.0, 3800.0 + n * 1700.0, 90.0,
           "Site_CoilYard_Stand_{:d}".format(n))

@@ -1726,3 +1726,26 @@ PerformPlantMaintenance) charges a GBP 25k fee through the management
 ledger and resets wear, counted by a maintenance serial. Suite 284: 261
 clean + 23 warnings, 0 failed. Only P6 remains: the HUD strip showing
 cash, clock, contracts, financial state, wear and defect flags.
+
+## Task 34 closed - the v1 gameplay loop is complete (2026-08-19, autonomous)
+
+P6 landed: the production HUD now carries a management band - cash
+(coloured by financial state), the sim clock as DAY/HH:MM with a PAUSED
+chip, reputation and fleet wear with a SERVICE DUE hint, and up to four
+contract rows with progress and countdowns (rescue contracts flagged).
+All text is FText/LOCTEXT per the localisation requirement. Verified
+live (HudV2 capture): a commissioned factory shows CASH 2,500,000, DAY 1,
+REP 100, and the three starter contracts counting down while a unit runs
+at coil intake.
+
+Along the way the "Lorry" label on the coil-yard HGVs tripped the
+bootstrap's forbidden-legacy name guard and blocked commissioning; the
+actors are relabelled Site_CoilYard_HGV and commissioning is verified
+green again.
+
+The whole accepted v1 loop now exists end to end: pause as a play mode
+(P0), the simulation clock (P1), money in and out with save persistence
+(P2), contracts with settlement, pricing and deadlines (P3), soft
+failure with rescue work and reputation (P4), deterministic worn-fleet
+defects with paid maintenance (P5), and the HUD that shows it all (P6).
+Suite 284: 261 clean + 23 warnings, 0 failed.
