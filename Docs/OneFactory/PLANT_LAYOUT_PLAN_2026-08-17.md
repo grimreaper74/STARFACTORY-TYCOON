@@ -1499,3 +1499,15 @@ placed among the cells. No floaters, no scale errors, no missing
 geometry at management height. The previous tick's DXGI_ERROR_DEVICE_HUNG
 did not recur after the cooldown - one -game launch per tick remains the
 safe pattern. Unreal killed straight after the capture per the heat rule.
+
+## MAT_BoothGlazing bound (2026-08-19 ~07:55, autonomous)
+
+The spray booths' glazing slot said "Glazing" while the semantic table
+only knew "Glass", so booth glass rendered default grey. One table row
+added in ApplySemanticMaterials (BFD4DE, roughness 0.12) and the editor
+rebuilt in 16 s. Runtime materials log now reads "bound 16 empty
+slot(s) ... unmatched: none" - previously the glazing slot was the
+unmatched entry. Verified at log level; the capture framed the ED band
+rather than the booths, so an eyeball pass on the glass tint rides along
+with the next paint capture. Task 32's remaining item is the frozen
+119-instance presentation re-version (documented debt).

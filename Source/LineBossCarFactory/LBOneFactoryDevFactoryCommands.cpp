@@ -1039,6 +1039,8 @@ bool ULBOneFactoryDevFactory::ApplySemanticMaterials(
         { TEXT("Copper"),          TEXT("B46A3A"), 0.30f, 0.85f },
         { TEXT("Electrode"),       TEXT("B46A3A"), 0.30f, 0.85f },
         { TEXT("Glass"),           TEXT("BFD4DE"), 0.12f, 0.00f },
+        // The spray booths' MAT_BoothGlazing slot says "Glazing", not "Glass".
+        { TEXT("Glazing"),         TEXT("BFD4DE"), 0.12f, 0.00f },
         { TEXT("Rubber"),          TEXT("24272A"), 0.75f, 0.00f },
         { TEXT("Motor"),           TEXT("14171A"), 0.45f, 0.30f },
     };
