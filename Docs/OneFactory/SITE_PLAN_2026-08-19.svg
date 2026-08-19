@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900" font-family="Segoe UI, sans-serif">
+<rect width="1500" height="900" fill="#e8e6df"/>
+<text x="750.0" y="34" text-anchor="middle" font-size="26" font-weight="bold" fill="#1d3f38">MOORCROSS WORKS — SITE PLAN (to scale, from live map data, 2026-08-19)</text>
+<rect x="65.5" y="50.75" width="1369.0" height="740.0" fill="#dcd9cf" stroke="none"/>
+<rect x="102.5" y="102.55000000000001" width="1295.0" height="16.65" fill="#8f948f"/>
+<rect x="102.5" y="731.55" width="1295.0" height="16.65" fill="#8f948f"/>
+<rect x="108.05000000000007" y="102.55000000000001" width="16.65" height="636.4" fill="#8f948f"/>
+<rect x="1375.3" y="102.55000000000001" width="16.65" height="636.4" fill="#8f948f"/>
+<rect x="167.25" y="430.925" width="1165.5" height="16.65" fill="#8f948f"/>
+<rect x="1200.475" y="119.19999999999999" width="16.65" height="307.09999999999997" fill="#8f948f"/>
+<rect x="260.675" y="119.19999999999999" width="16.65" height="325.59999999999997" fill="#8f948f"/>
+<rect x="65.5" y="50.75" width="1369.0" height="740.0" fill="none" stroke="#4a4f55" stroke-width="2.5" stroke-dasharray="7,4"/>
+<rect x="116.375" y="101.625" width="1267.25" height="638.25" rx="14" fill="none" stroke="#8f948f" stroke-width="16" opacity="0.9"/>
+<rect x="167.25" y="396.7" width="1165.5" height="85.1" fill="#c9c6bb" stroke="#9a978c"/>
+<text x="750.0" y="443.25" text-anchor="middle" font-size="12" fill="#55534b">Central spine yard (AGV transfer)</text>
+<rect x="109.89999999999998" y="171.0" width="88.8" height="222.0" fill="#b9beb9" stroke="#7c817c"/>
+<text x="154.29999999999998" y="286.0" text-anchor="middle" font-size="11.5" fill="#3c4340">Coil intake yard + HGV docks</text>
+<rect x="870.25" y="89.60000000000002" width="370.0" height="66.6" fill="#b9beb9" stroke="#7c817c"/>
+<text x="1055.25" y="126.90000000000002" text-anchor="middle" font-size="11.5" fill="#3c4340">Dispatch compound (finished cars)</text>
+<rect x="953.5" y="687.15" width="148.0" height="48.099999999999994" fill="#b9beb9" stroke="#7c817c"/>
+<text x="1027.5" y="715.1999999999999" text-anchor="middle" font-size="11.5" fill="#3c4340">Chemical delivery dock</text>
+<rect x="435.5" y="689.0" width="185.0" height="51.8" fill="#b9beb9" stroke="#7c817c"/>
+<text x="528.0" y="718.9" text-anchor="middle" font-size="11.5" fill="#3c4340">Container / trailer yard</text>
+<rect x="1264.3" y="522.5" width="99.89999999999999" height="129.5" fill="#cfd8c9" stroke="#6f7f68"/>
+<text x="1314.25" y="587.25" text-anchor="middle" font-size="10.5" fill="#41503b">Substation + battery farm</text>
+<rect x="1362.35" y="174.70000000000002" width="40.699999999999996" height="29.599999999999998" fill="#f3f1e9" stroke="#4a4f55"/>
+<text x="1382.6999999999998" y="170.70000000000002" text-anchor="middle" font-size="11" fill="#3c4340">Gatehouse</text>
+<rect x="1390.1" y="126.60000000000002" width="14.799999999999999" height="44.4" fill="#f2c300" stroke="#4a4f55"/>
+<text x="1410.8999999999999" y="152.8" font-size="11" fill="#3c4340">Main gate (HGV)</text>
+<rect x="95.10000000000002" y="398.55" width="14.799999999999999" height="44.4" fill="#f2c300" stroke="#4a4f55"/>
+<text x="115.90000000000002" y="424.75" font-size="11" fill="#3c4340">West gate (service)</text>
+<rect x="870.25" y="89.60000000000002" width="370.0" height="66.6" fill="none" stroke="#3b6ea5" stroke-width="1.6" stroke-dasharray="3,3"/>
+<rect x="47.0" y="15.600000000000023" width="296.0" height="44.4" fill="#c5c2ba" stroke="#8f8c84" stroke-dasharray="5,3"/>
+<text x="195.0" y="41.800000000000026" text-anchor="middle" font-size="11" fill="#55534b">Skyline: towers + hangar (outside fence)</text>
+<rect x="185.75" y="161.75" width="592.0" height="240.5" fill="#2f6e5f" stroke="#1d3f38" stroke-width="2" opacity="0.92"/>
+<text x="481.75" y="278.0" text-anchor="middle" font-size="17" font-weight="bold" fill="#f3f1e9">PRESS SHOP</text>
+<text x="481.75" y="298.0" text-anchor="middle" font-size="12" fill="#d8e4df">320 × 130 m</text>
+<rect x="380.0" y="494.75" width="333.0" height="185.0" fill="#2f6e5f" stroke="#1d3f38" stroke-width="2" opacity="0.92"/>
+<text x="546.5" y="583.25" text-anchor="middle" font-size="17" font-weight="bold" fill="#f3f1e9">BODY / WELD SHOP</text>
+<text x="546.5" y="603.25" text-anchor="middle" font-size="12" fill="#d8e4df">180 × 100 m</text>
+<rect x="731.5" y="494.75" width="407.0" height="185.0" fill="#2f6e5f" stroke="#1d3f38" stroke-width="2" opacity="0.92"/>
+<text x="935.0" y="583.25" text-anchor="middle" font-size="17" font-weight="bold" fill="#f3f1e9">PAINT SHOP</text>
+<text x="935.0" y="603.25" text-anchor="middle" font-size="12" fill="#d8e4df">220 × 100 m</text>
+<rect x="796.25" y="161.75" width="518.0" height="222.0" fill="#2f6e5f" stroke="#1d3f38" stroke-width="2" opacity="0.92"/>
+<text x="1055.25" y="268.75" text-anchor="middle" font-size="17" font-weight="bold" fill="#f3f1e9">GENERAL ASSEMBLY</text>
+<text x="1055.25" y="288.75" text-anchor="middle" font-size="12" fill="#d8e4df">280 × 120 m</text>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#c7352c"/></marker></defs>
+<line x1="195.0" y1="282.0" x2="195.0" y2="245.0" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="481.75" y1="402.25" x2="518.75" y2="494.75" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="716.7" y1="587.25" x2="744.45" y2="587.25" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="1027.5" y1="494.75" x2="1042.3" y2="383.75" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="1055.25" y1="161.75" x2="1055.25" y2="141.40000000000003" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="1249.5" y1="122.90000000000003" x2="1360.5" y2="122.90000000000003" stroke="#c7352c" stroke-width="2.4" marker-end="url(#a)"/>
+<g transform="translate(60,90)"><circle r="24" fill="#f3f1e9" stroke="#4a4f55"/><path d="M0,-18 L6,8 L0,3 L-6,8 z" fill="#1d3f38"/><text y="-30" text-anchor="middle" font-size="13" font-weight="bold" fill="#1d3f38">N</text></g>
+<rect x="60" y="854" width="185.0" height="7" fill="#1d3f38"/><text x="152.5" y="846" text-anchor="middle" font-size="12" fill="#1d3f38">100 m</text>
+<text x="1476" y="872" text-anchor="end" font-size="11.5" fill="#55534b">Green = shop bays (as built, from map data) · grey roads/yards/fence = designed, to be built · red arrows = material flow: coils → press → body → paint → assembly → dispatch</text>
+</svg>
