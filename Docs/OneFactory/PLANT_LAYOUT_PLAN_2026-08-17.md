@@ -1672,3 +1672,19 @@ the wide SiteDone capture had shown the works floating in void.
 SiteFinal captures sent to the owner. Task 37 remaining: gatehouse
 building, road markings, solar canopy over dispatch, the substation/
 battery farm as an authored piece, trees (vegetation gap).
+
+## Site batch 06 - legacy shell demolished, all four shops walled (2026-08-19)
+
+The owner flagged "press is in the wrong place and it's the only one
+with walls". Measurement (dump_press_alignment.py) showed the press
+transplant sits inside its bay (content x -26309..-2685, y 0..14015 vs
+bay x -30500..1500, y 1500..14500, ~10-15 m overhang south) - the false
+read came from the old one-building era's LB_OF_ENV_HISM_CutawayWalls/
+OpenRoofFrame still standing at 620 x 310 m around the whole plant.
+Batch 06 deleted both legacy HISMs and built 18 cube-wall runs around
+the Body, Paint and Assembly bays - height (18 m), thickness and
+material matched from PT_LB_PRESS_Wall_North, with openings at the
+press->body feed, the body->paint bridge, the paint->assembly link and
+the assembly dispatch shutter. Suite 281 green; SiteWalls captures sent.
+The old C1-C7 "press at wrong datum" concern is closed by measurement:
+no move needed, and the runtime stations stay aligned with the visuals.
