@@ -163,6 +163,10 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     /** Contract this dispatched unit settled against, if any. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FName FulfilledContractId = NAME_None;
+
+    /** Set at gate arrival when fleet wear implicates this unit. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    bool bDefectSuspected = false;
 };
 
 UENUM(BlueprintType)
@@ -283,6 +287,14 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryProductionLedgerState
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     ELBOneFactoryFinancialState FinancialState =
         ELBOneFactoryFinancialState::Healthy;
+
+    /** Fleet wear, 0..1: every station cycle adds a little; maintenance
+        resets it. Drives defect suspicion at the quality gates. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    double FleetWear01 = 0.0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 MaintenanceSerial = 0;
 };
 
 UCLASS()
@@ -309,6 +321,14 @@ public:
 
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Production")
     static bool IsQualityGate(ELBOneFactoryVehicleStage InStage);
+
+    /**
+     * Deterministic defect suspicion: a unit-id hash against fleet wear.
+     * Wear 0 never flags; full wear flags roughly four units in ten. No
+     * randomness, so replays and tests always agree.
+     */
+    UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Production")
+    static bool IsDefectSuspected(FName UnitId, double FleetWear01);
 };
 
 /**
@@ -363,6 +383,10 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool ApplyFinancialPolicy(int64 CashBalancePence, FString& OutReason);
+
+    /** Resets fleet wear; the caller charges the maintenance fee. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
+    bool PerformPlantMaintenance(FString& OutReason);
 
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Production")
     bool SetDepartmentFaulted(ELBOneFactoryDepartment InDepartment,

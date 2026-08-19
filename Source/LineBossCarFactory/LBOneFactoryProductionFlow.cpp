@@ -1,6 +1,7 @@
 #include "LBOneFactoryProductionFlow.h"
 
 #include "Algo/AnyOf.h"
+#include "Misc/Crc.h"
 
 namespace LBOneFactoryProductionFlowPrivate
 {
@@ -423,6 +424,31 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceSimulationClock(
     return true;
 }
 
+bool ULBOneFactoryProductionFlowLibrary::IsDefectSuspected(
+    const FName UnitId, const double FleetWear01)
+{
+    if (UnitId.IsNone() || FleetWear01 <= 0.0)
+    {
+        return false;
+    }
+    const double Clamped = FMath::Clamp(FleetWear01, 0.0, 1.0);
+    const int32 Threshold = FMath::RoundToInt(Clamped * 40.0);
+    const uint32 Hash = FCrc::StrCrc32(*UnitId.ToString());
+    return static_cast<int32>(Hash % 100u) < Threshold;
+}
+
+bool ALBOneFactoryProductionFlowAuthority::PerformPlantMaintenance(
+    FString& OutReason)
+{
+    CurrentState.FleetWear01 = 0.0;
+    ++CurrentState.MaintenanceSerial;
+    ++CurrentState.Revision;
+    OutReason = FString::Printf(
+        TEXT("ONEFACTORY PLANT MAINTENANCE %d COMPLETE; FLEET WEAR RESET"),
+        CurrentState.MaintenanceSerial);
+    return true;
+}
+
 bool ALBOneFactoryProductionFlowAuthority::AddVehicleContract(
     const FLBOneFactoryVehicleContract& Contract, FString& OutReason)
 {
@@ -730,9 +756,17 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
     Unit->Department = TargetDepartment;
     Unit->CurrentStationId = TargetStationId;
     Unit->EvidenceIds.Add(EvidenceId);
-    Unit->QualityState = ULBOneFactoryProductionFlowLibrary::IsQualityGate(NextStage)
-        ? ELBOneFactoryVehicleQualityState::Pending
-        : Unit->QualityState;
+    if (ULBOneFactoryProductionFlowLibrary::IsQualityGate(NextStage))
+    {
+        Unit->QualityState = ELBOneFactoryVehicleQualityState::Pending;
+        Unit->bDefectSuspected =
+            ULBOneFactoryProductionFlowLibrary::IsDefectSuspected(
+                Unit->UnitId, CurrentState.FleetWear01);
+    }
+    // Every completed station cycle wears the fleet a little; maintenance
+    // is the counter-pressure.
+    CurrentState.FleetWear01 =
+        FMath::Min(1.0, CurrentState.FleetWear01 + 0.0004);
     ++Unit->StageRevision;
     if (NextStage == ELBOneFactoryVehicleStage::FinishedVehicle)
     {

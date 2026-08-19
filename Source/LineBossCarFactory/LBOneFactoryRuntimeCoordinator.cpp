@@ -1254,6 +1254,39 @@ bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
     return true;
 }
 
+bool ALBOneFactoryRuntimeCoordinator::PerformPlantMaintenance(
+    FString& OutReason)
+{
+    using namespace LBOneFactoryRuntimeCoordinatorPrivate;
+    constexpr int64 MaintenanceFeePence = 2500000;
+
+    UWorld* World = GetWorld();
+    ULBFactoryManagementSubsystem* Management =
+        World ? World->GetSubsystem<ULBFactoryManagementSubsystem>() : nullptr;
+    FAuthorities Actors;
+    if (!Management || !ResolveAuthorities(*this, Actors, OutReason))
+    {
+        OutReason = TEXT("ONEFACTORY MAINTENANCE REQUIRES MANAGEMENT AND PRODUCTION");
+        return false;
+    }
+    const FLBOneFactoryProductionLedgerState Ledger =
+        Actors.Production->CaptureLedger();
+    if (Ledger.FleetWear01 <= 0.0)
+    {
+        OutReason = TEXT("ONEFACTORY FLEET HAS NO WEAR TO SERVICE");
+        return true;
+    }
+    const FName TransactionId(*FString::Printf(TEXT("OF_MAINT_%d"),
+        Ledger.MaintenanceSerial + 1));
+    if (!Management->TryChargeOperatingCost(TransactionId,
+            FName(TEXT("OF_PLANT_MAINTENANCE")), MaintenanceFeePence))
+    {
+        OutReason = TEXT("ONEFACTORY MAINTENANCE FEE COULD NOT BE CHARGED");
+        return false;
+    }
+    return Actors.Production->PerformPlantMaintenance(OutReason);
+}
+
 bool ALBOneFactoryRuntimeCoordinator::SubmitRuntimeQualityResult(
     const FName UnitId,
     const ELBOneFactoryVehicleQualityState QualityState,

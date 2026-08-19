@@ -57,6 +57,10 @@ public:
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void ReworkOldestQualityHold();
 
+    /** Pays the maintenance fee and resets fleet wear. */
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void ServicePlant();
+
     /** Saves the whole factory - layouts, ledger and mid-cycle runtime state. */
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void SaveFactory();

@@ -148,6 +148,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Runtime")
     bool ReconcileEconomy(FString& OutReason);
 
+    /** Charges the maintenance fee and resets fleet wear; player-facing. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Runtime")
+    bool PerformPlantMaintenance(FString& OutReason);
+
     /** Highest operating-cost hour already charged this session (transient). */
     int64 LastChargedOpexHour = -1;
 

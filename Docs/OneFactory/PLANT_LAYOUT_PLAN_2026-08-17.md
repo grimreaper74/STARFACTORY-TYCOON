@@ -1714,3 +1714,15 @@ cost 5. No state ends the game, matching the accepted decision. Suite
 283: 260 clean + 23 warnings, 0 failed (new test walks
 healthy->warning->emergency, rescue idempotency, expiry and re-offer).
 Next: P5 worn-robot defects, then the P6 HUD strip.
+
+## Gameplay P5 - worn-fleet defects (2026-08-19, autonomous)
+
+Fleet wear accumulates on the ledger with every completed station cycle
+(0.0004 per cycle, capped at 1.0, SaveGame). At quality gates a unit is
+flagged bDefectSuspected by a deterministic unit-id hash scaled by wear
+- zero wear never flags, full wear flags ~4 in 10 - keeping the runtime
+replay-exact. Maintenance is the counter-pressure: the M key (or
+PerformPlantMaintenance) charges a GBP 25k fee through the management
+ledger and resets wear, counted by a maintenance serial. Suite 284: 261
+clean + 23 warnings, 0 failed. Only P6 remains: the HUD strip showing
+cash, clock, contracts, financial state, wear and defect flags.

@@ -82,10 +82,27 @@ void ALBOneFactoryPlayerController::SetupInputComponent()
         &ALBOneFactoryPlayerController::PassOldestQualityHold);
     InputComponent->BindKey(EKeys::R, IE_Pressed, this,
         &ALBOneFactoryPlayerController::ReworkOldestQualityHold);
+    InputComponent->BindKey(EKeys::M, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::ServicePlant);
     InputComponent->BindKey(EKeys::F5, IE_Pressed, this,
         &ALBOneFactoryPlayerController::SaveFactory);
     InputComponent->BindKey(EKeys::F9, IE_Pressed, this,
         &ALBOneFactoryPlayerController::LoadFactory);
+}
+
+void ALBOneFactoryPlayerController::ServicePlant()
+{
+    using namespace LBOneFactoryPlayerPrivate;
+
+    ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(GetWorld());
+    if (!Coordinator)
+    {
+        return;
+    }
+    FString Reason;
+    const bool bOk = Coordinator->PerformPlantMaintenance(Reason);
+    UE_LOG(LogLineBossOneFactoryPlayer, Display,
+        TEXT("LINE_BOSS_PLAYER_MAINTENANCE ok=%d %s"), bOk ? 1 : 0, *Reason);
 }
 
 void ALBOneFactoryPlayerController::CommissionFactory()
