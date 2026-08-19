@@ -1759,3 +1759,33 @@ spine roads in a light structural material. Task 37's remaining items
 are Codex-dependent (trees) or minor (gate-node beacon dressing); the
 site otherwise matches the plan. Open tasks now: #32's frozen-
 presentation debt (parked, owner-gated) and #37's tail.
+
+## Evening handover (2026-08-19 ~16:30, autonomous)
+
+The day in one line: the plant finished its machine list, gained its
+site, chose its look, and became a game.
+
+- Task 30/35 closed: 77 machines authored this session, every named
+  MISSING asset covered, all placed and gated (17 interior batches).
+- Task 36 closed: palette variant D shipped from evidence after the
+  grey-plant materials bug was found and fixed (3,541 slots were
+  rendering engine-grey).
+- Task 34 closed: the entire v1 gameplay loop (pause, clock, economy,
+  contracts, soft failure, defects, HUD band) landed piece by piece,
+  each suite-gated; the factory commissions, runs, pays and saves in
+  the real map. Suite ends the day at 284: 261 clean + 23 warnings,
+  0 failed.
+- Task 37 nearly closed: fence, gates, roads, yards, walls for all four
+  shops (the legacy one-building shell demolished after the owner's
+  catch), gate nodes, substation, solar canopies, road markings.
+  Remaining: trees (Codex, per the two-day brief) and minor gate
+  dressing.
+- Task 32 remains parked on the frozen-presentation re-version debt.
+- Unused Meshy content deleted at the owner's request; the two approved
+  logistics assets' materials renamed clean; commissioning verified
+  after a "Lorry" label tripped the legacy guard and was relabelled.
+
+Tomorrow: Codex's two-day window (vegetation, colourways, transporter,
+ED texture pass per CODEX_BRIEF_2026-08-19.md) with imports and gates
+here as drops arrive; then flagship-contract escalation data and the
+first packaged build of the complete game.
