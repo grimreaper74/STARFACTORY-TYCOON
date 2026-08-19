@@ -1465,3 +1465,26 @@ scissor skid-lift transfers feeding the guyed portal drop lift at the
 east wall. Session: 67 machines authored, 15 placement batches. Task 30
 remainder is paint-only: oven burner house, tack-off tunnel,
 polish/sander deck, carrier turntable.
+
+## Task 30 closed - the named machine list is authored and placed (2026-08-19, autonomous)
+
+Batch 16 gated at 278/0/0: burner houses beside the oven band, the
+tack-off tunnel between the sealer decks and booth 1, polish decks
+flanking the line after the flash-offs, and the carrier turntable at the
+east fold. With batches 14-16 the reconciled Task-30 remainder is fully
+authored, placed and suite-gated: 69 machines authored this session
+across 16 placement batches, every one render-reviewed before commit.
+
+Honesty notes on verification:
+- A full-bay Paint tour frame rendered correctly after batch 16
+  (Batch16Close_01_Paint.png, bay footprint 22000x10000 at distance
+  17309). The weld stop used token 'Weld'; the enum name is 'Body', so
+  that stop fell back to the default camera - tour tokens are
+  Press/Body/Paint/Assembly.
+- The close-up verification tour (Paint@0.55~50, Body@0.55~50) was lost
+  to the documented GPU fragility (DXGI_ERROR_DEVICE_HUNG at the second
+  -game launch of the tick). Close-up captures of batches 14-16 are
+  queued for the next tick as a single fresh -game run.
+
+Task 32 remains open: frozen 119-instance presentation re-version
+(documented debt), MAT_BoothGlazing runtime palette binding.
