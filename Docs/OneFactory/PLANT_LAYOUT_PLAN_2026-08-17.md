@@ -1488,3 +1488,14 @@ Honesty notes on verification:
 
 Task 32 remains open: frozen 119-instance presentation re-version
 (documented debt), MAT_BoothGlazing runtime palette binding.
+
+## Batches 14-16 visually verified (2026-08-19 ~07:25, autonomous)
+
+The deferred close-up tour completed on a fresh -game run (B16V2,
+Paint@0.55~50 and Body@0.55~50, correct enum tokens): the paint plant
+strip carries its new skids west of the ED tanks under the zone
+lighting, and the weld shop shows both runs with the quality/handoff kit
+placed among the cells. No floaters, no scale errors, no missing
+geometry at management height. The previous tick's DXGI_ERROR_DEVICE_HUNG
+did not recur after the cooldown - one -game launch per tick remains the
+safe pattern. Unreal killed straight after the capture per the heat rule.
