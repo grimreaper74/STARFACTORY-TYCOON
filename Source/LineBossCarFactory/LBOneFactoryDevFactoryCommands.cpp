@@ -1282,7 +1282,9 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
         // capture taken before it was correct. Whatever the mechanism, toggling
         // bShowHUD in the same tick as the request costs the shot its camera, so
         // the interface is left alone and captures are trimmed instead.
-        FScreenshotRequest::RequestScreenshot(Name, false, false);
+        // bShowUI=true: UMG/Slate surfaces (the v2 top bar) live in the
+        // Slate composite, not the HUD canvas, and are excluded otherwise.
+        FScreenshotRequest::RequestScreenshot(Name, true, false);
         UE_LOG(LogLineBossOneFactoryDev, Display,
             TEXT("LINE_BOSS_DEV_TOUR_SHOT %s"), *Name);
         bAwaitingCapture = false;

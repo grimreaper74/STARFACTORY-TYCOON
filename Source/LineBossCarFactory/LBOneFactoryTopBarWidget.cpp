@@ -7,6 +7,8 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/Spacer.h"
 #include "Components/TextBlock.h"
+#include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBOneFactoryOperationsSubsystem.h"
@@ -36,10 +38,19 @@ namespace LBOneFactoryTopBarPrivate
     }
 }
 
+TSharedRef<SWidget> ULBOneFactoryTopBarWidget::RebuildWidget()
+{
+    // The tree must exist before Slate takes it; NativeConstruct is too
+    // late for widgets created without a Blueprint asset.
+    BuildTree();
+    return Super::RebuildWidget();
+}
+
 void ULBOneFactoryTopBarWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-    BuildTree();
+    // The widget spans the viewport; only the bar's own controls take hits.
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
     Refresh();
 }
 
@@ -50,11 +61,21 @@ void ULBOneFactoryTopBarWidget::BuildTree()
     {
         return;
     }
+    // Root is a vertical box whose only child auto-sizes: the bar hugs the
+    // top edge and the rest of the screen stays untouched and click-through.
+    UVerticalBox* RootBox = WidgetTree->ConstructWidget<UVerticalBox>(
+        UVerticalBox::StaticClass(), TEXT("TopBarRootBox"));
+    WidgetTree->RootWidget = RootBox;
+
     UBorder* Root = WidgetTree->ConstructWidget<UBorder>(
         UBorder::StaticClass(), TEXT("TopBarRoot"));
     Root->SetBrushColor(BarBackground);
     Root->SetPadding(FMargin(14.0f, 6.0f));
-    WidgetTree->RootWidget = Root;
+    if (UVerticalBoxSlot* BarSlot = RootBox->AddChildToVerticalBox(Root))
+    {
+        BarSlot->SetHorizontalAlignment(HAlign_Fill);
+        BarSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+    }
 
     UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(
         UHorizontalBox::StaticClass(), TEXT("TopBarRow"));

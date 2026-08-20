@@ -990,7 +990,7 @@ void ALBManagementPawn::BeginPlay()
         {
             if (ALBControlRoomHUD* HUD = Cast<ALBControlRoomHUD>(PlayerController->GetHUD()))
             {
-                HUD->OpenFactoryBuild();
+                if (HUD->ShouldAutoOpenBuildCatalogue()) HUD->OpenFactoryBuild();
             }
         }
         if (AHUD* HUD = PlayerController->GetHUD()) HUD->AddPostRenderedActor(this);
@@ -1035,7 +1035,8 @@ void ALBManagementPawn::Tick(float DeltaSeconds)
                 bool bHasLegacyConsole = false;
                 for (TActorIterator<ALBControlRoomOperationsConsole> It(GetWorld()); It; ++It)
                     if (IsValid(*It)) { bHasLegacyConsole = true; break; }
-                if (!bHasLegacyConsole) HUD->OpenFactoryBuild();
+                if (!bHasLegacyConsole && HUD->ShouldAutoOpenBuildCatalogue())
+                    HUD->OpenFactoryBuild();
                 bInitialBuilderHUDReady = true;
                 UE_LOG(LogTemp, Display, TEXT("LINE_BOSS_BUILDER_HUD_READY clean=%d visible=%d hud=%s"),
                     bHasLegacyConsole ? 0 : 1, HUD->bShowHUD ? 1 : 0, *HUD->GetClass()->GetName());

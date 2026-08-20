@@ -8,6 +8,7 @@
 #include "Internationalization/Text.h"
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBManagementRootWidget.h"
 #include "LBOneFactoryTopBarWidget.h"
 
 #define LOCTEXT_NAMESPACE "LineBossProductionHUD"
@@ -328,6 +329,13 @@ void ALBOneFactoryProductionHUD::BeginPlay()
         {
             TopBarWidget->AddToViewport(10);
         }
+    }
+    // The legacy management overview (its own top bar and builder panel)
+    // stays available behind its key but never opens itself over the v2
+    // player HUD.
+    if (ULBManagementRootWidget* Legacy = GetManagementRootWidget())
+    {
+        Legacy->SetVisibility(ESlateVisibility::Collapsed);
     }
 }
 

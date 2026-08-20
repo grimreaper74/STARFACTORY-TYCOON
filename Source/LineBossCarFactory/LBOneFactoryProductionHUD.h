@@ -88,6 +88,13 @@ public:
     virtual void BeginPlay() override;
     virtual void DrawHUD() override;
 
+    /** Build-your-own is deferred; the v2 HUD never boots into the legacy
+        build catalogue. */
+    virtual bool ShouldAutoOpenBuildCatalogue() const override
+    {
+        return false;
+    }
+
     /** Canvas management band kept behind this toggle for debugging; the
         UMG top bar is the player surface. */
     UPROPERTY(EditAnywhere, Category="Line Boss|OneFactory|HUD")

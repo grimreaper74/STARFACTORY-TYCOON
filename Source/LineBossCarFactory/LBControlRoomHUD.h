@@ -110,6 +110,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Cairnwell|Management") void ToggleManagement();
     /** Opens the player-build catalogue directly. This path never requires a control-room console. */
     UFUNCTION(BlueprintCallable, Category = "Cairnwell|Management") void OpenFactoryBuild();
+    /** Clean maps auto-open the build catalogue at boot; HUDs that own their
+        own player surface (the OneFactory v2 HUD) opt out. */
+    virtual bool ShouldAutoOpenBuildCatalogue() const { return true; }
     /** Opens an exact management page for local developer automation and accessible direct navigation. */
     UFUNCTION(BlueprintCallable, Category = "Cairnwell|Management") void OpenManagementPage(ELBManagementPage Page);
     UFUNCTION(BlueprintCallable, Category = "Cairnwell|Management") void CloseManagement();
@@ -221,6 +224,13 @@ public:
     UFUNCTION(BlueprintPure, Category = "Line Boss|Factory Brand") FLinearColor GetDraftSecondaryMachineColour() const { return DraftSecondaryMachineColour; }
     UFUNCTION(BlueprintPure, Category = "Line Boss|Factory Brand") int32 GetSelectedBrandEditorControl() const { return SelectedBrandEditorControl; }
     bool HandleBrandingKey(const FKey& Key);
+
+protected:
+    /** Lets derived HUDs manage the legacy overview's visibility. */
+    ULBManagementRootWidget* GetManagementRootWidget() const
+    {
+        return ManagementRootWidget;
+    }
 
 private:
     UPROPERTY(Transient)
