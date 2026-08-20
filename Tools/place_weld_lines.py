@@ -148,13 +148,13 @@ for slot, x in enumerate(cell_positions()):
     else:
         robot(x - 180.0, NORTH + 300.0, -90.0)
         robot(x + 180.0, NORTH - 300.0, 90.0)
-        spawn("SM_LB_Weld_TipDresser_v001", x + 420.0, NORTH + 240.0, 0.0)
+        spawn("SM_LB_Weld_TipDresser_v001", x + 420.0, NORTH - 170.0, 0.0)
     if slot % 2 == 0:
         spawn("SM_LB_BodyShopSupport_HMIPedestal_v002", x - 300.0,
-              NORTH + 640.0, 180.0)
+              NORTH + 720.0, 180.0)
     else:
-        spawn("SM_LB_BodyShopSupport_ElectricalCabinet_v002", x + 300.0,
-              NORTH + 540.0, 180.0)
+        spawn("SM_LB_BodyShopSupport_ElectricalCabinet_v002", x - 300.0,
+              NORTH + 700.0, 180.0)
 
 # Middle line - framing gates then respot cells then vision gate.
 mid_cells = cell_positions()

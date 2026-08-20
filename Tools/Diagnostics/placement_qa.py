@@ -112,7 +112,11 @@ for bucket in grid.values():
                             # Boards hang across the overhead track;
                             # the cockpit module stages in the assist.
                             ("Sign_LineBoard", "OverheadTrackSegment"),
-                            ("CockpitInstallAssist", "CockpitModule"))
+                            ("CockpitInstallAssist", "CockpitModule"),
+                            # Line boards hang from the roof across
+                            # the tall machines beneath them.
+                            ("Sign_LineBoard", "SprayBoothShell"),
+                            ("Sign_LineBoard", "BodyLowerator"))
             if any((p[0] in pair[0] and p[1] in pair[1]) or
                    (p[1] in pair[0] and p[0] in pair[1])
                    for p in design_pairs):

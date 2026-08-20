@@ -24,7 +24,11 @@ for data in registry.get_assets_by_class(
                 "SM_LB_Assembly_OverheadTrackSegment_v001",
                 "SM_LB_Site_Tree_v001_B",
                 "SM_LB_Paint_PFTrackSegment_v001",
-                "SM_LB_Paint_EDDipTank_v001"):
+                "SM_LB_Paint_EDDipTank_v001",
+                "SM_LB_BodyShop_UnderbodyFixture_v001",
+                "SM_LB_BodyShopSupport_ElectricalCabinet_v002",
+                "SM_LB_BodyShopSupport_HMIPedestal_v002",
+                "SM_LB_Weld_TipDresser_v001"):
         found[name] = str(data.package_name)
 
 for name, pkg in sorted(found.items()):
