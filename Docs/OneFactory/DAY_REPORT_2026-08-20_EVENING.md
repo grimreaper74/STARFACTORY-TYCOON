@@ -80,9 +80,22 @@ landed four slices this afternoon, each suite-gated (288 green):
 - **Bottleneck highlight**: while units are in flow, the lowest-
   capacity department's card carries a 'bottleneck' tag on its rate
   line, so the constraint reads at a glance.
+- **Orders dropdown**: the contract cell in the top bar now clicks
+  open a list of every order - progress, time left and state, with
+  emergencies tinted.
 
-Still scoped for v2.1's next wave: order queue panel, day summary
-and a settings/UI-scale surface.
+Still scoped for v2.1's next wave: day summary at day rollover and
+a settings/UI-scale surface.
+
+## Codex batch status
+
+Codex's work-day batch (colourways, capsules, textures for my
+geometry, LODs, decals) is present in his workspace but his own QA
+manifest reports FAIL, so nothing was integrated tonight - a partial
+pull would repeat this morning's mesh-refresh race. One note for
+integration day: his LOD list still includes the weld-robot shared
+base package that corrupted the contract mesh this morning; that
+one gets skipped, the rest audited normally.
 
 ## Build
 
