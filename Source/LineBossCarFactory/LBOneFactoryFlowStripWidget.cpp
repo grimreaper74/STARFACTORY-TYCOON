@@ -448,6 +448,27 @@ void ULBOneFactoryFlowStripWidget::Refresh()
         {
             CardRate[Index]->SetText(FText::GetEmpty());
         }
+
+        // v2.1 tooltip: the card's numbers in one hover, plus the click
+        // affordance - stations, live units, measured vs capacity rate
+        // and mean cycle progress.
+        CardButtons[Index]->SetToolTipText(FText::Format(
+            LOCTEXT("CardTooltip",
+                "{0}\n{1} {1}|plural(one=station,other=stations){2}\n"
+                "{3} {3}|plural(one=unit,other=units) in this group\n"
+                "Measured {4}/hr of {5}/hr capacity\n"
+                "Mean cycle progress {6}%\n"
+                "Click to open the detail panel"),
+            FText::FromString(Group.Label.ToUpper()),
+            FText::AsNumber(Group.StationCount),
+            Group.bHasQualityGate
+                ? LOCTEXT("CardTooltipGate", " (includes a quality gate)")
+                : FText::GetEmpty(),
+            FText::AsNumber(Group.UnitCount),
+            FText::AsNumber(Group.MeasuredRatePerHour, &RateFormat),
+            FText::AsNumber(Group.ThroughputPerHour, &RateFormat),
+            FText::AsNumber(FMath::RoundToInt(
+                FMath::Clamp(Group.MeanProgress, 0.0f, 1.0f) * 100.0f))));
         CardRate[Index]->SetColorAndOpacity(FSlateColor(Steel));
     }
 }
