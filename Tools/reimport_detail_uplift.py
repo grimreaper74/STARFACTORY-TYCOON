@@ -38,7 +38,19 @@ ALIASES = {
         "SM_LB_Assembly_SkilletDeckPlate_v001",
 }
 
+# Optional include list: when C:/Temp/lb_uplift_include.txt exists, only
+# the folders named in it are processed. A blanket refresh re-imports
+# pieces that other pipelines own (it corrupted the robot J2 once); the
+# include list keeps repair runs scoped to what actually changed.
+INCLUDE = None
+include_path = "C:/Temp/lb_uplift_include.txt"
+if os.path.isfile(include_path):
+    with open(include_path) as handle:
+        INCLUDE = {line.strip() for line in handle if line.strip()}
+
 for folder in sorted(os.listdir(SRC)):
+    if INCLUDE is not None and folder not in INCLUDE:
+        continue
     fbx = os.path.join(SRC, folder, folder + ".fbx")
     if not os.path.isfile(fbx):
         REPORT["skipped"].append(folder + " (no fbx)")

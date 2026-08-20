@@ -92,6 +92,16 @@ for bucket in grid.values():
             pair = (a["mesh"], b["mesh"])
             if any(any(st in m for st in straddlers) for m in pair)                     and any(any(c in m for c in carriers) for m in pair):
                 continue
+            # By-design pairs: cabinets stand under the pipe bridge's
+            # open portal (the AABB includes the void), and the tractor
+            # couples onto the trailer kingpin.
+            design_pairs = (("PipeBridge_Module", "RectifierCabinet"),
+                            ("Transporter_v001_Trailer",
+                             "Transporter_v001_Tractor"))
+            if any((p[0] in pair[0] and p[1] in pair[1]) or
+                   (p[1] in pair[0] and p[0] in pair[1])
+                   for p in design_pairs):
+                continue
             volume = overlap_volume(a, b)
             # Ignore glancing contact under 0.15 cubic metres.
             if volume > 150000.0:
