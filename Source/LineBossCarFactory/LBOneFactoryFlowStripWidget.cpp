@@ -219,12 +219,38 @@ void ULBOneFactoryFlowStripWidget::EnsureCards(const int32 Count)
         TEXT("OnCard2Clicked"), TEXT("OnCard3Clicked"),
         TEXT("OnCard4Clicked"), TEXT("OnCard5Clicked"),
         TEXT("OnCard6Clicked") };
+    if (CardButtons.Num() == 0)
+    {
+        // Rounded faces per the target mockup; the selected state carries
+        // an emerald outline instead of a fill change.
+        auto MakeFace = [](const FLinearColor& Outline, const float Width)
+        {
+            FSlateBrush Brush;
+            Brush.DrawAs = ESlateBrushDrawType::RoundedBox;
+            Brush.TintColor = FLinearColor::White;
+            Brush.OutlineSettings = FSlateBrushOutlineSettings(
+                FVector4(4.0f, 4.0f, 4.0f, 4.0f), Outline, Width);
+            return Brush;
+        };
+        const FSlateBrush Face = MakeFace(
+            FLinearColor(0.10f, 0.12f, 0.13f, 1.0f), 1.0f);
+        CardStyle.SetNormal(Face);
+        CardStyle.SetHovered(MakeFace(
+            FLinearColor(0.16f, 0.35f, 0.29f, 1.0f), 1.0f));
+        CardStyle.SetPressed(Face);
+        const FSlateBrush Selected = MakeFace(
+            FLinearColor(0.15f, 0.75f, 0.55f, 1.0f), 1.6f);
+        SelectedCardStyle.SetNormal(Selected);
+        SelectedCardStyle.SetHovered(Selected);
+        SelectedCardStyle.SetPressed(Selected);
+    }
     const int32 Wanted = FMath::Min(Count, MaxCards);
     for (int32 Index = CardButtons.Num(); Index < Wanted; ++Index)
     {
         UButton* Button = WidgetTree->ConstructWidget<UButton>(
             UButton::StaticClass(),
             FName(*FString::Printf(TEXT("FlowCard%d"), Index)));
+        Button->SetStyle(CardStyle);
         Button->SetBackgroundColor(CardIdle);
         FScriptDelegate Delegate;
         Delegate.BindUFunction(this, Handlers[Index]);
@@ -241,14 +267,29 @@ void ULBOneFactoryFlowStripWidget::EnsureCards(const int32 Count)
             BodySlot->SetVerticalAlignment(VAlign_Fill);
         }
 
+        // Title row: name left, the station count big on the right
+        // (target mockup layout).
+        UHorizontalBox* TitleRow =
+            WidgetTree->ConstructWidget<UHorizontalBox>(
+                UHorizontalBox::StaticClass(),
+                FName(*FString::Printf(TEXT("FlowCard%dTitle"), Index)));
+        Body->AddChildToVerticalBox(TitleRow);
         UTextBlock* Name = MakeText(WidgetTree,
             FName(*FString::Printf(TEXT("FlowCard%dName"), Index)),
             FText::GetEmpty(), 13.0f, Warm);
-        Body->AddChildToVerticalBox(Name);
-        UTextBlock* Meta = MakeText(WidgetTree,
-            FName(*FString::Printf(TEXT("FlowCard%dMeta"), Index)),
-            FText::GetEmpty(), 10.0f, Steel);
-        Body->AddChildToVerticalBox(Meta);
+        TitleRow->AddChildToHorizontalBox(Name);
+        USpacer* TitleGap = WidgetTree->ConstructWidget<USpacer>(
+            USpacer::StaticClass(),
+            FName(*FString::Printf(TEXT("FlowCard%dTitleGap"), Index)));
+        if (UHorizontalBoxSlot* TitleGapSlot =
+                TitleRow->AddChildToHorizontalBox(TitleGap))
+        {
+            TitleGapSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+        }
+        UTextBlock* CountText = MakeText(WidgetTree,
+            FName(*FString::Printf(TEXT("FlowCard%dCount"), Index)),
+            FText::GetEmpty(), 15.0f, Steel);
+        TitleRow->AddChildToHorizontalBox(CountText);
 
         UProgressBar* Progress = WidgetTree->ConstructWidget<UProgressBar>(
             UProgressBar::StaticClass(),
@@ -260,17 +301,22 @@ void ULBOneFactoryFlowStripWidget::EnsureCards(const int32 Count)
             ProgressSlot->SetPadding(FMargin(0.0f, 5.0f, 0.0f, 3.0f));
         }
 
-        // Status and rate stack; sharing a row crowds the narrow cards.
+        // Status then the rate, both centred (target mockup layout).
         UTextBlock* Status = MakeText(WidgetTree,
             FName(*FString::Printf(TEXT("FlowCard%dStatus"), Index)),
             FText::GetEmpty(), 11.0f, Warm);
-        Body->AddChildToVerticalBox(Status);
+        if (UVerticalBoxSlot* StatusSlot =
+                Body->AddChildToVerticalBox(Status))
+        {
+            StatusSlot->SetHorizontalAlignment(HAlign_Center);
+        }
         UTextBlock* Rate = MakeText(WidgetTree,
             FName(*FString::Printf(TEXT("FlowCard%dRate"), Index)),
             FText::GetEmpty(), 10.0f, Steel);
         if (UVerticalBoxSlot* RateSlot = Body->AddChildToVerticalBox(Rate))
         {
             RateSlot->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
+            RateSlot->SetHorizontalAlignment(HAlign_Center);
         }
 
         if (UHorizontalBoxSlot* CardSlot = CardsRow->AddChildToHorizontalBox(
@@ -284,7 +330,7 @@ void ULBOneFactoryFlowStripWidget::EnsureCards(const int32 Count)
 
         CardButtons.Add(Button);
         CardNames.Add(Name);
-        CardMeta.Add(Meta);
+        CardCounts.Add(CountText);
         CardProgress.Add(Progress);
         CardStatus.Add(Status);
         CardRate.Add(Rate);
@@ -361,16 +407,14 @@ void ULBOneFactoryFlowStripWidget::Refresh()
         const FLBOneFactoryProcessGroup& Group = Groups[Index];
         const FLBOneFactoryStatusToken Token = TokenForGroup(Group.State);
 
+        const bool bSelected = DetailPanel
+            && DetailPanel->GetShownGroupIndex() == Index;
+        CardButtons[Index]->SetStyle(
+            bSelected ? SelectedCardStyle : CardStyle);
         CardButtons[Index]->SetBackgroundColor(
             Group.UnitCount > 0 ? CardActive : CardIdle);
         CardNames[Index]->SetText(FText::FromString(Group.Label));
-        CardMeta[Index]->SetText(FText::Format(
-            LOCTEXT("CardMeta",
-                "{0} {0}|plural(one=station,other=stations){1}"),
-            FText::AsNumber(Group.StationCount),
-            Group.bHasQualityGate
-                ? LOCTEXT("CardQualityGate", "  ·  QA gate")
-                : FText::GetEmpty()));
+        CardCounts[Index]->SetText(FText::AsNumber(Group.StationCount));
 
         CardProgress[Index]->SetPercent(
             FMath::Clamp(Group.MeanProgress, 0.0f, 1.0f));

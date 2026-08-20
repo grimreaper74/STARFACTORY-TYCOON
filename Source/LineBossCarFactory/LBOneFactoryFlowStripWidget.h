@@ -3,6 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
 #include "LBOneFactoryProductionHUD.h"
+#include "Styling/SlateTypes.h"
 #include "LBOneFactoryFlowStripWidget.generated.h"
 
 class UBorder;
@@ -68,10 +69,15 @@ private:
     UPROPERTY() TObjectPtr<UTextBlock> SummaryText;
     UPROPERTY() TArray<TObjectPtr<UButton>> CardButtons;
     UPROPERTY() TArray<TObjectPtr<UTextBlock>> CardNames;
-    UPROPERTY() TArray<TObjectPtr<UTextBlock>> CardMeta;
+    UPROPERTY() TArray<TObjectPtr<UTextBlock>> CardCounts;
     UPROPERTY() TArray<TObjectPtr<UProgressBar>> CardProgress;
     UPROPERTY() TArray<TObjectPtr<UTextBlock>> CardStatus;
     UPROPERTY() TArray<TObjectPtr<UTextBlock>> CardRate;
+
+    /** Rounded card faces; the selected card carries the emerald outline
+        (target mockup, 2026-08-20). */
+    FButtonStyle CardStyle;
+    FButtonStyle SelectedCardStyle;
 
     /** Last collected groups, kept so clicks know where to fly. */
     TArray<FLBOneFactoryProcessGroup> CachedGroups;
