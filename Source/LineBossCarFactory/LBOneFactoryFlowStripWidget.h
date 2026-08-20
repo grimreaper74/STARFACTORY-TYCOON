@@ -63,6 +63,7 @@ private:
     UFUNCTION() void OnCard6Clicked();
 
     UPROPERTY() TObjectPtr<UBorder> StripBorder;
+    UPROPERTY() TObjectPtr<UBorder> HintBorder;
     UPROPERTY() TObjectPtr<UHorizontalBox> CardsRow;
     UPROPERTY() TObjectPtr<UTextBlock> SummaryText;
     UPROPERTY() TArray<TObjectPtr<UButton>> CardButtons;

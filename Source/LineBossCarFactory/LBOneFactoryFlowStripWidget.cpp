@@ -136,6 +136,37 @@ void ULBOneFactoryFlowStripWidget::BuildTree()
         FillSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
     }
 
+    // Onboarding hint: one quiet line naming the controls, shown for the
+    // first sim-minutes of a session and never again after.
+    UHorizontalBox* HintRow = WidgetTree->ConstructWidget<UHorizontalBox>(
+        UHorizontalBox::StaticClass(), TEXT("FlowHintRow"));
+    RootBox->AddChildToVerticalBox(HintRow);
+    USpacer* HintLeft = WidgetTree->ConstructWidget<USpacer>(
+        USpacer::StaticClass(), TEXT("FlowHintLeft"));
+    if (UHorizontalBoxSlot* HintLeftSlot =
+            HintRow->AddChildToHorizontalBox(HintLeft))
+    {
+        HintLeftSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    }
+    HintBorder = WidgetTree->ConstructWidget<UBorder>(
+        UBorder::StaticClass(), TEXT("FlowHint"));
+    HintBorder->SetBrushColor(StripBackground);
+    HintBorder->SetPadding(FMargin(14.0f, 5.0f));
+    HintBorder->SetVisibility(ESlateVisibility::Collapsed);
+    HintBorder->SetContent(MakeText(WidgetTree, TEXT("FlowHintText"),
+        LOCTEXT("OnboardingHint",
+            "Space pauses  ·  1/2/3 set the speed  ·  click a card or "
+            "press F1-F4 to visit a shop  ·  N places an order"),
+        11.0f, Steel));
+    HintRow->AddChildToHorizontalBox(HintBorder);
+    USpacer* HintRight = WidgetTree->ConstructWidget<USpacer>(
+        USpacer::StaticClass(), TEXT("FlowHintRight"));
+    if (UHorizontalBoxSlot* HintRightSlot =
+            HintRow->AddChildToHorizontalBox(HintRight))
+    {
+        HintRightSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    }
+
     StripBorder = WidgetTree->ConstructWidget<UBorder>(
         UBorder::StaticClass(), TEXT("FlowStrip"));
     StripBorder->SetBrushColor(StripBackground);
@@ -294,6 +325,19 @@ void ULBOneFactoryFlowStripWidget::Refresh()
     if (StripBorder)
     {
         StripBorder->SetVisibility(ESlateVisibility::Visible);
+    }
+
+    // The control hint accompanies the first quarter sim-hour, then leaves
+    // for good; it is a whisper, not a tutorial.
+    if (HintBorder)
+    {
+        FLBOneFactoryManagementBand Band;
+        const bool bShowHint =
+            ALBOneFactoryProductionHUD::CollectManagement(GetWorld(), Band)
+            && Band.SimClockSeconds < 900.0;
+        HintBorder->SetVisibility(bShowHint
+            ? ESlateVisibility::HitTestInvisible
+            : ESlateVisibility::Collapsed);
     }
 
     if (SummaryText)
