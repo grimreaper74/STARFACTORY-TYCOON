@@ -319,8 +319,8 @@ void ALBOneFactoryProductionHUD::DrawHUD()
         if (Font)
         {
             DrawText(LOCTEXT("BannerNoFactory",
-                    "MOORCROSS WORKS  -  no commissioned factory yet.  "
-                    "Run LB.OneFactory.BuildWholeFactory").ToString(),
+                    "MOORCROSS WORKS  -  the plant is not commissioned "
+                    "yet. Press B to commission it.").ToString(),
                 Warm, 20.0f * Scale, 13.0f * Scale, Font, Scale, false);
         }
         return;

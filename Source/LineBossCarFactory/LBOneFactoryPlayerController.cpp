@@ -7,9 +7,11 @@
 #include "LBOneFactoryDevFactoryCommands.h"
 #include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
+#include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
+#include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactorySaveSubsystem.h"
 #include "LBOneFactoryWIPPresentationActor.h"
@@ -88,6 +90,37 @@ void ALBOneFactoryPlayerController::SetupInputComponent()
         &ALBOneFactoryPlayerController::SaveFactory);
     InputComponent->BindKey(EKeys::F9, IE_Pressed, this,
         &ALBOneFactoryPlayerController::LoadFactory);
+    InputComponent->BindKey(EKeys::F1, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::FocusPressShop);
+    InputComponent->BindKey(EKeys::F2, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::FocusBodyShop);
+    InputComponent->BindKey(EKeys::F3, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::FocusPaintShop);
+    InputComponent->BindKey(EKeys::F4, IE_Pressed, this,
+        &ALBOneFactoryPlayerController::FocusAssemblyShop);
+}
+
+void ALBOneFactoryPlayerController::FocusShopGroup(const int32 GroupIndex)
+{
+    const ALBOneFactoryProductionHUD* ProductionHUD =
+        Cast<ALBOneFactoryProductionHUD>(GetHUD());
+    ULBOneFactoryFlowStripWidget* Strip =
+        ProductionHUD ? ProductionHUD->GetFlowStripWidget() : nullptr;
+    if (Strip)
+    {
+        // Same path as a card click: frame the shop, open its panel.
+        Strip->SimulateCardClick(GroupIndex);
+    }
+}
+
+// Group indices follow the seven-card strip: press 1, body 3, paint 4,
+// assembly 5 (0/2/6 are intake, stillages and dispatch).
+void ALBOneFactoryPlayerController::FocusPressShop() { FocusShopGroup(1); }
+void ALBOneFactoryPlayerController::FocusBodyShop() { FocusShopGroup(3); }
+void ALBOneFactoryPlayerController::FocusPaintShop() { FocusShopGroup(4); }
+void ALBOneFactoryPlayerController::FocusAssemblyShop()
+{
+    FocusShopGroup(5);
 }
 
 void ALBOneFactoryPlayerController::ServicePlant()

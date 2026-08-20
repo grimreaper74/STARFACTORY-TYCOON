@@ -61,6 +61,16 @@ public:
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void ServicePlant();
 
+    /** F1-F4 frame a shop and open its detail panel (locked grammar). */
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void FocusPressShop();
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void FocusBodyShop();
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void FocusPaintShop();
+    UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
+    void FocusAssemblyShop();
+
     /** Saves the whole factory - layouts, ledger and mid-cycle runtime state. */
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void SaveFactory();
@@ -72,6 +82,7 @@ public:
 private:
     void ApplyTimeScale(float TimeScale);
     bool ResolveOldestHold(FName& OutUnitId, FString& OutReason) const;
+    void FocusShopGroup(int32 GroupIndex);
 
     /**
      * Brings the site presentation up around a commissioned or restored
