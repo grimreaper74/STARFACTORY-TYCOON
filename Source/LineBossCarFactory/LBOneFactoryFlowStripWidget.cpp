@@ -156,7 +156,8 @@ void ULBOneFactoryFlowStripWidget::BuildTree()
     HintBorder->SetContent(MakeText(WidgetTree, TEXT("FlowHintText"),
         LOCTEXT("OnboardingHint",
             "Space pauses  ·  1/2/3 set the speed  ·  click a card or "
-            "press F1-F4 to visit a shop  ·  N places an order"),
+            "press F1-F4 to visit a shop  ·  N places an order  ·  "
+            "Shift+F5-F8 saves a view, F5-F8 returns"),
         11.0f, Steel));
     HintRow->AddChildToHorizontalBox(HintBorder);
     USpacer* HintRight = WidgetTree->ConstructWidget<USpacer>(

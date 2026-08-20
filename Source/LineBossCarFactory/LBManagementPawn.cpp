@@ -1148,7 +1148,61 @@ void ALBManagementPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction(TEXT("LB_PlacementCancel"), IE_Pressed, this, &ALBManagementPawn::CancelPressTrainPlacement);
     PlayerInputComponent->BindAction(TEXT("LB_PlacementRotate"), IE_Pressed, this, &ALBManagementPawn::RotatePressTrainPlacement);
     PlayerInputComponent->BindAction(TEXT("LB_ToggleSeat"), IE_Pressed, this, &ALBManagementPawn::UseContextualBuilderShortcut);
+
+    // v2.1 camera bookmarks - direct key chords so no input-ini change is
+    // needed: Shift+F5..F8 store the current framing, F5..F8 recall it.
+    const FKey Keys[4] = { EKeys::F5, EKeys::F6, EKeys::F7, EKeys::F8 };
+    typedef void (ALBManagementPawn::*FBookmarkHandler)();
+    const FBookmarkHandler Stores[4] = {
+        &ALBManagementPawn::StoreBookmark0, &ALBManagementPawn::StoreBookmark1,
+        &ALBManagementPawn::StoreBookmark2, &ALBManagementPawn::StoreBookmark3 };
+    const FBookmarkHandler Recalls[4] = {
+        &ALBManagementPawn::RecallBookmark0, &ALBManagementPawn::RecallBookmark1,
+        &ALBManagementPawn::RecallBookmark2, &ALBManagementPawn::RecallBookmark3 };
+    for (int32 Index = 0; Index < 4; ++Index)
+    {
+        FInputKeyBinding StoreBinding(
+            FInputChord(Keys[Index], true, false, false, false), IE_Pressed);
+        StoreBinding.KeyDelegate.BindDelegate(this, Stores[Index]);
+        PlayerInputComponent->KeyBindings.Add(StoreBinding);
+        FInputKeyBinding RecallBinding(FInputChord(Keys[Index]), IE_Pressed);
+        RecallBinding.KeyDelegate.BindDelegate(this, Recalls[Index]);
+        PlayerInputComponent->KeyBindings.Add(RecallBinding);
+    }
 }
+
+void ALBManagementPawn::StoreCameraBookmark(const int32 SlotIndex)
+{
+    if (SlotIndex < 0 || SlotIndex >= 4)
+    {
+        return;
+    }
+    FLBCameraBookmark& Bookmark = CameraBookmarks[SlotIndex];
+    Bookmark.Location = GetActorLocation();
+    Bookmark.YawDegrees = GetActorRotation().Yaw;
+    Bookmark.ZoomDistanceCm = GetManagementZoomDistance();
+    Bookmark.bSet = true;
+}
+
+void ALBManagementPawn::RecallCameraBookmark(const int32 SlotIndex)
+{
+    if (SlotIndex < 0 || SlotIndex >= 4 || !CameraBookmarks[SlotIndex].bSet)
+    {
+        return;
+    }
+    const FLBCameraBookmark& Bookmark = CameraBookmarks[SlotIndex];
+    SetAutomationCamera(Bookmark.Location, Bookmark.YawDegrees,
+        Bookmark.ZoomDistanceCm);
+}
+
+void ALBManagementPawn::StoreBookmark0() { StoreCameraBookmark(0); }
+void ALBManagementPawn::StoreBookmark1() { StoreCameraBookmark(1); }
+void ALBManagementPawn::StoreBookmark2() { StoreCameraBookmark(2); }
+void ALBManagementPawn::StoreBookmark3() { StoreCameraBookmark(3); }
+void ALBManagementPawn::RecallBookmark0() { RecallCameraBookmark(0); }
+void ALBManagementPawn::RecallBookmark1() { RecallCameraBookmark(1); }
+void ALBManagementPawn::RecallBookmark2() { RecallCameraBookmark(2); }
+void ALBManagementPawn::RecallBookmark3() { RecallCameraBookmark(3); }
 
 void ALBManagementPawn::UseContextualBuilderShortcut()
 {

@@ -356,6 +356,23 @@ private:
     bool bPlacementFramingSideLocked = false;
     bool bPlacementCardOnLeft = false;
 
+    /** v2.1 camera bookmarks: F5-F8 recall a stored framing, Shift+F5-F8
+        store the current one. Session-scoped, management view only. */
+    struct FLBCameraBookmark
+    {
+        FVector Location = FVector::ZeroVector;
+        float YawDegrees = 0.0f;
+        float ZoomDistanceCm = 11000.0f;
+        bool bSet = false;
+    };
+    FLBCameraBookmark CameraBookmarks[4];
+    void StoreCameraBookmark(int32 SlotIndex);
+    void RecallCameraBookmark(int32 SlotIndex);
+    void StoreBookmark0(); void StoreBookmark1();
+    void StoreBookmark2(); void StoreBookmark3();
+    void RecallBookmark0(); void RecallBookmark1();
+    void RecallBookmark2(); void RecallBookmark3();
+
     void MoveForward(float Value);
     void MoveRight(float Value);
     void Rotate(float Value);
