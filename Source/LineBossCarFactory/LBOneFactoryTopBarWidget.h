@@ -50,6 +50,15 @@ private:
     UPROPERTY() TObjectPtr<class UBorder> OrdersBorder;
     UPROPERTY() TArray<TObjectPtr<UTextBlock>> OrderTexts;
     bool bOrdersOpen = false;
+
+    /** v2.1 day summary: at each sim-day rollover a transient banner
+        reports yesterday's dispatches and cash movement. */
+    UPROPERTY() TObjectPtr<class UBorder> SummaryBorder;
+    UPROPERTY() TObjectPtr<UTextBlock> SummaryText;
+    int32 LastSimDay = -1;
+    int64 DayStartCashPence = 0;
+    int32 DayStartDispatched = 0;
+    float SummarySecondsLeft = 0.0f;
     UPROPERTY() TObjectPtr<UTextBlock> CashText;
     UPROPERTY() TObjectPtr<UTextBlock> ClockText;
     UPROPERTY() TObjectPtr<UTextBlock> RepWearText;

@@ -205,6 +205,25 @@ void ULBOneFactoryTopBarWidget::BuildTree()
         PanelSlot->SetHorizontalAlignment(HAlign_Right);
         PanelSlot->SetPadding(FMargin(0.0f, 2.0f, 300.0f, 0.0f));
     }
+
+    // v2.1 day-summary banner, centred under the bar, transient.
+    SummaryBorder = WidgetTree->ConstructWidget<UBorder>(
+        UBorder::StaticClass(), TEXT("TopBarSummaryPanel"));
+    SummaryBorder->SetBrushColor(FLinearColor(0.031f, 0.037f, 0.042f,
+        0.94f));
+    SummaryBorder->SetPadding(FMargin(14.0f, 6.0f));
+    SummaryBorder->SetVisibility(ESlateVisibility::Collapsed);
+    SummaryText = MakeText(WidgetTree, TEXT("TopBarSummaryText"),
+        FText::GetEmpty(), 12.0f, Warm);
+    SummaryBorder->SetContent(SummaryText);
+    if (UVerticalBoxSlot* SummarySlot = Cast<UVerticalBoxSlot>(
+            WidgetTree->RootWidget
+                ? Cast<UVerticalBox>(WidgetTree->RootWidget)
+                    ->AddChildToVerticalBox(SummaryBorder) : nullptr))
+    {
+        SummarySlot->SetHorizontalAlignment(HAlign_Center);
+        SummarySlot->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
+    }
 }
 
 void ULBOneFactoryTopBarWidget::OnOrdersClicked()
@@ -232,6 +251,14 @@ void ULBOneFactoryTopBarWidget::NativeTick(const FGeometry& MyGeometry,
     {
         RefreshAccumulator = 0.0f;
         Refresh();
+    }
+    if (SummarySecondsLeft > 0.0f)
+    {
+        SummarySecondsLeft -= InDeltaTime;
+        if (SummarySecondsLeft <= 0.0f && SummaryBorder)
+        {
+            SummaryBorder->SetVisibility(ESlateVisibility::Collapsed);
+        }
     }
 }
 
@@ -323,6 +350,48 @@ void ULBOneFactoryTopBarWidget::Refresh()
             FText::AsNumber(Band.CashPence / 100))
         : LOCTEXT("TopBarCashPending", "CASH -"));
     CashText->SetColorAndOpacity(FSlateColor(FinanceToken.Colour));
+
+    if (Band.bHasCash)
+    {
+        const int32 SimDay = 1 + FMath::FloorToInt32(
+            static_cast<float>(Band.SimClockSeconds / 86400.0));
+        if (LastSimDay == -1 || SimDay != LastSimDay)
+        {
+            TArray<FLBOneFactoryProcessGroup> Groups;
+            TArray<FLBOneFactoryLiveAlert> Alerts;
+            int32 UnitsLive = 0;
+            int32 Dispatched = 0;
+            const bool bHaveDispatch =
+                ALBOneFactoryProductionHUD::CollectGroups(GetWorld(),
+                    Groups, UnitsLive, Dispatched, Alerts);
+            if (LastSimDay != -1 && SummaryText && SummaryBorder)
+            {
+                const int64 CashDeltaPence =
+                    Band.CashPence - DayStartCashPence;
+                SummaryText->SetText(FText::Format(
+                    LOCTEXT("TopBarDaySummary",
+                        "DAY {0}  ·  yesterday: {1} dispatched  ·  "
+                        "cash {2}£{3}"),
+                    FText::AsNumber(SimDay),
+                    FText::AsNumber(bHaveDispatch
+                        ? FMath::Max(0, Dispatched - DayStartDispatched)
+                        : 0),
+                    CashDeltaPence < 0
+                        ? LOCTEXT("TopBarSummaryMinus", "-")
+                        : LOCTEXT("TopBarSummaryPlus", "+"),
+                    FText::AsNumber(FMath::Abs(CashDeltaPence) / 100)));
+                SummaryBorder->SetVisibility(
+                    ESlateVisibility::HitTestInvisible);
+                SummarySecondsLeft = 20.0f;
+            }
+            LastSimDay = SimDay;
+            DayStartCashPence = Band.CashPence;
+            if (bHaveDispatch)
+            {
+                DayStartDispatched = Dispatched;
+            }
+        }
+    }
 
     const int32 TotalMinutes =
         FMath::FloorToInt32(Band.SimClockSeconds / 60.0);
