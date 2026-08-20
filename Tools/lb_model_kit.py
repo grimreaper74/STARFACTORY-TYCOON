@@ -230,3 +230,56 @@ def preview(asset, folder, distance=None, height=None):
     scene.render.filepath = os.path.join(OUT_ROOT, folder, asset + "_preview.png")
     bpy.ops.render.render(write_still=True)
     print("PREVIEW", asset)
+
+
+TIRE = ("MAT_TireBlack", (0.015, 0.016, 0.018, 1.0))
+GLASS = ("MAT_CabGlass", (0.04, 0.10, 0.10, 1.0))
+
+
+def glass_material():
+    """Dark glazed finish; call after reset()."""
+    mat = material(*GLASS)
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf:
+        bsdf.inputs["Roughness"].default_value = 0.08
+        bsdf.inputs["Metallic"].default_value = 0.4
+    return GLASS
+
+
+def wheel(x, y, radius=0.525, width=0.30, twin=False):
+    """Road wheel: tyre, dished hub, bolt circle, hub cap.
+
+    Proportion is what separates a vehicle from a toy, so the radius
+    default matches a real 22.5-inch commercial wheel and the hub sits
+    dished inside the tyre rather than flush.
+    """
+    offsets = (-width * 0.57, width * 0.57) if twin else (0.0,)
+    for off in offsets:
+        cyl("Tire", radius, width, (x, y + off, radius), TIRE,
+            axis="Y", verts=36)
+        side = 1.0 if y > 0 else -1.0
+        face_y = y + off + side * width * 0.53
+        cyl("Hub", radius * 0.57, 0.05, (x, face_y, radius), STEEL,
+            axis="Y", verts=28)
+        cyl("HubCap", radius * 0.17, 0.08,
+            (x, face_y + side * 0.02, radius), CHARCOAL, axis="Y",
+            verts=16)
+        for bolt in range(8):
+            angle = bolt * math.tau / 8.0
+            cyl("Bolt", 0.024, 0.04,
+                (x + math.cos(angle) * radius * 0.36,
+                 face_y + side * 0.015,
+                 radius + math.sin(angle) * radius * 0.36),
+                CHARCOAL, axis="Y", verts=8)
+
+
+def arc_shell(prefix, centre, radius, width, mat, start_deg=30.0,
+              end_deg=150.0, segments=5, thickness=0.045):
+    """A segmented arc shell - mudguards, hose guides, tank saddles."""
+    step = (end_deg - start_deg) / max(segments - 1, 1)
+    for seg in range(segments):
+        a = math.radians(start_deg + seg * step)
+        box(prefix, (radius * 0.52, width, thickness),
+            (centre[0] - math.cos(a) * radius, centre[1],
+             centre[2] + math.sin(a) * radius), mat,
+            rot=(0.0, a - math.pi / 2, 0.0))
