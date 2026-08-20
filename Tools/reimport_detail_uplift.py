@@ -28,12 +28,23 @@ for data in registry.get_assets(filt):
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 REPORT = {"updated": {}, "skipped": []}
 
+# Codex drops occasionally drift from the original names; map them back.
+ALIASES = {
+    "LB_WeldRobot_SharedBase_LOD0_v001": "SM_LB_WeldRobot_SharedBase_v001",
+    "LB_WeldTool_MIG_LOD0_v001": "SM_LB_WeldTool_MIG_v001",
+    "LB_WeldTool_PanelPick_LOD0_v001": "SM_LB_WeldTool_PanelPick_v001",
+    "LB_WeldTool_SpotGun_LOD0_v001": "SM_LB_WeldTool_SpotGun_v001",
+    "SM_LB_Conveyor_SkilletDeckPlate_v001":
+        "SM_LB_Assembly_SkilletDeckPlate_v001",
+}
+
 for folder in sorted(os.listdir(SRC)):
     fbx = os.path.join(SRC, folder, folder + ".fbx")
     if not os.path.isfile(fbx):
         REPORT["skipped"].append(folder + " (no fbx)")
         continue
-    package = PACKAGES.get(folder)
+    target = ALIASES.get(folder, folder)
+    package = PACKAGES.get(target)
     if package is None:
         REPORT["skipped"].append(folder + " (no existing asset)")
         continue
@@ -61,7 +72,7 @@ for folder in sorted(os.listdir(SRC)):
     task.set_editor_property("filename", fbx)
     task.set_editor_property("destination_path",
                              package.rsplit("/", 1)[0])
-    task.set_editor_property("destination_name", folder)
+    task.set_editor_property("destination_name", target)
     task.set_editor_property("automated", True)
     task.set_editor_property("replace_existing", True)
     task.set_editor_property("save", False)
