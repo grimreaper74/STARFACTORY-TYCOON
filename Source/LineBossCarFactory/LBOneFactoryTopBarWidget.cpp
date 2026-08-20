@@ -105,7 +105,16 @@ void ULBOneFactoryTopBarWidget::BuildTree()
 
     ContractText = MakeText(WidgetTree, TEXT("Contract"),
         LOCTEXT("TopBarNoContract", "No open contract"), 13.0f, Warm);
-    AddCell(ContractText);
+    OrdersButton = WidgetTree->ConstructWidget<UButton>(
+        UButton::StaticClass(), TEXT("TopBarOrders"));
+    OrdersButton->SetBackgroundColor(FLinearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    OrdersButton->AddChild(ContractText);
+    FScriptDelegate OrdersDelegate;
+    OrdersDelegate.BindUFunction(this, TEXT("OnOrdersClicked"));
+    OrdersButton->OnClicked.Add(OrdersDelegate);
+    OrdersButton->SetToolTipText(
+        LOCTEXT("TopBarOrdersTip", "Click to list every order"));
+    AddCell(OrdersButton);
     CashText = MakeText(WidgetTree, TEXT("Cash"),
         LOCTEXT("TopBarCashPending", "CASH -"), 13.0f, Warm);
     AddCell(CashText);
@@ -161,6 +170,57 @@ void ULBOneFactoryTopBarWidget::BuildTree()
     AlertDelegate.BindUFunction(this, TEXT("OnAlertsClicked"));
     AlertButton->OnClicked.Add(AlertDelegate);
     AddCell(AlertButton, 6.0f);
+
+    // v2.1 orders dropdown under the bar, opened from the contract cell.
+    OrdersBorder = WidgetTree->ConstructWidget<UBorder>(
+        UBorder::StaticClass(), TEXT("TopBarOrdersPanel"));
+    OrdersBorder->SetBrushColor(FLinearColor(0.031f, 0.037f, 0.042f,
+        0.94f));
+    OrdersBorder->SetPadding(FMargin(10.0f, 8.0f));
+    OrdersBorder->SetVisibility(ESlateVisibility::Collapsed);
+    UVerticalBox* OrdersBox = WidgetTree->ConstructWidget<UVerticalBox>(
+        UVerticalBox::StaticClass(), TEXT("TopBarOrdersBox"));
+    OrdersBox->AddChildToVerticalBox(MakeText(WidgetTree,
+        TEXT("TopBarOrdersTitle"),
+        LOCTEXT("TopBarOrdersTitle", "ORDERS"), 10.0f, Steel));
+    for (int32 Index = 0; Index < 6; ++Index)
+    {
+        UTextBlock* Line = MakeText(WidgetTree,
+            FName(*FString::Printf(TEXT("TopBarOrder%d"), Index)),
+            FText::GetEmpty(), 11.0f, Warm);
+        Line->SetVisibility(ESlateVisibility::Collapsed);
+        if (UVerticalBoxSlot* LineSlot =
+            OrdersBox->AddChildToVerticalBox(Line))
+        {
+            LineSlot->SetPadding(FMargin(0.0f, 2.0f, 0.0f, 0.0f));
+        }
+        OrderTexts.Add(Line);
+    }
+    OrdersBorder->SetContent(OrdersBox);
+    if (UVerticalBoxSlot* PanelSlot = Cast<UVerticalBoxSlot>(
+            WidgetTree->RootWidget
+                ? Cast<UVerticalBox>(WidgetTree->RootWidget)
+                    ->AddChildToVerticalBox(OrdersBorder) : nullptr))
+    {
+        PanelSlot->SetHorizontalAlignment(HAlign_Right);
+        PanelSlot->SetPadding(FMargin(0.0f, 2.0f, 300.0f, 0.0f));
+    }
+}
+
+void ULBOneFactoryTopBarWidget::OnOrdersClicked()
+{
+    bOrdersOpen = !bOrdersOpen;
+    if (OrdersBorder)
+    {
+        OrdersBorder->SetVisibility(bOrdersOpen
+            ? ESlateVisibility::HitTestInvisible
+            : ESlateVisibility::Collapsed);
+    }
+    if (bOrdersOpen && AlertCenter)
+    {
+        AlertCenter->HideInbox();
+    }
+    Refresh();
 }
 
 void ULBOneFactoryTopBarWidget::NativeTick(const FGeometry& MyGeometry,
@@ -210,6 +270,45 @@ void ULBOneFactoryTopBarWidget::Refresh()
     {
         ContractText->SetText(
             LOCTEXT("TopBarNoContract", "No open contract"));
+    }
+
+    if (bOrdersOpen)
+    {
+        for (int32 Index = 0; Index < OrderTexts.Num(); ++Index)
+        {
+            const bool bUsed = Band.Contracts.IsValidIndex(Index);
+            OrderTexts[Index]->SetVisibility(bUsed
+                ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+            if (!bUsed)
+            {
+                continue;
+            }
+            const FLBOneFactoryContractRow& Row = Band.Contracts[Index];
+            const int32 RowMinutes = FMath::Max(0,
+                FMath::FloorToInt32(Row.SecondsRemaining / 60.0));
+            const FText StateLabel =
+                Row.State == ELBOneFactoryContractState::Complete
+                    ? LOCTEXT("TopBarOrderComplete", "complete")
+                : Row.State == ELBOneFactoryContractState::Expired
+                    ? LOCTEXT("TopBarOrderExpired", "expired")
+                : Row.bEmergency
+                    ? LOCTEXT("TopBarOrderUrgent", "URGENT")
+                    : LOCTEXT("TopBarOrderOpen", "open");
+            OrderTexts[Index]->SetText(FText::Format(
+                LOCTEXT("TopBarOrderRow",
+                    "{0}  ·  {1}/{2}  ·  {3}h {4}m  ·  {5}"),
+                FText::FromString(Row.ContractId),
+                FText::AsNumber(Row.DispatchedCount),
+                FText::AsNumber(Row.Quantity),
+                FText::AsNumber(RowMinutes / 60),
+                FText::AsNumber(RowMinutes % 60), StateLabel));
+            OrderTexts[Index]->SetColorAndOpacity(FSlateColor(
+                Row.bEmergency
+                    ? ULBOneFactoryUITokens::TokenForStatus(
+                        ELBOneFactoryStationStatus::Blocked).Colour
+                    : Row.State == ELBOneFactoryContractState::Open
+                        ? Warm : Steel));
+        }
     }
 
     const FLBOneFactoryStatusToken FinanceToken =

@@ -36,6 +36,7 @@ private:
     void Refresh();
     bool SetSimulationRate(float Rate);
 
+    UFUNCTION() void OnOrdersClicked();
     UFUNCTION() void OnPauseClicked();
     UFUNCTION() void OnSpeed1Clicked();
     UFUNCTION() void OnSpeed2Clicked();
@@ -43,6 +44,12 @@ private:
     UFUNCTION() void OnAlertsClicked();
 
     UPROPERTY() TObjectPtr<UTextBlock> ContractText;
+    /** v2.1 orders dropdown: the contract cell is a button; clicking it
+        lists every contract with progress, time and state. */
+    UPROPERTY() TObjectPtr<UButton> OrdersButton;
+    UPROPERTY() TObjectPtr<class UBorder> OrdersBorder;
+    UPROPERTY() TArray<TObjectPtr<UTextBlock>> OrderTexts;
+    bool bOrdersOpen = false;
     UPROPERTY() TObjectPtr<UTextBlock> CashText;
     UPROPERTY() TObjectPtr<UTextBlock> ClockText;
     UPROPERTY() TObjectPtr<UTextBlock> RepWearText;
