@@ -35,6 +35,17 @@ struct FLBOneFactoryProcessGroup
     float ThroughputPerHour = 0.0f;
     bool bHasQualityGate = false;
     ELBOneFactoryGroupState State = ELBOneFactoryGroupState::Idle;
+
+    /** World-space extent of the group's stations, so a card click can
+        frame them with the management camera. */
+    FBox WorldBounds = FBox(ForceInit);
+
+    /** First member station's department; measured rates key off it. */
+    ELBOneFactoryDepartment Department = ELBOneFactoryDepartment::Press;
+    bool bHasDepartment = false;
+
+    /** Completions actually recorded in the trailing sim hour (cars/hour). */
+    float MeasuredRatePerHour = 0.0f;
 };
 
 /** One contract row for the HUD panel. */
@@ -100,6 +111,12 @@ public:
     UPROPERTY(EditAnywhere, Category="Line Boss|OneFactory|HUD")
     bool bUseCanvasManagementBand = false;
 
+    /** Dev tooling reaches the strip to simulate card clicks. */
+    class ULBOneFactoryFlowStripWidget* GetFlowStripWidget() const
+    {
+        return FlowStripWidget;
+    }
+
     /** Builds the seven coarse groups from the live route and ledger. */
     static bool CollectGroups(const UWorld* World,
         TArray<FLBOneFactoryProcessGroup>& OutGroups, int32& OutUnitsLive,
@@ -122,4 +139,6 @@ private:
         const FLBOneFactoryManagementBand& Band);
 
     UPROPERTY() TObjectPtr<class ULBOneFactoryTopBarWidget> TopBarWidget;
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryFlowStripWidget> FlowStripWidget;
 };

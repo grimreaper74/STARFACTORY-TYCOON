@@ -9,6 +9,7 @@
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBManagementRootWidget.h"
+#include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryTopBarWidget.h"
 
 #define LOCTEXT_NAMESPACE "LineBossProductionHUD"
@@ -186,8 +187,15 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
             {
                 continue;
             }
-            ++OutGroups[Index].StationCount;
-            OutGroups[Index].bHasQualityGate |= Step.bQualityGate;
+            FLBOneFactoryProcessGroup& Group = OutGroups[Index];
+            ++Group.StationCount;
+            Group.bHasQualityGate |= Step.bQualityGate;
+            Group.WorldBounds += Step.WorldTransform.GetLocation();
+            if (!Group.bHasDepartment)
+            {
+                Group.Department = Step.Department;
+                Group.bHasDepartment = true;
+            }
             SlowestCycle[Index] =
                 FMath::Max(SlowestCycle[Index], Step.NominalCycleSeconds);
         }
@@ -268,6 +276,12 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
         OutGroups[Index].MeanProgress = OutGroups[Index].UnitCount > 0
             ? ProgressTotal[Index] / OutGroups[Index].UnitCount
             : 0.0f;
+        if (OutGroups[Index].bHasDepartment)
+        {
+            OutGroups[Index].MeasuredRatePerHour =
+                Coordinator->MeasuredRatePerHour(OutGroups[Index].Department,
+                    Ledger.SimClockSeconds);
+        }
     }
     return true;
 }
@@ -304,12 +318,14 @@ void ALBOneFactoryProductionHUD::DrawHUD()
         return;
     }
 
-    DrawFlowStrip(Width, Height, Scale, Groups, UnitsLive, Dispatched,
-        Alerts.Num());
     DrawAlertToast(Width, Height, Scale, Alerts);
 
+    // The UMG flow strip is the player surface; the Canvas strip and band
+    // stay behind this toggle for debugging.
     if (bUseCanvasManagementBand)
     {
+        DrawFlowStrip(Width, Height, Scale, Groups, UnitsLive, Dispatched,
+            Alerts.Num());
         FLBOneFactoryManagementBand Band;
         if (CollectManagement(GetWorld(), Band))
         {
@@ -328,6 +344,12 @@ void ALBOneFactoryProductionHUD::BeginPlay()
         if (TopBarWidget)
         {
             TopBarWidget->AddToViewport(10);
+        }
+        FlowStripWidget = CreateWidget<ULBOneFactoryFlowStripWidget>(
+            Controller, ULBOneFactoryFlowStripWidget::StaticClass());
+        if (FlowStripWidget)
+        {
+            FlowStripWidget->AddToViewport(9);
         }
     }
     // The legacy management overview (its own top bar and builder panel)

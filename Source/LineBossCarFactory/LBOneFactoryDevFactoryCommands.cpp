@@ -28,6 +28,7 @@
 #include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
+#include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
@@ -1972,6 +1973,58 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryTour(
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_TOUR started label=%s settle=%d"),
                 *Label, Settle);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryUIClick(
+    TEXT("LB.OneFactory.UIClick"),
+    TEXT("Usage: LB.OneFactory.UIClick [cardIndex=0] [shot=UIClick]. Waits "
+         "for the flow strip to populate, simulates a click on the given "
+         "card, then captures a screenshot with the UI composited."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            const int32 CardIndex = Args.Num() > 0
+                ? FCString::Atoi(*Args[0]) : 0;
+            const FString Shot = Args.Num() > 1 ? Args[1] : TEXT("UIClick");
+            // First delay lets the widget's periodic refresh cache the
+            // groups; the second lets the camera pose and the strip settle
+            // before the capture.
+            FTimerHandle ClickTimer;
+            World->GetTimerManager().SetTimer(ClickTimer,
+                FTimerDelegate::CreateLambda([World, CardIndex, Shot]()
+                {
+                    ULBOneFactoryFlowStripWidget* Strip = nullptr;
+                    for (FConstPlayerControllerIterator It =
+                        World->GetPlayerControllerIterator(); It; ++It)
+                    {
+                        if (const ALBOneFactoryProductionHUD* HUD =
+                            Cast<ALBOneFactoryProductionHUD>(
+                                It->Get()->GetHUD()))
+                        {
+                            Strip = HUD->GetFlowStripWidget();
+                            break;
+                        }
+                    }
+                    const bool bClicked =
+                        Strip && Strip->SimulateCardClick(CardIndex);
+                    UE_LOG(LogLineBossOneFactoryDev, Display,
+                        TEXT("LINE_BOSS_UI_CLICK card=%d ok=%d"), CardIndex,
+                        bClicked ? 1 : 0);
+                    FTimerHandle ShotTimer;
+                    World->GetTimerManager().SetTimer(ShotTimer,
+                        FTimerDelegate::CreateLambda([Shot]()
+                        {
+                            FScreenshotRequest::RequestScreenshot(Shot, true,
+                                false);
+                            UE_LOG(LogLineBossOneFactoryDev, Display,
+                                TEXT("LINE_BOSS_UI_CLICK_COMPLETE shot=%s"),
+                                *Shot);
+                        }), 2.0f, false);
+                }), 3.0f, false);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryBodyWeld(
