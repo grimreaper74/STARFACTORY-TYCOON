@@ -426,7 +426,7 @@ void ALBOneFactoryProductionHUD::BeginPlay()
             Grade->bUnbound = true;
             Grade->Tags.AddUnique(GradeTag);
             Grade->Settings.bOverride_AutoExposureBias = true;
-            Grade->Settings.AutoExposureBias = -0.7f;
+            Grade->Settings.AutoExposureBias = -0.4f;
             Grade->Settings.bOverride_BloomIntensity = true;
             Grade->Settings.BloomIntensity = 0.2f;
         }

@@ -247,11 +247,18 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
                 NewObject<UPointLightComponent>(this);
             Fixture->SetupAttachment(SceneRoot);
             Fixture->SetMobility(EComponentMobility::Movable);
-            // Gentle per-lamp pools: the bay grid carries the shop's light
-            // level, these only make the authored fixtures read as lit.
-            Fixture->SetIntensity(6000.0f);
-            Fixture->SetAttenuationRadius(1600.0f);
-            Fixture->SetSourceRadius(50.0f);
+            // Lights-out plant: robots inspect by machine vision, so there
+            // are no human task pools (owner, 2026-08-20). These fixtures
+            // are the shop's only light, and with the eye adapted the
+            // pool-to-floor contrast is set purely by the falloff curve -
+            // intensity changes cancel out. A flat exponent falloff gives
+            // the even wash the fiction wants; inverse-square always
+            // paints a hot circle under the lamp.
+            Fixture->bUseInverseSquaredFalloff = false;
+            Fixture->LightFalloffExponent = 1.2f;
+            Fixture->SetIntensity(4.0f);
+            Fixture->SetAttenuationRadius(2800.0f);
+            Fixture->SetSourceRadius(150.0f);
             Fixture->SetLightColor(FLinearColor(1.0f, 0.894f, 0.804f));
             Fixture->SetCastShadows(false);
             Fixture->SetWorldLocation(Instance.GetLocation()
