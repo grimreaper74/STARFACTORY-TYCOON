@@ -368,6 +368,25 @@ void ULBOneFactoryFlowStripWidget::Refresh()
         return;
     }
     CachedGroups = Groups;
+
+    // v2.1 bottleneck highlight: with units in flow, the department with
+    // the lowest authored capacity is the structural constraint - its
+    // card says so rather than making the player compare rate lines.
+    int32 BottleneckIndex = INDEX_NONE;
+    if (UnitsLive > 0)
+    {
+        float LowestCapacity = TNumericLimits<float>::Max();
+        for (int32 Index = 0; Index < Groups.Num(); ++Index)
+        {
+            const FLBOneFactoryProcessGroup& Group = Groups[Index];
+            if (Group.bHasDepartment && Group.ThroughputPerHour > 0.0f
+                && Group.ThroughputPerHour < LowestCapacity)
+            {
+                LowestCapacity = Group.ThroughputPerHour;
+                BottleneckIndex = Index;
+            }
+        }
+    }
     EnsureCards(Groups.Num());
     if (StripBorder)
     {
@@ -434,10 +453,16 @@ void ULBOneFactoryFlowStripWidget::Refresh()
         // bottleneck capacity everywhere, so expectations stay anchored.
         if (GroupShowsMeasuredRate(Index) && Group.bHasDepartment)
         {
-            CardRate[Index]->SetText(FText::Format(
-                LOCTEXT("CardRateMeasured", "{0}/hr  ·  cap {1}/hr"),
-                FText::AsNumber(Group.MeasuredRatePerHour, &RateFormat),
-                FText::AsNumber(Group.ThroughputPerHour, &RateFormat)));
+            CardRate[Index]->SetText(Index == BottleneckIndex
+                ? FText::Format(
+                    LOCTEXT("CardRateBottleneck",
+                        "{0}/hr  ·  cap {1}/hr  ·  bottleneck"),
+                    FText::AsNumber(Group.MeasuredRatePerHour, &RateFormat),
+                    FText::AsNumber(Group.ThroughputPerHour, &RateFormat))
+                : FText::Format(
+                    LOCTEXT("CardRateMeasured", "{0}/hr  ·  cap {1}/hr"),
+                    FText::AsNumber(Group.MeasuredRatePerHour, &RateFormat),
+                    FText::AsNumber(Group.ThroughputPerHour, &RateFormat)));
         }
         else if (Group.ThroughputPerHour > 0.0f)
         {
