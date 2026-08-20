@@ -124,9 +124,12 @@ for line_y in (TRIM, MARRIAGE, FINAL1, FINAL2):
         spawn("SkilletCarrier", x, line_y, 0.0)
         x += 320.0
 for line_y in (TRIM, MARRIAGE):
-    x = X_WEST
+    x = X_WEST + 700.0
     while x <= X_EAST:
-        spawn("OverheadTrackSegment", x, line_y, 0.0, 520.0)
+        # The body lowerator at the marriage line head reaches the track
+        # height; leave a gap over it.
+        if not (line_y == MARRIAGE and 4900.0 <= x <= 5700.0):
+            spawn("OverheadTrackSegment", x, line_y, 0.0, 520.0)
         x += 300.0
 
 # TRIM line.
@@ -203,14 +206,16 @@ for slot, x in enumerate(final2_cells):
     phase = slot % 5
     if slot == last:
         spawn("EOLInspectionArch", x, FINAL2, 0.0)
-    elif slot == last - 1:
-        spawn("FlashGantry", x, FINAL2, 0.0)
     elif slot == last - 2:
-        spawn("WaterLeakTestBooth", x, FINAL2, 0.0)
-    elif slot == last - 3:
-        spawn("RollsDynoBrakeTestBed", x, FINAL2 + 300.0, 0.0)
+        spawn("FlashGantry", x, FINAL2, 0.0)
     elif slot == last - 4:
+        spawn("WaterLeakTestBooth", x, FINAL2, 0.0)
+    elif slot == last - 6:
+        spawn("RollsDynoBrakeTestBed", x, FINAL2 + 300.0, 0.0)
+    elif slot == last - 8:
         spawn("WheelAlignmentBed", x, FINAL2 + 300.0, 0.0)
+    elif slot > last - 8:
+        pass
     elif phase == 0:
         spawn("FluidFillMachine", x, FINAL2 + 320.0, 180.0)
     elif phase == 1:
