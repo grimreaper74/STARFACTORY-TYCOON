@@ -4,9 +4,11 @@
 #include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "EngineUtils.h"
+#include "Blueprint/UserWidget.h"
 #include "Internationalization/Text.h"
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryTopBarWidget.h"
 
 #define LOCTEXT_NAMESPACE "LineBossProductionHUD"
 
@@ -305,10 +307,27 @@ void ALBOneFactoryProductionHUD::DrawHUD()
         Alerts.Num());
     DrawAlertToast(Width, Height, Scale, Alerts);
 
-    FLBOneFactoryManagementBand Band;
-    if (CollectManagement(GetWorld(), Band))
+    if (bUseCanvasManagementBand)
     {
-        DrawManagementBand(Width, Scale, Band);
+        FLBOneFactoryManagementBand Band;
+        if (CollectManagement(GetWorld(), Band))
+        {
+            DrawManagementBand(Width, Scale, Band);
+        }
+    }
+}
+
+void ALBOneFactoryProductionHUD::BeginPlay()
+{
+    Super::BeginPlay();
+    if (APlayerController* Controller = GetOwningPlayerController())
+    {
+        TopBarWidget = CreateWidget<ULBOneFactoryTopBarWidget>(Controller,
+            ULBOneFactoryTopBarWidget::StaticClass());
+        if (TopBarWidget)
+        {
+            TopBarWidget->AddToViewport(10);
+        }
     }
 }
 

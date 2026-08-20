@@ -85,7 +85,13 @@ class LINEBOSSCARFACTORY_API ALBOneFactoryProductionHUD :
 public:
     ALBOneFactoryProductionHUD();
 
+    virtual void BeginPlay() override;
     virtual void DrawHUD() override;
+
+    /** Canvas management band kept behind this toggle for debugging; the
+        UMG top bar is the player surface. */
+    UPROPERTY(EditAnywhere, Category="Line Boss|OneFactory|HUD")
+    bool bUseCanvasManagementBand = false;
 
     /** Builds the seven coarse groups from the live route and ledger. */
     static bool CollectGroups(const UWorld* World,
@@ -107,4 +113,6 @@ private:
         const TArray<FString>& Alerts);
     void DrawManagementBand(float Width, float Scale,
         const FLBOneFactoryManagementBand& Band);
+
+    UPROPERTY() TObjectPtr<class ULBOneFactoryTopBarWidget> TopBarWidget;
 };
