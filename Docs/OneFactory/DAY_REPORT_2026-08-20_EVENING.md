@@ -64,13 +64,22 @@ management camera: dense, coherent, nothing floating or clipped.
 
 ## 3. UI
 
-UI v2 (the mockup-matched HUD) shipped last night and is in
-tonight's build. The v2.1 pass with genre ideas (production graphs,
-order queue, bottleneck highlighting, camera bookmarks, day summary,
-tooltips, notification log) is scoped as the next work item - it is
-C++ against the locked grammar, so I am starting it fresh rather
-than at the end of a long day, and it will be the first thing done
-tomorrow.
+UI v2 (the mockup-matched HUD) shipped last night. The v2.1 pass
+landed four slices this afternoon, each suite-gated (288 green):
+
+- **Production graphs**: clicking a shop card now shows a trailing
+  rate sparkline in the detail panel, tinted with the group's status
+  colour - "how has this line been doing" at a glance.
+- **Alert memory**: the inbox gains a RECENT section; resolved
+  alerts no longer vanish silently but stay listed with the sim
+  clock they cleared at (D2 14:05).
+- **Card tooltips**: hovering a flow card shows stations, live
+  units, measured vs capacity rate and cycle progress in full.
+- **Camera bookmarks**: Shift+F5-F8 saves a view, F5-F8 jumps back
+  to it - the onboarding hint teaches it.
+
+Still scoped for v2.1's next wave: order queue panel, bottleneck
+highlighting, day summary and a settings/UI-scale surface.
 
 ## Build
 
