@@ -12,6 +12,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "LBManagementPawn.h"
+#include "LBOneFactoryDetailPanelWidget.h"
 #include "LBOneFactoryUITypes.h"
 
 #define LOCTEXT_NAMESPACE "LineBossOneFactoryUI"
@@ -382,8 +383,13 @@ bool ULBOneFactoryFlowStripWidget::FocusGroup(const int32 Index)
     // jump never spins the world underneath them.
     const float Zoom = FMath::Clamp(
         FMath::Max(Size.X, Size.Y) * 1.25f + 3000.0f, 4200.0f, 45000.0f);
-    return Pawn->SetAutomationCamera(Bounds.GetCenter(),
+    const bool bFramed = Pawn->SetAutomationCamera(Bounds.GetCenter(),
         Pawn->GetActorRotation().Yaw, Zoom);
+    if (bFramed && DetailPanel)
+    {
+        DetailPanel->ShowGroup(Index);
+    }
+    return bFramed;
 }
 
 void ULBOneFactoryFlowStripWidget::OnCard0Clicked() { FocusGroup(0); }

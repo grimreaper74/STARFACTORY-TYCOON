@@ -141,4 +141,6 @@ private:
     UPROPERTY() TObjectPtr<class ULBOneFactoryTopBarWidget> TopBarWidget;
     UPROPERTY()
     TObjectPtr<class ULBOneFactoryFlowStripWidget> FlowStripWidget;
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryDetailPanelWidget> DetailPanelWidget;
 };

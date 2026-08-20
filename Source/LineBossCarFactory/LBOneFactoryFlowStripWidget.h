@@ -33,6 +33,12 @@ public:
         use it to prove the click-to-frame flow end to end. */
     bool SimulateCardClick(const int32 Index) { return FocusGroup(Index); }
 
+    /** A card click also opens the detail panel, when one is wired. */
+    void SetDetailPanel(class ULBOneFactoryDetailPanelWidget* Panel)
+    {
+        DetailPanel = Panel;
+    }
+
 private:
     /** The route is seven coarse groups; the handler table matches. */
     static constexpr int32 MaxCards = 7;
@@ -62,6 +68,9 @@ private:
 
     /** Last collected groups, kept so clicks know where to fly. */
     TArray<FLBOneFactoryProcessGroup> CachedGroups;
+
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryDetailPanelWidget> DetailPanel;
 
     float RefreshAccumulator = 0.0f;
 };

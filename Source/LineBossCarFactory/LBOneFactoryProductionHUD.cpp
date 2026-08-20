@@ -9,6 +9,7 @@
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBManagementRootWidget.h"
+#include "LBOneFactoryDetailPanelWidget.h"
 #include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryTopBarWidget.h"
 
@@ -350,6 +351,16 @@ void ALBOneFactoryProductionHUD::BeginPlay()
         if (FlowStripWidget)
         {
             FlowStripWidget->AddToViewport(9);
+        }
+        DetailPanelWidget = CreateWidget<ULBOneFactoryDetailPanelWidget>(
+            Controller, ULBOneFactoryDetailPanelWidget::StaticClass());
+        if (DetailPanelWidget)
+        {
+            DetailPanelWidget->AddToViewport(11);
+            if (FlowStripWidget)
+            {
+                FlowStripWidget->SetDetailPanel(DetailPanelWidget);
+            }
         }
     }
     // The legacy management overview (its own top bar and builder panel)
