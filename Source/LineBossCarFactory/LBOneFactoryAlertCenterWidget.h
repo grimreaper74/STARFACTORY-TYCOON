@@ -77,6 +77,28 @@ private:
     /** Group index per visible row, so clicks know where to go. */
     TArray<int32> RowGroupIndices;
 
+    /** One resolved alert kept for the inbox's RECENT section: live
+        alerts vanish the moment their condition clears, so the inbox
+        remembers what cleared and when (v2.1). */
+    struct FLBOneFactoryAlertHistoryEntry
+    {
+        FText Message;
+        ELBOneFactoryStationStatus Status =
+            ELBOneFactoryStationStatus::Working;
+        double SimClockSeconds = 0.0;
+    };
+    static constexpr int32 MaxHistory = 6;
+
+    /** Diffs the live alert list against the previous refresh and moves
+        anything that disappeared into History with the sim clock. */
+    void CaptureHistory(bool bCollected,
+        const TArray<FLBOneFactoryLiveAlert>& Alerts);
+
+    TArray<FLBOneFactoryAlertHistoryEntry> History;
+    TArray<FLBOneFactoryLiveAlert> PrevAlerts;
+    UPROPERTY() TObjectPtr<UTextBlock> HistoryHeader;
+    UPROPERTY() TArray<TObjectPtr<UTextBlock>> HistoryTexts;
+
     bool bInboxOpen = false;
     float RefreshAccumulator = 0.0f;
 };

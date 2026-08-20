@@ -188,6 +188,68 @@ void ULBOneFactoryAlertCenterWidget::BuildTree()
         RowButtons.Add(Row);
         RowTexts.Add(Text);
     }
+
+    HistoryHeader = MakeText(WidgetTree, TEXT("AlertHistoryHeader"),
+        NSLOCTEXT("LBOneFactoryUI", "AlertHistoryHeader",
+            "RECENT - RESOLVED"), 10.0f, Steel);
+    HistoryHeader->SetVisibility(ESlateVisibility::Collapsed);
+    if (UVerticalBoxSlot* HeaderSlot =
+        InboxBody->AddChildToVerticalBox(HistoryHeader))
+    {
+        HeaderSlot->SetPadding(FMargin(0.0f, 10.0f, 0.0f, 2.0f));
+    }
+    for (int32 Index = 0; Index < MaxHistory; ++Index)
+    {
+        UTextBlock* Line = MakeText(WidgetTree,
+            FName(*FString::Printf(TEXT("AlertHistory%d"), Index)),
+            FText::GetEmpty(), 10.0f, Steel);
+        Line->SetAutoWrapText(true);
+        Line->SetVisibility(ESlateVisibility::Collapsed);
+        if (UVerticalBoxSlot* LineSlot =
+            InboxBody->AddChildToVerticalBox(Line))
+        {
+            LineSlot->SetPadding(FMargin(2.0f, 2.0f, 0.0f, 0.0f));
+        }
+        HistoryTexts.Add(Line);
+    }
+}
+
+void ULBOneFactoryAlertCenterWidget::CaptureHistory(const bool bCollected,
+    const TArray<FLBOneFactoryLiveAlert>& Alerts)
+{
+    if (!bCollected)
+    {
+        return;
+    }
+    double SimClock = 0.0;
+    FLBOneFactoryManagementBand Band;
+    if (ALBOneFactoryProductionHUD::CollectManagement(GetWorld(), Band))
+    {
+        SimClock = Band.SimClockSeconds;
+    }
+    for (const FLBOneFactoryLiveAlert& Previous : PrevAlerts)
+    {
+        const bool bStillLive = Alerts.ContainsByPredicate(
+            [&Previous](const FLBOneFactoryLiveAlert& Alert)
+            {
+                return Alert.GroupIndex == Previous.GroupIndex
+                    && Alert.Message.EqualTo(Previous.Message);
+            });
+        if (bStillLive)
+        {
+            continue;
+        }
+        FLBOneFactoryAlertHistoryEntry Entry;
+        Entry.Message = Previous.Message;
+        Entry.Status = Previous.Status;
+        Entry.SimClockSeconds = SimClock;
+        History.Insert(Entry, 0);
+    }
+    if (History.Num() > MaxHistory)
+    {
+        History.SetNum(MaxHistory);
+    }
+    PrevAlerts = Alerts;
 }
 
 void ULBOneFactoryAlertCenterWidget::NativeTick(const FGeometry& MyGeometry,
@@ -237,6 +299,7 @@ void ULBOneFactoryAlertCenterWidget::Refresh()
     int32 Dispatched = 0;
     const bool bCollected = ALBOneFactoryProductionHUD::CollectGroups(
         GetWorld(), Groups, UnitsLive, Dispatched, Alerts);
+    CaptureHistory(bCollected, Alerts);
 
     // Toast: the first toast-severity condition, only while the inbox is
     // closed. Stateful - it vanishes the moment the condition resolves.
@@ -301,6 +364,35 @@ void ULBOneFactoryAlertCenterWidget::Refresh()
         RowTexts[Index]->SetColorAndOpacity(FSlateColor(
             ULBOneFactoryUITokens::TokenForStatus(Alert.Status).Colour));
         RowGroupIndices.Add(Alert.GroupIndex);
+    }
+
+    if (HistoryHeader)
+    {
+        HistoryHeader->SetVisibility(History.Num() > 0
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    }
+    for (int32 Index = 0; Index < HistoryTexts.Num(); ++Index)
+    {
+        const bool bUsed = History.IsValidIndex(Index);
+        HistoryTexts[Index]->SetVisibility(bUsed
+            ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        if (!bUsed)
+        {
+            continue;
+        }
+        const FLBOneFactoryAlertHistoryEntry& Entry = History[Index];
+        const int32 Day = 1 + static_cast<int32>(
+            Entry.SimClockSeconds / 86400.0);
+        const int32 Hour = static_cast<int32>(
+            FMath::Fmod(Entry.SimClockSeconds, 86400.0) / 3600.0);
+        const int32 Minute = static_cast<int32>(
+            FMath::Fmod(Entry.SimClockSeconds, 3600.0) / 60.0);
+        FNumberFormattingOptions TwoDigits;
+        TwoDigits.MinimumIntegralDigits = 2;
+        HistoryTexts[Index]->SetText(FText::Format(
+            LOCTEXT("InboxHistoryRow", "D{0} {1}:{2}  {3}"),
+            FText::AsNumber(Day), FText::AsNumber(Hour),
+            FText::AsNumber(Minute, &TwoDigits), Entry.Message));
     }
 }
 
