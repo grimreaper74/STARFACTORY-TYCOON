@@ -134,6 +134,11 @@ height_issues = []
 for entry in actors:
     base = entry["min"][2]
     low = entry["mesh"].lower()
+    # The composed robot's arm joints extend below their shared floor
+    # pivot when posed; like the overlap check, height semantics do
+    # not apply to them.
+    if "bodyshoprobotnative" in low:
+        continue
     if base < -8.0 and "rollsdyno" not in low:
         # The rolls dyno is recessed into its pit by design.
         height_issues.append({"label": entry["label"],
