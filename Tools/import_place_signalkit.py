@@ -173,7 +173,7 @@ NORTH, MIDDLE, SOUTH = -5192.0, -9099.0, -13067.0
 for line_y in (NORTH, MIDDLE, SOUTH):
     # Status pillars at both heads of every line.
     for x, side in ((X_WEST - 500.0, 1), (X_EAST + 500.0, -1)):
-        spawn("SM_LB_Site_StatusPillar_v001", x, line_y + 300.0 * side, 0.0)
+        spawn("SM_LB_Site_StatusPillar_v001", x, line_y + 380.0 * side, 0.0)
     # Hanging line boards every ~13 m.
     x = X_WEST + 1200.0
     while x <= X_EAST:

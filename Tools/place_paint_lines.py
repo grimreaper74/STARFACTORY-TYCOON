@@ -140,7 +140,7 @@ for x in (14500.0, 15400.0, 17300.0, 18200.0):
     robot(x - 220.0, PROC_Y + 200.0, -90.0)
     robot(x + 220.0, PROC_Y - 200.0, 90.0)
     spawn("SM_LB_Paint_AHU_Module_v001", x - 150.0, BOH_Y, 0.0)
-    spawn("SM_LB_Paint_AirExtractionModule_v001", x + 260.0, BOH_Y, 0.0)
+    spawn("SM_LB_Paint_AirExtractionModule_v001", x + 330.0, BOH_Y, 0.0)
 # Flash-off between booths dropped: the shells leave no true gap;
 # the two existing flash-offs after the block carry that stage.
 

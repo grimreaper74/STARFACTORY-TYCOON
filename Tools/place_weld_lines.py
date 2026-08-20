@@ -148,13 +148,13 @@ for slot, x in enumerate(cell_positions()):
     else:
         robot(x - 180.0, NORTH + 300.0, -90.0)
         robot(x + 180.0, NORTH - 300.0, 90.0)
-        spawn("SM_LB_Weld_TipDresser_v001", x + 420.0, NORTH + 300.0, 0.0)
+        spawn("SM_LB_Weld_TipDresser_v001", x + 420.0, NORTH + 240.0, 0.0)
     if slot % 2 == 0:
         spawn("SM_LB_BodyShopSupport_HMIPedestal_v002", x - 300.0,
               NORTH + 640.0, 180.0)
     else:
         spawn("SM_LB_BodyShopSupport_ElectricalCabinet_v002", x + 300.0,
-              NORTH + 660.0, 180.0)
+              NORTH + 540.0, 180.0)
 
 # Middle line - framing gates then respot cells then vision gate.
 mid_cells = cell_positions()
@@ -235,7 +235,7 @@ for infill_y in (-7145.0, -11083.0):
                   infill_y, 180.0)
             robot(x + 460.0, infill_y, 180.0)
             spawn("SM_LB_BodyShopSupport_SmallPartsCrate_Open_v002",
-                  x - 460.0, infill_y + 40.0, 0.0)
+                  x - 460.0, infill_y + 280.0, 0.0)
 
 # East exit buffer and services; inbound logistics only at the west heads.
 for index in range(3):
@@ -246,7 +246,7 @@ spawn("SM_LB_Weld_WaterChillerSkid_v001", X_WEST + 600.0, SOUTH - 800.0,
 spawn("SM_LB_Weld_WaterChillerSkid_v001", X_WEST + 980.0, SOUTH - 800.0,
       0.0)
 for line_y in (NORTH, MIDDLE, SOUTH):
-    spawn("SM_LB_Weld_MarshallingRack_v001", X_WEST - 700.0, line_y + 420.0,
+    spawn("SM_LB_Weld_MarshallingRack_v001", X_WEST - 700.0, line_y + 560.0,
           90.0)
     spawn("SM_LB_Weld_RoofMagazine_v001", X_WEST - 700.0, line_y - 380.0,
           90.0)

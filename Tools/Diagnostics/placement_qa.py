@@ -86,10 +86,17 @@ for bucket in grid.values():
                           "QualityLightTunnel", "FlashOffTunnel",
                           "VisionGate", "OverheadDropLift",
                           "IndexTurntable", "FramingGate",
-                          "HemmingPress", "ClosureTurntable")
+                          "HemmingPress", "ClosureTurntable",
+                          "RollsDynoBrakeTestBed")
             carriers = ("SkilletCarrier", "SkidConveyorModule",
-                        "SkilletDeckPlate", "PFTrackSegment")
+                        "SkilletDeckPlate", "PFTrackSegment",
+                        "OverheadTrackSegment")
             pair = (a["mesh"], b["mesh"])
+            # The native robot is seven meshes composed at one
+            # transform, standing at a machine station: its joints
+            # overlap each other and the machine it serves by design.
+            if any("BodyShopRobotNative" in m for m in pair):
+                continue
             if any(any(st in m for st in straddlers) for m in pair)                     and any(any(c in m for c in carriers) for m in pair):
                 continue
             # By-design pairs: cabinets stand under the pipe bridge's
@@ -97,7 +104,15 @@ for bucket in grid.values():
             # couples onto the trailer kingpin.
             design_pairs = (("PipeBridge_Module", "RectifierCabinet"),
                             ("Transporter_v001_Trailer",
-                             "Transporter_v001_Tractor"))
+                             "Transporter_v001_Tractor"),
+                            # Carriers ride the deck plates; fixtures
+                            # travel loaded on the return carts.
+                            ("SkilletCarrier", "SkilletDeckPlate"),
+                            ("EmptyReturnCart", "ClosureDoorFixture"),
+                            # Boards hang across the overhead track;
+                            # the cockpit module stages in the assist.
+                            ("Sign_LineBoard", "OverheadTrackSegment"),
+                            ("CockpitInstallAssist", "CockpitModule"))
             if any((p[0] in pair[0] and p[1] in pair[1]) or
                    (p[1] in pair[0] and p[0] in pair[1])
                    for p in design_pairs):
@@ -114,14 +129,18 @@ for bucket in grid.values():
 height_issues = []
 for entry in actors:
     base = entry["min"][2]
-    if base < -8.0:
+    low = entry["mesh"].lower()
+    if base < -8.0 and "rollsdyno" not in low:
+        # The rolls dyno is recessed into its pit by design.
         height_issues.append({"label": entry["label"],
                               "mesh": entry["mesh"],
                               "issue": "sunk", "base": round(base, 1)})
-    elif base > 60.0 and "board" not in entry["mesh"].lower() \
-            and "tray" not in entry["mesh"].lower() \
-            and "festoon" not in entry["mesh"].lower() \
-            and "track" not in entry["mesh"].lower():
+    elif base > 60.0 and "board" not in low \
+            and "tray" not in low \
+            and "festoon" not in low \
+            and "track" not in low \
+            and "chassishanger" not in low \
+            and "doorcarrier" not in low:
         height_issues.append({"label": entry["label"],
                               "mesh": entry["mesh"],
                               "issue": "floating",
