@@ -39,6 +39,12 @@ public:
         DetailPanel = Panel;
     }
 
+    /** A card click closes the alert inbox - the panels share the rail. */
+    void SetAlertCenter(class ULBOneFactoryAlertCenterWidget* Center)
+    {
+        AlertCenter = Center;
+    }
+
 private:
     /** The route is seven coarse groups; the handler table matches. */
     static constexpr int32 MaxCards = 7;
@@ -71,6 +77,8 @@ private:
 
     UPROPERTY()
     TObjectPtr<class ULBOneFactoryDetailPanelWidget> DetailPanel;
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryAlertCenterWidget> AlertCenter;
 
     float RefreshAccumulator = 0.0f;
 };

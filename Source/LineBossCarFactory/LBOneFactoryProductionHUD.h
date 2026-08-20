@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "LBControlRoomHUD.h"
 #include "LBOneFactoryProductionFlow.h"
+#include "LBOneFactoryUITypes.h"
 #include "LBOneFactoryProductionHUD.generated.h"
 
 class ALBOneFactoryProductionFlowAuthority;
@@ -46,6 +47,17 @@ struct FLBOneFactoryProcessGroup
 
     /** Completions actually recorded in the trailing sim hour (cars/hour). */
     float MeasuredRatePerHour = 0.0f;
+};
+
+/** One live alert: stateful, regenerated from the ledger every collection,
+    so a resolved condition disappears by itself (UI research rule 3). */
+struct FLBOneFactoryLiveAlert
+{
+    FText Message;
+    ELBOneFactoryStationStatus Status =
+        ELBOneFactoryStationStatus::QualityHold;
+    /** Which process group raised it, so an alert row can navigate there. */
+    int32 GroupIndex = INDEX_NONE;
 };
 
 /** One contract row for the HUD panel. */
@@ -117,10 +129,16 @@ public:
         return FlowStripWidget;
     }
 
+    /** Dev tooling toggles the alert inbox for capture runs. */
+    class ULBOneFactoryAlertCenterWidget* GetAlertCenterWidget() const
+    {
+        return AlertCenterWidget;
+    }
+
     /** Builds the seven coarse groups from the live route and ledger. */
     static bool CollectGroups(const UWorld* World,
         TArray<FLBOneFactoryProcessGroup>& OutGroups, int32& OutUnitsLive,
-        int32& OutDispatched, TArray<FString>& OutAlerts);
+        int32& OutDispatched, TArray<FLBOneFactoryLiveAlert>& OutAlerts);
 
     static ELBOneFactoryGroupState StateForStage(
         ELBOneFactoryVehicleStage Stage);
@@ -143,4 +161,6 @@ private:
     TObjectPtr<class ULBOneFactoryFlowStripWidget> FlowStripWidget;
     UPROPERTY()
     TObjectPtr<class ULBOneFactoryDetailPanelWidget> DetailPanelWidget;
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryAlertCenterWidget> AlertCenterWidget;
 };

@@ -252,7 +252,7 @@ void ULBOneFactoryDetailPanelWidget::Refresh()
 {
     using namespace LBOneFactoryDetailPanelPrivate;
     TArray<FLBOneFactoryProcessGroup> Groups;
-    TArray<FString> Alerts;
+    TArray<FLBOneFactoryLiveAlert> Alerts;
     int32 UnitsLive = 0;
     int32 Dispatched = 0;
     if (!ALBOneFactoryProductionHUD::CollectGroups(GetWorld(), Groups,

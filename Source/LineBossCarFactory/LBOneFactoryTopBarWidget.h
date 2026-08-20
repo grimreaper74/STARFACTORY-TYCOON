@@ -25,6 +25,12 @@ public:
     virtual void NativeTick(const FGeometry& MyGeometry,
         float InDeltaTime) override;
 
+    /** The bell toggles this alert centre's inbox. */
+    void SetAlertCenter(class ULBOneFactoryAlertCenterWidget* Center)
+    {
+        AlertCenter = Center;
+    }
+
 private:
     void BuildTree();
     void Refresh();
@@ -34,6 +40,7 @@ private:
     UFUNCTION() void OnSpeed1Clicked();
     UFUNCTION() void OnSpeed2Clicked();
     UFUNCTION() void OnSpeed4Clicked();
+    UFUNCTION() void OnAlertsClicked();
 
     UPROPERTY() TObjectPtr<UTextBlock> ContractText;
     UPROPERTY() TObjectPtr<UTextBlock> CashText;
@@ -48,6 +55,9 @@ private:
     UPROPERTY() TObjectPtr<UTextBlock> Speed1Label;
     UPROPERTY() TObjectPtr<UTextBlock> Speed2Label;
     UPROPERTY() TObjectPtr<UTextBlock> Speed4Label;
+    UPROPERTY() TObjectPtr<UButton> AlertButton;
+    UPROPERTY()
+    TObjectPtr<class ULBOneFactoryAlertCenterWidget> AlertCenter;
 
     float RefreshAccumulator = 0.0f;
 };

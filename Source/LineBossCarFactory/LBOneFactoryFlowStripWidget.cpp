@@ -12,6 +12,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "LBManagementPawn.h"
+#include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryDetailPanelWidget.h"
 #include "LBOneFactoryUITypes.h"
 
@@ -275,7 +276,7 @@ void ULBOneFactoryFlowStripWidget::Refresh()
 {
     using namespace LBOneFactoryFlowStripPrivate;
     TArray<FLBOneFactoryProcessGroup> Groups;
-    TArray<FString> Alerts;
+    TArray<FLBOneFactoryLiveAlert> Alerts;
     int32 UnitsLive = 0;
     int32 Dispatched = 0;
     if (!ALBOneFactoryProductionHUD::CollectGroups(GetWorld(), Groups,
@@ -385,9 +386,16 @@ bool ULBOneFactoryFlowStripWidget::FocusGroup(const int32 Index)
         FMath::Max(Size.X, Size.Y) * 1.25f + 3000.0f, 4200.0f, 45000.0f);
     const bool bFramed = Pawn->SetAutomationCamera(Bounds.GetCenter(),
         Pawn->GetActorRotation().Yaw, Zoom);
-    if (bFramed && DetailPanel)
+    if (bFramed)
     {
-        DetailPanel->ShowGroup(Index);
+        if (AlertCenter)
+        {
+            AlertCenter->HideInbox();
+        }
+        if (DetailPanel)
+        {
+            DetailPanel->ShowGroup(Index);
+        }
     }
     return bFramed;
 }

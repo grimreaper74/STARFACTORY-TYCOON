@@ -9,6 +9,7 @@
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBManagementRootWidget.h"
+#include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryDetailPanelWidget.h"
 #include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryTopBarWidget.h"
@@ -138,7 +139,7 @@ ELBOneFactoryGroupState ALBOneFactoryProductionHUD::StateForStage(
 
 bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
     TArray<FLBOneFactoryProcessGroup>& OutGroups, int32& OutUnitsLive,
-    int32& OutDispatched, TArray<FString>& OutAlerts)
+    int32& OutDispatched, TArray<FLBOneFactoryLiveAlert>& OutAlerts)
 {
     using namespace LBOneFactoryHUDPrivate;
 
@@ -241,14 +242,17 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
         if (Status.bAwaitingQualityResult)
         {
             Group.State = ELBOneFactoryGroupState::Hold;
-            OutAlerts.Add(FText::Format(
+            FLBOneFactoryLiveAlert Alert;
+            Alert.Message = FText::Format(
                 LOCTEXT("AlertQualityHold",
                     "{Group} held at {Station} awaiting a quality result."),
                 FFormatNamedArguments{
                     { TEXT("Group"), FText::FromString(Group.Label) },
                     { TEXT("Station"),
-                      FText::FromName(Status.CurrentStationId) } })
-                .ToString());
+                      FText::FromName(Status.CurrentStationId) } });
+            Alert.Status = ELBOneFactoryStationStatus::QualityHold;
+            Alert.GroupIndex = Index;
+            OutAlerts.Add(MoveTemp(Alert));
         }
         else if (Status.NormalizedCycleProgress >= 0.999f)
         {
@@ -256,15 +260,18 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
             {
                 Group.State = ELBOneFactoryGroupState::Waiting;
             }
-            OutAlerts.Add(FText::Format(
+            FLBOneFactoryLiveAlert Alert;
+            Alert.Message = FText::Format(
                 LOCTEXT("AlertBlockedTransfer",
                     "{Group} finished its cycle at {Station} and cannot "
                     "move on."),
                 FFormatNamedArguments{
                     { TEXT("Group"), FText::FromString(Group.Label) },
                     { TEXT("Station"),
-                      FText::FromName(Status.CurrentStationId) } })
-                .ToString());
+                      FText::FromName(Status.CurrentStationId) } });
+            Alert.Status = ELBOneFactoryStationStatus::Blocked;
+            Alert.GroupIndex = Index;
+            OutAlerts.Add(MoveTemp(Alert));
         }
         else if (Group.State == ELBOneFactoryGroupState::Idle)
         {
@@ -300,7 +307,7 @@ void ALBOneFactoryProductionHUD::DrawHUD()
     const float Scale = FMath::Max(Height / 1080.0f, 0.5f);
 
     TArray<FLBOneFactoryProcessGroup> Groups;
-    TArray<FString> Alerts;
+    TArray<FLBOneFactoryLiveAlert> Alerts;
     int32 UnitsLive = 0;
     int32 Dispatched = 0;
     if (!CollectGroups(GetWorld(), Groups, UnitsLive, Dispatched, Alerts))
@@ -319,12 +326,16 @@ void ALBOneFactoryProductionHUD::DrawHUD()
         return;
     }
 
-    DrawAlertToast(Width, Height, Scale, Alerts);
-
-    // The UMG flow strip is the player surface; the Canvas strip and band
-    // stay behind this toggle for debugging.
+    // The UMG surfaces own the player HUD; the Canvas strip, toast and
+    // band stay behind this toggle for debugging.
     if (bUseCanvasManagementBand)
     {
+        TArray<FString> AlertLines;
+        for (const FLBOneFactoryLiveAlert& Alert : Alerts)
+        {
+            AlertLines.Add(Alert.Message.ToString());
+        }
+        DrawAlertToast(Width, Height, Scale, AlertLines);
         DrawFlowStrip(Width, Height, Scale, Groups, UnitsLive, Dispatched,
             Alerts.Num());
         FLBOneFactoryManagementBand Band;
@@ -360,6 +371,22 @@ void ALBOneFactoryProductionHUD::BeginPlay()
             if (FlowStripWidget)
             {
                 FlowStripWidget->SetDetailPanel(DetailPanelWidget);
+            }
+        }
+        AlertCenterWidget = CreateWidget<ULBOneFactoryAlertCenterWidget>(
+            Controller, ULBOneFactoryAlertCenterWidget::StaticClass());
+        if (AlertCenterWidget)
+        {
+            AlertCenterWidget->AddToViewport(12);
+            AlertCenterWidget->SetFlowStrip(FlowStripWidget);
+            AlertCenterWidget->SetDetailPanel(DetailPanelWidget);
+            if (TopBarWidget)
+            {
+                TopBarWidget->SetAlertCenter(AlertCenterWidget);
+            }
+            if (FlowStripWidget)
+            {
+                FlowStripWidget->SetAlertCenter(AlertCenterWidget);
             }
         }
     }

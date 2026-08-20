@@ -11,6 +11,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
@@ -149,9 +150,17 @@ void ULBOneFactoryTopBarWidget::BuildTree()
         AddCell(Button, 6.0f);
     }
 
+    // The bell is a button: it toggles the alert centre's inbox.
+    AlertButton = WidgetTree->ConstructWidget<UButton>(
+        UButton::StaticClass(), TEXT("AlertsBtn"));
+    AlertButton->SetBackgroundColor(Steel);
     AlertText = MakeText(WidgetTree, TEXT("Alerts"),
-        FText::GetEmpty(), 12.0f, Steel);
-    AddCell(AlertText);
+        FText::GetEmpty(), 12.0f, Warm);
+    AlertButton->AddChild(AlertText);
+    FScriptDelegate AlertDelegate;
+    AlertDelegate.BindUFunction(this, TEXT("OnAlertsClicked"));
+    AlertButton->OnClicked.Add(AlertDelegate);
+    AddCell(AlertButton, 6.0f);
 }
 
 void ULBOneFactoryTopBarWidget::NativeTick(const FGeometry& MyGeometry,
@@ -259,7 +268,7 @@ void ULBOneFactoryTopBarWidget::Refresh()
     }
 
     TArray<FLBOneFactoryProcessGroup> Groups;
-    TArray<FString> Alerts;
+    TArray<FLBOneFactoryLiveAlert> Alerts;
     int32 Live = 0;
     int32 Dispatched = 0;
     ALBOneFactoryProductionHUD::CollectGroups(GetWorld(), Groups, Live,
@@ -285,6 +294,14 @@ bool ULBOneFactoryTopBarWidget::SetSimulationRate(const float Rate)
     }
     FString Reason;
     return Operations->SetSimulationRate(Rate, Reason);
+}
+
+void ULBOneFactoryTopBarWidget::OnAlertsClicked()
+{
+    if (AlertCenter)
+    {
+        AlertCenter->ToggleInbox();
+    }
 }
 
 void ULBOneFactoryTopBarWidget::OnPauseClicked() { SetSimulationRate(0.0f); }

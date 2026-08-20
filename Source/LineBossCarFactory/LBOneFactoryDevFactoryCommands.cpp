@@ -28,6 +28,7 @@
 #include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
+#include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryFlowStripWidget.h"
 #include "LBOneFactoryProductionHUD.h"
 #include "LBOneFactoryWIPPresentationActor.h"
@@ -2022,6 +2023,64 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryUIClick(
                                 false);
                             UE_LOG(LogLineBossOneFactoryDev, Display,
                                 TEXT("LINE_BOSS_UI_CLICK_COMPLETE shot=%s"),
+                                *Shot);
+                        }), 2.0f, false);
+                }), 3.0f, false);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryUIInbox(
+    TEXT("LB.OneFactory.UIInbox"),
+    TEXT("Usage: LB.OneFactory.UIInbox [shot=UIInbox] [advanceSeconds=0]. "
+         "Optionally advances the line, opens the alert inbox, then "
+         "captures a screenshot with the UI composited."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                return;
+            }
+            const FString Shot = Args.Num() > 0 ? Args[0] : TEXT("UIInbox");
+            const float AdvanceSeconds = Args.Num() > 1
+                ? FCString::Atof(*Args[1]) : 0.0f;
+            FTimerHandle OpenTimer;
+            World->GetTimerManager().SetTimer(OpenTimer,
+                FTimerDelegate::CreateLambda([World, Shot, AdvanceSeconds]()
+                {
+                    if (AdvanceSeconds > 0.0f)
+                    {
+                        int32 Processed = 0;
+                        FString RunReason;
+                        ULBOneFactoryDevFactory::AdvanceFactory(World,
+                            AdvanceSeconds, true, Processed, RunReason);
+                    }
+                    ULBOneFactoryAlertCenterWidget* Center = nullptr;
+                    for (FConstPlayerControllerIterator It =
+                        World->GetPlayerControllerIterator(); It; ++It)
+                    {
+                        if (const ALBOneFactoryProductionHUD* HUD =
+                            Cast<ALBOneFactoryProductionHUD>(
+                                It->Get()->GetHUD()))
+                        {
+                            Center = HUD->GetAlertCenterWidget();
+                            break;
+                        }
+                    }
+                    if (Center && !Center->IsInboxOpen())
+                    {
+                        Center->ToggleInbox();
+                    }
+                    UE_LOG(LogLineBossOneFactoryDev, Display,
+                        TEXT("LINE_BOSS_UI_INBOX open=%d"),
+                        Center && Center->IsInboxOpen() ? 1 : 0);
+                    FTimerHandle ShotTimer;
+                    World->GetTimerManager().SetTimer(ShotTimer,
+                        FTimerDelegate::CreateLambda([Shot]()
+                        {
+                            FScreenshotRequest::RequestScreenshot(Shot, true,
+                                false);
+                            UE_LOG(LogLineBossOneFactoryDev, Display,
+                                TEXT("LINE_BOSS_UI_INBOX_COMPLETE shot=%s"),
                                 *Shot);
                         }), 2.0f, false);
                 }), 3.0f, false);
