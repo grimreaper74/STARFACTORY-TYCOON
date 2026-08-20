@@ -161,6 +161,20 @@ ALBOneFactoryDevStationDressingActor::ALBOneFactoryDevStationDressingActor()
         Batch->SetReceivesDecals(false);
         Batches.Add(Batch);
     }
+    for (int32 Joint = 0; Joint < 7; ++Joint)
+    {
+        UInstancedStaticMeshComponent* Batch =
+            CreateDefaultSubobject<UInstancedStaticMeshComponent>(
+                FName(*FString::Printf(TEXT("Dress_RobotJoint%d"), Joint)));
+        Batch->SetupAttachment(SceneRoot);
+        Batch->SetMobility(EComponentMobility::Movable);
+        Batch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Batch->SetCollisionResponseToAllChannels(ECR_Ignore);
+        Batch->SetGenerateOverlapEvents(false);
+        Batch->SetCanEverAffectNavigation(false);
+        Batch->SetReceivesDecals(false);
+        RobotJointBatches.Add(Batch);
+    }
 
     Tags.AddUnique(GetDressingTag());
     Tags.AddUnique(TEXT("LB.Environment.VisualOnly"));
@@ -177,15 +191,31 @@ void ALBOneFactoryDevStationDressingActor::Place(
     const FQuat& Rotation, const double UniformScale)
 {
     const int32 Index = static_cast<int32>(Kind);
+    FTransform Transform;
+    Transform.SetLocation(Where);
+    Transform.SetRotation(Rotation);
+    Transform.SetScale3D(FVector(UniformScale));
+
+    // Robots are always the project's own seven-joint unit; the joints
+    // share one baked-pivot transform. The pack robot stays only as a
+    // fallback when the native meshes are absent.
+    if (Kind == ELBOneFactoryDressingKind::Robot
+        && RobotJointBatches.Num() == 7 && RobotJointBatches[0]
+        && RobotJointBatches[0]->GetStaticMesh())
+    {
+        for (UInstancedStaticMeshComponent* Joint : RobotJointBatches)
+        {
+            Joint->AddInstance(Transform, true);
+        }
+        ++PieceCount;
+        return;
+    }
+
     if (!Batches.IsValidIndex(Index) || !Batches[Index]
         || !Batches[Index]->GetStaticMesh())
     {
         return;
     }
-    FTransform Transform;
-    Transform.SetLocation(Where);
-    Transform.SetRotation(Rotation);
-    Transform.SetScale3D(FVector(UniformScale));
     if (Batches[Index]->AddInstance(Transform, true) != INDEX_NONE)
     {
         ++PieceCount;
@@ -232,6 +262,24 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         UStaticMesh* Mesh = Cast<UStaticMesh>(StaticLoadObject(
             UStaticMesh::StaticClass(), nullptr, Kinds[Index].Path));
         Batches[Index]->ClearInstances();
+        if (Index == 0)
+        {
+            static const TCHAR* JointNames[7] = {
+                TEXT("Base"), TEXT("J1"), TEXT("J2"), TEXT("J3"),
+                TEXT("J4"), TEXT("J5"), TEXT("J6") };
+            for (int32 Joint = 0; Joint < 7; ++Joint)
+            {
+                RobotJointBatches[Joint]->ClearInstances();
+                UStaticMesh* JointMesh = Cast<UStaticMesh>(StaticLoadObject(
+                    UStaticMesh::StaticClass(), nullptr,
+                    *FString::Printf(TEXT(
+                        "/Game/LineBoss/Candidates/WeldShop"
+                        "/BodyShopRobotNative_v001/Robot"
+                        "/SM_LB_BodyShopRobotNative_%s_v001"),
+                        JointNames[Joint])));
+                RobotJointBatches[Joint]->SetStaticMesh(JointMesh);
+            }
+        }
         if (Mesh)
         {
             // Keep each mesh's own authored materials: that is the point of

@@ -128,6 +128,12 @@ private:
     UPROPERTY()
     TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
 
+    /** The project's own seven-joint robot; all joints share one baked
+        transform. Replaces the pack robot in every dressing spawn
+        (owner, 2026-08-20: 'wrong robots not our own'). */
+    UPROPERTY()
+    TArray<TObjectPtr<UInstancedStaticMeshComponent>> RobotJointBatches;
+
     UPROPERTY()
     TObjectPtr<class UMaterialInstanceDynamic> RouteMaterial;
 
