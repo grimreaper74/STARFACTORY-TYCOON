@@ -77,9 +77,12 @@ landed four slices this afternoon, each suite-gated (288 green):
   units, measured vs capacity rate and cycle progress in full.
 - **Camera bookmarks**: Shift+F5-F8 saves a view, F5-F8 jumps back
   to it - the onboarding hint teaches it.
+- **Bottleneck highlight**: while units are in flow, the lowest-
+  capacity department's card carries a 'bottleneck' tag on its rate
+  line, so the constraint reads at a glance.
 
-Still scoped for v2.1's next wave: order queue panel, bottleneck
-highlighting, day summary and a settings/UI-scale surface.
+Still scoped for v2.1's next wave: order queue panel, day summary
+and a settings/UI-scale surface.
 
 ## Build
 
