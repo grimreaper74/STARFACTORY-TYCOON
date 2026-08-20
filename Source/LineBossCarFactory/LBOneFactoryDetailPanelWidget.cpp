@@ -1,5 +1,7 @@
 #include "LBOneFactoryDetailPanelWidget.h"
 
+#include "LBOneFactorySparklineWidget.h"
+
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -189,6 +191,13 @@ void ULBOneFactoryDetailPanelWidget::BuildTree()
     AddStat(TEXT("DetailStations"), StationsText);
     AddStat(TEXT("DetailUnits"), UnitsText);
     AddStat(TEXT("DetailRate"), RateText);
+    RateSparkline = WidgetTree->ConstructWidget<ULBOneFactorySparkline>(
+        ULBOneFactorySparkline::StaticClass(), TEXT("DetailRateGraph"));
+    if (UVerticalBoxSlot* GraphSlot =
+        Body->AddChildToVerticalBox(RateSparkline))
+    {
+        GraphSlot->SetPadding(FMargin(0.0f, 3.0f, 0.0f, 3.0f));
+    }
     AddStat(TEXT("DetailProgress"), ProgressText);
 
     PrimaryButton = WidgetTree->ConstructWidget<UButton>(
@@ -278,6 +287,17 @@ void ULBOneFactoryDetailPanelWidget::Refresh()
                 ? ELBOneFactoryStationStatus::QualityHold
                 : ELBOneFactoryStationStatus::Offline);
     CauseText->SetText(CauseSentence(Group.State));
+
+    if (RateSparkline)
+    {
+        RateSparkline->SetLineColor(Token.Colour);
+        const APlayerController* Player = GetOwningPlayer();
+        const ALBOneFactoryProductionHUD* OwnerHUD = Player
+            ? Cast<ALBOneFactoryProductionHUD>(Player->GetHUD()) : nullptr;
+        const TArray<float>* History = OwnerHUD
+            ? OwnerHUD->GetRateHistory(ShownGroupIndex) : nullptr;
+        RateSparkline->SetSamples(History ? *History : TArray<float>());
+    }
     CauseText->SetColorAndOpacity(FSlateColor(
         Group.State == ELBOneFactoryGroupState::Idle ? Steel : Token.Colour));
 

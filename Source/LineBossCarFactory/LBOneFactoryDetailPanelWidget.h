@@ -8,6 +8,7 @@
 class UBorder;
 class UButton;
 class UTextBlock;
+class ULBOneFactorySparkline;
 
 /**
  * UI v2 detail panel (U4): one template for every process group, opened by
@@ -55,6 +56,7 @@ private:
     UPROPERTY() TObjectPtr<UTextBlock> StationsText;
     UPROPERTY() TObjectPtr<UTextBlock> UnitsText;
     UPROPERTY() TObjectPtr<UTextBlock> RateText;
+    UPROPERTY() TObjectPtr<ULBOneFactorySparkline> RateSparkline;
     UPROPERTY() TObjectPtr<UTextBlock> ProgressText;
     UPROPERTY() TObjectPtr<UButton> PrimaryButton;
     UPROPERTY() TObjectPtr<UTextBlock> PrimaryLabel;

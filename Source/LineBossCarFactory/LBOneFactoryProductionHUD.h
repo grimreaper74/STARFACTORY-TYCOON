@@ -147,7 +147,23 @@ public:
     static bool CollectManagement(const UWorld* World,
         FLBOneFactoryManagementBand& OutBand);
 
+    /** Trailing measured-rate samples for one coarse group, oldest
+        first - the v2.1 detail-panel graph reads these. Null when the
+        group has no samples yet. */
+    const TArray<float>* GetRateHistory(int32 GroupIndex) const
+    {
+        return RateHistories.IsValidIndex(GroupIndex)
+            ? &RateHistories[GroupIndex] : nullptr;
+    }
+
 private:
+    /** Appends one rate sample per group every few seconds of play. */
+    void SampleRateHistory(
+        const TArray<FLBOneFactoryProcessGroup>& Groups);
+
+    TArray<TArray<float>> RateHistories;
+    double LastRateSampleTime = -1.0;
+
     void DrawFlowStrip(float Width, float Height, float Scale,
         const TArray<FLBOneFactoryProcessGroup>& Groups, int32 UnitsLive,
         int32 Dispatched, int32 AlertCount);

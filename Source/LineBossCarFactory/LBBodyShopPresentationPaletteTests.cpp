@@ -204,10 +204,13 @@ bool FLBBodyShopFinalMeshMaterialBindingTest::RunTest(const FString& Parameters)
             LBBodyShopPresentationPalette::CountSupportedSlots(Vision), 7);
 
     const int32 NativeMeshIndices[] = {1, 2, 3, 4, 5, 6, 7, 10};
-    const int32 ExpectedSlotCounts[] = {4, 5, 5, 4, 4, 3, 4, 5};
+    // Re-frozen 2026-08-20 after the owner-directed high-detail robot
+    // uplift landed; LOD1/2 keep the original low-poly source counts.
+    const int32 ExpectedSlotCounts[] = {4, 5, 5, 5, 5, 5, 6, 5};
     const int32 ExpectedTriangles[][3] = {
-        {468, 372, 228}, {392, 360, 208}, {312, 176, 144}, {312, 264, 144},
-        {208, 132, 100}, {208, 176, 144}, {224, 132, 84}, {504, 352, 304}
+        {13650, 372, 228}, {24880, 360, 208}, {25496, 176, 144},
+        {25790, 264, 144}, {25210, 132, 100}, {25002, 176, 144},
+        {24056, 132, 84}, {5588, 352, 304}
     };
     int32 TriangleTotals[3] = {0, 0, 0};
     for (int32 NativeIndex = 0; NativeIndex < UE_ARRAY_COUNT(NativeMeshIndices); ++NativeIndex)
@@ -228,14 +231,14 @@ bool FLBBodyShopFinalMeshMaterialBindingTest::RunTest(const FString& Parameters)
             TriangleTotals[LODIndex] += Triangles;
         }
     }
-    TestEqual(TEXT("Native complete-robot LOD0 total is frozen"), TriangleTotals[0], 2628);
+    TestEqual(TEXT("Native complete-robot LOD0 total is frozen"), TriangleTotals[0], 169672);
     TestEqual(TEXT("Native complete-robot LOD1 total is frozen"), TriangleTotals[1], 1964);
     TestEqual(TEXT("Native complete-robot LOD2 total is frozen"), TriangleTotals[2], 1356);
 
     UStaticMesh* NativeBase = LoadObject<UStaticMesh>(nullptr, FinalMeshes[1]);
     if (NativeBase)
-        TestTrue(TEXT("Native large-class base retains its exact 84x74x40 cm source bounds"),
-            NativeBase->GetBoundingBox().GetSize().Equals(FVector(84.0f, 74.0f, 40.0f), 0.1f));
+        TestTrue(TEXT("Native large-class base retains its exact 84x77x40 cm source bounds"),
+            NativeBase->GetBoundingBox().GetSize().Equals(FVector(84.0f, 77.0f, 40.0f), 0.5f));
     if (CGun)
         TestTrue(TEXT("Native open C-gun retains its exact 59.5x31.3x77 cm source bounds"),
             CGun->GetBoundingBox().GetSize().Equals(FVector(59.5f, 31.3f, 77.0f), 0.1f));

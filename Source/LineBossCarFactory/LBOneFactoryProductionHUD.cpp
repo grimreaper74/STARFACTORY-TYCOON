@@ -310,7 +310,13 @@ void ALBOneFactoryProductionHUD::DrawHUD()
     TArray<FLBOneFactoryLiveAlert> Alerts;
     int32 UnitsLive = 0;
     int32 Dispatched = 0;
-    if (!CollectGroups(GetWorld(), Groups, UnitsLive, Dispatched, Alerts))
+    const bool bHaveGroups =
+        CollectGroups(GetWorld(), Groups, UnitsLive, Dispatched, Alerts);
+    if (bHaveGroups)
+    {
+        SampleRateHistory(Groups);
+    }
+    if (!bHaveGroups)
     {
         using namespace LBOneFactoryHUDPrivate;
         UFont* Font = GEngine ? GEngine->GetLargeFont() : nullptr;
@@ -577,6 +583,33 @@ void ALBOneFactoryProductionHUD::DrawManagementBand(const float Width,
         DrawText(RowText.ToString(), RowColour, X, Y, Font, Scale, false);
         Y += RowH;
         ++Drawn;
+    }
+}
+
+void ALBOneFactoryProductionHUD::SampleRateHistory(
+    const TArray<FLBOneFactoryProcessGroup>& Groups)
+{
+    const UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
+    const double Now = World->GetTimeSeconds();
+    if (LastRateSampleTime >= 0.0 && Now - LastRateSampleTime < 2.0)
+    {
+        return;
+    }
+    LastRateSampleTime = Now;
+    RateHistories.SetNum(Groups.Num());
+    constexpr int32 MaxSamples = 64;
+    for (int32 Index = 0; Index < Groups.Num(); ++Index)
+    {
+        TArray<float>& History = RateHistories[Index];
+        History.Add(Groups[Index].MeasuredRatePerHour);
+        if (History.Num() > MaxSamples)
+        {
+            History.RemoveAt(0, History.Num() - MaxSamples);
+        }
     }
 }
 
