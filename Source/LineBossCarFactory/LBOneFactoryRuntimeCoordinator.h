@@ -155,6 +155,24 @@ public:
     /** Highest operating-cost hour already charged this session (transient). */
     int64 LastChargedOpexHour = -1;
 
+    /**
+     * Measured throughput in the canonical cars/hour (UI research rule 5):
+     * counts station completions per department inside a sliding sim-time
+     * window. Transient - measured rates restart clean after a load.
+     */
+    UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Runtime")
+    float MeasuredRatePerHour(ELBOneFactoryDepartment Department,
+        double NowSimSeconds, float WindowSimSeconds = 3600.0f) const;
+
+    void RecordStationCompletion(ELBOneFactoryDepartment Department,
+        double SimSeconds);
+
+private:
+    /** (department, sim-time) completion stamps, ring-capped. */
+    TArray<TPair<ELBOneFactoryDepartment, double>> CompletionStamps;
+
+public:
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Runtime")
     float GetRuntimeTimeScale() const { return RuntimeTimeScale; }
 

@@ -1071,6 +1071,10 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
         if (!AddReservation(Candidate, TargetStep, UnitId, OutReason))
             return CommitElapsedHold(
                 TEXT("ONEFACTORY RUNTIME TRANSFER HOLD: TARGET STATION OCCUPIED"));
+        // Measured cars/hour: the leaving station's department completed
+        // one cycle at this sim time.
+        RecordStationCompletion(SourceStep.Department,
+            CandidateLedger.SimClockSeconds);
         Unit->RuntimeStationCursor = NextCursor;
         Unit->RuntimeCycleElapsedSeconds = 0.0f;
         Unit->RuntimeCycleDurationSeconds = TargetStep.NominalCycleSeconds;
@@ -1112,6 +1116,8 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
             FName(*FString::Printf(TEXT("OF_%s_DISPATCHED"),
                 *Unit->UnitId.ToString())), OutReason))
         return false;
+    RecordStationCompletion(ELBOneFactoryDepartment::Assembly,
+        Candidate.Ledger.SimClockSeconds);
     Unit->RuntimeStationCursor = RequiredPhysicalStationCount;
     Unit->RuntimeCycleElapsedSeconds = 0.0f;
     Unit->RuntimeCycleDurationSeconds = 0.0f;
@@ -1170,6 +1176,40 @@ bool ALBOneFactoryRuntimeCoordinator::TickAutomaticFlow(
         ? TEXT("ONEFACTORY AUTOMATIC FLOW IDLE")
         : TEXT("ONEFACTORY AUTOMATIC FLOW TICKED STARTED UNITS DETERMINISTICALLY");
     return true;
+}
+
+void ALBOneFactoryRuntimeCoordinator::RecordStationCompletion(
+    const ELBOneFactoryDepartment Department, const double SimSeconds)
+{
+    constexpr int32 RingCap = 4096;
+    CompletionStamps.Emplace(Department, SimSeconds);
+    if (CompletionStamps.Num() > RingCap)
+    {
+        CompletionStamps.RemoveAt(0, CompletionStamps.Num() - RingCap,
+            EAllowShrinking::No);
+    }
+}
+
+float ALBOneFactoryRuntimeCoordinator::MeasuredRatePerHour(
+    const ELBOneFactoryDepartment Department, const double NowSimSeconds,
+    const float WindowSimSeconds) const
+{
+    if (WindowSimSeconds <= 0.0f)
+    {
+        return 0.0f;
+    }
+    const double WindowStart = NowSimSeconds - WindowSimSeconds;
+    int32 Count = 0;
+    for (const TPair<ELBOneFactoryDepartment, double>& Stamp :
+        CompletionStamps)
+    {
+        if (Stamp.Key == Department && Stamp.Value > WindowStart
+            && Stamp.Value <= NowSimSeconds)
+        {
+            ++Count;
+        }
+    }
+    return static_cast<float>(Count) * 3600.0f / WindowSimSeconds;
 }
 
 bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)

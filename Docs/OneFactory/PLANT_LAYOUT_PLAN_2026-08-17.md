@@ -1802,3 +1802,17 @@ commissions the whole factory, starts production and binds 3,604
 palette slots from a cold packaged start. Archive at
 Packaged/Dev_2026-08-19. All Unreal and game processes killed after
 each step per the heat rule.
+
+## UI v2 - U1 foundations landed (2026-08-20, autonomous)
+
+Per the research re-scope, foundations before surfaces:
+LBOneFactoryUITypes carries the single station-status model
+(Working/Starved/Blocked/QualityHold/WearCritical/Offline/Paused), each
+with an Okabe-Ito colour AND a fixed shape glyph AND a localised cause
+label AND an alert-severity tier - the one token map every surface will
+read. The coordinator gained the canonical measured cars/hour: station
+completions stamp a ring buffer at both advance sites and
+MeasuredRatePerHour counts a sliding sim-time window per department.
+Suite 286: 263 clean + 23 warnings, 0 failed (token
+completeness/distinctness and windowed-rate tests). Next: U2, the UMG
+top bar on these foundations.
