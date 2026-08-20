@@ -247,8 +247,11 @@ bool ALBOneFactoryDevRestoredShopActor::BuildFromManifest(FString& OutReason)
                 NewObject<UPointLightComponent>(this);
             Fixture->SetupAttachment(SceneRoot);
             Fixture->SetMobility(EComponentMobility::Movable);
-            Fixture->SetIntensity(15000.0f);
-            Fixture->SetAttenuationRadius(2200.0f);
+            // Gentle per-lamp pools: the bay grid carries the shop's light
+            // level, these only make the authored fixtures read as lit.
+            Fixture->SetIntensity(6000.0f);
+            Fixture->SetAttenuationRadius(1600.0f);
+            Fixture->SetSourceRadius(50.0f);
             Fixture->SetLightColor(FLinearColor(1.0f, 0.894f, 0.804f));
             Fixture->SetCastShadows(false);
             Fixture->SetWorldLocation(Instance.GetLocation()

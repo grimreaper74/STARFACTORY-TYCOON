@@ -397,6 +397,40 @@ void ALBOneFactoryProductionHUD::BeginPlay()
     {
         Legacy->SetVisibility(ESlateVisibility::Collapsed);
     }
+
+    // The player view's exposure and bloom authority. Auto-exposure undoes
+    // any change to lamp intensities (halving them altered the frame by
+    // nothing), so the look is pinned here: a negative bias keeps the pale
+    // floors from washing to white and cut bloom stops the lamp pools
+    // flaring. Owner, 2026-08-20: "fix the lighting ... its way too much".
+    static const FName GradeTag(TEXT("LB.OneFactory.ViewGrade"));
+    bool bHasGrade = false;
+    for (TActorIterator<APostProcessVolume> It(GetWorld()); It; ++It)
+    {
+        if (IsValid(*It) && It->Tags.Contains(GradeTag))
+        {
+            bHasGrade = true;
+            break;
+        }
+    }
+    if (!bHasGrade)
+    {
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        if (APostProcessVolume* Grade =
+            GetWorld()->SpawnActor<APostProcessVolume>(
+                APostProcessVolume::StaticClass(), FVector::ZeroVector,
+                FRotator::ZeroRotator, Params))
+        {
+            Grade->bUnbound = true;
+            Grade->Tags.AddUnique(GradeTag);
+            Grade->Settings.bOverride_AutoExposureBias = true;
+            Grade->Settings.AutoExposureBias = -0.7f;
+            Grade->Settings.bOverride_BloomIntensity = true;
+            Grade->Settings.BloomIntensity = 0.2f;
+        }
+    }
 }
 
 bool ALBOneFactoryProductionHUD::CollectManagement(const UWorld* World,

@@ -12,6 +12,7 @@
 #include "Components/PointLightComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/PointLight.h"
+#include "Engine/PostProcessVolume.h"
 #include "Engine/Engine.h"
 #include "Engine/SkyLight.h"
 #include "Engine/World.h"
@@ -548,9 +549,14 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
                     if (UPointLightComponent* BayComponent =
                         Cast<UPointLightComponent>(Bay->GetLightComponent()))
                     {
-                        BayComponent->SetIntensity(68000.0f);
-                        BayComponent->SetAttenuationRadius(
-                            FMath::Max(Size.X, Size.Y) / 5.0f + 3000.0f);
+                        // Sized so a 14 m-high lamp puts ~90 lux on its own
+                        // bay and little beyond it. The old 68k/size-based
+                        // radius overlapped half a dozen lamps on every
+                        // square metre and blew the floor out to white
+                        // under the palette's midtone lift.
+                        BayComponent->SetIntensity(9000.0f);
+                        BayComponent->SetAttenuationRadius(2600.0f);
+                        BayComponent->SetSourceRadius(80.0f);
                         BayComponent->SetLightColor(
                             FLinearColor(1.0f, 0.894f, 0.804f));
                         // A sparse quarter of the grid casts shadows, so
@@ -590,8 +596,25 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
         }
     }
 
+    // Exposure and bloom authority. Auto-exposure re-brightens whatever the
+    // lamp intensities do (halving them changed the frame by nothing), so
+    // the look is set here instead: a slight negative bias keeps the shops
+    // from washing to white, and cut bloom stops the lamp pools flaring.
+    APostProcessVolume* Grade = World->SpawnActor<APostProcessVolume>(
+        APostProcessVolume::StaticClass(), FVector::ZeroVector,
+        FRotator::ZeroRotator, Params);
+    if (Grade)
+    {
+        Grade->bUnbound = true;
+        Grade->Tags.AddUnique(DevLightTag);
+        Grade->Settings.bOverride_AutoExposureBias = true;
+        Grade->Settings.AutoExposureBias = -0.7f;
+        Grade->Settings.bOverride_BloomIntensity = true;
+        Grade->Settings.BloomIntensity = 0.2f;
+    }
+
     OutReason = FString::Printf(
-        TEXT("directional light (%.1f), %d bay lights and sky fill"),
+        TEXT("directional light (%.1f), %d bay lights, sky fill and grade"),
         Intensity, BayLights);
     return true;
 }
