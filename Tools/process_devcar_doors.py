@@ -74,6 +74,29 @@ for fname, tag, length, height in DOORS:
                      -min(v.z for v in vs))
     bpy.ops.object.transform_apply(location=True)
 
+    # The image-to-3d output is two sheared leaves; keep the outer
+    # skin and frame, drop the inner slab below the beltline, and back
+    # the panel with a clean thin inner face instead.
+    import bmesh as _bm
+    vs = [v.co for v in mesh.vertices]
+    y_min = min(v.y for v in vs)
+    h_full = door.dimensions.z
+    bmx = _bm.new(); bmx.from_mesh(mesh)
+    bmx.faces.ensure_lookup_table()
+    x_lo = min(v.x for v in vs)
+    x_hi = max(v.x for v in vs)
+    def is_junk(f):
+        c = f.calc_center_median()
+        if c.z < h_full * 0.60 and c.y > y_min + 0.11:
+            return True
+        # Stubs hanging inside the window aperture: interior-depth
+        # faces in the aperture band, away from the frame perimeter.
+
+        return False
+    doomed = [f for f in bmx.faces if is_junk(f)]
+    _bm.ops.delete(bmx, geom=doomed, context="FACES")
+    bmx.to_mesh(mesh); bmx.free()
+
     kit.MATERIALS.clear()
     kit.glass_material()
     mats = [kit.material(*kit.GREEN), kit.material(*kit.CHARCOAL),
@@ -89,6 +112,19 @@ for fname, tag, length, height in DOORS:
             poly.material_index = 0
         else:
             poly.material_index = 1
+    # Clean inner backing face.
+    vs2 = [v.co for v in mesh.vertices]
+    x_mid = (min(v.x for v in vs2) + max(v.x for v in vs2)) / 2.0
+    kit.box("DoorInnerFace", (door.dimensions.x * 0.92, 0.035,
+            h_full * 0.55), (x_mid, y_min + 0.13, h_full * 0.285),
+            kit.CHARCOAL, chamfer=False)
+    inner = bpy.context.scene.objects["DoorInnerFace"]
+    bpy.ops.object.select_all(action="DESELECT")
+    door.select_set(True); inner.select_set(True)
+    bpy.context.view_layer.objects.active = door
+    bpy.ops.object.join()
+    mesh = door.data
+
     if len(mesh.polygons) > 12000:
         dec = door.modifiers.new("Dec", "DECIMATE")
         dec.ratio = 10000 / len(mesh.polygons)
