@@ -16,6 +16,9 @@ BASE = ("C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8/"
         "SourceAssets/Candidate/DevCar_v003/{0}/{0}.fbx")
 NAMES = ("SM_LB_DevCar_Concept_v003", "SM_LB_DevCar_ConceptLOD1_v003",
          "SM_LB_DevCar_ConceptLOD2_v003")
+PART_BASE = ("C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8/"
+             "SourceAssets/Candidate/DevCarParts_v001/{0}/{0}.fbx")
+PARTS = ("SM_LB_DevCar_Part_Wheel_v001",)
 SRC = BASE.format(NAMES[0])
 MESH_DIR = "/Game/LineBoss/Candidates/Vehicles/DevCar_v003"
 MESH_PATH = MESH_DIR + "/SM_LB_DevCar_Concept_v003"
@@ -79,6 +82,13 @@ def import_one(name):
 
 for extra in NAMES[1:]:
     import_one(extra)
+
+for part in PARTS:
+    global BASE
+    saved = BASE
+    BASE = PART_BASE
+    import_one(part)
+    BASE = saved
 
 options = unreal.FbxImportUI()
 options.set_editor_property("import_mesh", True)
