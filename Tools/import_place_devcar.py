@@ -12,9 +12,11 @@ import unreal
 
 TARGET = ("/Game/LineBoss/Factory/OneFactory/v001/Maps/"
           "LB_MoorcrossWorks_OneFactory_v001")
-SRC = ("C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8/"
-       "SourceAssets/Candidate/DevCar_v003/SM_LB_DevCar_Concept_v003/"
-       "SM_LB_DevCar_Concept_v003.fbx")
+BASE = ("C:/Users/greg_/Projects/LineBossCarFactory_Unreal 5.8/"
+        "SourceAssets/Candidate/DevCar_v003/{0}/{0}.fbx")
+NAMES = ("SM_LB_DevCar_Concept_v003", "SM_LB_DevCar_ConceptLOD1_v003",
+         "SM_LB_DevCar_ConceptLOD2_v003")
+SRC = BASE.format(NAMES[0])
 MESH_DIR = "/Game/LineBoss/Candidates/Vehicles/DevCar_v003"
 MESH_PATH = MESH_DIR + "/SM_LB_DevCar_Concept_v003"
 SK_MATS = "/Game/LineBoss/SignalKit_v001/Materials/"
@@ -34,6 +36,49 @@ LEVEL_SUB = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 ACTOR_SUB = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 if not LEVEL_SUB.load_level(TARGET):
     raise RuntimeError("could not load target map")
+
+def import_one(name):
+    src_path = BASE.format(name)
+    options = unreal.FbxImportUI()
+    options.set_editor_property("import_mesh", True)
+    options.set_editor_property("import_materials", False)
+    options.set_editor_property("import_textures", False)
+    options.set_editor_property("import_as_skeletal", False)
+    options.static_mesh_import_data.set_editor_property(
+        "combine_meshes", True)
+    task = unreal.AssetImportTask()
+    task.set_editor_property("filename", src_path)
+    task.set_editor_property("destination_path", MESH_DIR)
+    task.set_editor_property("destination_name", name)
+    task.set_editor_property("automated", True)
+    task.set_editor_property("replace_existing", True)
+    task.set_editor_property("save", False)
+    task.set_editor_property("options", options)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+    m = unreal.EditorAssetLibrary.load_asset(MESH_DIR + "/" + name)
+    if not m:
+        unreal.log("DEVCAR_IMPORT_FAIL " + name)
+        return None
+    mats = list(m.get_editor_property("static_materials"))
+    n = 0
+    for entry in mats:
+        slot = str(entry.get_editor_property("material_slot_name")).lower()
+        for fragment, instance in ROLES.items():
+            if fragment in slot:
+                mic = unreal.EditorAssetLibrary.load_asset(
+                    SK_MATS + instance)
+                if mic:
+                    entry.set_editor_property("material_interface", mic)
+                    n += 1
+                break
+    m.set_editor_property("static_materials", mats)
+    unreal.EditorAssetLibrary.save_asset(MESH_DIR + "/" + name)
+    unreal.log("DEVCAR_IMPORTED {} tris={} bound={}".format(
+        name, m.get_num_triangles(0), n))
+    return m
+
+for extra in NAMES[1:]:
+    import_one(extra)
 
 options = unreal.FbxImportUI()
 options.set_editor_property("import_mesh", True)
