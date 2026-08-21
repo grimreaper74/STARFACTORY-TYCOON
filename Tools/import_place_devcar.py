@@ -44,8 +44,8 @@ ACTOR_SUB = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 if not LEVEL_SUB.load_level(TARGET):
     raise RuntimeError("could not load target map")
 
-def import_one(name):
-    src_path = BASE.format(name)
+def import_one(name, base=None):
+    src_path = (base or BASE).format(name)
     options = unreal.FbxImportUI()
     options.set_editor_property("import_mesh", True)
     options.set_editor_property("import_materials", False)
@@ -88,11 +88,9 @@ for extra in NAMES[1:]:
     import_one(extra)
 
 for part in PARTS:
-    global BASE
-    saved = BASE
-    BASE = PART_BASE
-    import_one(part)
-    BASE = saved
+    import_one(part, PART_BASE)
+
+
 
 options = unreal.FbxImportUI()
 options.set_editor_property("import_mesh", True)

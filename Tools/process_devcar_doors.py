@@ -48,6 +48,11 @@ for fname, tag, length, height in DOORS:
     scale = length / door.dimensions.x
     door.scale = (scale, scale, scale)
     bpy.ops.object.transform_apply(scale=True)
+    # Image-to-3d gives doors perspective depth; flatten to a true
+    # door thickness so the frame sits over the panel, not behind it.
+    if door.dimensions.y > 0.30:
+        door.scale = (1.0, 0.22 / door.dimensions.y, 1.0)
+        bpy.ops.object.transform_apply(scale=True)
 
     mesh = door.data
     # Exterior = the side with more distant faces; make it -Y.
