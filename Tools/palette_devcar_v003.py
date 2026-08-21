@@ -64,8 +64,8 @@ for poly in mesh.polygons:
     idx = BODY
     in_wheel = False
     for ax in (ax_f, ax_r):
-        if (abs(c.x - ax) < wheel_r * 1.05 and abs(c.y) > W * 0.36
-                and c.z < wheel_r * 1.9 and n.z < 0.55):
+        if (abs(c.x - ax) < wheel_r * 0.95 and abs(c.y) > W * 0.40
+                and c.z < wheel_r * 1.8 and n.z < 0.30):
             in_wheel = True
             wheel_ax = ax
             break
