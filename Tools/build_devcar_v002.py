@@ -33,17 +33,17 @@ BODY_COLOURS = {
 
 # Hatch profile: (x, top_z, belt_z, half_w_belt, half_w_top)
 HATCH = [
-    (0.00, 0.62, 0.62, 0.64, 0.60),
-    (0.08, 0.76, 0.72, 0.76, 0.72),
-    (0.35, 0.85, 0.80, 0.86, 0.82),
-    (0.90, 0.905, 0.86, 0.905, 0.87),
-    (1.48, 0.925, 0.88, 0.92, 0.885),
-    (1.80, 1.16, 0.90, 0.92, 0.80),
-    (2.35, 1.44, 0.915, 0.92, 0.75),
-    (3.30, 1.455, 0.925, 0.91, 0.745),
-    (3.85, 1.30, 0.935, 0.885, 0.73),
-    (4.20, 1.08, 0.945, 0.835, 0.71),
-    (4.36, 0.98, 0.95, 0.78, 0.69),
+    (0.00, 0.58, 0.58, 0.62, 0.58),
+    (0.10, 0.70, 0.66, 0.76, 0.72),
+    (0.40, 0.80, 0.75, 0.87, 0.83),
+    (0.95, 0.86, 0.82, 0.91, 0.875),
+    (1.35, 0.88, 0.85, 0.92, 0.885),
+    (1.85, 1.14, 0.88, 0.92, 0.79),
+    (2.45, 1.40, 0.90, 0.92, 0.73),
+    (3.25, 1.415, 0.915, 0.905, 0.72),
+    (3.85, 1.26, 0.93, 0.875, 0.70),
+    (4.22, 1.04, 0.945, 0.82, 0.68),
+    (4.36, 0.94, 0.95, 0.77, 0.66),
 ]
 
 
@@ -86,13 +86,19 @@ def loft_body(style, body_mat):
         sill = SILL_Z + lift
         top += lift
         belt += lift
+        # Blade crease: a knife line below the belt, pushed outboard so
+        # the flank reads as two cut facets, not one slab side.
+        crease = sill + (belt - sill) * 0.52
+        wc = wb + 0.022
         ring = [
-            bm.verts.new((x0, -wb, sill)),
+            bm.verts.new((x0, -wb + 0.01, sill)),
+            bm.verts.new((x0, -wc, crease)),
             bm.verts.new((x0, -wb, belt)),
             bm.verts.new((x0, -wt, top)),
             bm.verts.new((x0, wt, top)),
             bm.verts.new((x0, wb, belt)),
-            bm.verts.new((x0, wb, sill)),
+            bm.verts.new((x0, wc, crease)),
+            bm.verts.new((x0, wb - 0.01, sill)),
         ]
         rings.append((x, ring))
 
@@ -100,10 +106,12 @@ def loft_body(style, body_mat):
         if kind == "side":
             lo, hi = GLASS_SIDE_X
             return 1 if lo < x_mid < hi else 0
-        if kind == "top" and slope_deg > 20.0:
-            if SCREEN_X[0] < x_mid < SCREEN_X[1]:
+        if kind == "top":
+            if slope_deg > 20.0 and (SCREEN_X[0] < x_mid < SCREEN_X[1]
+                    or REAR_GLASS_X[0] < x_mid < REAR_GLASS_X[1]):
                 return 1
-            if REAR_GLASS_X[0] < x_mid < REAR_GLASS_X[1]:
+            # Panoramic canopy between the pillars.
+            if 2.42 < x_mid < 3.35:
                 return 1
         return 0
 
@@ -111,10 +119,12 @@ def loft_body(style, body_mat):
         x_mid = (xa + xb) / 2.0
         quads = (
             (ra[0], ra[1], rb[1], rb[0], "lower"),
-            (ra[1], ra[2], rb[2], rb[1], "side"),
-            (ra[2], ra[3], rb[3], rb[2], "top"),
-            (ra[3], ra[4], rb[4], rb[3], "side"),
-            (ra[4], ra[5], rb[5], rb[4], "lower"),
+            (ra[1], ra[2], rb[2], rb[1], "lower"),
+            (ra[2], ra[3], rb[3], rb[2], "side"),
+            (ra[3], ra[4], rb[4], rb[3], "top"),
+            (ra[4], ra[5], rb[5], rb[4], "side"),
+            (ra[5], ra[6], rb[6], rb[5], "lower"),
+            (ra[6], ra[7], rb[7], rb[6], "lower"),
         )
         for va, vb, vc, vd, kind in quads:
             face = bm.faces.new((va, vb, vc, vd))
@@ -179,14 +189,12 @@ def dress_car(style, body_mat):
                     (cx(shut_x), side * 0.915, sill + 0.42),
                     kit.CHARCOAL, chamfer=False)
         for handle_x in (2.30, 3.28):
-            kit.box("DoorHandle", (0.15, 0.02, 0.03),
-                    (cx(handle_x), side * 0.93, belt_f - 0.055),
+            kit.box("FlushHandle", (0.14, 0.008, 0.022),
+                    (cx(handle_x), side * 0.925, belt_f - 0.05),
                     kit.CHARCOAL, chamfer=False)
-        kit.box("MirrorArm", (0.05, 0.07, 0.026),
-                (cx(1.58), side * 0.955, belt_f + 0.075),
+        kit.box("CameraPod", (0.09, 0.045, 0.035),
+                (cx(1.56), side * 0.965, belt_f + 0.075),
                 kit.CHARCOAL, chamfer=False)
-        kit.box("MirrorHead", (0.10, 0.08, 0.07),
-                (cx(1.56), side * 1.01, belt_f + 0.095), body)
         kit.box("SillTrim", (2.5, 0.035,
                 0.11 if style == "Cross" else 0.05),
                 (cx(2.24), side * 0.905, sill + 0.03), kit.CHARCOAL)
@@ -195,21 +203,16 @@ def dress_car(style, body_mat):
             chamfer=False)
     kit.box("CowlVent", (0.07, 1.20, 0.02),
             (cx(1.50), 0.0, 0.93 + lift), kit.CHARCOAL, chamfer=False)
-    kit.box("BonnetShut", (1.05, 0.012, 0.012),
-            (cx(0.88), -0.70, 0.90 + lift), kit.CHARCOAL, chamfer=False)
-    kit.box("BonnetShut", (1.05, 0.012, 0.012),
-            (cx(0.88), 0.70, 0.90 + lift), kit.CHARCOAL, chamfer=False)
+    kit.box("BonnetShut", (0.85, 0.012, 0.012),
+            (cx(0.86), -0.60, 0.865 + lift), kit.CHARCOAL, chamfer=False)
+    kit.box("BonnetShut", (0.85, 0.012, 0.012),
+            (cx(0.86), 0.60, 0.865 + lift), kit.CHARCOAL, chamfer=False)
 
-    # Roof furniture.
-    roof_z = (1.455 if style != "Cross" else 1.51) + (0.0 if style
-              != "Cross" else 0.0)
-    roof_z = 1.455 + (0.055 if style == "Cross" else 0.0)
-    for side in (-1.0, 1.0):
-        kit.box("RoofRail", (0.85, 0.05, 0.04),
-                (cx(2.80), side * 0.56, roof_z + 0.012), kit.CHARCOAL)
-    kit.cyl("SharkFin", 0.03, 0.075, (cx(3.85), 0.0,
-            (1.30 if style == "Hatch" else 1.40) + lift),
-            kit.CHARCOAL, verts=8)
+    # Clean canopy - no roof furniture; a second light blade under the
+    # main bar gives the nose its Blade Runner graphic.
+    kit.box("LowerLightBlade", (0.04, 0.90, 0.028),
+            (cx(0.03), 0.0, nose_top - 0.26), kit.WARMWHITE,
+            chamfer=False)
 
     # Wheels with alloy faces, tucked, under tight arch lips.
     for x_axle in (FRONT_AXLE, FRONT_AXLE + WHEELBASE):
@@ -220,13 +223,14 @@ def dress_car(style, body_mat):
                     kit.TIRE, axis="Y", verts=28)
             kit.cyl("HubFace", 0.15, 0.245, (wx, wy, WHEEL_R),
                     kit.STEEL, axis="Y", verts=18)
+            kit.cyl("AeroDisc", 0.24, 0.252, (wx, wy, WHEEL_R),
+                    kit.CHARCOAL, axis="Y", verts=24)
             for spoke in range(5):
                 ang = spoke * math.tau / 5.0
-                kit.box("Spoke", (0.045, 0.25, 0.16),
-                        (wx + 0.10 * math.cos(ang), wy,
-                         WHEEL_R + 0.10 * math.sin(ang)),
-                        kit.CHARCOAL, rot=(0.0, ang, 0.0),
-                        chamfer=False)
+                kit.box("DiscVane", (0.03, 0.256, 0.13),
+                        (wx + 0.13 * math.cos(ang), wy,
+                         WHEEL_R + 0.13 * math.sin(ang)),
+                        kit.STEEL, rot=(0.0, ang, 0.0), chamfer=False)
             kit.arc_shell("ArchLip", (wx, side * 0.885, WHEEL_R),
                           WHEEL_R + 0.10, 0.06, kit.CHARCOAL,
                           start_deg=20.0, end_deg=160.0, segments=8,
