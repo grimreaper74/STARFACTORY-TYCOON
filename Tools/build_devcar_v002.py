@@ -47,6 +47,22 @@ HATCH = [
 ]
 
 
+
+
+def densify(rows, steps=3):
+    """Catmull-style smoothing: interpolate extra rings between stations
+    with cosine easing so the loft curves rather than facets."""
+    import math as _m
+    out = []
+    for i in range(len(rows) - 1):
+        a, b = rows[i], rows[i + 1]
+        for s in range(steps):
+            t = s / float(steps)
+            e = (1.0 - _m.cos(t * _m.pi)) / 2.0
+            out.append(tuple(av + (bv - av) * e for av, bv in zip(a, b)))
+    out.append(rows[-1])
+    return out
+
 def style_profile(style):
     """Transform the hatch table into the requested body style."""
     rows = []
@@ -60,7 +76,7 @@ def style_profile(style):
             top += 0.055
             belt += 0.05
         rows.append((x, top, belt, wb, wt))
-    return rows
+    return densify(rows)
 
 
 GLASS_SIDE_X = (1.56, 3.98)      # side glass runs between these stations
@@ -144,10 +160,14 @@ def loft_body(style, body_mat):
     bm.free()
 
     bevel = obj.modifiers.new("Bevel", "BEVEL")
-    bevel.width = 0.025
-    bevel.segments = 3
+    bevel.width = 0.02
+    bevel.segments = 2
     bevel.limit_method = "ANGLE"
-    bevel.angle_limit = math.radians(38.0)
+    bevel.angle_limit = math.radians(40.0)
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    if hasattr(mesh, "set_sharp_from_angle"):
+        mesh.set_sharp_from_angle(angle=math.radians(46.0))
     return obj
 
 
