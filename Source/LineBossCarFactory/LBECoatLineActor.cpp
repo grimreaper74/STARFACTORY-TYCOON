@@ -1080,13 +1080,16 @@ bool ALBECoatLineActor::AcceptAndAcknowledgeBodyInWhite(ALBBodyWeldLineActor* So
         OutReason = TEXT("BODY_NOT_READY_AT_WELD_OUTPUT");
         return false;
     }
+    TArray<FName> CandidateFamilies;
+    FName CandidateBaseKitTypeId;
     if (Candidate.BodyId.IsNone()
-        || Candidate.VehicleModelId != ALBBodyWeldLineActor::GetVehicleModelId()
+        || !LBVehicleModelCatalog::GetBodyWeldContract(
+            Candidate.VehicleModelId, CandidateFamilies, CandidateBaseKitTypeId)
         || Candidate.OrderId.IsNone() || Candidate.BaseKitId.IsNone()
         || Candidate.ReservationId.IsNone() || Candidate.WeldLineId.IsNone()
         || Candidate.QualityState != ELBBodyWeldQualityState::Good
         || Candidate.bEDAccepted
-        || Candidate.Panels.Num() != ALBBodyWeldLineActor::GetRequiredPanelFamilies().Num()
+        || Candidate.Panels.Num() != CandidateFamilies.Num()
         || !FMath::IsFinite(Candidate.CycleEvidence.ClosurePreparationSeconds)
         || !FMath::IsFinite(Candidate.CycleEvidence.FramingSeconds)
         || !FMath::IsFinite(Candidate.CycleEvidence.WeldingSeconds)
@@ -1098,23 +1101,23 @@ bool ALBECoatLineActor::AcceptAndAcknowledgeBodyInWhite(ALBBodyWeldLineActor* So
     }
 
     TSet<FName> PanelIds;
-    TSet<FName> PanelFamilies;
+    TSet<FName> LineageFamilies;
     for (const FLBBodyWeldPanelLineage& Panel : Candidate.Panels)
     {
         FName ParsedVehicle;
         FName ParsedFamily;
         if (Panel.PanelId.IsNone() || Panel.PanelTypeId.IsNone() || Panel.StillageId.IsNone()
-            || PanelIds.Contains(Panel.PanelId) || PanelFamilies.Contains(Panel.PanelTypeId)
+            || PanelIds.Contains(Panel.PanelId) || LineageFamilies.Contains(Panel.PanelTypeId)
             || !LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(
                 Panel.PanelId, ParsedVehicle, ParsedFamily)
             || ParsedVehicle != Candidate.VehicleModelId || ParsedFamily != Panel.PanelTypeId
-            || !ALBBodyWeldLineActor::GetRequiredPanelFamilies().Contains(Panel.PanelTypeId))
+            || !CandidateFamilies.Contains(Panel.PanelTypeId))
         {
             OutReason = TEXT("PANEL_LINEAGE_INVALID");
             return false;
         }
         PanelIds.Add(Panel.PanelId);
-        PanelFamilies.Add(Panel.PanelTypeId);
+        LineageFamilies.Add(Panel.PanelTypeId);
     }
     if (FindCarrierIndex(CarrierId) != INDEX_NONE)
     {
@@ -1557,13 +1560,16 @@ bool ALBECoatLineActor::IsSaveStateContractValid(const FLBECoatLineSaveState& St
         if (Carrier.bHasBodyInWhite)
         {
             const FLBBodyInWhiteRecord& Body = Carrier.BodyInWhite;
+            TArray<FName> BodyFamilies;
+            FName BodyBaseKitTypeId;
             if (Body.BodyId.IsNone()
-                || Body.VehicleModelId != ALBBodyWeldLineActor::GetVehicleModelId()
+                || !LBVehicleModelCatalog::GetBodyWeldContract(
+                    Body.VehicleModelId, BodyFamilies, BodyBaseKitTypeId)
                 || Body.OrderId.IsNone()
                 || Body.BaseKitId.IsNone() || Body.ReservationId.IsNone()
                 || Body.WeldLineId.IsNone() || !Body.bEDAccepted
                 || Body.QualityState != ELBBodyWeldQualityState::Good
-                || Body.Panels.Num() != ALBBodyWeldLineActor::GetRequiredPanelFamilies().Num()
+                || Body.Panels.Num() != BodyFamilies.Num()
                 || BodyIds.Contains(Body.BodyId)
                 || !FMath::IsFinite(Body.CycleEvidence.ClosurePreparationSeconds)
                 || !FMath::IsFinite(Body.CycleEvidence.FramingSeconds)
@@ -1572,21 +1578,20 @@ bool ALBECoatLineActor::IsSaveStateContractValid(const FLBECoatLineSaveState& St
                 || Body.CycleEvidence.CompletionSequence <= 0) return false;
             BodyIds.Add(Body.BodyId);
             TSet<FName> PanelIds;
-            TSet<FName> PanelFamilies;
+            TSet<FName> LineageFamilies;
             for (const FLBBodyWeldPanelLineage& Panel : Body.Panels)
             {
                 FName ParsedVehicle;
                 FName ParsedFamily;
                 if (Panel.PanelId.IsNone() || Panel.PanelTypeId.IsNone()
                     || Panel.StillageId.IsNone() || PanelIds.Contains(Panel.PanelId)
-                    || PanelFamilies.Contains(Panel.PanelTypeId)
+                    || LineageFamilies.Contains(Panel.PanelTypeId)
                     || !LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(
                         Panel.PanelId, ParsedVehicle, ParsedFamily)
                     || ParsedVehicle != Body.VehicleModelId || ParsedFamily != Panel.PanelTypeId
-                    || !ALBBodyWeldLineActor::GetRequiredPanelFamilies().Contains(
-                        Panel.PanelTypeId)) return false;
+                    || !BodyFamilies.Contains(Panel.PanelTypeId)) return false;
                 PanelIds.Add(Panel.PanelId);
-                PanelFamilies.Add(Panel.PanelTypeId);
+                LineageFamilies.Add(Panel.PanelTypeId);
             }
         }
         CarrierIds.Add(Carrier.CarrierId);

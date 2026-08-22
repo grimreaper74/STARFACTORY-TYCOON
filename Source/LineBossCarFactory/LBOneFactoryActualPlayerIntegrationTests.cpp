@@ -16,6 +16,7 @@
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactorySaveSubsystem.h"
 #include "LBPressShopBuildAuthority.h"
+#include "LBVehiclePanelCatalog.h"
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -45,6 +46,28 @@ namespace LBOneFactoryActualPlayerIntegrationTestsPrivate
         Authority.Tags.AddUnique(
             ALBOneFactoryBootstrap::GetPressBuildAuthorityTag());
         Authority.Tags.AddUnique(ALBOneFactoryBootstrap::GetNativeOnlyTag());
+    }
+
+    FLBVehicleModelRecipe MakeNorthstarDevelopmentRecipe()
+    {
+        FLBVehicleModelRecipe Recipe;
+        Recipe.ModelId = TEXT("NORTHSTAR_DEVELOPMENT");
+        Recipe.DisplayName = TEXT("Northstar development programme");
+        Recipe.RecipeRevisionId = TEXT("NORTHSTAR_DEVELOPMENT_RECIPE_V001");
+        Recipe.PaintRouteProfileId = TEXT("PAINT_ROUTE_EDCOAT_VISIBLE_V001");
+        Recipe.GeometryAuthorityId = TEXT("NorthstarDevelopmentGeometry_V001");
+        Recipe.PanelGeometryAuthorityId = TEXT("NorthstarDevelopmentPanels_V001");
+        Recipe.BaseKitTypeId = TEXT("NORTHSTAR_DEVELOPMENT_BIW_BASE_KIT");
+        Recipe.bDevelopmentVisual = true;
+        Recipe.bPanelGeometryValidated = true;
+        Recipe.DefaultRevenuePence = 2800000;
+        Recipe.RequiredPanels = {
+            { TEXT("NORTHSTAR_HOOD"), TEXT("Northstar hood"), ELBPanelHandedness::None,
+                12, FVector(160.0f, 140.0f, 20.0f), NAME_None },
+            { TEXT("NORTHSTAR_DOOR_LEFT"), TEXT("Northstar door left"), ELBPanelHandedness::Left,
+                16, FVector(120.0f, 18.0f, 110.0f), NAME_None }
+        };
+        return Recipe;
     }
 
     struct FActualPlayerWorld
@@ -337,6 +360,180 @@ bool FLBOneFactoryTwoWorldFreshRestoreTest::RunTest(
         HUDB->GetManagementActionCount(), 2);
     SessionB.Destroy();
     return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FLBOneFactoryProgrammeChangeoverTest,
+    "LineBoss.OneFactory.ActualPlayer.EmptyLineProgrammeChangeoverUsesRegisteredRecipe",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBOneFactoryProgrammeChangeoverTest::RunTest(const FString& Parameters)
+{
+    (void)Parameters;
+    using namespace LBOneFactoryActualPlayerIntegrationTestsPrivate;
+    const FName ModelId(TEXT("NORTHSTAR_DEVELOPMENT"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+    const FLBVehicleModelRecipe Recipe = MakeNorthstarDevelopmentRecipe();
+    FString Reason;
+    if (!TestTrue(TEXT("second development recipe registers"),
+            LBVehicleModelCatalog::RegisterDevelopmentRecipe(Recipe, Reason)))
+        return false;
+
+    FActualPlayerWorld Fixture;
+    const bool bReady = Fixture.CreateShell(TEXT("LBOneFactoryProgrammeChangeover"), Reason)
+        && Fixture.BuildAndCommissionThroughUMGModel(Reason);
+    if (!TestTrue(TEXT("empty player-built line is ready for a programme changeover"), bReady))
+    {
+        AddError(Reason);
+        Fixture.Destroy();
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        return false;
+    }
+    const TArray<FLBOneFactoryBuilderUMGAction> Actions =
+        Fixture.Operations->GetUMGActions();
+    TestEqual(TEXT("empty multi-model line exposes player-facing changeover"),
+        Actions[1].Title, FString(TEXT("Change factory programme")));
+    TestTrue(TEXT("all four layouts retool atomically through player UMG while zero WIP exists"),
+        Fixture.Operations->ExecuteUMGAction(1, Reason));
+    ALBOneFactoryBodyWeldStarterLayoutAuthority* Body = nullptr;
+    ALBOneFactoryPaintStarterLayoutAuthority* Paint = nullptr;
+    ALBOneFactoryAssemblyStarterLayoutAuthority* Assembly = nullptr;
+    for (TActorIterator<ALBOneFactoryBodyWeldStarterLayoutAuthority> It(Fixture.World); It; ++It) Body = *It;
+    for (TActorIterator<ALBOneFactoryPaintStarterLayoutAuthority> It(Fixture.World); It; ++It) Paint = *It;
+    for (TActorIterator<ALBOneFactoryAssemblyStarterLayoutAuthority> It(Fixture.World); It; ++It) Assembly = *It;
+    if (!TestNotNull(TEXT("body layout exists after player build"), Body)
+        || !TestNotNull(TEXT("paint layout exists after player build"), Paint)
+        || !TestNotNull(TEXT("assembly layout exists after player build"), Assembly))
+    {
+        Fixture.Destroy();
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        return false;
+    }
+    TestEqual(TEXT("body layout carries selected programme"),
+        Body->CaptureLayout().VehicleModelId, ModelId);
+    TestEqual(TEXT("paint layout carries selected programme"),
+        Paint->CaptureLayout().VehicleModelId, ModelId);
+    TestEqual(TEXT("assembly layout carries selected programme"),
+        Assembly->CaptureLayout().VehicleModelId, ModelId);
+    TestTrue(TEXT("public operation action creates the selected programme, not Cairnwell"),
+        Fixture.Operations->ExecuteUMGAction(0, Reason));
+    const FLBOneFactoryProductionLedgerState Ledger =
+        Fixture.GameMode->GetOneFactoryProductionFlow()->CaptureLedger();
+    TestEqual(TEXT("the new unit captures Northstar as its immutable model identity"),
+        Ledger.Units.Last().VehicleModelId, ModelId);
+    TestEqual(TEXT("the new unit captures Northstar's immutable recipe revision"),
+        Ledger.Units.Last().VehicleRecipeRevisionId, Recipe.RecipeRevisionId);
+    TestEqual(TEXT("the new unit captures Northstar's own panel BOM"),
+        Ledger.Units.Last().RequiredPanelTypeIds.Num(), Recipe.RequiredPanels.Num());
+    TestFalse(TEXT("active WIP prevents a mixed-model retool"),
+        Fixture.Operations->ChangeFactoryProgramme(TEXT("CAIRNWELL_2040"), Reason));
+    Fixture.Destroy();
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FLBOneFactorySecondModelFullRouteTest,
+    "LineBoss.OneFactory.ActualPlayer.RegisteredDevelopmentModelCompletesFullRoute",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBOneFactorySecondModelFullRouteTest::RunTest(const FString& Parameters)
+{
+    (void)Parameters;
+    using namespace LBOneFactoryActualPlayerIntegrationTestsPrivate;
+    const FName ModelId(TEXT("NORTHSTAR_DEVELOPMENT"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+    const FLBVehicleModelRecipe Recipe = MakeNorthstarDevelopmentRecipe();
+    FString Reason;
+    if (!TestTrue(TEXT("second route recipe registers"),
+            LBVehicleModelCatalog::RegisterDevelopmentRecipe(Recipe, Reason)))
+        return false;
+
+    FActualPlayerWorld Fixture;
+    const bool bReady = Fixture.CreateShell(TEXT("LBOneFactorySecondModelFullRoute"), Reason)
+        && Fixture.BuildAndCommissionThroughUMGModel(Reason)
+        && Fixture.Operations->ChangeFactoryProgramme(ModelId, Reason);
+    if (!TestTrue(TEXT("second model factory retargets before production"), bReady))
+    {
+        AddError(Reason);
+        Fixture.Destroy();
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        return false;
+    }
+
+    FName UnitId;
+    if (!TestTrue(TEXT("second model order is created by the runtime coordinator"),
+            Fixture.GameMode->GetOneFactoryRuntimeCoordinator()->CreateRuntimeVehicleOrder(
+                TEXT("NORTHSTAR_FULL_ROUTE_001"), ModelId,
+                ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+                    ModelId, ELBOneFactoryPaintColour::CairnwellTeal),
+                TEXT("NORTHSTAR_TEAL"), TEXT("NORTHSTAR_COIL_001"), UnitId, Reason)))
+    {
+        AddError(Reason);
+        Fixture.Destroy();
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        return false;
+    }
+    if (!TestTrue(TEXT("second model order starts from the configured Press inbound"),
+            Fixture.GameMode->GetOneFactoryRuntimeCoordinator()->StartVehicle(UnitId, Reason)))
+    {
+        AddError(Reason);
+        Fixture.Destroy();
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        return false;
+    }
+
+    bool bDispatched = false;
+    for (int32 Guard = 0; Guard < 180 && !bDispatched; ++Guard)
+    {
+        FLBOneFactoryRuntimeVehicleStatus Status;
+        if (!Fixture.GameMode->GetOneFactoryRuntimeCoordinator()->GetVehicleRuntimeStatus(
+                UnitId, Status, Reason))
+        {
+            AddError(Reason);
+            break;
+        }
+        if (Status.bDispatched)
+        {
+            bDispatched = true;
+            break;
+        }
+        if (Status.bAwaitingQualityResult)
+        {
+            if (!Fixture.GameMode->GetOneFactoryRuntimeCoordinator()->
+                    SubmitRuntimeQualityResult(UnitId,
+                        ELBOneFactoryVehicleQualityState::Passed,
+                        FName(*FString::Printf(TEXT("NORTHSTAR_QA_%03d"), Guard)),
+                        Reason))
+            {
+                AddError(Reason);
+                break;
+            }
+        }
+        else if (!Fixture.GameMode->GetOneFactoryRuntimeCoordinator()->
+                TickVehicle(UnitId, 1000.0f, Reason))
+        {
+            AddError(Reason);
+            break;
+        }
+    }
+
+    TestTrue(TEXT("the registered development model dispatches through all factory stages"),
+        bDispatched);
+    const FLBOneFactoryProductionLedgerState Ledger =
+        Fixture.GameMode->GetOneFactoryProductionFlow()->CaptureLedger();
+    const FLBOneFactoryVehicleUnitState* Unit = Ledger.Units.FindByPredicate(
+        [UnitId](const FLBOneFactoryVehicleUnitState& Candidate)
+        {
+            return Candidate.UnitId == UnitId;
+        });
+    TestTrue(TEXT("the dispatched unit retains the selected model identity"),
+        Unit && Unit->VehicleModelId == ModelId && Unit->bCompleted && Unit->bDispatched);
+    TestTrue(TEXT("the dispatched unit retains the selected recipe revision"),
+        Unit && Unit->VehicleRecipeRevisionId == Recipe.RecipeRevisionId);
+    Fixture.Destroy();
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+    return !HasAnyErrors();
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(

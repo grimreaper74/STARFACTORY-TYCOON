@@ -214,21 +214,42 @@ bool ULBOneFactoryPaintStarterLayoutLibrary::IsPlayerSelectableColour(
 FName ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeId(
     const ELBOneFactoryPaintColour Colour)
 {
+    return MakePaintProgrammeIdForModel(
+        LBCairnwell2040PanelCatalog::GetVehicleModelId(), Colour);
+}
+
+FName ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+    const FName VehicleModelId, const ELBOneFactoryPaintColour Colour)
+{
+    if (!LBVehicleModelCatalog::IsKnownModel(VehicleModelId)
+        || !IsPlayerSelectableColour(Colour))
+    {
+        return NAME_None;
+    }
+
+    const TCHAR* ColourToken = nullptr;
     switch (Colour)
     {
     case ELBOneFactoryPaintColour::ArcticWhite:
-        return FName(TEXT("PAINT_CAIRNWELL_2040_ARCTIC_WHITE_V1"));
+        ColourToken = TEXT("ARCTIC_WHITE");
+        break;
     case ELBOneFactoryPaintColour::FoundryGraphite:
-        return FName(TEXT("PAINT_CAIRNWELL_2040_FOUNDRY_GRAPHITE_V1"));
+        ColourToken = TEXT("FOUNDRY_GRAPHITE");
+        break;
     case ELBOneFactoryPaintColour::CairnwellTeal:
-        return FName(TEXT("PAINT_CAIRNWELL_2040_CAIRNWELL_TEAL_V1"));
+        ColourToken = TEXT("CAIRNWELL_TEAL");
+        break;
     case ELBOneFactoryPaintColour::SignalRed:
-        return FName(TEXT("PAINT_CAIRNWELL_2040_SIGNAL_RED_V1"));
+        ColourToken = TEXT("SIGNAL_RED");
+        break;
     case ELBOneFactoryPaintColour::AuroraBlue:
-        return FName(TEXT("PAINT_CAIRNWELL_2040_AURORA_BLUE_V1"));
+        ColourToken = TEXT("AURORA_BLUE");
+        break;
     default:
         return NAME_None;
     }
+    return FName(*FString::Printf(TEXT("PAINT_%s_%s_V1"),
+        *VehicleModelId.ToString(), ColourToken));
 }
 
 FString ULBOneFactoryPaintStarterLayoutLibrary::GetColourDisplayName(
@@ -414,7 +435,8 @@ ULBOneFactoryPaintStarterLayoutLibrary::MakeCanonicalStarterLayout()
     State.LayoutId = LBOneFactoryPaintStarterIds::Layout();
     State.VehicleModelId = LBCairnwell2040PanelCatalog::GetVehicleModelId();
     State.SelectedBodyColour = ELBOneFactoryPaintColour::CairnwellTeal;
-    State.PaintProgrammeId = MakePaintProgrammeId(State.SelectedBodyColour);
+    State.PaintProgrammeId = MakePaintProgrammeIdForModel(State.VehicleModelId,
+        State.SelectedBodyColour);
     State.Revision = 0;
     State.bCommissioned = false;
     State.InputBodyState = ELBOneFactoryPaintBodyState::BodyInWhite;
@@ -461,15 +483,15 @@ bool ULBOneFactoryPaintStarterLayoutLibrary::ValidateStarterLayout(
     const TArray<FRoleContract>& Contracts = RoleContracts();
     if (State.Version != 1 || State.LayoutId !=
             LBOneFactoryPaintStarterIds::Layout()
-        || State.VehicleModelId !=
-            LBCairnwell2040PanelCatalog::GetVehicleModelId()
+        || !LBVehicleModelCatalog::IsKnownModel(State.VehicleModelId)
         || State.Revision < 0
         || State.InputBodyState != ELBOneFactoryPaintBodyState::BodyInWhite
         || State.OutputBodyState !=
             ELBOneFactoryPaintBodyState::InspectedPaintedBody
         || !IsPlayerSelectableColour(State.SelectedBodyColour)
         || State.PaintProgrammeId !=
-            MakePaintProgrammeId(State.SelectedBodyColour)
+            MakePaintProgrammeIdForModel(State.VehicleModelId,
+                State.SelectedBodyColour)
         || State.Stations.Num() != RequiredStationCount
         || State.Connections.Num() != RequiredConnectionCount)
     {
@@ -658,8 +680,8 @@ bool ALBOneFactoryPaintStarterLayoutAuthority::SetStationPaintProgramme(
     FLBOneFactoryPaintStarterLayoutState Candidate = CurrentState;
     Candidate.SelectedBodyColour = TargetColour;
     Candidate.PaintProgrammeId =
-        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeId(
-            TargetColour);
+        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+            Candidate.VehicleModelId, TargetColour);
     for (FLBOneFactoryPaintStarterStationState& Station : Candidate.Stations)
     {
         const FRoleContract* Contract = FindRoleContract(Station.Role);

@@ -6,6 +6,7 @@
 #include "Engine/Texture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
+#include "InputCoreTypes.h"
 #include "LBControlRoomHUD.h"
 #include "LBFactoryBrandSubsystem.h"
 #include "LBManagementRootWidget.h"
@@ -87,6 +88,28 @@ bool FLBManagementRootWidgetCanonicalDestinationsTest::RunTest(
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FLBManagementRootWidgetGameplayKeysStayOutsideUITest,
+    "LineBoss.Management.UMG.GameplayKeysStayOutsideUI",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBManagementRootWidgetGameplayKeysStayOutsideUITest::RunTest(
+    const FString& Parameters)
+{
+    const FKey GameplayKeys[] = { EKeys::W, EKeys::A, EKeys::S, EKeys::D,
+        EKeys::Q, EKeys::E, EKeys::SpaceBar, EKeys::Home };
+    for (const FKey& Key : GameplayKeys)
+        TestTrue(FString::Printf(TEXT("%s remains owned by gameplay"),
+            *Key.GetDisplayName().ToString()),
+            ULBManagementRootWidget::IsReservedGameplayKey(Key));
+
+    TestFalse(TEXT("Arrow navigation remains available to the HUD"),
+        ULBManagementRootWidget::IsReservedGameplayKey(EKeys::Left));
+    TestFalse(TEXT("Enter remains available to the HUD"),
+        ULBManagementRootWidget::IsReservedGameplayKey(EKeys::Enter));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FLBManagementRootWidgetCairnwellLogoTest,
     "LineBoss.Management.UMG.CairnwellV002LogoAsset",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -149,26 +172,18 @@ bool FLBManagementRootWidgetTruthfulTelemetryTest::RunTest(
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FLBManagementRootWidgetStrictThumbnailPathsTest,
-    "LineBoss.Management.UMG.StrictV003ThumbnailPaths",
+    FLBManagementRootWidgetNativeProductionSchematicPolicyTest,
+    "LineBoss.Management.UMG.NativeProductionSchematicPolicy",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FLBManagementRootWidgetStrictThumbnailPathsTest::RunTest(const FString& Parameters)
+bool FLBManagementRootWidgetNativeProductionSchematicPolicyTest::RunTest(const FString& Parameters)
 {
     const TArray<FName> Ids = ULBManagementRootWidget::GetCanonicalProductionStageIds();
-    TSet<FString> Paths;
     for (const FName Id : Ids)
     {
-        const FString Path = ULBManagementRootWidget::GetStageThumbnailPath(Id).ToString();
-        TestTrue(FString::Printf(TEXT("%s uses only the strict v003 art pack"),
-            *Id.ToString()), Path.StartsWith(
-                TEXT("/Game/LineBoss/UI/ProductionFlow/v003/T_LB_UI_PF_")));
-        TestTrue(FString::Printf(TEXT("%s does not silently fall back to v001"),
-            *Id.ToString()), !Path.Contains(TEXT("/v001/")));
-        Paths.Add(Path);
+        TestTrue(FString::Printf(TEXT("%s deliberately uses a native schematic"),
+            *Id.ToString()), ULBManagementRootWidget::GetStageThumbnailPath(Id).IsNull());
     }
-    TestEqual(TEXT("Every production stage owns a distinct image slot"),
-        Paths.Num(), ULBManagementRootWidget::ProductionStageCount);
     TestTrue(TEXT("Unknown stages remain visibly unresolved"),
         ULBManagementRootWidget::GetStageThumbnailPath(TEXT("INVENTED_STAGE")).IsNull());
     return true;
@@ -281,43 +296,21 @@ bool FLBManagementRootWidgetNativeTopStripReachabilityTest::RunTest(
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FLBManagementRootWidgetStrictThumbnailAssetsLoadTest,
-    "LineBoss.Management.UMG.StrictV003ThumbnailAssetsLoad",
+    FLBManagementRootWidgetNoImportedProductionThumbnailLoadsTest,
+    "LineBoss.Management.UMG.NoImportedProductionThumbnailLoads",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FLBManagementRootWidgetStrictThumbnailAssetsLoadTest::RunTest(
+bool FLBManagementRootWidgetNoImportedProductionThumbnailLoadsTest::RunTest(
     const FString& Parameters)
 {
     const TArray<FName> Ids = ULBManagementRootWidget::GetCanonicalProductionStageIds();
-    TSet<FString> LoadedObjectPaths;
-    bool bCompleteThumbnailSet = Ids.Num()
-        == ULBManagementRootWidget::ProductionStageCount;
-
     for (const FName StageId : Ids)
     {
         const FSoftObjectPath SoftPath =
             ULBManagementRootWidget::GetStageThumbnailPath(StageId);
-        UTexture2D* Texture = Cast<UTexture2D>(SoftPath.TryLoad());
-        TestNotNull(FString::Printf(TEXT("%s loads its exact packaged v003 texture"),
-            *StageId.ToString()), Texture);
-        bCompleteThumbnailSet &= Texture != nullptr;
-        if (Texture)
-        {
-            LoadedObjectPaths.Add(Texture->GetPathName());
-            // NullRHI deliberately has no texture platform resource, so GetSizeX/Y
-            // return zero there. Imported size is the stable source/cooked contract.
-            const FIntPoint ImportedSize = Texture->GetImportedSize();
-            TestEqual(FString::Printf(TEXT("%s retains the authored thumbnail width"),
-                *StageId.ToString()), ImportedSize.X, 384);
-            TestEqual(FString::Printf(TEXT("%s retains the authored thumbnail height"),
-                *StageId.ToString()), ImportedSize.Y, 240);
-        }
+        TestTrue(FString::Printf(TEXT("%s does not load an imported thumbnail"),
+            *StageId.ToString()), SoftPath.IsNull());
     }
-
-    TestEqual(TEXT("All six runtime thumbnail references resolve to distinct assets"),
-        LoadedObjectPaths.Num(), ULBManagementRootWidget::ProductionStageCount);
-    TestTrue(TEXT("The exact six-asset condition backing CompleteThumbnailSet is true"),
-        bCompleteThumbnailSet);
     return true;
 }
 

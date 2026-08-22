@@ -1,0 +1,858 @@
+{
+  "$schema": "lineboss/cairnwell-2040-panel-modules-v001/coordinate-recovery/v3",
+  "corrected_expected_unreal_bounds": {
+    "DOOR_FRONT_LEFT": [
+      {
+        "dimensions_cm": [
+          86.0,
+          4.087895,
+          63.498262
+        ],
+        "maximum_cm": [
+          91.2,
+          91.999531,
+          107.998729
+        ],
+        "minimum_cm": [
+          5.2,
+          87.911636,
+          44.500467
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          86.0,
+          4.087895,
+          63.498262
+        ],
+        "maximum_cm": [
+          91.2,
+          91.999531,
+          107.998729
+        ],
+        "minimum_cm": [
+          5.2,
+          87.911636,
+          44.500467
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          86.0,
+          4.08991,
+          63.500002
+        ],
+        "maximum_cm": [
+          91.2,
+          91.998041,
+          108.000004
+        ],
+        "minimum_cm": [
+          5.2,
+          87.908131,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "DOOR_FRONT_RIGHT": [
+      {
+        "dimensions_cm": [
+          86.0,
+          4.087895,
+          63.498262
+        ],
+        "maximum_cm": [
+          91.2,
+          -87.911636,
+          107.998729
+        ],
+        "minimum_cm": [
+          5.2,
+          -91.999531,
+          44.500467
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          86.0,
+          4.087895,
+          63.498262
+        ],
+        "maximum_cm": [
+          91.2,
+          -87.911636,
+          107.998729
+        ],
+        "minimum_cm": [
+          5.2,
+          -91.999531,
+          44.500467
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          86.0,
+          4.08991,
+          63.500002
+        ],
+        "maximum_cm": [
+          91.2,
+          -87.908131,
+          108.000004
+        ],
+        "minimum_cm": [
+          5.2,
+          -91.998041,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "DOOR_REAR_LEFT": [
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.088097,
+          63.499394
+        ],
+        "maximum_cm": [
+          3.8,
+          91.999733,
+          107.999396
+        ],
+        "minimum_cm": [
+          -93.599999,
+          87.911636,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.088097,
+          63.499394
+        ],
+        "maximum_cm": [
+          3.8,
+          91.999733,
+          107.999396
+        ],
+        "minimum_cm": [
+          -93.599999,
+          87.911636,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.08991,
+          63.500002
+        ],
+        "maximum_cm": [
+          3.8,
+          91.998041,
+          108.000004
+        ],
+        "minimum_cm": [
+          -93.599999,
+          87.908131,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "DOOR_REAR_RIGHT": [
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.088097,
+          63.499382
+        ],
+        "maximum_cm": [
+          3.8,
+          -87.911636,
+          107.999384
+        ],
+        "minimum_cm": [
+          -93.599999,
+          -91.999733,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.088097,
+          63.499382
+        ],
+        "maximum_cm": [
+          3.8,
+          -87.911636,
+          107.999384
+        ],
+        "minimum_cm": [
+          -93.599999,
+          -91.999733,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          97.399999,
+          4.08991,
+          63.500002
+        ],
+        "maximum_cm": [
+          3.8,
+          -87.908131,
+          108.000004
+        ],
+        "minimum_cm": [
+          -93.599999,
+          -91.998041,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "FENDER_FRONT_LEFT": [
+      {
+        "dimensions_cm": [
+          117.998475,
+          22.079033,
+          57.496277
+        ],
+        "maximum_cm": [
+          210.498476,
+          94.0,
+          101.996279
+        ],
+        "minimum_cm": [
+          92.500001,
+          71.920967,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          117.998475,
+          22.074139,
+          57.496277
+        ],
+        "maximum_cm": [
+          210.498476,
+          94.0,
+          101.996279
+        ],
+        "minimum_cm": [
+          92.500001,
+          71.925861,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          118.000001,
+          22.091532,
+          57.499996
+        ],
+        "maximum_cm": [
+          210.500002,
+          94.0,
+          101.999998
+        ],
+        "minimum_cm": [
+          92.500001,
+          71.908468,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "FENDER_FRONT_RIGHT": [
+      {
+        "dimensions_cm": [
+          117.998475,
+          22.079027,
+          57.496277
+        ],
+        "maximum_cm": [
+          210.498476,
+          -71.920973,
+          101.996279
+        ],
+        "minimum_cm": [
+          92.500001,
+          -94.0,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          117.998475,
+          22.074139,
+          57.496277
+        ],
+        "maximum_cm": [
+          210.498476,
+          -71.925861,
+          101.996279
+        ],
+        "minimum_cm": [
+          92.500001,
+          -94.0,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          118.000001,
+          22.091532,
+          57.499996
+        ],
+        "maximum_cm": [
+          210.500002,
+          -71.908468,
+          101.999998
+        ],
+        "minimum_cm": [
+          92.500001,
+          -94.0,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "HOOD_PANEL": [
+      {
+        "dimensions_cm": [
+          137.999987,
+          141.200876,
+          24.942702
+        ],
+        "maximum_cm": [
+          209.99999,
+          70.600438,
+          102.496648
+        ],
+        "minimum_cm": [
+          72.000003,
+          -70.600438,
+          77.553946
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          137.999987,
+          141.200876,
+          24.942702
+        ],
+        "maximum_cm": [
+          209.99999,
+          70.600438,
+          102.496648
+        ],
+        "minimum_cm": [
+          72.000003,
+          -70.600438,
+          77.553946
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          137.999987,
+          141.19699,
+          24.949998
+        ],
+        "maximum_cm": [
+          209.99999,
+          70.598495,
+          102.499998
+        ],
+        "minimum_cm": [
+          72.000003,
+          -70.598495,
+          77.55
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "QUARTER_PANEL_LEFT": [
+      {
+        "dimensions_cm": [
+          112.498241,
+          22.081221,
+          65.998009
+        ],
+        "maximum_cm": [
+          -94.999999,
+          93.999422,
+          110.498011
+        ],
+        "minimum_cm": [
+          -207.49824,
+          71.918201,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          112.498241,
+          22.080428,
+          65.998009
+        ],
+        "maximum_cm": [
+          -94.999999,
+          93.999422,
+          110.498011
+        ],
+        "minimum_cm": [
+          -207.49824,
+          71.918994,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          112.500006,
+          22.091532,
+          66.0
+        ],
+        "maximum_cm": [
+          -94.999999,
+          94.0,
+          110.500002
+        ],
+        "minimum_cm": [
+          -207.500005,
+          71.908468,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "QUARTER_PANEL_RIGHT": [
+      {
+        "dimensions_cm": [
+          112.498241,
+          22.081221,
+          65.998009
+        ],
+        "maximum_cm": [
+          -94.999999,
+          -71.918201,
+          110.498011
+        ],
+        "minimum_cm": [
+          -207.49824,
+          -93.999422,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          112.498241,
+          22.080428,
+          65.998009
+        ],
+        "maximum_cm": [
+          -94.999999,
+          -71.918994,
+          110.498011
+        ],
+        "minimum_cm": [
+          -207.49824,
+          -93.999422,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          112.500006,
+          22.091532,
+          66.0
+        ],
+        "maximum_cm": [
+          -94.999999,
+          -71.908468,
+          110.500002
+        ],
+        "minimum_cm": [
+          -207.500005,
+          -94.0,
+          44.500002
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "ROOF_PANEL": [
+      {
+        "dimensions_cm": [
+          192.000007,
+          135.581804,
+          6.824803
+        ],
+        "maximum_cm": [
+          60.000002,
+          67.790902,
+          155.999994
+        ],
+        "minimum_cm": [
+          -132.000005,
+          -67.790902,
+          149.175191
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          192.000007,
+          135.581804,
+          6.824803
+        ],
+        "maximum_cm": [
+          60.000002,
+          67.790902,
+          155.999994
+        ],
+        "minimum_cm": [
+          -132.000005,
+          -67.790902,
+          149.175191
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          192.000007,
+          135.578072,
+          6.827497
+        ],
+        "maximum_cm": [
+          60.000002,
+          67.789036,
+          155.999994
+        ],
+        "minimum_cm": [
+          -132.000005,
+          -67.789036,
+          149.172497
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "TAILGATE_PANEL": [
+      {
+        "dimensions_cm": [
+          51.5728,
+          139.996666,
+          65.505487
+        ],
+        "maximum_cm": [
+          -160.418892,
+          69.99833,
+          115.497792
+        ],
+        "minimum_cm": [
+          -211.991692,
+          -69.998336,
+          49.992305
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          51.564669,
+          139.996666,
+          65.505487
+        ],
+        "maximum_cm": [
+          -160.422969,
+          69.99833,
+          115.497792
+        ],
+        "minimum_cm": [
+          -211.987638,
+          -69.998336,
+          49.992305
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          51.589382,
+          139.997018,
+          65.509894
+        ],
+        "maximum_cm": [
+          -160.410607,
+          69.998509,
+          115.499997
+        ],
+        "minimum_cm": [
+          -211.999989,
+          -69.998509,
+          49.990103
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "destination_package_files": {
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_FRONT_LEFT_v001.uasset": {
+      "bytes": 26280,
+      "mtime_ns": 1786818621810180200,
+      "sha256": "5E1AC87462E3A9412F257B06B40B394D6F50E1D8034F8E3CBE2D37F98FD81C25"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_FRONT_RIGHT_v001.uasset": {
+      "bytes": 26200,
+      "mtime_ns": 1786818621820174100,
+      "sha256": "CD0CA755990BF4D47B80405EFB5A713843FD8C6CAB9EDE99436C03E4A4460AAD"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_REAR_LEFT_v001.uasset": {
+      "bytes": 26249,
+      "mtime_ns": 1786818621829179200,
+      "sha256": "B95CA5239D88FC614715592CA2C9359356C958E8BA65D97905D3764273D0507E"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_DOOR_REAR_RIGHT_v001.uasset": {
+      "bytes": 26205,
+      "mtime_ns": 1786818621837179900,
+      "sha256": "87FB08582DA6FB06C64419C41810C815008620F213970F5D31E5AE84B96A3DDC"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_FENDER_FRONT_LEFT_v001.uasset": {
+      "bytes": 45176,
+      "mtime_ns": 1786818621845179600,
+      "sha256": "96491B13CF1BDEEBA5C63F2052B476721676432F8AA7A0AF21822982A0ABC9E8"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_FENDER_FRONT_RIGHT_v001.uasset": {
+      "bytes": 45281,
+      "mtime_ns": 1786818621855179500,
+      "sha256": "431C661F892F745D7574FCAF3FC7AD2C72D3DAC0D058BC0EC755A582DEF56F42"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_HOOD_PANEL_v001.uasset": {
+      "bytes": 39393,
+      "mtime_ns": 1786818621794179200,
+      "sha256": "00AC585D5F2F59D65AEF34E9CCB51AC8F32FC8DBAF3A739B4E9DC9397D450C6A"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_QUARTER_PANEL_LEFT_v001.uasset": {
+      "bytes": 45024,
+      "mtime_ns": 1786818621862179900,
+      "sha256": "BDC306FC395B88011F51ABA650EB05A166F75DFAA8F66E3ACED0BA035992021E"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_QUARTER_PANEL_RIGHT_v001.uasset": {
+      "bytes": 45510,
+      "mtime_ns": 1786818621872179500,
+      "sha256": "06AE039990A5FF249C86844BC6AA11BA76CDEE76544702F6CD3BFA3BDDD694C7"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_ROOF_PANEL_v001.uasset": {
+      "bytes": 42551,
+      "mtime_ns": 1786818621802179800,
+      "sha256": "1FA6FC4D327EB323D87A998BA47EE1ACC5358C8D0475B70571E11ABE35999A0C"
+    },
+    "Content/LineBoss/Factory/OneFactory/v001/Vehicles/Cairnwell2040PanelModules_v001/Meshes/SM_LB_C2040_TAILGATE_PANEL_v001.uasset": {
+      "bytes": 26040,
+      "mtime_ns": 1786818621881175000,
+      "sha256": "FBC70B35DDF0D0A42413A7EE11E8A76AC6077D6D0A34E685AF55D97CED38E4C3"
+    }
+  },
+  "policy": {
+    "fresh_editor_read_only_validation_required": true,
+    "mesh_material_lod_or_package_write_authorized": false,
+    "reimport_overwrite_delete_authorized": false
+  },
+  "proof": {
+    "all_panel_lod_measurement_rows": 33,
+    "bounds_tolerance_cm": 0.25,
+    "coordinate_transform": "(X,Y,Z) exporter bounds -> (X,-Y,Z) Unreal bounds; negate and swap Y interval endpoints",
+    "maximum_measured_error_cm": 2.7e-05
+  },
+  "recovery_v002_contract": {
+    "bytes": 84556,
+    "path": "Scripts\\cairnwell_2040_panel_modules_recovery_v002_contract.json",
+    "sha256": "881CB2DDE80FD4974AC13EB505F735E0023A134AF53C2DDE9A01C7EA3F78278F"
+  },
+  "recovery_v002_failure": {
+    "failure_reason": "exporter-space Y bounds compared after Unreal handedness conversion",
+    "files": {
+      "fresh_process_validation_failure_recovery_v002.json": {
+        "bytes": 12606,
+        "sha256": "5A80E4B620419CF5EC394FEC4ED342028BBD9A339C5121EC183884F66EF6F534"
+      },
+      "fresh_process_validation_recovery_v002.log": {
+        "bytes": 333458,
+        "sha256": "F075FCD0E50C9867712E976E725E7590E1B9E56635C46282929A847E49046A96"
+      },
+      "fresh_process_validation_recovery_v002.stderr.log": {
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "fresh_process_validation_recovery_v002.stdout.log": {
+        "bytes": 333564,
+        "sha256": "D314CAEFDE53C6A66606BD936D9F595E9F8B72229E6BC49212A7FDF8975F12A5"
+      },
+      "lane_summary_recovery_v002.json": {
+        "bytes": 948,
+        "sha256": "DD684E7D65A36A6028F0FD35D59B326376FDEB7F34D7FCD56FE44012BBAF9D75"
+      }
+    },
+    "run_id": "20260815T193624Z-b1de90e0"
+  },
+  "source_import_contract": {
+    "bytes": 192529,
+    "path": "Scripts\\cairnwell_2040_panel_modules_v001_import_contract.json",
+    "sha256": "0EB0ED65D171A476D30F2F47BCEA9F63CF7CCE845369565AE6781ABE7CC35C2B"
+  },
+  "status": "FROZEN__READ_ONLY_PANEL_BOUNDS_VALIDATION__NO_REIMPORT_OR_PROMOTION"
+}

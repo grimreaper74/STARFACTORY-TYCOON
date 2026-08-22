@@ -3,8 +3,9 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
-#include "EngineUtils.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
+#include "LBVehiclePanelCatalog.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
@@ -19,51 +20,87 @@ namespace LBOneFactoryWIPPresentationPrivate
         TEXT("WIP_PrimedBody"), TEXT("WIP_PaintedBody"), TEXT("WIP_FinishedCar")
     };
 
+    constexpr int32 StampedPanelCount = 11;
+    const TCHAR* const StampedPanelNames[StampedPanelCount] = {
+        TEXT("HOOD_PANEL"), TEXT("ROOF_PANEL"), TEXT("DOOR_FRONT_LEFT"),
+        TEXT("DOOR_FRONT_RIGHT"), TEXT("DOOR_REAR_LEFT"), TEXT("DOOR_REAR_RIGHT"),
+        TEXT("FENDER_FRONT_LEFT"), TEXT("FENDER_FRONT_RIGHT"),
+        TEXT("QUARTER_PANEL_LEFT"), TEXT("QUARTER_PANEL_RIGHT"), TEXT("TAILGATE_PANEL")
+    };
+    const TCHAR* const StampedPanelMeshPath[StampedPanelCount] = {
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Hood.SM_LB_C2040_Hood"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Roof.SM_LB_C2040_Roof"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L.SM_LB_C2040_FrontDoor_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L.SM_LB_C2040_FrontDoor_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L.SM_LB_C2040_RearDoor_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L.SM_LB_C2040_RearDoor_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L.SM_LB_C2040_FrontFender_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L.SM_LB_C2040_FrontFender_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L.SM_LB_C2040_QuarterPanel_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L.SM_LB_C2040_QuarterPanel_L"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Tailgate.SM_LB_C2040_Tailgate")
+    };
+    const bool StampedPanelMirrored[StampedPanelCount] = {
+        false, false, false, true, false, true, false, true, false, true, false
+    };
+    const FVector StampedPanelOffsets[StampedPanelCount] = {
+        {-90.0, -68.0, 82.0}, {0.0, -68.0, 92.0}, {90.0, -68.0, 72.0},
+        {-90.0, 68.0, 82.0}, {0.0, 68.0, 92.0}, {90.0, 68.0, 72.0},
+        {-90.0, -30.0, 30.0}, {90.0, -30.0, 30.0}, {-90.0, 30.0, 30.0},
+        {90.0, 30.0, 30.0}, {0.0, 0.0, 145.0}
+    };
+
     /**
      * Real authored meshes for every family, measured in the editor. The
-     * Cairnwell runtime and panel-stillage assets were imported by the guarded
-     * lanes on 2026-08-15 and carry their own authored materials; the coil is
-     * the repaired press-shop wrapped coil. Scale is 1.0 everywhere - these are
-     * true-size assets, not primitives.
+     * The body stages use the clean-room VehicleWIPNativeKit layer imported by
+     * the guarded native lane. The coil and panel stillage keep their existing
+     * production presentation authorities. Scale is 1.0 everywhere - these
+     * are true-size assets, not primitives.
      *
-     *   WrappedCoil_Repaired_v003          181 x 150 x 179  pivot at base
+     *   Engine cylinder coil proxy         181 x 150 x 179  pivot at base
      *   PanelStillage_Runtime_v001         190 x 139 x 116  pivot centred
-     *   C2040_BIW_AutomotiveSkeleton_v001  452 x 161 x 143  floor at pivot
-     *   C2040_EmeraldBodyVisualAuthority   456 x 188 x 138  floor at pivot
+     *   C2040_UpperStructure (native)      open BIW structure, floor at pivot
+     *   C2040_RoofClosures (native)        452 x 191 x 126  floor at pivot
+     *   C2040_RollingGear (native)         347 x 184 x 72   floor at pivot
      */
     const TCHAR* const BatchMeshPath[VisualCount] = {
-        TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
-             "/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003"),
+        // The deprecated external coil family is intentionally never cooked.
+        // This safe, built-in cylinder is a deliberate WIP proxy and is always
+        // present in a packaged Unreal game.
+        TEXT("/Engine/BasicShapes/Cylinder.Cylinder"),
         TEXT("/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
              "/SM_LB_PanelStillage_Runtime_v001"),
-        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-             "/Cairnwell2040Runtime_v001/Meshes"
-             "/SM_LB_C2040_BIW_AutomotiveSkeleton_v001"),
-        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-             "/Cairnwell2040Runtime_v001/Meshes"
-             "/SM_LB_C2040_BIW_AutomotiveSkeleton_v001"),
-        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-             "/Cairnwell2040Runtime_v001/Meshes"
-             "/SM_LB_C2040_EmeraldBodyVisualAuthority_v001"),
-        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-             "/Cairnwell2040Runtime_v001/Meshes"
-             "/SM_LB_C2040_EmeraldBodyVisualAuthority_v001")
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers"
+             "/SM_LB_C2040_UpperStructure"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers"
+             "/SM_LB_C2040_RoofClosures"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers"
+             "/SM_LB_C2040_RoofClosures"),
+        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers"
+             "/SM_LB_C2040_RoofClosures")
     };
 
     /**
      * Optional material override per family. Null keeps the mesh's authored
-     * materials, which is right for every family except Primed: the primed body
-     * reuses the BIW skeleton mesh with the authored ED-coat material, which is
-     * exactly what a body leaving the ED tank looks like.
+     * materials, which is right for every family except the distinct body
+     * phases. BIW is an open structure; primed, painted and finished reuse the
+     * closed shell with stage-specific solid colours, keeping the route legible
+     * even at the factory overview camera distance.
      */
     const TCHAR* const BatchMaterialOverride[VisualCount] = {
-        nullptr,
-        nullptr,
-        nullptr,
-        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-             "/Cairnwell2040Runtime_v001/Materials/M_LB_C2040_EDCoat_v001"),
-        nullptr,
-        nullptr
+        nullptr, nullptr,
+        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"),
+        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"),
+        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"),
+        TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")
+    };
+
+    const FLinearColor BatchSolidColours[VisualCount] = {
+        FLinearColor::White, FLinearColor::White,
+        FLinearColor(0.34f, 0.39f, 0.43f), // bare BIW steel
+        FLinearColor(0.09f, 0.12f, 0.14f), // e-coat
+        FLinearColor(0.04f, 0.31f, 0.18f), // development paint
+        FLinearColor(0.03f, 0.24f, 0.13f)  // finished development car
     };
 
     /**
@@ -78,11 +115,12 @@ namespace LBOneFactoryWIPPresentationPrivate
     };
 
     const FVisualForm VisualForms[VisualCount] = {
-        // Coil: pivot at base, stands on the floor as delivered.
-        { FVector(1.0), 0.0, FRotator::ZeroRotator },
+        // Coil: a true-size horizontal proxy, pivoted on the floor.
+        { FVector(1.79, 1.50, 1.81), 0.0, FRotator(90.0f, 0.0f, 0.0f) },
         // Stillage: pivot centred, so lift by half its 116 cm height.
         { FVector(1.0), 58.0, FRotator::ZeroRotator },
-        // BIW and primed body: authored floor sits at the pivot.
+        // BIW uses the open upper structure; the primed body is closed after
+        // the panel/body marriage. Both authored floors sit at their pivots.
         { FVector(1.0), 0.0, FRotator::ZeroRotator },
         { FVector(1.0), 0.0, FRotator::ZeroRotator },
         // Painted and finished body.
@@ -120,6 +158,28 @@ ALBOneFactoryWIPPresentationActor::ALBOneFactoryWIPPresentationActor()
         Batches.Add(Batch);
     }
 
+    StampedPanelBatches.Reserve(StampedPanelCount);
+    for (int32 Index = 0; Index < StampedPanelCount; ++Index)
+    {
+        UInstancedStaticMeshComponent* Batch =
+            CreateDefaultSubobject<UInstancedStaticMeshComponent>(
+                FName(*FString::Printf(TEXT("WIP_Stamped_%s"),
+                    StampedPanelNames[Index])));
+        Batch->SetupAttachment(SceneRoot);
+        Batch->SetMobility(EComponentMobility::Movable);
+        Batch->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Batch->SetCollisionResponseToAllChannels(ECR_Ignore);
+        Batch->SetGenerateOverlapEvents(false);
+        Batch->SetCanEverAffectNavigation(false);
+        Batch->SetReceivesDecals(false);
+        const ConstructorHelpers::FObjectFinder<UStaticMesh> PanelMesh(StampedPanelMeshPath[Index]);
+        if (PanelMesh.Succeeded())
+        {
+            Batch->SetStaticMesh(PanelMesh.Object);
+        }
+        StampedPanelBatches.Add(Batch);
+    }
+
     GearBatch = CreateDefaultSubobject<UInstancedStaticMeshComponent>(
         TEXT("WIP_FinishedCarGear"));
     GearBatch->SetupAttachment(SceneRoot);
@@ -138,6 +198,14 @@ ALBOneFactoryWIPPresentationActor::ALBOneFactoryWIPPresentationActor()
 FName ALBOneFactoryWIPPresentationActor::GetPresentationTag()
 {
     return FName(TEXT("LB.OneFactory.WIPPresentation"));
+}
+
+bool ALBOneFactoryWIPPresentationActor::SupportsVehicleModel(const FName VehicleModelId)
+{
+    // The current hard references are deliberately Cairnwell-only.  A future
+    // programme must bring its own registered WIP presentation authority;
+    // silently reusing these meshes would make the factory lie to the player.
+    return VehicleModelId == LBCairnwell2040PanelCatalog::GetVehicleModelId();
 }
 
 ELBOneFactoryWIPVisual ALBOneFactoryWIPPresentationActor::VisualForStage(
@@ -306,7 +374,37 @@ void ALBOneFactoryWIPPresentationActor::ClearPresentation()
     {
         GearBatch->ClearInstances();
     }
+    for (UInstancedStaticMeshComponent* Batch : StampedPanelBatches)
+    {
+        if (Batch)
+        {
+            Batch->ClearInstances();
+        }
+    }
     VisibleUnitCount = 0;
+}
+
+void ALBOneFactoryWIPPresentationActor::AddStampedPanelSet(
+    const FTransform& StillageTransform)
+{
+    using namespace LBOneFactoryWIPPresentationPrivate;
+    constexpr double DisplayScale = 0.34;
+    for (int32 Index = 0; Index < StampedPanelCount; ++Index)
+    {
+        UInstancedStaticMeshComponent* Batch = StampedPanelBatches.IsValidIndex(Index)
+            ? StampedPanelBatches[Index] : nullptr;
+        if (!Batch || !Batch->GetStaticMesh()) continue;
+        FTransform Part = StillageTransform;
+        FVector Scale = StillageTransform.GetScale3D() * DisplayScale;
+        if (StampedPanelMirrored[Index]) Scale.Y *= -1.0;
+        // The clean-room native kit retains its common full-car datum. Recenter
+        // each mesh around its own bounds before placing it on the stillage rack.
+        const FVector RecenteredOffset = StampedPanelOffsets[Index]
+            - (Batch->GetStaticMesh()->GetBounds().Origin * DisplayScale);
+        Part.SetLocation(StillageTransform.TransformPosition(RecenteredOffset));
+        Part.SetScale3D(Scale);
+        Batch->AddInstance(Part, true);
+    }
 }
 
 void ALBOneFactoryWIPPresentationActor::Tick(const float DeltaSeconds)
@@ -327,20 +425,24 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         return false;
     }
 
+    ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+        World->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>();
     ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
     ALBOneFactoryProductionFlowAuthority* Production = nullptr;
-    for (TActorIterator<ALBOneFactoryRuntimeCoordinator> It(World); It; ++It)
-    {
-        if (IsValid(*It)) { Coordinator = *It; break; }
-    }
-    for (TActorIterator<ALBOneFactoryProductionFlowAuthority> It(World); It; ++It)
-    {
-        if (IsValid(*It)) { Production = *It; break; }
-    }
-    if (!Coordinator || !Production)
+    FString RegistryReason;
+    if (!Registry || !Registry->ResolveRuntimeBackbone(Production,
+            Coordinator, RegistryReason))
     {
         ClearPresentation();
-        OutReason = TEXT("NO COORDINATOR OR PRODUCTION FLOW YET");
+        OutReason = RegistryReason.IsEmpty()
+            ? TEXT("NO COORDINATOR OR PRODUCTION FLOW YET")
+            : RegistryReason;
+        return false;
+    }
+
+    if (bMaterialResolutionFailed)
+    {
+        OutReason = TEXT("WIP PRESENTATION HAS AN UNRESOLVED OPTIONAL MESH; REBUILD REQUIRED");
         return false;
     }
 
@@ -357,6 +459,7 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
             if (!Mesh || !Batches[Index])
             {
                 ClearPresentation();
+                bMaterialResolutionFailed = true;
                 OutReason = FString::Printf(
                     TEXT("WIP PRESENTATION COULD NOT RESOLVE MESH %d: %s"),
                     Index, BatchMeshPath[Index]);
@@ -368,9 +471,8 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
             {
                 UStaticMesh* Gear = Cast<UStaticMesh>(
                     StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
-                        TEXT("/Game/LineBoss/Factory/OneFactory/v001/Vehicles"
-                             "/Cairnwell2040Runtime_v001/Meshes"
-                             "/SM_LB_C2040_EmeraldRollingGearVisualAuthority_v001")));
+                        TEXT("/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers"
+                             "/SM_LB_C2040_RollingGear")));
                 if (Gear)
                 {
                     GearBatch->SetStaticMesh(Gear);
@@ -383,10 +485,15 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
                         BatchMaterialOverride[Index]));
                 if (Override)
                 {
+                    UMaterialInstanceDynamic* Solid =
+                        UMaterialInstanceDynamic::Create(Override, this);
+                    Solid->SetVectorParameterValue(TEXT("Color"), BatchSolidColours[Index]);
+                    Solid->SetVectorParameterValue(TEXT("BaseColor"), BatchSolidColours[Index]);
+                    BatchMaterials.Add(Solid);
                     for (int32 Slot = 0;
                         Slot < Mesh->GetStaticMaterials().Num(); ++Slot)
                     {
-                        Batches[Index]->SetMaterial(Slot, Override);
+                        Batches[Index]->SetMaterial(Slot, Solid);
                     }
                 }
             }
@@ -420,11 +527,13 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
     uint32 Signature = static_cast<uint32>(Route.Num());
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
-        if (Unit.bDispatched)
+        if (Unit.bDispatched
+            || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
         {
             continue;
         }
         Signature = HashCombine(Signature, GetTypeHash(Unit.UnitId));
+        Signature = HashCombine(Signature, GetTypeHash(Unit.VehicleModelId));
         Signature = HashCombine(Signature,
             static_cast<uint32>(Unit.Stage) + 1u);
     }
@@ -445,12 +554,28 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
             {
                 continue;
             }
+            if (!SupportsVehicleModel(Unit->VehicleModelId))
+            {
+                continue;
+            }
             FTransform Moved;
             if (ComputeUnitTransform(Route, StationTransforms, Coordinator,
                     *Unit, Moved))
             {
                 Batches[Ref.BatchIndex]->UpdateInstanceTransform(
                     Ref.InstanceIndex, Moved, true, false, true);
+                // Finished vehicles own a matching rolling-gear instance in a
+                // separate batch.  The membership signature keeps both batches
+                // in the same finished-car order, so move the matching gear
+                // instance during stable-frame interpolation as well.
+                if (Ref.BatchIndex
+                        == static_cast<int32>(ELBOneFactoryWIPVisual::FinishedCar)
+                    && GearBatch
+                    && GearBatch->GetInstanceCount() > Ref.InstanceIndex)
+                {
+                    GearBatch->UpdateInstanceTransform(
+                        Ref.InstanceIndex, Moved, true, false, true);
+                }
             }
         }
         for (UInstancedStaticMeshComponent* Batch : Batches)
@@ -460,21 +585,63 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
                 Batch->MarkRenderStateDirty();
             }
         }
-        OutReason = FString::Printf(TEXT("%d unit(s) on the line"),
-            VisibleUnitCount);
-        return true;
+        if (GearBatch && GearBatch->GetInstanceCount() > 0)
+        {
+            GearBatch->MarkRenderStateDirty();
+        }
+        // The panel rack is compact (11 meshes per pressed stillage) and is
+        // intentionally rebuilt so it follows the moving stillage exactly.
+        for (UInstancedStaticMeshComponent* Batch : StampedPanelBatches)
+        {
+            if (Batch) Batch->ClearInstances();
+        }
+        int32 UnsupportedUnitCount = 0;
+        for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
+        {
+            if (Unit.bDispatched
+                || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
+            {
+                continue;
+            }
+            if (!SupportsVehicleModel(Unit.VehicleModelId))
+            {
+                ++UnsupportedUnitCount;
+                continue;
+            }
+            if (VisualForStage(Unit.Stage) != ELBOneFactoryWIPVisual::PanelStack)
+            {
+                continue;
+            }
+            FTransform Stillage;
+            if (ComputeUnitTransform(Route, StationTransforms, Coordinator, Unit, Stillage))
+            {
+                AddStampedPanelSet(Stillage);
+            }
+        }
+        OutReason = UnsupportedUnitCount == 0
+            ? FString::Printf(TEXT("%d unit(s) on the line"), VisibleUnitCount)
+            : FString::Printf(TEXT("%d unit(s) visible; %d unit(s) withheld: no model-specific WIP visual authority"),
+                VisibleUnitCount, UnsupportedUnitCount);
+        return UnsupportedUnitCount == 0;
     }
     LastSignature = Signature;
     bHasBuiltOnce = true;
 
     ClearPresentation();
     InstanceRefs.Reset();
+    int32 UnsupportedUnitCount = 0;
 
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
         // A dispatched car has left the building; it is no longer on the line.
-        if (Unit.bDispatched)
+        if (Unit.bDispatched
+            || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
         {
+            continue;
+        }
+        if (!SupportsVehicleModel(Unit.VehicleModelId))
+        {
+            ++UnsupportedUnitCount;
             continue;
         }
 
@@ -492,6 +659,10 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         }
 
         const int32 Added = Batches[VisualIndex]->AddInstance(Instance, true);
+        if (VisualIndex == static_cast<int32>(ELBOneFactoryWIPVisual::PanelStack))
+        {
+            AddStampedPanelSet(Instance);
+        }
         if (VisualIndex == static_cast<int32>(ELBOneFactoryWIPVisual::FinishedCar)
             && GearBatch && GearBatch->GetStaticMesh())
         {
@@ -508,13 +679,15 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         }
     }
 
-    if (VisibleUnitCount != LastLoggedUnitCount)
+    if (VisibleUnitCount != LastLoggedUnitCount
+        || UnsupportedUnitCount != LastUnsupportedModelUnitCount)
     {
         LastLoggedUnitCount = VisibleUnitCount;
+        LastUnsupportedModelUnitCount = UnsupportedUnitCount;
         UE_LOG(LogTemp, Display,
-            TEXT("LINE_BOSS_WIP_VISIBLE units=%d ledger=%d route=%d "
+            TEXT("LINE_BOSS_WIP_VISIBLE units=%d withheldUnsupported=%d ledger=%d route=%d "
                  "actorHidden=%d"),
-            VisibleUnitCount, Ledger.Units.Num(), Route.Num(),
+            VisibleUnitCount, UnsupportedUnitCount, Ledger.Units.Num(), Route.Num(),
             IsHidden() ? 1 : 0);
         for (int32 Index = 0; Index < Batches.Num(); ++Index)
         {
@@ -548,7 +721,9 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         }
     }
 
-    OutReason = FString::Printf(TEXT("%d unit(s) on the line"),
-        VisibleUnitCount);
-    return true;
+    OutReason = UnsupportedUnitCount == 0
+        ? FString::Printf(TEXT("%d unit(s) on the line"), VisibleUnitCount)
+        : FString::Printf(TEXT("%d unit(s) visible; %d unit(s) withheld: no model-specific WIP visual authority"),
+            VisibleUnitCount, UnsupportedUnitCount);
+    return UnsupportedUnitCount == 0;
 }

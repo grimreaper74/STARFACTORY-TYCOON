@@ -77,6 +77,10 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryRuntimeVehicleStatus
     UPROPERTY(BlueprintReadOnly, Category="Line Boss|OneFactory|Runtime")
     int32 CompletedStationCount = 0;
 
+    /** Persisted unit revision; use it when an external action needs a durable event identity. */
+    UPROPERTY(BlueprintReadOnly, Category="Line Boss|OneFactory|Runtime")
+    int32 StageRevision = 0;
+
     UPROPERTY(BlueprintReadOnly, Category="Line Boss|OneFactory|Runtime")
     int32 TotalStationCount = 0;
 
@@ -127,6 +131,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
         Category="Line Boss|OneFactory|Runtime")
     bool bAdvanceStartedVehiclesOnActorTick = true;
+
+    /**
+     * Optional deterministic production director.  It only starts work for
+     * open contracts matching the currently commissioned programme; it never
+     * makes quality, rework or scrap decisions for the player.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+        Category="Line Boss|OneFactory|Runtime|Automation")
+    bool bAutoDispatchOpenContracts = false;
 
     /**
      * Player-selected simulation multiplier. Pause remains durable ledger state;
@@ -191,6 +204,15 @@ public:
         FName PaintProgrammeId, FName PaintColourId, FName SourceCoilLotId,
         FName& OutUnitId, FString& OutReason);
 
+    /**
+     * Starts exactly one compatible open contract if the configured line has
+     * inbound and WIP capacity.  A no-work/capacity result is successful and
+     * returns NAME_None; failed validation remains fail-closed.
+     */
+    UFUNCTION(BlueprintCallable,
+        Category="Line Boss|OneFactory|Runtime|Automation")
+    bool DispatchNextOpenContract(FName& OutUnitId, FString& OutReason);
+
     /** Explicit release from inbound reservation into deterministic processing. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Runtime")
     bool StartVehicle(FName UnitId, FString& OutReason);
@@ -223,4 +245,10 @@ public:
 
     static FName GetCoordinatorTag();
     static constexpr int32 RequiredPhysicalStationCount = 57;
+
+private:
+    bool CreateRuntimeVehicleOrderInternal(FName BuildOrderId,
+        FName VehicleModelId, FName PaintProgrammeId, FName PaintColourId,
+        FName SourceCoilLotId, bool bStartImmediately, FName& OutUnitId,
+        FString& OutReason);
 };

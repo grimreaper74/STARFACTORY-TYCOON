@@ -10,7 +10,7 @@
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FLBOneFactoryBodyWeldPresentationContractTest,
-    "LineBoss.OneFactory.BodyWeldStarter.Presentation.ExactNativeFiveHundredNinetySevenInstanceContract",
+    "LineBoss.OneFactory.BodyWeldStarter.Presentation.ClosureSubassemblyInstanceContract",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
@@ -27,11 +27,11 @@ bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
     TestTrue(TEXT("Exact Body/Weld presentation contract validates"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
             ValidatePresentationContract(Layout, Items, Reason));
-    TestEqual(TEXT("Canonical presentation has exactly 597 instances"),
-        Items.Num(), 597);
-    TestEqual(TEXT("Canonical count helper remains frozen at 597"),
+    TestEqual(TEXT("Canonical presentation has exactly 600 instances"),
+        Items.Num(), 600);
+    TestEqual(TEXT("Canonical count helper remains frozen at 600"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
-            GetCanonicalVisibleInstanceCount(), 597);
+            GetCanonicalVisibleInstanceCount(), 600);
     TestEqual(TEXT("Presentation has exactly 29 HISM batches"),
         ALBOneFactoryBodyWeldStarterPresentationActor::
             GetExpectedVisualBatchCount(), 29);
@@ -74,8 +74,28 @@ bool FLBOneFactoryBodyWeldPresentationContractTest::RunTest(
             GetExpectedInstanceCountForBatch(Layout,
                 static_cast<ELBOneFactoryBodyWeldPresentationBatch>(Value));
     }
-    TestEqual(TEXT("Exact per-batch counts sum to 597"),
-        ExpectedTotal, 597);
+    TestEqual(TEXT("Exact per-batch counts sum to 600"),
+        ExpectedTotal, 600);
+
+    const auto HasNamedSubassemblyRack = [&Items](const TCHAR* Suffix)
+    {
+        return Items.ContainsByPredicate([Suffix](
+            const FLBOneFactoryBodyWeldPresentationItem& Item)
+        {
+            return Item.PresentationId.ToString().EndsWith(Suffix,
+                ESearchCase::CaseSensitive)
+                && Item.Batch == ELBOneFactoryBodyWeldPresentationBatch::
+                    PanelStillageFull;
+        });
+    };
+    TestTrue(TEXT("Door-left sub-assembly rack is visible"),
+        HasNamedSubassemblyRack(TEXT("DOOR_SUBASSEMBLY_LEFT")));
+    TestTrue(TEXT("Door-right sub-assembly rack is visible"),
+        HasNamedSubassemblyRack(TEXT("DOOR_SUBASSEMBLY_RIGHT")));
+    TestTrue(TEXT("Bonnet sub-assembly rack is visible"),
+        HasNamedSubassemblyRack(TEXT("BONNET_SUBASSEMBLY")));
+    TestTrue(TEXT("Tailgate sub-assembly rack is visible"),
+        HasNamedSubassemblyRack(TEXT("TAILGATE_SUBASSEMBLY")));
 
     const TArray<FSoftObjectPath> Assets =
         ALBOneFactoryBodyWeldStarterPresentationActor::
@@ -219,8 +239,8 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
     TestTrue(TEXT("Configured actor exposes all 29 batches"),
         Presentation->IsPresentationConfigured()
         && Presentation->GetVisualBatchCount() == 29);
-    TestEqual(TEXT("Configured actor exposes all 597 canonical instances"),
-        Presentation->GetVisibleInstanceCount(), 597);
+    TestEqual(TEXT("Configured actor exposes all 600 canonical instances"),
+        Presentation->GetVisibleInstanceCount(), 600);
     TestFalse(TEXT("Configured presentation is unhidden"),
         Presentation->IsHidden());
     {
@@ -304,7 +324,7 @@ bool FLBOneFactoryBodyWeldPresentationConfigureAndReassignTest::RunTest(
         CountBatch(RightRobot,
             ELBOneFactoryBodyWeldPresentationBatch::RobotOpenCGun), 0);
     TestEqual(TEXT("Role swap preserves exact canonical inventory"),
-        Presentation->GetVisibleInstanceCount(), 597);
+        Presentation->GetVisibleInstanceCount(), 600);
 
     const TArray<FLBOneFactoryBodyWeldPresentationItem> BeforeProgramme =
         Presentation->GetConfiguredItemsForProgramme(

@@ -24,6 +24,8 @@ public:
     virtual void NativeConstruct() override;
     virtual void NativeTick(const FGeometry& MyGeometry,
         float InDeltaTime) override;
+    virtual FReply NativeOnPreviewKeyDown(const FGeometry& InGeometry,
+        const FKeyEvent& InKeyEvent) override;
 
     /** The bell toggles this alert centre's inbox. */
     void SetAlertCenter(class ULBOneFactoryAlertCenterWidget* Center)
@@ -37,6 +39,7 @@ private:
     bool SetSimulationRate(float Rate);
 
     UFUNCTION() void OnOrdersClicked();
+    UFUNCTION() void OnNewOrderClicked();
     UFUNCTION() void OnPauseClicked();
     UFUNCTION() void OnSpeed1Clicked();
     UFUNCTION() void OnSpeed2Clicked();
@@ -47,6 +50,8 @@ private:
     /** v2.1 orders dropdown: the contract cell is a button; clicking it
         lists every contract with progress, time and state. */
     UPROPERTY() TObjectPtr<UButton> OrdersButton;
+    /** Primary mouse-first production action for the prebuilt release demo. */
+    UPROPERTY() TObjectPtr<UButton> NewOrderButton;
     UPROPERTY() TObjectPtr<class UBorder> OrdersBorder;
     UPROPERTY() TArray<TObjectPtr<UTextBlock>> OrderTexts;
     bool bOrdersOpen = false;

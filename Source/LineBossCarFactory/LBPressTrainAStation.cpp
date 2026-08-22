@@ -20,7 +20,7 @@
 
 namespace
 {
-    constexpr int32 ApprovedTrainModuleCount = 105;
+    constexpr int32 ApprovedTrainModuleCount = 95;
     // Engine-measured production fit. At 10.07 m pitch the 5.57 m press shell
     // and scale-2 transfer assembly retain about 25 cm on both sides. S02 also
     // begins about 25 cm after S01, so the train reads as one connected machine.
@@ -118,8 +118,7 @@ ALBPressTrainAStation::ALBPressTrainAStation()
     // validated transfer datum. Visual upgrades must not break panel flow.
     const TCHAR* CompletePressRoot = TEXT("/Game/LineBoss/Developer/Validation/PressTrains/NewRigidIntake_v741/Cairnwell_S03_Movable_v632Controls_v735/StaticMeshes");
     const TCHAR* CompletePressPartNames[] = {TEXT("S03_STATIC_SHELL"), TEXT("S03_RAM_SLIDE"),
-        TEXT("S03_UPPER_DIE"), TEXT("S03_LOWER_DIE_BOLSTER"),
-        TEXT("SM_CA_Factory_Elect_net_MeshyMaster_v632"), TEXT("SM_CA_Factory_Opera_HMI_MeshyMaster_v632")};
+        TEXT("S03_UPPER_DIE"), TEXT("S03_LOWER_DIE_BOLSTER")};
     UStaticMesh* CompletePressMeshes[UE_ARRAY_COUNT(CompletePressPartNames)] = {};
     for (int32 Part = 0; Part < UE_ARRAY_COUNT(CompletePressPartNames); ++Part)
     {
@@ -734,7 +733,7 @@ bool ALBPressTrainAStation::SetActiveProductionRecipe(
     const FName VehicleModelId, const FName PanelTypeId, const FName DieId)
 {
     if (DieId.IsNone()
-        || !LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(VehicleModelId, PanelTypeId))
+        || !LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(VehicleModelId, PanelTypeId))
     {
         return false;
     }
@@ -796,11 +795,11 @@ bool ALBPressTrainAStation::CanStart(TArray<FText>& BlockingReasons) const
     if (HydraulicPressureBar < MinimumHydraulicPressureBar) BlockingReasons.Add(LOCTEXT("HydraulicLow", "Press hydraulic pressure is low"));
     if (PressLoadPercent > MaximumPressLoadPercent) BlockingReasons.Add(LOCTEXT("PressOverload", "Press load exceeds the recipe limit"));
     if (!bInspectionHealthy) BlockingReasons.Add(LOCTEXT("InspectionFault", "Final inspection is unavailable"));
-    if (!LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(
+    if (!LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(
         ActiveVehicleModelId, ActivePanelTypeId) || ActiveDieId.IsNone())
     {
         BlockingReasons.Add(LOCTEXT("NoApprovedRecipe",
-            "Select an approved Cairnwell 2040 stamped-panel recipe and installed die"));
+            "Select an approved vehicle stamped-panel recipe and installed die"));
     }
     if (!bStillageOutputClear || PendingPanelIds.Num() >= MaximumPendingPanels)
         BlockingReasons.Add(LOCTEXT("OutputBlocked", "Stillage output buffer is blocked"));
@@ -1210,7 +1209,7 @@ bool ALBPressTrainAStation::RestoreSaveState(const FLBPressTrainASaveState& Save
     RejectedPanels = FMath::Max(0, SavedState.RejectedPanels);
     const bool bSavedRecipeApproved = SavedState.Version >= 3
         && !SavedState.ActiveDieId.IsNone()
-        && LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(
+        && LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(
             SavedState.ActiveVehicleModelId, SavedState.ActivePanelTypeId);
     ActiveVehicleModelId = bSavedRecipeApproved ? SavedState.ActiveVehicleModelId : NAME_None;
     ActivePanelTypeId = bSavedRecipeApproved ? SavedState.ActivePanelTypeId : NAME_None;

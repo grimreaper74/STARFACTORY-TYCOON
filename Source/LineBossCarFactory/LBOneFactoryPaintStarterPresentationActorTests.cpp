@@ -40,18 +40,14 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
             Reference.Contains(TEXT("ExternalGenerated"),
                 ESearchCase::IgnoreCase));
     }
-    TestTrue(TEXT("Immersed bath body uses the approved C2040 BIW authority"),
+    TestTrue(TEXT("Immersed bath body uses the clean-room native C2040 structure"),
         Paths.Contains(FSoftObjectPath(TEXT(
-            "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
-            "Cairnwell2040Runtime_v001/Meshes/"
-            "SM_LB_C2040_BIW_AutomotiveSkeleton_v001."
-            "SM_LB_C2040_BIW_AutomotiveSkeleton_v001"))));
-    TestEqual(TEXT("Immersed BIW uses its V013 galvanized material"),
+            "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/"
+            "Layers/SM_LB_C2040_UpperStructure."
+            "SM_LB_C2040_UpperStructure"))));
+    TestEqual(TEXT("Immersed development BIW uses the native default material"),
         Paths.Last().ToString(), FString(TEXT(
-            "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
-            "Cairnwell2040Runtime_v001/Materials/"
-            "M_LB_C2040_BIWGalvanized_v001."
-            "M_LB_C2040_BIWGalvanized_v001")));
+            "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial")));
     TArray<FSoftObjectPath> WrongPaths = Paths;
     WrongPaths[0] = FSoftObjectPath(
         TEXT("/Game/LineBoss/Candidates/PaintShop/Unknown.SM_Unknown"));
@@ -76,6 +72,46 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
     ALBOneFactoryPaintStarterPresentationActor* CDO =
         ALBOneFactoryPaintStarterPresentationActor::StaticClass()
             ->GetDefaultObject<ALBOneFactoryPaintStarterPresentationActor>();
+    const FName CoreProfileMeshProperties[] = {
+        TEXT("CuringOvenMesh"), TEXT("PretreatmentMesh"),
+        TEXT("FlashOffMesh"), TEXT("QualityLightMesh"),
+        TEXT("BodySkidMesh"), TEXT("ServiceSetMesh"),
+        TEXT("AirExtractionMesh"), TEXT("SprayBoothMesh"),
+        TEXT("CubeMesh")};
+    for (const FName PropertyName : CoreProfileMeshProperties)
+    {
+        const FObjectPropertyBase* Property =
+            FindFProperty<FObjectPropertyBase>(
+                ALBOneFactoryPaintStarterPresentationActor::StaticClass(),
+                PropertyName);
+        TestNotNull(TEXT("Core paint mesh is a reflected CDO hard reference"),
+            Property);
+        if (!Property) continue;
+        TestFalse(TEXT("Core paint mesh is serialized for cooking"),
+            Property->HasAnyPropertyFlags(CPF_Transient));
+        TestTrue(TEXT("Core paint mesh property is exact static-mesh type"),
+            Property->PropertyClass == UStaticMesh::StaticClass());
+        const UObject* Object = CDO
+            ? Property->GetObjectPropertyValue_InContainer(CDO) : nullptr;
+        TestNotNull(TEXT("Core paint mesh resolves from the native CDO"),
+            Object);
+    }
+    const FObjectPropertyBase* CoreMaterialProperty =
+        FindFProperty<FObjectPropertyBase>(
+            ALBOneFactoryPaintStarterPresentationActor::StaticClass(),
+            TEXT("SemanticBaseMaterial"));
+    TestNotNull(TEXT("Core semantic material is a reflected CDO hard reference"),
+        CoreMaterialProperty);
+    if (CoreMaterialProperty)
+    {
+        TestFalse(TEXT("Core semantic material is serialized for cooking"),
+            CoreMaterialProperty->HasAnyPropertyFlags(CPF_Transient));
+        TestTrue(TEXT("Core semantic material property is interface type"),
+            CoreMaterialProperty->PropertyClass == UMaterialInterface::StaticClass());
+        TestNotNull(TEXT("Core semantic material resolves from the native CDO"),
+            CDO ? CoreMaterialProperty->GetObjectPropertyValue_InContainer(CDO)
+                : nullptr);
+    }
     const FName HardMeshProperties[] = {
         TEXT("EDTreatmentStartMesh"), TEXT("EDTreatmentEndMesh"),
         TEXT("EDDrainInspectionMesh"), TEXT("EDOvenSegmentMesh"),
@@ -155,22 +191,22 @@ bool FLBOneFactoryPaintPresentationContractTest::RunTest(
         FindFProperty<FObjectPropertyBase>(
             ALBOneFactoryPaintStarterPresentationActor::StaticClass(),
             TEXT("EDImmersedBIWMaterial"));
-    TestNotNull(TEXT("C2040 BIW material is a reflected hard property"),
+    TestNotNull(TEXT("Native WIP BIW override material is a reflected hard property"),
         BIWMaterialProperty);
     if (BIWMaterialProperty && CDO)
     {
-        TestFalse(TEXT("C2040 BIW material hard reference is serialized"),
+        TestFalse(TEXT("Native WIP BIW override material hard reference is serialized"),
             BIWMaterialProperty->HasAnyPropertyFlags(CPF_Transient));
-        TestTrue(TEXT("C2040 BIW material property is exact interface type"),
+        TestTrue(TEXT("Native WIP BIW override material property is exact interface type"),
             BIWMaterialProperty->PropertyClass
                 == UMaterialInterface::StaticClass());
         const UObject* Object =
             BIWMaterialProperty->GetObjectPropertyValue_InContainer(CDO);
-        TestNotNull(TEXT("C2040 BIW material resolves on the native CDO"),
+        TestNotNull(TEXT("Native WIP BIW override material resolves on the native CDO"),
             Object);
         if (Object)
         {
-            TestEqual(TEXT("C2040 BIW material path is exact"),
+            TestEqual(TEXT("Native WIP BIW override material path is exact"),
                 Object->GetPathName(), Paths.Last().ToString());
         }
     }
@@ -392,15 +428,14 @@ bool FLBOneFactoryPaintPresentationConfigureTest::RunTest(
     {
         AddError(TEXT("Profiled carrier rail material did not resolve"));
     }
-    TestNotNull(TEXT("Immersed C2040 BIW batch exists"), ImmersedBatch);
+    TestNotNull(TEXT("Immersed native C2040 BIW batch exists"), ImmersedBatch);
     if (ImmersedBatch && ImmersedBatch->GetStaticMesh())
     {
-        TestEqual(TEXT("Immersed batch uses exact C2040 BIW mesh"),
+        TestEqual(TEXT("Immersed batch uses exact native C2040 BIW mesh"),
             ImmersedBatch->GetStaticMesh()->GetPathName(), FString(TEXT(
-                "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
-                "Cairnwell2040Runtime_v001/Meshes/"
-                "SM_LB_C2040_BIW_AutomotiveSkeleton_v001."
-                "SM_LB_C2040_BIW_AutomotiveSkeleton_v001")));
+                "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/"
+                "Layers/SM_LB_C2040_UpperStructure."
+                "SM_LB_C2040_UpperStructure")));
     }
     TestEqual(TEXT("Exact visible item count committed"),
         Presentation->GetVisibleInstanceCount(), 119);

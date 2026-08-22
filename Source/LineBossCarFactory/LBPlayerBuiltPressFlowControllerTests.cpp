@@ -593,6 +593,87 @@ bool FLBPlayerBuiltVehiclePanelBatchTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBPlayerBuiltRegisteredModelPanelBatchTest,
+    "LineBoss.FactoryBuilder.MaterialFlow.RegisteredModelPanelBatchScheduling",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBPlayerBuiltRegisteredModelPanelBatchTest::RunTest(const FString& Parameters)
+{
+    (void)Parameters;
+    const FName ModelId(TEXT("NORTHSTAR_PRESS_DEVELOPMENT"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+
+    FLBVehicleModelRecipe Recipe;
+    Recipe.ModelId = ModelId;
+    Recipe.DisplayName = TEXT("Northstar press-development programme");
+    Recipe.RecipeRevisionId = TEXT("NORTHSTAR_PRESS_RECIPE_V001");
+    Recipe.PaintRouteProfileId = TEXT("PAINT_ROUTE_EDCOAT_VISIBLE_V001");
+    Recipe.GeometryAuthorityId = TEXT("NorthstarGeometry_V001");
+    Recipe.PanelGeometryAuthorityId = TEXT("NorthstarPanels_V001");
+    Recipe.BaseKitTypeId = TEXT("NORTHSTAR_BIW_BASE_KIT");
+    Recipe.bDevelopmentVisual = true;
+    Recipe.bPanelGeometryValidated = true;
+    Recipe.DefaultRevenuePence = 2500000;
+    Recipe.RequiredPanels = {
+        { TEXT("NORTHSTAR_HOOD"), TEXT("Northstar hood"),
+            ELBPanelHandedness::None, 10, FVector(160.0f, 140.0f, 20.0f),
+            NAME_None }
+    };
+
+    FString Reason;
+    if (!TestTrue(TEXT("a second production-ready programme registers"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(Recipe, Reason)))
+    {
+        return false;
+    }
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
+        TEXT("LBRegisteredModelPanelBatch"));
+    ALBPlayerBuiltPressFlowController* Flow = World
+        ? World->SpawnActor<ALBPlayerBuiltPressFlowController>() : nullptr;
+    FLBVehiclePanelBatch Batch;
+    Batch.OrderId = TEXT("NORTHSTAR-PRESS-ORDER-001");
+    Batch.VehicleModelId = ModelId;
+    Batch.PanelTypeId = TEXT("NORTHSTAR_HOOD");
+    Batch.RequestedQuantity = 6;
+    TestTrue(TEXT("the shared Press scheduler queues a selected model's own panel family"),
+        Flow && Flow->QueuePanelBatch(Batch, Reason));
+    if (Flow && Flow->GetPanelBatches().Num() == 1)
+    {
+        TestEqual(TEXT("the queued batch retains the selected model identity"),
+            Flow->GetPanelBatches()[0].VehicleModelId, ModelId);
+    }
+
+    FLBBodyWeldBaseKitUnit BaseKit;
+    BaseKit.KitId = TEXT("NORTHSTAR-BIW-000001");
+    BaseKit.OrderId = Batch.OrderId;
+    BaseKit.VehicleModelId = ModelId;
+    BaseKit.KitTypeId = Recipe.BaseKitTypeId;
+    TestTrue(TEXT("the Body/Weld delivery ledger accepts the selected model's base-kit family"),
+        Flow && Flow->QueueBodyWeldBaseKitDelivery(BaseKit,
+            TEXT("NORTHSTAR_STAGE9_ADAPTER"), TEXT("NORTHSTAR_WELD_LINE"),
+            Reason));
+
+    FLBVehicleModelRecipe NotReady = Recipe;
+    NotReady.ModelId = TEXT("NORTHSTAR_UNVALIDATED");
+    NotReady.bPanelGeometryValidated = false;
+    TestTrue(TEXT("an unvalidated programme can exist as development data"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(NotReady, Reason));
+    Batch.VehicleModelId = NotReady.ModelId;
+    TestFalse(TEXT("the Press refuses a programme without validated panels"),
+        Flow && Flow->QueuePanelBatch(Batch, Reason));
+    BaseKit.VehicleModelId = NotReady.ModelId;
+    TestFalse(TEXT("the Body/Weld delivery ledger refuses an unvalidated model"),
+        Flow && Flow->QueueBodyWeldBaseKitDelivery(BaseKit,
+            TEXT("NORTHSTAR_STAGE9_ADAPTER"), TEXT("NORTHSTAR_WELD_LINE"),
+            Reason));
+
+    if (World) World->DestroyWorld(false);
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(NotReady.ModelId);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBPlayerBuiltSharedIndependentLineRoutingTest,
     "LineBoss.FactoryBuilder.MaterialFlow.SharedAndIndependentPressLines",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

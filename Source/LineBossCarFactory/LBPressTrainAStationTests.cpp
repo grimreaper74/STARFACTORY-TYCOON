@@ -307,8 +307,8 @@ bool FLBPressTrainAApprovedTransferHierarchyTest::RunTest(const FString& Paramet
     Train->SetActorRotation(FRotator(0.0f, 37.0f, 0.0f));
     TestTrue(TEXT("Approved modular visual enables"), Train->EnableCompletedRuntimeVisual());
     TestTrue(TEXT("Approved modular visual reports active"), Train->HasCompletedRuntimeVisual());
-    TestEqual(TEXT("Complete train exposes the six-part compatible press presentation for five stages"),
-        Train->GetApprovedModularVisualCount(), 105);
+    TestEqual(TEXT("Complete train exposes the four-part clean-room press presentation for five stages"),
+        Train->GetApprovedModularVisualCount(), 95);
     const FBox ProtectedEnvelope = ALBPressTrainAStation::GetProtectedLocalEnvelope();
     TestTrue(TEXT("Protected train envelope starts at the S01 clearance datum"),
         ProtectedEnvelope.Min.Equals(FVector(-750.0f, -750.0f, 0.0f), 0.01f));
@@ -325,8 +325,7 @@ bool FLBPressTrainAApprovedTransferHierarchyTest::RunTest(const FString& Paramet
     };
 
     const TCHAR* PressPartAssets[] = {TEXT("S03_STATIC_SHELL"), TEXT("S03_RAM_SLIDE"),
-        TEXT("S03_UPPER_DIE"), TEXT("S03_LOWER_DIE_BOLSTER"),
-        TEXT("SM_CA_Factory_Elect_net_MeshyMaster_v632"), TEXT("SM_CA_Factory_Opera_HMI_MeshyMaster_v632")};
+        TEXT("S03_UPPER_DIE"), TEXT("S03_LOWER_DIE_BOLSTER")};
     const TCHAR* PressMoverNames[] = {TEXT("PTA_S02SlideMover"), TEXT("PTA_S03SlideMover"),
         TEXT("PTA_S04SlideMover"), TEXT("PTA_S05SlideMover"), TEXT("PTA_S06SlideMover")};
     UStaticMeshComponent* S03Ram = nullptr;
@@ -767,8 +766,8 @@ bool FLBPressTrainAFeedBlankPresentationTest::RunTest(const FString& Parameters)
 
     TestTrue(TEXT("Complete modular machine enables with the feed blank outside its fixed count"),
         Train->EnableCompletedRuntimeVisual());
-    TestEqual(TEXT("Feed material does not change the 105 fixed machine-module contract"),
-        Train->GetApprovedModularVisualCount(), 105);
+    TestEqual(TEXT("Feed material does not change the 95 fixed machine-module contract"),
+        Train->GetApprovedModularVisualCount(), 95);
     Train->Tick(0.0f);
     TestFalse(TEXT("An empty S01 does not display a phantom sheet"), FeedBlank->IsVisible());
     TestTrue(TEXT("An empty S01 keeps the sheet hidden in game"), FeedBlank->bHiddenInGame);

@@ -97,9 +97,36 @@ bool FLBGraphicsStartupOptOutMarkerTest::RunTest(const FString& Parameters)
         Settings->GetGraphicsSetupVersion(), 0);
     TestEqual(TEXT("A disabled benchmark does not claim a benchmark version"),
         Settings->GetLastHardwareBenchmarkVersion(), 0);
+    TestEqual(TEXT("A skipped benchmark uses the cool Medium fallback"),
+        Settings->GetOverallScalabilityLevel(), 1);
     TestTrue(TEXT("The next normal launch still needs first-run graphics setup"),
         Settings->IsFirstRunGraphicsSetupNeeded());
     Scalability::SetQualityLevels(PreviousQuality);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBGraphicsStartupSafeFrameCapTest,
+    "LineBoss.Settings.Graphics.Startup.SafeFrameCap",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBGraphicsStartupSafeFrameCapTest::RunTest(const FString& Parameters)
+{
+    ULBGameUserSettings* Settings = NewObject<ULBGameUserSettings>();
+    TestNotNull(TEXT("A settings authority exists for the safe-cap policy"), Settings);
+    if (!Settings) return false;
+
+    Settings->SetFrameRateLimit(0.0f);
+    TestTrue(TEXT("An inherited unlimited rate is capped"),
+        ULBGraphicsStartupSubsystem::ApplySafeDefaultFrameRateLimit(Settings));
+    TestEqual(TEXT("The safe default is 60 FPS"),
+        Settings->GetFrameRateLimit(), 60.0f);
+    TestTrue(TEXT("The safe default enables VSync"), Settings->IsVSyncEnabled());
+
+    Settings->SetFrameRateLimit(120.0f);
+    TestFalse(TEXT("An explicit finite preference is retained"),
+        ULBGraphicsStartupSubsystem::ApplySafeDefaultFrameRateLimit(Settings));
+    TestEqual(TEXT("The finite preference is unchanged"),
+        Settings->GetFrameRateLimit(), 120.0f);
     return true;
 }
 

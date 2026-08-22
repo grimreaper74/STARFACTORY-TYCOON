@@ -12,6 +12,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "LBOneFactoryDetailPanelWidget.h"
 #include "LBOneFactoryFlowStripWidget.h"
+#include "LBOneFactoryPlayerController.h"
 #include "LBOneFactoryUITypes.h"
 
 #define LOCTEXT_NAMESPACE "LineBossOneFactoryUI"
@@ -67,6 +68,18 @@ void ULBOneFactoryAlertCenterWidget::NativeConstruct()
     Super::NativeConstruct();
     // The widget spans the viewport; only its own surfaces take hits.
     SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+FReply ULBOneFactoryAlertCenterWidget::NativeOnPreviewKeyDown(
+    const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+    if (ALBOneFactoryPlayerController* Controller =
+            Cast<ALBOneFactoryPlayerController>(GetOwningPlayer());
+        Controller && Controller->HandleKeyboardShortcut(InKeyEvent.GetKey()))
+    {
+        return FReply::Handled();
+    }
+    return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
 }
 
 void ULBOneFactoryAlertCenterWidget::BuildTree()

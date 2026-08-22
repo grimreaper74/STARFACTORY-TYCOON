@@ -255,7 +255,7 @@ protected:
     /** One independent working stack per S01-S07 cell, not baked into replaceable Meshy art. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cairnwell|Press Trains|Presentation") TArray<TObjectPtr<ULBStatusBeaconComponent>> CellStatusBeacons;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cairnwell|Press Train A|Motion") TObjectPtr<USceneComponent> DestackLiftMover;
-    /** One real, flat feed blank. It is intentionally outside the 105 fixed machine modules. */
+    /** One real, flat feed blank. It is intentionally outside the 95 fixed machine modules. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cairnwell|Press Train A|Motion") TObjectPtr<class UStaticMeshComponent> DestackFeedBlankVisual;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cairnwell|Press Train A|Motion") TObjectPtr<USceneComponent> TransferLiftMover;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Cairnwell|Press Train A|Motion") TObjectPtr<USceneComponent> TransferPitchMover;

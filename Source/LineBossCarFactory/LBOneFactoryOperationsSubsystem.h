@@ -39,6 +39,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Operations|UMG")
     bool SetSimulationRate(float RequestedRate, FString& OutReason);
 
+    /** Retools all commissioned shops after the current WIP has cleared. */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Operations")
+    bool ChangeFactoryProgramme(FName TargetVehicleModelId, FString& OutReason);
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Operations")
     FName GetSelectedUnitId() const { return SelectedUnitId; }
 
@@ -53,6 +57,7 @@ private:
         FLBOneFactoryRuntimeVehicleStatus& OutStatus,
         FString& OutReason) const;
     bool CreateConfiguredVehicle(FString& OutReason);
+    bool ChangeToNextFactoryProgramme(FString& OutReason);
     bool SelectNextVehicle(FString& OutReason);
     bool StartOrAdvanceSelectedVehicle(FString& OutReason);
     bool PassSelectedQualityGate(FString& OutReason);
@@ -69,4 +74,3 @@ private:
     UPROPERTY(Transient)
     bool bLastActionSucceeded = true;
 };
-

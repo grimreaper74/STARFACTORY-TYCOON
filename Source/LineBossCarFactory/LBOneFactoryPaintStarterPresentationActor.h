@@ -268,35 +268,36 @@ private:
     UPROPERTY(VisibleAnywhere, Category="Line Boss|OneFactory|Paint|Presentation")
     TObjectPtr<UHierarchicalInstancedStaticMeshComponent> EDCarrierGantryBatch;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> CuringOvenMesh;
+    /** Serialized CDO references keep the core paint profile cook-reachable. */
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> CuringOvenMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> PretreatmentMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> PretreatmentMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> FlashOffMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> FlashOffMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> QualityLightMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> QualityLightMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> BodySkidMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> BodySkidMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> ServiceSetMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> ServiceSetMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> AirExtractionMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> AirExtractionMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> SprayBoothMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> SprayBoothMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UStaticMesh> CubeMesh;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UStaticMesh> CubeMesh;
 
-    UPROPERTY(Transient)
-    TSoftObjectPtr<UMaterialInterface> SemanticBaseMaterial;
+    UPROPERTY(VisibleDefaultsOnly, Category="Line Boss|OneFactory|Paint|Assets")
+    TObjectPtr<UMaterialInterface> SemanticBaseMaterial;
 
     /** Native CDO hard references make the exact ED closure cook-reachable. */
     UPROPERTY()

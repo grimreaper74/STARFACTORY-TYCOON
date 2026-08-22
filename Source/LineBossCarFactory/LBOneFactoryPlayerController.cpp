@@ -1,18 +1,25 @@
 #include "LBOneFactoryPlayerController.h"
 
 #include "Components/InputComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 #include "LBOneFactoryDevEnvelopeActor.h"
 #include "LBOneFactoryDevFactoryCommands.h"
 #include "LBOneFactoryDevRestoredShopActor.h"
 #include "LBOneFactoryDevStationDressingActor.h"
 #include "LBOneFactoryFlowStripWidget.h"
+#include "LBManagementPawn.h"
 #include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryProductionHUD.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryScanBeamActor.h"
 #include "LBOneFactorySaveSubsystem.h"
 #include "LBOneFactoryWIPPresentationActor.h"
 
@@ -20,34 +27,119 @@ DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryPlayer, Display, All);
 
 namespace LBOneFactoryPlayerPrivate
 {
+    /**
+     * The three quality gates are real work positions on the canonical route,
+     * not generic scenery.  Keeping the scanner placement derived from that
+     * route means a restored or rebuilt factory gets exactly the same visual
+     * inspection points without adding map-owned actors or save state.
+     */
+    void EnsureInspectionScanners(UWorld* World,
+        const ALBOneFactoryRuntimeCoordinator* Coordinator)
+    {
+        if (!World || !Coordinator)
+        {
+            return;
+        }
+
+        TArray<FLBOneFactoryRuntimeStationStep> Route;
+        FName TopologyId = NAME_None;
+        FString RouteReason;
+        if (!Coordinator->GetConfiguredStationRoute(Route, TopologyId,
+                RouteReason))
+        {
+            UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+                TEXT("LINE_BOSS_PLAYER_SCANNERS no route: %s"),
+                *RouteReason);
+            return;
+        }
+
+        const TSet<ELBOneFactoryDepartment> ScannerDepartments =
+        {
+            ELBOneFactoryDepartment::Body,
+            ELBOneFactoryDepartment::Paint,
+            ELBOneFactoryDepartment::Assembly
+        };
+        int32 Configured = 0;
+        for (const FLBOneFactoryRuntimeStationStep& Step : Route)
+        {
+            if (!Step.bQualityGate
+                || !ScannerDepartments.Contains(Step.Department))
+            {
+                continue;
+            }
+
+            const FName ScannerTag(*FString::Printf(
+                TEXT("LB.OneFactory.ScanBeam.%s"),
+                *Step.StationId.ToString()));
+            bool bAlreadyPresent = false;
+            for (TActorIterator<ALBOneFactoryScanBeamActor> It(World); It;
+                ++It)
+            {
+                if (IsValid(*It) && It->Tags.Contains(ScannerTag))
+                {
+                    bAlreadyPresent = true;
+                    break;
+                }
+            }
+
+            if (!bAlreadyPresent)
+            {
+                FTransform Transform = Step.WorldTransform;
+                // The authored beam is a suspended carriage. The line datum
+                // is floor-level, so raise it over the vehicle envelope while
+                // preserving the station's route-facing rotation.
+                Transform.AddToTranslation(FVector(0.0f, 0.0f, 340.0f));
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride =
+                    ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                if (ALBOneFactoryScanBeamActor* Scanner =
+                        World->SpawnActor<ALBOneFactoryScanBeamActor>(
+                            ALBOneFactoryScanBeamActor::StaticClass(),
+                            Transform, Params))
+                {
+                    Scanner->Tags.AddUnique(ScannerTag);
+                    Scanner->Tags.AddUnique(TEXT("LB.OneFactory.Inspection"));
+                    ++Configured;
+                }
+            }
+            else
+            {
+                ++Configured;
+            }
+        }
+
+        UE_LOG(LogLineBossOneFactoryPlayer, Display,
+            TEXT("LINE_BOSS_PLAYER_SCANNERS configured=%d expected=3"),
+            Configured);
+    }
+
     ALBOneFactoryRuntimeCoordinator* FindCoordinator(const UWorld* World)
     {
-        if (!World)
+        if (!World) return nullptr;
+        if (ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+                World->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>())
         {
-            return nullptr;
-        }
-        for (TActorIterator<ALBOneFactoryRuntimeCoordinator> It(World); It; ++It)
-        {
-            if (IsValid(*It))
-            {
-                return *It;
-            }
+            ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+            ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+            FString Reason;
+            return Registry->ResolveRuntimeBackbone(Production, Coordinator, Reason)
+                ? Coordinator : nullptr;
         }
         return nullptr;
     }
 
     ALBOneFactoryProductionFlowAuthority* FindProduction(const UWorld* World)
     {
-        if (!World)
+        if (!World) return nullptr;
+        if (ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+                World->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>())
         {
-            return nullptr;
-        }
-        for (TActorIterator<ALBOneFactoryProductionFlowAuthority> It(World);
-            It; ++It)
-        {
-            if (IsValid(*It))
+            ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+            ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+            FString Reason;
+            if (Registry->ResolveRuntimeBackbone(Production, Coordinator, Reason))
             {
-                return *It;
+                return Production;
             }
         }
         return nullptr;
@@ -60,6 +152,20 @@ ALBOneFactoryPlayerController::ALBOneFactoryPlayerController()
     bShowMouseCursor = true;
 }
 
+void ALBOneFactoryPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // The production HUD is deliberately mouse-first, but it must never turn
+    // the factory shortcuts into UI-only input after an operator clicks a
+    // card, transport chip or inspector button.
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    SetInputMode(InputMode);
+    SetShowMouseCursor(true);
+    InstallEnhancedInputMappings();
+}
+
 void ALBOneFactoryPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
@@ -68,36 +174,172 @@ void ALBOneFactoryPlayerController::SetupInputComponent()
         return;
     }
 
-    InputComponent->BindKey(EKeys::B, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::CommissionFactory);
-    InputComponent->BindKey(EKeys::N, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::PlaceOrder);
-    InputComponent->BindKey(EKeys::SpaceBar, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::TogglePause);
-    InputComponent->BindKey(EKeys::One, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::SetSpeedNormal);
-    InputComponent->BindKey(EKeys::Two, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::SetSpeedFast);
-    InputComponent->BindKey(EKeys::Three, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::SetSpeedVeryFast);
-    InputComponent->BindKey(EKeys::Q, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::PassOldestQualityHold);
-    InputComponent->BindKey(EKeys::R, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::ReworkOldestQualityHold);
-    InputComponent->BindKey(EKeys::M, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::ServicePlant);
-    InputComponent->BindKey(EKeys::F5, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::SaveFactory);
-    InputComponent->BindKey(EKeys::F9, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::LoadFactory);
-    InputComponent->BindKey(EKeys::F1, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::FocusPressShop);
-    InputComponent->BindKey(EKeys::F2, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::FocusBodyShop);
-    InputComponent->BindKey(EKeys::F3, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::FocusPaintShop);
-    InputComponent->BindKey(EKeys::F4, IE_Pressed, this,
-        &ALBOneFactoryPlayerController::FocusAssemblyShop);
+    // SetupInputComponent happens before BeginPlay for normal possession, so
+    // create the actions here. BeginPlay then installs the same context on
+    // the local-player subsystem once UI focus has been configured.
+    InstallEnhancedInputMappings();
+    BindEnhancedInputActions();
+}
+
+UInputAction* ALBOneFactoryPlayerController::CreateCommandAction(
+    const FName ActionName)
+{
+    UInputAction* Action = NewObject<UInputAction>(this, ActionName);
+    if (Action)
+    {
+        Action->ValueType = EInputActionValueType::Boolean;
+    }
+    return Action;
+}
+
+void ALBOneFactoryPlayerController::MapCommand(UInputAction* Action,
+    const FKey& Key)
+{
+    if (OneFactoryInputContext && Action && Key.IsValid())
+    {
+        OneFactoryInputContext->MapKey(Action, Key);
+    }
+}
+
+void ALBOneFactoryPlayerController::InstallEnhancedInputMappings()
+{
+    if (!OneFactoryInputContext)
+    {
+        OneFactoryInputContext = NewObject<UInputMappingContext>(this,
+            TEXT("IMC_OneFactoryRuntime"));
+        if (!OneFactoryInputContext)
+        {
+            UE_LOG(LogLineBossOneFactoryPlayer, Error,
+                TEXT("LINE_BOSS_PLAYER_INPUT mapping_context=0"));
+            return;
+        }
+
+        PlaceOrderInputAction = CreateCommandAction(TEXT("IA_PlaceOrder"));
+        TogglePauseInputAction = CreateCommandAction(TEXT("IA_TogglePause"));
+        SpeedNormalInputAction = CreateCommandAction(TEXT("IA_SpeedNormal"));
+        SpeedFastInputAction = CreateCommandAction(TEXT("IA_SpeedFast"));
+        SpeedVeryFastInputAction = CreateCommandAction(TEXT("IA_SpeedVeryFast"));
+        PassQualityInputAction = CreateCommandAction(TEXT("IA_PassQuality"));
+        ReworkInputAction = CreateCommandAction(TEXT("IA_Rework"));
+        ServiceInputAction = CreateCommandAction(TEXT("IA_Service"));
+        SaveInputAction = CreateCommandAction(TEXT("IA_Save"));
+        LoadInputAction = CreateCommandAction(TEXT("IA_Load"));
+        FocusPressInputAction = CreateCommandAction(TEXT("IA_FocusPress"));
+        FocusBodyInputAction = CreateCommandAction(TEXT("IA_FocusBody"));
+        FocusPaintInputAction = CreateCommandAction(TEXT("IA_FocusPaint"));
+        FocusAssemblyInputAction = CreateCommandAction(TEXT("IA_FocusAssembly"));
+
+        MapCommand(PlaceOrderInputAction, EKeys::B);
+        MapCommand(PlaceOrderInputAction, EKeys::N);
+        MapCommand(TogglePauseInputAction, EKeys::SpaceBar);
+        MapCommand(SpeedNormalInputAction, EKeys::One);
+        MapCommand(SpeedFastInputAction, EKeys::Two);
+        MapCommand(SpeedVeryFastInputAction, EKeys::Three);
+        MapCommand(PassQualityInputAction, EKeys::Q);
+        MapCommand(ReworkInputAction, EKeys::R);
+        MapCommand(ServiceInputAction, EKeys::M);
+        MapCommand(SaveInputAction, EKeys::F5);
+        MapCommand(LoadInputAction, EKeys::F9);
+        MapCommand(FocusPressInputAction, EKeys::F1);
+        MapCommand(FocusBodyInputAction, EKeys::F2);
+        MapCommand(FocusPaintInputAction, EKeys::F3);
+        MapCommand(FocusAssemblyInputAction, EKeys::F4);
+    }
+
+    if (!bEnhancedInputContextInstalled)
+    {
+        if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+        {
+            if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem =
+                    LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+            {
+                InputSubsystem->AddMappingContext(OneFactoryInputContext, 0);
+                bEnhancedInputContextInstalled = true;
+                UE_LOG(LogLineBossOneFactoryPlayer, Display,
+                    TEXT("LINE_BOSS_PLAYER_INPUT enhanced_context=installed mappings=15"));
+            }
+        }
+    }
+}
+
+void ALBOneFactoryPlayerController::BindEnhancedInputActions()
+{
+    UEnhancedInputComponent* EnhancedInput =
+        Cast<UEnhancedInputComponent>(InputComponent);
+    if (!EnhancedInput)
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_INPUT enhanced_component=0"));
+        return;
+    }
+
+    const auto Bind = [EnhancedInput, this](UInputAction* Action,
+        void (ALBOneFactoryPlayerController::*Handler)())
+    {
+        if (Action)
+        {
+            EnhancedInput->BindAction(Action, ETriggerEvent::Started, this,
+                Handler);
+        }
+    };
+    Bind(PlaceOrderInputAction, &ALBOneFactoryPlayerController::PlaceOrder);
+    Bind(TogglePauseInputAction, &ALBOneFactoryPlayerController::TogglePause);
+    Bind(SpeedNormalInputAction, &ALBOneFactoryPlayerController::SetSpeedNormal);
+    Bind(SpeedFastInputAction, &ALBOneFactoryPlayerController::SetSpeedFast);
+    Bind(SpeedVeryFastInputAction, &ALBOneFactoryPlayerController::SetSpeedVeryFast);
+    Bind(PassQualityInputAction, &ALBOneFactoryPlayerController::PassOldestQualityHold);
+    Bind(ReworkInputAction, &ALBOneFactoryPlayerController::ReworkOldestQualityHold);
+    Bind(ServiceInputAction, &ALBOneFactoryPlayerController::ServicePlant);
+    Bind(SaveInputAction, &ALBOneFactoryPlayerController::SaveFactory);
+    Bind(LoadInputAction, &ALBOneFactoryPlayerController::LoadFactory);
+    Bind(FocusPressInputAction, &ALBOneFactoryPlayerController::FocusPressShop);
+    Bind(FocusBodyInputAction, &ALBOneFactoryPlayerController::FocusBodyShop);
+    Bind(FocusPaintInputAction, &ALBOneFactoryPlayerController::FocusPaintShop);
+    Bind(FocusAssemblyInputAction, &ALBOneFactoryPlayerController::FocusAssemblyShop);
+}
+
+bool ALBOneFactoryPlayerController::InputKey(const FInputKeyEventArgs& Params)
+{
+    // UMG's focus path is allowed to consume input before the normal binding
+    // stack sees it. Handle the advertised keyboard controls and mouse-wheel
+    // zoom at the controller boundary so the mouse-first production HUD
+    // cannot disable the management camera.
+    if (Params.Event == IE_Axis && Params.Key == EKeys::MouseWheelAxis
+        && GetPawn() && Cast<ALBManagementPawn>(GetPawn())->HandleDirectZoomInput(
+            Params.AmountDepressed))
+    {
+        return true;
+    }
+    if ((Params.Event == IE_Pressed || Params.Event == IE_Released)
+        && GetPawn() && Cast<ALBManagementPawn>(GetPawn())->HandleDirectNavigationKey(
+            Params.Key, Params.Event == IE_Pressed))
+    {
+        return true;
+    }
+    if (Params.Event == IE_Pressed && HandleKeyboardShortcut(Params.Key))
+    {
+        return true;
+    }
+    return Super::InputKey(Params);
+}
+
+bool ALBOneFactoryPlayerController::HandleKeyboardShortcut(const FKey& Key)
+{
+    if (Key == EKeys::B || Key == EKeys::N) { PlaceOrder(); return true; }
+    if (Key == EKeys::SpaceBar) { TogglePause(); return true; }
+    if (Key == EKeys::One) { SetSpeedNormal(); return true; }
+    if (Key == EKeys::Two) { SetSpeedFast(); return true; }
+    if (Key == EKeys::Three) { SetSpeedVeryFast(); return true; }
+    if (Key == EKeys::Q) { PassOldestQualityHold(); return true; }
+    if (Key == EKeys::R) { ReworkOldestQualityHold(); return true; }
+    if (Key == EKeys::M) { ServicePlant(); return true; }
+    if (Key == EKeys::F5) { SaveFactory(); return true; }
+    if (Key == EKeys::F9) { LoadFactory(); return true; }
+    if (Key == EKeys::F1) { FocusPressShop(); return true; }
+    if (Key == EKeys::F2) { FocusBodyShop(); return true; }
+    if (Key == EKeys::F3) { FocusPaintShop(); return true; }
+    if (Key == EKeys::F4) { FocusAssemblyShop(); return true; }
+    return false;
 }
 
 void ALBOneFactoryPlayerController::FocusShopGroup(const int32 GroupIndex)
@@ -140,10 +382,28 @@ void ALBOneFactoryPlayerController::ServicePlant()
 
 void ALBOneFactoryPlayerController::CommissionFactory()
 {
+    FString Reason;
+    const bool bActivated = ActivatePrebuiltFactory(Reason);
+    if (bActivated)
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Display,
+            TEXT("LINE_BOSS_PLAYER_COMMISSION activated=1 %s"), *Reason);
+    }
+    else
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_COMMISSION activated=0 %s"), *Reason);
+    }
+}
+
+bool ALBOneFactoryPlayerController::ActivatePrebuiltFactory(FString& OutReason)
+{
+    OutReason.Reset();
     UWorld* World = GetWorld();
     if (!World)
     {
-        return;
+        OutReason = TEXT("ONEFACTORY PLAYER HAS NO WORLD");
+        return false;
     }
 
     FString Reason;
@@ -151,22 +411,28 @@ void ALBOneFactoryPlayerController::CommissionFactory()
         ULBOneFactoryDevFactory::BuildAndCommissionWholeFactory(this, Reason);
     if (!bBuilt)
     {
-        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
-            TEXT("LINE_BOSS_PLAYER_COMMISSION did not build: %s"), *Reason);
-        // A restored or console-built factory reports "already built" here;
-        // the site presentation must still come up for it, or a loaded game
-        // strands the player over a bare lit plane.
-        if (!ULBOneFactoryDevFactory::FindCoordinator(World))
+        // A restored factory is only "already commissioned" if its complete
+        // 57-station runtime contract validates.  Finding a coordinator alone
+        // used to accept a press-only partial map and strand every order once
+        // it reached the missing Paint authority.
+        ALBOneFactoryRuntimeCoordinator* Coordinator =
+            ULBOneFactoryDevFactory::FindCoordinator(World);
+        FString RuntimeReason;
+        if (!Coordinator || !Coordinator->ValidateRuntimeFactory(RuntimeReason))
         {
-            return;
+            OutReason = !Reason.IsEmpty()
+                ? Reason
+                : !RuntimeReason.IsEmpty()
+                    ? RuntimeReason
+                    : TEXT("PREBUILT FACTORY COMMISSIONING FAILED");
+            return false;
         }
     }
-    else
-    {
-        UE_LOG(LogLineBossOneFactoryPlayer, Display,
-            TEXT("LINE_BOSS_PLAYER_COMMISSION %s"), *Reason);
-    }
     EnsureSitePresentation();
+    OutReason = bBuilt
+        ? Reason
+        : TEXT("PREBUILT FACTORY ALREADY COMMISSIONED; PRESENTATION RESTORED");
+    return true;
 }
 
 void ALBOneFactoryPlayerController::EnsureSitePresentation()
@@ -226,22 +492,25 @@ void ALBOneFactoryPlayerController::EnsureSitePresentation()
             *StepReason);
     }
 
-    ALBOneFactoryDevRestoredShopActor* Shop = nullptr;
+    // The scanner is attached to the three real quality gates after the
+    // canonical route and station dressing exist. It is actor-owned visual
+    // motion only, so it cannot alter WIP, route topology or saved progress.
+    LBOneFactoryPlayerPrivate::EnsureInspectionScanners(World,
+        LBOneFactoryPlayerPrivate::FindCoordinator(World));
+
+    // The old restored-shop manifest was a visual recovery aid, not a
+    // production authority. It placed legacy imported press scenery around
+    // the new native train, creating duplicate machines, intersecting
+    // conveyors and the non-Nanite shadow overflow visible in the playable
+    // press shop. The canonical station dressing above is the only visual
+    // owner in the player build. Remove any stale runtime instance as well,
+    // so an old session cannot reintroduce the duplicate layer.
     for (TActorIterator<ALBOneFactoryDevRestoredShopActor> It(World); It; ++It)
     {
-        if (IsValid(*It)) { Shop = *It; break; }
-    }
-    if (!Shop)
-    {
-        Shop = World->SpawnActor<ALBOneFactoryDevRestoredShopActor>(
-            ALBOneFactoryDevRestoredShopActor::StaticClass(),
-            FVector::ZeroVector, FRotator::ZeroRotator, Params);
-    }
-    if (Shop)
-    {
-        Shop->BuildFromManifest(StepReason);
-        UE_LOG(LogLineBossOneFactoryPlayer, Display,
-            TEXT("LINE_BOSS_PLAYER_RESTORED_SHOP %s"), *StepReason);
+        if (IsValid(*It))
+        {
+            It->Destroy();
+        }
     }
 
     ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, StepReason);
@@ -402,9 +671,19 @@ void ALBOneFactoryPlayerController::PassOldestQualityHold()
         return;
     }
     ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(GetWorld());
+    FLBOneFactoryRuntimeVehicleStatus Status;
+    FString StatusReason;
+    if (!Coordinator || !Coordinator->GetVehicleRuntimeStatus(UnitId, Status,
+            StatusReason))
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_QUALITY_PASS no durable status unit=%s %s"),
+            *UnitId.ToString(), *StatusReason);
+        return;
+    }
     const FName EvidenceId(*FString::Printf(TEXT("PLAYER_QA_%s_%d"),
-        *UnitId.ToString(), ++QualityEvidenceCounter));
-    const bool bOk = Coordinator && Coordinator->SubmitRuntimeQualityResult(
+        *UnitId.ToString(), Status.StageRevision));
+    const bool bOk = Coordinator->SubmitRuntimeQualityResult(
         UnitId, ELBOneFactoryVehicleQualityState::Passed, EvidenceId, Reason);
     UE_LOG(LogLineBossOneFactoryPlayer, Display,
         TEXT("LINE_BOSS_PLAYER_QUALITY_PASS ok=%d unit=%s %s"),
@@ -424,8 +703,18 @@ void ALBOneFactoryPlayerController::ReworkOldestQualityHold()
         return;
     }
     ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(GetWorld());
+    FLBOneFactoryRuntimeVehicleStatus Status;
+    FString StatusReason;
+    if (!Coordinator || !Coordinator->GetVehicleRuntimeStatus(UnitId, Status,
+            StatusReason))
+    {
+        UE_LOG(LogLineBossOneFactoryPlayer, Warning,
+            TEXT("LINE_BOSS_PLAYER_REWORK no durable status unit=%s %s"),
+            *UnitId.ToString(), *StatusReason);
+        return;
+    }
     const FName EvidenceId(*FString::Printf(TEXT("PLAYER_REWORK_%s_%d"),
-        *UnitId.ToString(), ++QualityEvidenceCounter));
+        *UnitId.ToString(), Status.StageRevision));
     // Rework repeats the same inspection cycle without creating another unit.
     const bool bOk = Coordinator
         && Coordinator->CompleteRuntimeRework(UnitId, EvidenceId, Reason);

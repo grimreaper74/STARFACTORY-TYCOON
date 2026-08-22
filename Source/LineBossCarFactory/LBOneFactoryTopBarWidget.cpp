@@ -14,7 +14,9 @@
 #include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryProductionHUD.h"
+#include "LBOneFactoryPlayerController.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
 
 #define LOCTEXT_NAMESPACE "LineBossOneFactoryUI"
 
@@ -53,6 +55,18 @@ void ULBOneFactoryTopBarWidget::NativeConstruct()
     // The widget spans the viewport; only the bar's own controls take hits.
     SetVisibility(ESlateVisibility::SelfHitTestInvisible);
     Refresh();
+}
+
+FReply ULBOneFactoryTopBarWidget::NativeOnPreviewKeyDown(
+    const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+    if (ALBOneFactoryPlayerController* Controller =
+            Cast<ALBOneFactoryPlayerController>(GetOwningPlayer());
+        Controller && Controller->HandleKeyboardShortcut(InKeyEvent.GetKey()))
+    {
+        return FReply::Handled();
+    }
+    return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
 }
 
 void ULBOneFactoryTopBarWidget::BuildTree()
@@ -98,6 +112,20 @@ void ULBOneFactoryTopBarWidget::BuildTree()
         LOCTEXT("TopBarBrand", "MOORCROSS WORKS"), 15.0f, Warm), 0.0f);
     AddCell(MakeText(WidgetTree, TEXT("Model"),
         LOCTEXT("TopBarModel", "CAIRNWELL 2040"), 11.0f, Steel));
+
+    // The factory is already built in the playable demo. Put the first real
+    // action in the chrome as a conventional, discoverable click target.
+    NewOrderButton = WidgetTree->ConstructWidget<UButton>(
+        UButton::StaticClass(), TEXT("TopBarNewOrder"));
+    NewOrderButton->SetBackgroundColor(Active);
+    NewOrderButton->AddChild(MakeText(WidgetTree, TEXT("TopBarNewOrderLabel"),
+        LOCTEXT("TopBarNewOrder", "+  NEW ORDER"), 12.0f, Warm));
+    FScriptDelegate NewOrderDelegate;
+    NewOrderDelegate.BindUFunction(this, TEXT("OnNewOrderClicked"));
+    NewOrderButton->OnClicked.Add(NewOrderDelegate);
+    NewOrderButton->SetToolTipText(
+        LOCTEXT("TopBarNewOrderTip", "Start the next compatible vehicle order"));
+    AddCell(NewOrderButton, 12.0f);
 
     USpacer* Gap = WidgetTree->ConstructWidget<USpacer>(
         USpacer::StaticClass(), TEXT("TopBarGap"));
@@ -240,6 +268,15 @@ void ULBOneFactoryTopBarWidget::OnOrdersClicked()
         AlertCenter->HideInbox();
     }
     Refresh();
+}
+
+void ULBOneFactoryTopBarWidget::OnNewOrderClicked()
+{
+    if (ALBOneFactoryPlayerController* Controller =
+            Cast<ALBOneFactoryPlayerController>(GetOwningPlayer()))
+    {
+        Controller->PlaceOrder();
+    }
 }
 
 void ULBOneFactoryTopBarWidget::NativeTick(const FGeometry& MyGeometry,
@@ -418,12 +455,19 @@ void ULBOneFactoryTopBarWidget::Refresh()
     }
     else if (const UWorld* World = GetWorld())
     {
-        for (TActorIterator<ALBOneFactoryRuntimeCoordinator>
-            It(const_cast<UWorld*>(World)); It; ++It)
+        if (ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+                const_cast<UWorld*>(World)->GetSubsystem<
+                    ULBOneFactoryRuntimeRegistrySubsystem>())
         {
-            const float Scale = It->GetRuntimeTimeScale();
-            ActiveIndex = Scale >= 3.0f ? 3 : Scale >= 1.5f ? 2 : 1;
-            break;
+            ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+            ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+            FString RegistryReason;
+            if (Registry->ResolveRuntimeBackbone(Production, Coordinator,
+                    RegistryReason))
+            {
+                const float Scale = Coordinator->GetRuntimeTimeScale();
+                ActiveIndex = Scale >= 3.0f ? 3 : Scale >= 1.5f ? 2 : 1;
+            }
         }
     }
     for (int32 Index = 0; Index < 4; ++Index)

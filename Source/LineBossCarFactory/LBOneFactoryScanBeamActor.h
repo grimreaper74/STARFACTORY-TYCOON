@@ -5,6 +5,7 @@
 #include "LBOneFactoryScanBeamActor.generated.h"
 
 class UStaticMeshComponent;
+class UPointLightComponent;
 
 /**
  * The inspection laser: a thin emissive bar that sweeps back and forth
@@ -23,6 +24,7 @@ public:
     virtual void Tick(float DeltaSeconds) override;
 
     UStaticMeshComponent* GetBeamComponent() const { return BeamMesh; }
+    UPointLightComponent* GetScanLightComponent() const { return ScanLight; }
 
     /** Half the sweep travel along local X, in centimetres. */
     UPROPERTY(EditAnywhere, Category="Line Boss|Scan")
@@ -39,6 +41,10 @@ public:
 private:
     UPROPERTY(VisibleAnywhere, Category="Line Boss|Scan")
     TObjectPtr<UStaticMeshComponent> BeamMesh;
+
+    /** A local cyan glow makes the active scan legible at factory scale. */
+    UPROPERTY(VisibleAnywhere, Category="Line Boss|Scan")
+    TObjectPtr<UPointLightComponent> ScanLight;
 
     float CycleSeconds = 0.0f;
 };

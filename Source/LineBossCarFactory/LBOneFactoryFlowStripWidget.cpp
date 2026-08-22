@@ -14,6 +14,7 @@
 #include "LBManagementPawn.h"
 #include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryDetailPanelWidget.h"
+#include "LBOneFactoryPlayerController.h"
 #include "LBOneFactoryUITypes.h"
 
 #define LOCTEXT_NAMESPACE "LineBossOneFactoryUI"
@@ -116,6 +117,18 @@ void ULBOneFactoryFlowStripWidget::NativeConstruct()
     Refresh();
 }
 
+FReply ULBOneFactoryFlowStripWidget::NativeOnPreviewKeyDown(
+    const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+    if (ALBOneFactoryPlayerController* Controller =
+            Cast<ALBOneFactoryPlayerController>(GetOwningPlayer());
+        Controller && Controller->HandleKeyboardShortcut(InKeyEvent.GetKey()))
+    {
+        return FReply::Handled();
+    }
+    return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
+}
+
 void ULBOneFactoryFlowStripWidget::BuildTree()
 {
     using namespace LBOneFactoryFlowStripPrivate;
@@ -153,12 +166,13 @@ void ULBOneFactoryFlowStripWidget::BuildTree()
     HintBorder->SetBrushColor(StripBackground);
     HintBorder->SetPadding(FMargin(14.0f, 5.0f));
     HintBorder->SetVisibility(ESlateVisibility::Collapsed);
-    HintBorder->SetContent(MakeText(WidgetTree, TEXT("FlowHintText"),
+    HintText = MakeText(WidgetTree, TEXT("FlowHintText"),
         LOCTEXT("OnboardingHint",
             "Space pauses  ·  1/2/3 set the speed  ·  click a card or "
             "press F1-F4 to visit a shop  ·  N places an order  ·  "
             "Shift+F5-F8 saves a view, F5-F8 returns"),
-        11.0f, Steel));
+        11.0f, Steel);
+    HintBorder->SetContent(HintText);
     HintRow->AddChildToHorizontalBox(HintBorder);
     USpacer* HintRight = WidgetTree->ConstructWidget<USpacer>(
         USpacer::StaticClass(), TEXT("FlowHintRight"));
@@ -404,6 +418,11 @@ void ULBOneFactoryFlowStripWidget::Refresh()
         HintBorder->SetVisibility(bShowHint
             ? ESlateVisibility::HitTestInvisible
             : ESlateVisibility::Collapsed);
+        if (bShowHint && HintText)
+        {
+            HintText->SetText(BuildFirstSessionHint(Groups, Alerts,
+                BottleneckIndex));
+        }
     }
 
     if (SummaryText)
@@ -499,6 +518,36 @@ void ULBOneFactoryFlowStripWidget::Refresh()
     }
 }
 
+FText ULBOneFactoryFlowStripWidget::BuildFirstSessionHint(
+    const TArray<FLBOneFactoryProcessGroup>& Groups,
+    const TArray<FLBOneFactoryLiveAlert>& Alerts,
+    const int32 BottleneckIndex)
+{
+    // The first lesson is the actual management loop: observe the plant,
+    // select the real problem, then decide what to change.  Alerts win over
+    // the structural capacity bottleneck because they name an immediate
+    // player-actionable condition from the runtime coordinator.
+    if (const FLBOneFactoryLiveAlert* Alert = Alerts.FindByPredicate(
+            [&Groups](const FLBOneFactoryLiveAlert& Candidate)
+            {
+                return Groups.IsValidIndex(Candidate.GroupIndex);
+            }))
+    {
+        return FText::Format(LOCTEXT("OnboardingLiveAlert",
+                "Attention: {0}. Click {1} below to inspect the cause and jump to it."),
+            Alert->Message,
+            FText::FromString(Groups[Alert->GroupIndex].Label));
+    }
+    if (Groups.IsValidIndex(BottleneckIndex))
+    {
+        return FText::Format(LOCTEXT("OnboardingBottleneck",
+                "Bottleneck: {0}. Click its card to inspect the rate and feeding route."),
+            FText::FromString(Groups[BottleneckIndex].Label));
+    }
+    return LOCTEXT("OnboardingControls",
+        "Click + NEW ORDER at the top to start production. Space pauses; click a flow card or press F1-F4 to visit a shop.");
+}
+
 bool ULBOneFactoryFlowStripWidget::FocusGroup(const int32 Index)
 {
     if (!CachedGroups.IsValidIndex(Index)
@@ -515,12 +564,16 @@ bool ULBOneFactoryFlowStripWidget::FocusGroup(const int32 Index)
     }
     const FBox& Bounds = CachedGroups[Index].WorldBounds;
     const FVector Size = Bounds.GetSize();
-    // Frame the group's long axis with margin; keep the player's yaw so the
-    // jump never spins the world underneath them.
+    // A card is an explicit "take me to this shop" command.  Retaining an
+    // arbitrary free-camera yaw here can put the player behind an exterior
+    // wall (or looking out of the works), especially after a whole-factory
+    // overview.  Use the same authored three-quarter yaw as the factory home
+    // composition so every card has a dependable, interior-facing result.
+    constexpr float ShopFocusYawDegrees = -50.0f;
     const float Zoom = FMath::Clamp(
         FMath::Max(Size.X, Size.Y) * 1.25f + 3000.0f, 4200.0f, 45000.0f);
     const bool bFramed = Pawn->SetAutomationCamera(Bounds.GetCenter(),
-        Pawn->GetActorRotation().Yaw, Zoom);
+        ShopFocusYawDegrees, Zoom);
     if (bFramed)
     {
         if (AlertCenter)

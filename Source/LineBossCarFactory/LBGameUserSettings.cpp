@@ -143,9 +143,12 @@ bool ULBGameUserSettings::IsHardwareBenchmarkSupportedOnThisPlatform()
 
 void ULBGameUserSettings::CacheSafeFallback(const bool bMarkSetupComplete)
 {
-    int32 HighLevel = 2;
-    TryGetScalabilityLevelForPreset(ELBGraphicsPreset::High, HighLevel);
-    Super::SetOverallScalabilityLevel(HighLevel);
+    // The factory is large enough that a failed or skipped benchmark must not
+    // default to a hot, expensive profile. Medium is the safe playable floor;
+    // the Settings screen leaves High and Epic as explicit player choices.
+    int32 MediumLevel = 1;
+    TryGetScalabilityLevelForPreset(ELBGraphicsPreset::Medium, MediumLevel);
+    Super::SetOverallScalabilityLevel(MediumLevel);
     SelectedGraphicsPreset = ELBGraphicsPreset::Auto;
     bUsedHardwareBenchmarkFallback = true;
     if (bMarkSetupComplete)

@@ -29,6 +29,8 @@ public:
     virtual void NativeConstruct() override;
     virtual void NativeTick(const FGeometry& MyGeometry,
         float InDeltaTime) override;
+    virtual FReply NativeOnPreviewKeyDown(const FGeometry& InGeometry,
+        const FKeyEvent& InKeyEvent) override;
 
     /** Drives the same path as a real card click; dev tooling and tests
         use it to prove the click-to-frame flow end to end. */
@@ -45,6 +47,17 @@ public:
     {
         AlertCenter = Center;
     }
+
+    /**
+     * Creates the first-session coaching line from live factory data.  This
+     * stays public so the player-facing priority rule can be regression
+     * tested without a viewport: an actionable alert beats a capacity
+     * bottleneck, and neither is fabricated.
+     */
+    static FText BuildFirstSessionHint(
+        const TArray<FLBOneFactoryProcessGroup>& Groups,
+        const TArray<FLBOneFactoryLiveAlert>& Alerts,
+        int32 BottleneckIndex);
 
 private:
     /** The route is seven coarse groups; the handler table matches. */
@@ -65,6 +78,7 @@ private:
 
     UPROPERTY() TObjectPtr<UBorder> StripBorder;
     UPROPERTY() TObjectPtr<UBorder> HintBorder;
+    UPROPERTY() TObjectPtr<UTextBlock> HintText;
     UPROPERTY() TObjectPtr<UHorizontalBox> CardsRow;
     UPROPERTY() TObjectPtr<UTextBlock> SummaryText;
     UPROPERTY() TArray<TObjectPtr<UButton>> CardButtons;

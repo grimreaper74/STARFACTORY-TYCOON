@@ -15,6 +15,7 @@
 #include "LBOneFactoryPaintStarterPresentationActor.h"
 #include "LBOneFactoryPressStarterLayout.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
+#include "LBOneFactoryProductionFlow.h"
 #include "LBPressShopBuildAuthority.h"
 #include "Misc/AutomationTest.h"
 
@@ -840,6 +841,33 @@ bool FLBOneFactoryAssemblyLifecycleAssignmentRollbackAndWIPTest::RunTest(
         Fixture.Builder->ExecuteUMGAction(0, Reason));
     TestTrue(TEXT("Assembly authority is commissioned"),
         Authority->IsCommissioned());
+    ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+    for (TActorIterator<ALBOneFactoryProductionFlowAuthority> It(Fixture.World);
+        It; ++It)
+    {
+        if (IsValid(*It) && !It->IsActorBeingDestroyed())
+        {
+            Production = *It;
+            break;
+        }
+    }
+    TestNotNull(TEXT("Assembly commission retains the production authority"),
+        Production);
+    if (Production)
+    {
+        const FLBOneFactoryProductionLedgerState Ledger =
+            Production->CaptureLedger();
+        TestEqual(TEXT("Player lifecycle seeds three starter contracts"),
+            Ledger.Contracts.Num(), 3);
+        bool bAllStarterContractsUseCairnwell = Ledger.Contracts.Num() == 3;
+        for (const FLBOneFactoryVehicleContract& Contract : Ledger.Contracts)
+        {
+            bAllStarterContractsUseCairnwell &=
+                Contract.VehicleModelId == TEXT("CAIRNWELL_2040");
+        }
+        TestTrue(TEXT("Starter contracts use the runtime Cairnwell model identity"),
+            bAllStarterContractsUseCairnwell);
+    }
     TestTrue(TEXT("Summary exposes both native provenance passes"),
         Fixture.Builder->GetUMGSummary().Contains(TEXT("ASSEMBLY: COMMISSIONED"))
         && Fixture.Builder->GetUMGSummary().Contains(TEXT("NATIVE-ONLY PASS")));

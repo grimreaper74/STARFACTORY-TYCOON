@@ -17,7 +17,6 @@
 namespace LBBodyWeldPrivate
 {
     const FName Cairnwell2040(TEXT("CAIRNWELL_2040"));
-    const FName CairnwellBaseKit(TEXT("CAIRNWELL_2040_BIW_BASE_KIT"));
     const FName RobotToolPanelPick(TEXT("PANEL_PICK"));
     const FName RobotToolSpot(TEXT("SPOT"));
     const FName RobotToolMIG(TEXT("MIG"));
@@ -38,19 +37,6 @@ namespace LBBodyWeldPrivate
     };
     const FVector RobotToolFlangeRelativeCm(-38.9165f, -9.4918f, 137.6317f);
 
-    const TArray<FName> RequiredFamilies = {
-        TEXT("ROOF_PANEL"),
-        TEXT("QUARTER_PANEL_LEFT"),
-        TEXT("QUARTER_PANEL_RIGHT"),
-        TEXT("HOOD_PANEL"),
-        TEXT("DOOR_FRONT_LEFT"),
-        TEXT("DOOR_FRONT_RIGHT"),
-        TEXT("DOOR_REAR_LEFT"),
-        TEXT("DOOR_REAR_RIGHT"),
-        TEXT("TAILGATE_PANEL"),
-        TEXT("FENDER_FRONT_LEFT"),
-        TEXT("FENDER_FRONT_RIGHT")
-    };
 
     template<typename T>
     bool AddUniqueId(TSet<FName>& Ids, const T& Value)
@@ -109,9 +95,7 @@ namespace LBBodyWeldPrivate
 
     bool LineageLess(const FLBBodyWeldPanelLineage& A, const FLBBodyWeldPanelLineage& B)
     {
-        const int32 AFamily = RequiredFamilies.IndexOfByKey(A.PanelTypeId);
-        const int32 BFamily = RequiredFamilies.IndexOfByKey(B.PanelTypeId);
-        if (AFamily != BFamily) return AFamily < BFamily;
+        if (A.PanelTypeId != B.PanelTypeId) return A.PanelTypeId.LexicalLess(B.PanelTypeId);
         return A.PanelId.LexicalLess(B.PanelId);
     }
 }
@@ -369,12 +353,18 @@ FName ALBBodyWeldLineActor::GetVehicleModelId()
 
 FName ALBBodyWeldLineActor::GetBaseKitTypeId()
 {
-    return LBBodyWeldPrivate::CairnwellBaseKit;
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    return LBVehicleModelCatalog::GetBodyWeldContract(GetVehicleModelId(), Families, BaseKitTypeId)
+        ? BaseKitTypeId : NAME_None;
 }
 
 TArray<FName> ALBBodyWeldLineActor::GetRequiredPanelFamilies()
 {
-    return LBBodyWeldPrivate::RequiredFamilies;
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    LBVehicleModelCatalog::GetBodyWeldContract(GetVehicleModelId(), Families, BaseKitTypeId);
+    return Families;
 }
 
 bool ALBBodyWeldLineActor::ReceivePanelStillage(const FLBBodyWeldStillageInventory& Stillage,
@@ -467,13 +457,29 @@ bool ALBBodyWeldLineActor::FindFirstMissingRecipeItem(FString& OutReason) const
         OutReason = TEXT("No vehicle order assigned");
         return true;
     }
-    for (const FName Family : LBBodyWeldPrivate::RequiredFamilies)
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    FName ModelId;
+    return !ResolveReservableModel(ModelId, Families, BaseKitTypeId, OutReason);
+}
+
+bool ALBBodyWeldLineActor::FindFirstMissingRecipeItemForModel(const FName ModelId,
+    FString& OutReason) const
+{
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    if (!LBVehicleModelCatalog::GetBodyWeldContract(ModelId, Families, BaseKitTypeId))
+    {
+        OutReason = FString::Printf(TEXT("Model %s has no valid Body Weld recipe"), *ModelId.ToString());
+        return true;
+    }
+    for (const FName Family : Families)
     {
         const bool bFound = Stillages.ContainsByPredicate(
-            [this, Family](const FLBBodyWeldStillageInventory& Stillage)
+            [this, ModelId, Family](const FLBBodyWeldStillageInventory& Stillage)
         {
             if (Stillage.OrderId != AssignedOrderId
-                || Stillage.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
+                || Stillage.VehicleModelId != ModelId
                 || Stillage.PanelTypeId != Family) return false;
             return Stillage.PanelUnits.ContainsByPredicate(
                 [](const FLBBodyWeldPanelUnit& Panel)
@@ -485,19 +491,45 @@ bool ALBBodyWeldLineActor::FindFirstMissingRecipeItem(FString& OutReason) const
             return true;
         }
     }
-    const bool bKitFound = BaseKits.ContainsByPredicate([this](const FLBBodyWeldBaseKitUnit& Kit)
+    const bool bKitFound = BaseKits.ContainsByPredicate([this, ModelId, BaseKitTypeId](const FLBBodyWeldBaseKitUnit& Kit)
     {
         return Kit.OrderId == AssignedOrderId
-            && Kit.VehicleModelId == LBBodyWeldPrivate::Cairnwell2040
-            && Kit.KitTypeId == LBBodyWeldPrivate::CairnwellBaseKit
+            && Kit.VehicleModelId == ModelId
+            && Kit.KitTypeId == BaseKitTypeId
             && !Kit.bReserved && !Kit.bConsumed;
     });
     if (!bKitFound)
     {
-        OutReason = TEXT("Missing CAIRNWELL_2040_BIW_BASE_KIT (0/1)");
+        OutReason = FString::Printf(TEXT("Missing %s (0/1)"), *BaseKitTypeId.ToString());
         return true;
     }
     OutReason.Reset();
+    return false;
+}
+
+bool ALBBodyWeldLineActor::ResolveReservableModel(FName& OutModelId, TArray<FName>& OutPanelFamilies,
+    FName& OutBaseKitTypeId, FString& OutReason) const
+{
+    OutModelId = NAME_None;
+    OutPanelFamilies.Reset();
+    OutBaseKitTypeId = NAME_None;
+    FString FirstMissingReason;
+    for (const FLBVehicleModelRecipe& Recipe : LBVehicleModelCatalog::GetRecipes())
+    {
+        FString CandidateReason;
+        if (FindFirstMissingRecipeItemForModel(Recipe.ModelId, CandidateReason))
+        {
+            if (FirstMissingReason.IsEmpty()) FirstMissingReason = CandidateReason;
+            continue;
+        }
+        if (!LBVehicleModelCatalog::GetBodyWeldContract(Recipe.ModelId, OutPanelFamilies, OutBaseKitTypeId))
+            continue;
+        OutModelId = Recipe.ModelId;
+        OutReason.Reset();
+        return true;
+    }
+    OutReason = FirstMissingReason.IsEmpty() ? TEXT("No registered model has a complete Body Weld recipe")
+        : FirstMissingReason;
     return false;
 }
 
@@ -510,7 +542,10 @@ bool ALBBodyWeldLineActor::TryReserveRecipe(FString& OutReason)
         OutReason = TEXT("Weld line is not available for a new reservation");
         return false;
     }
-    if (FindFirstMissingRecipeItem(OutReason))
+    FName ModelId;
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    if (!ResolveReservableModel(ModelId, Families, BaseKitTypeId, OutReason))
     {
         RefreshOperatingState();
         return false;
@@ -518,15 +553,15 @@ bool ALBBodyWeldLineActor::TryReserveRecipe(FString& OutReason)
 
     struct FPanelSelection { int32 StillageIndex; int32 PanelIndex; };
     TArray<FPanelSelection> Selections;
-    Selections.Reserve(ExpectedPanelFamilyCount);
-    for (const FName Family : LBBodyWeldPrivate::RequiredFamilies)
+    Selections.Reserve(Families.Num());
+    for (const FName Family : Families)
     {
         FPanelSelection Best{INDEX_NONE, INDEX_NONE};
         for (int32 StillageIndex = 0; StillageIndex < Stillages.Num(); ++StillageIndex)
         {
             const FLBBodyWeldStillageInventory& Stillage = Stillages[StillageIndex];
             if (Stillage.OrderId != AssignedOrderId
-                || Stillage.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
+                || Stillage.VehicleModelId != ModelId
                 || Stillage.PanelTypeId != Family) continue;
             for (int32 PanelIndex = 0; PanelIndex < Stillage.PanelUnits.Num(); ++PanelIndex)
             {
@@ -559,14 +594,14 @@ bool ALBBodyWeldLineActor::TryReserveRecipe(FString& OutReason)
     for (int32 Index = 0; Index < BaseKits.Num(); ++Index)
     {
         const FLBBodyWeldBaseKitUnit& Kit = BaseKits[Index];
-        if (Kit.OrderId != AssignedOrderId || Kit.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
-            || Kit.KitTypeId != LBBodyWeldPrivate::CairnwellBaseKit || Kit.bReserved || Kit.bConsumed)
+        if (Kit.OrderId != AssignedOrderId || Kit.VehicleModelId != ModelId
+            || Kit.KitTypeId != BaseKitTypeId || Kit.bReserved || Kit.bConsumed)
             continue;
         if (KitIndex == INDEX_NONE || Kit.DeliverySequence < BaseKits[KitIndex].DeliverySequence
             || (Kit.DeliverySequence == BaseKits[KitIndex].DeliverySequence
                 && Kit.KitId.LexicalLess(BaseKits[KitIndex].KitId))) KitIndex = Index;
     }
-    if (Selections.Num() != ExpectedPanelFamilyCount || KitIndex == INDEX_NONE)
+    if (Selections.Num() != Families.Num() || KitIndex == INDEX_NONE)
     {
         OutReason = TEXT("Atomic reservation could not select the full recipe");
         return false;
@@ -576,7 +611,7 @@ bool ALBBodyWeldLineActor::TryReserveRecipe(FString& OutReason)
     FLBBodyWeldInputReservation NewReservation;
     NewReservation.bValid = true;
     NewReservation.OrderId = AssignedOrderId;
-    NewReservation.VehicleModelId = LBBodyWeldPrivate::Cairnwell2040;
+    NewReservation.VehicleModelId = ModelId;
     NewReservation.BaseKitId = BaseKits[KitIndex].KitId;
     NewReservation.ReservationId = FName(*FString::Printf(TEXT("WELDRES-%s-%06d"),
         *StableIdentityToken(LineId), NextReservationSerial));
@@ -628,10 +663,16 @@ bool ALBBodyWeldLineActor::WouldCommitOverflowEmptyReturnQueue() const
 
 bool ALBBodyWeldLineActor::ValidateActiveReservationReferences(const bool bExpectConsumed) const
 {
-    if (!ActiveReservation.bValid || ActiveReservation.Panels.Num() != ExpectedPanelFamilyCount) return false;
+    TArray<FName> Families;
+    FName BaseKitTypeId;
+    if (!ActiveReservation.bValid
+        || !LBVehicleModelCatalog::GetBodyWeldContract(ActiveReservation.VehicleModelId, Families, BaseKitTypeId)
+        || ActiveReservation.Panels.Num() != Families.Num()) return false;
     const FLBBodyWeldBaseKitUnit* Kit = BaseKits.FindByPredicate([this](const FLBBodyWeldBaseKitUnit& Candidate)
         { return Candidate.KitId == ActiveReservation.BaseKitId; });
-    if (!Kit || Kit->bConsumed != bExpectConsumed || (!bExpectConsumed && !Kit->bReserved)) return false;
+    if (!Kit || Kit->VehicleModelId != ActiveReservation.VehicleModelId || Kit->KitTypeId != BaseKitTypeId
+        || Kit->bConsumed != bExpectConsumed || (!bExpectConsumed && !Kit->bReserved)) return false;
+    TSet<FName> SeenFamilies;
     for (const FLBBodyWeldPanelLineage& Reserved : ActiveReservation.Panels)
     {
         const FLBBodyWeldStillageInventory* Stillage = Stillages.FindByPredicate(
@@ -641,9 +682,12 @@ bool ALBBodyWeldLineActor::ValidateActiveReservationReferences(const bool bExpec
         const FLBBodyWeldPanelUnit* Panel = Stillage->PanelUnits.FindByPredicate(
             [&Reserved](const FLBBodyWeldPanelUnit& Candidate)
             { return Candidate.PanelId == Reserved.PanelId && Candidate.PanelTypeId == Reserved.PanelTypeId; });
-        if (!Panel || Panel->bConsumed != bExpectConsumed || (!bExpectConsumed && !Panel->bReserved)) return false;
+        if (!Panel || !Families.Contains(Reserved.PanelTypeId) || SeenFamilies.Contains(Reserved.PanelTypeId)
+            || Panel->VehicleModelId != ActiveReservation.VehicleModelId
+            || Panel->bConsumed != bExpectConsumed || (!bExpectConsumed && !Panel->bReserved)) return false;
+        SeenFamilies.Add(Reserved.PanelTypeId);
     }
-    return true;
+    return SeenFamilies.Num() == Families.Num();
 }
 
 bool ALBBodyWeldLineActor::CommitReservedInputs(FString& OutReason)
@@ -828,7 +872,6 @@ FLBBodyWeldQualityEvidence ALBBodyWeldLineActor::BuildQualityEvidence() const
     FLBBodyWeldQualityEvidence Evidence;
     Evidence.bRecipeComplete = ActiveReservation.bValid
         && ActiveReservation.bConsumptionCommitted
-        && ActiveReservation.Panels.Num() == ExpectedPanelFamilyCount
         && ValidateActiveReservationReferences(true);
     Evidence.bFixtureProgramCorrect = ActiveCycleQualityConditions.bFixtureProgramCorrect;
     Evidence.bSpotOperationsComplete = ActiveCycleEvidence.WeldingSeconds >= WeldingDurationSeconds;
@@ -866,8 +909,8 @@ void ALBBodyWeldLineActor::FinalizeGeometryGate()
         return;
     }
     FLBBodyInWhiteRecord Body;
-    Body.BodyId = FName(*FString::Printf(TEXT("BIW-CAIRNWELL_2040-%s-%06d"),
-        *StableIdentityToken(LineId), NextBodySerial++));
+    Body.BodyId = FName(*FString::Printf(TEXT("BIW-%s-%s-%06d"),
+        *StableIdentityToken(ActiveReservation.VehicleModelId), *StableIdentityToken(LineId), NextBodySerial++));
     Body.VehicleModelId = ActiveReservation.VehicleModelId;
     Body.OrderId = ActiveReservation.OrderId;
     Body.BaseKitId = ActiveReservation.BaseKitId;
@@ -1402,9 +1445,11 @@ FString ALBBodyWeldLineActor::StableIdentityToken(const FName Source)
 
 bool ALBBodyWeldLineActor::IsStillageContractValid(const FLBBodyWeldStillageInventory& Stillage)
 {
+    TArray<FName> Families;
+    FName BaseKitTypeId;
     if (Stillage.StillageId.IsNone() || Stillage.OrderId.IsNone()
-        || Stillage.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
-        || !LBBodyWeldPrivate::RequiredFamilies.Contains(Stillage.PanelTypeId)
+        || !LBVehicleModelCatalog::GetBodyWeldContract(Stillage.VehicleModelId, Families, BaseKitTypeId)
+        || !Families.Contains(Stillage.PanelTypeId)
         || Stillage.DeliverySequence < 0 || Stillage.CapacityPanels < 1
         || Stillage.PanelUnits.IsEmpty() || Stillage.PanelUnits.Num() > Stillage.CapacityPanels
         || Stillage.bEmptyReturnQueued || Stillage.bEmptyReturnIssued) return false;
@@ -1414,7 +1459,7 @@ bool ALBBodyWeldLineActor::IsStillageContractValid(const FLBBodyWeldStillageInve
         FName ParsedVehicle;
         FName ParsedFamily;
         if (!LBBodyWeldPrivate::AddUniqueId(PanelIds, Panel.PanelId)
-            || !LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(
+            || !LBVehicleModelCatalog::ParsePressedPanelUnitId(
                 Panel.PanelId, ParsedVehicle, ParsedFamily)
             || ParsedVehicle != Stillage.VehicleModelId || ParsedFamily != Stillage.PanelTypeId
             || Panel.OrderId != Stillage.OrderId || Panel.VehicleModelId != Stillage.VehicleModelId
@@ -1426,17 +1471,22 @@ bool ALBBodyWeldLineActor::IsStillageContractValid(const FLBBodyWeldStillageInve
 
 bool ALBBodyWeldLineActor::IsBaseKitContractValid(const FLBBodyWeldBaseKitUnit& BaseKit)
 {
+    TArray<FName> Families;
+    FName ExpectedBaseKitTypeId;
     return !BaseKit.KitId.IsNone() && !BaseKit.OrderId.IsNone()
-        && BaseKit.KitTypeId == LBBodyWeldPrivate::CairnwellBaseKit
-        && BaseKit.VehicleModelId == LBBodyWeldPrivate::Cairnwell2040
+        && LBVehicleModelCatalog::GetBodyWeldContract(BaseKit.VehicleModelId, Families, ExpectedBaseKitTypeId)
+        && BaseKit.KitTypeId == ExpectedBaseKitTypeId
         && BaseKit.DeliverySequence >= 0 && !BaseKit.bReserved && !BaseKit.bConsumed;
 }
 
 bool ALBBodyWeldLineActor::IsBodyRecordContractValid(const FLBBodyInWhiteRecord& Body)
 {
-    if (Body.BodyId.IsNone() || Body.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
+    TArray<FName> FamiliesForModel;
+    FName BaseKitTypeId;
+    if (Body.BodyId.IsNone() || !LBVehicleModelCatalog::GetBodyWeldContract(
+            Body.VehicleModelId, FamiliesForModel, BaseKitTypeId)
         || Body.OrderId.IsNone() || Body.BaseKitId.IsNone() || Body.ReservationId.IsNone()
-        || Body.WeldLineId.IsNone() || Body.Panels.Num() != ExpectedPanelFamilyCount
+        || Body.WeldLineId.IsNone() || Body.Panels.Num() != FamiliesForModel.Num()
         || !StaticEnum<ELBBodyWeldQualityState>()->IsValidEnumValue(
             static_cast<int64>(Body.QualityState))) return false;
     TSet<FName> Families;
@@ -1447,11 +1497,11 @@ bool ALBBodyWeldLineActor::IsBodyRecordContractValid(const FLBBodyInWhiteRecord&
         FName Family;
         if (Panel.StillageId.IsNone() || !LBBodyWeldPrivate::AddUniqueId(PanelIds, Panel.PanelId)
             || !LBBodyWeldPrivate::AddUniqueId(Families, Panel.PanelTypeId)
-            || !LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(Panel.PanelId, Vehicle, Family)
+            || !LBVehicleModelCatalog::ParsePressedPanelUnitId(Panel.PanelId, Vehicle, Family)
             || Vehicle != Body.VehicleModelId || Family != Panel.PanelTypeId
-            || !LBBodyWeldPrivate::RequiredFamilies.Contains(Family)) return false;
+            || !FamiliesForModel.Contains(Family)) return false;
     }
-    return Families.Num() == ExpectedPanelFamilyCount
+    return Families.Num() == FamiliesForModel.Num()
         && FMath::IsFinite(Body.CycleEvidence.ClosurePreparationSeconds)
         && FMath::IsFinite(Body.CycleEvidence.FramingSeconds)
         && FMath::IsFinite(Body.CycleEvidence.WeldingSeconds)
@@ -1524,18 +1574,21 @@ bool ALBBodyWeldLineActor::IsSaveStateContractValid(const FLBBodyWeldLineSaveSta
     TSet<FName> EmptyReturnIds;
     for (const FLBBodyWeldStillageInventory& Stillage : State.Stillages)
     {
+        TArray<FName> ModelFamilies;
+        FName ModelBaseKitTypeId;
         if (Stillage.StillageId.IsNone() || StillageIds.Contains(Stillage.StillageId)
             || Stillage.DeliverySequence < 0 || Stillage.CapacityPanels < 1
             || Stillage.PanelUnits.Num() > Stillage.CapacityPanels
-            || Stillage.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
-            || !LBBodyWeldPrivate::RequiredFamilies.Contains(Stillage.PanelTypeId)) return false;
+            || !LBVehicleModelCatalog::GetBodyWeldContract(
+                Stillage.VehicleModelId, ModelFamilies, ModelBaseKitTypeId)
+            || !ModelFamilies.Contains(Stillage.PanelTypeId)) return false;
         StillageIds.Add(Stillage.StillageId);
         for (const FLBBodyWeldPanelUnit& Panel : Stillage.PanelUnits)
         {
             FName Vehicle;
             FName Family;
             if (!LBBodyWeldPrivate::AddUniqueId(GlobalPanelIds, Panel.PanelId)
-                || !LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(Panel.PanelId, Vehicle, Family)
+                || !LBVehicleModelCatalog::ParsePressedPanelUnitId(Panel.PanelId, Vehicle, Family)
                 || Vehicle != Stillage.VehicleModelId || Family != Stillage.PanelTypeId
                 || Panel.OrderId != Stillage.OrderId || Panel.StillageId != Stillage.StillageId
                 || Panel.VehicleModelId != Stillage.VehicleModelId || Panel.PanelTypeId != Family
@@ -1548,9 +1601,12 @@ bool ALBBodyWeldLineActor::IsSaveStateContractValid(const FLBBodyWeldLineSaveSta
     }
     for (const FLBBodyWeldBaseKitUnit& Kit : State.BaseKits)
     {
+        TArray<FName> ModelFamilies;
+        FName ModelBaseKitTypeId;
         if (!LBBodyWeldPrivate::AddUniqueId(KitIds, Kit.KitId) || Kit.OrderId.IsNone()
-            || Kit.KitTypeId != LBBodyWeldPrivate::CairnwellBaseKit
-            || Kit.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
+            || !LBVehicleModelCatalog::GetBodyWeldContract(
+                Kit.VehicleModelId, ModelFamilies, ModelBaseKitTypeId)
+            || Kit.KitTypeId != ModelBaseKitTypeId
             || Kit.DeliverySequence < 0 || (Kit.bReserved && Kit.bConsumed)) return false;
     }
     for (const FLBBodyWeldEmptyStillageReturn& Return : State.PendingEmptyReturns)
@@ -1568,9 +1624,12 @@ bool ALBBodyWeldLineActor::IsSaveStateContractValid(const FLBBodyWeldLineSaveSta
     if (State.ActiveReservation.bValid)
     {
         const FLBBodyWeldInputReservation& Reservation = State.ActiveReservation;
+        TArray<FName> ModelFamilies;
+        FName ModelBaseKitTypeId;
         if (Reservation.ReservationId.IsNone() || Reservation.OrderId.IsNone()
-            || Reservation.VehicleModelId != LBBodyWeldPrivate::Cairnwell2040
-            || Reservation.Panels.Num() != ExpectedPanelFamilyCount
+            || !LBVehicleModelCatalog::GetBodyWeldContract(
+                Reservation.VehicleModelId, ModelFamilies, ModelBaseKitTypeId)
+            || Reservation.Panels.Num() != ModelFamilies.Num()
             || !KitIds.Contains(Reservation.BaseKitId)) return false;
         ReservationIds.Add(Reservation.ReservationId);
         TSet<FName> Families;
@@ -1580,7 +1639,7 @@ bool ALBBodyWeldLineActor::IsSaveStateContractValid(const FLBBodyWeldLineSaveSta
             if (!LBBodyWeldPrivate::AddUniqueId(ReservationPanelIds, Reserved.PanelId)
                 || !LBBodyWeldPrivate::AddUniqueId(Families, Reserved.PanelTypeId)
                 || !GlobalPanelIds.Contains(Reserved.PanelId) || !StillageIds.Contains(Reserved.StillageId)
-                || !LBBodyWeldPrivate::RequiredFamilies.Contains(Reserved.PanelTypeId)) return false;
+                || !ModelFamilies.Contains(Reserved.PanelTypeId)) return false;
             const FLBBodyWeldStillageInventory* Stillage = State.Stillages.FindByPredicate(
                 [&Reserved](const FLBBodyWeldStillageInventory& Candidate)
                 { return Candidate.StillageId == Reserved.StillageId; });
@@ -1594,7 +1653,8 @@ bool ALBBodyWeldLineActor::IsSaveStateContractValid(const FLBBodyWeldLineSaveSta
         const FLBBodyWeldBaseKitUnit* Kit = State.BaseKits.FindByPredicate(
             [&Reservation](const FLBBodyWeldBaseKitUnit& Candidate)
             { return Candidate.KitId == Reservation.BaseKitId; });
-        if (Families.Num() != ExpectedPanelFamilyCount || !Kit
+        if (Families.Num() != ModelFamilies.Num() || !Kit
+            || Kit->VehicleModelId != Reservation.VehicleModelId || Kit->KitTypeId != ModelBaseKitTypeId
             || Kit->bConsumed != Reservation.bConsumptionCommitted
             || (!Reservation.bConsumptionCommitted && !Kit->bReserved)) return false;
     }

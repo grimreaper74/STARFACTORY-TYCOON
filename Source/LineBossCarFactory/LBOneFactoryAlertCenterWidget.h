@@ -29,6 +29,8 @@ public:
     virtual void NativeConstruct() override;
     virtual void NativeTick(const FGeometry& MyGeometry,
         float InDeltaTime) override;
+    virtual FReply NativeOnPreviewKeyDown(const FGeometry& InGeometry,
+        const FKeyEvent& InKeyEvent) override;
 
     void ToggleInbox();
     void HideInbox();

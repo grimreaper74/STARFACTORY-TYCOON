@@ -6,6 +6,7 @@
 #include "LBOneFactoryGameMode.generated.h"
 
 class ALBOneFactoryBootstrap;
+class ALBOneFactoryPlayerController;
 class ALBOneFactoryProductionFlowAuthority;
 class ALBOneFactoryRuntimeCoordinator;
 
@@ -24,6 +25,7 @@ class LINEBOSSCARFACTORY_API ALBOneFactoryGameMode : public AGameModeBase
 public:
     ALBOneFactoryGameMode();
     virtual void BeginPlay() override;
+    virtual void PostLogin(APlayerController* NewPlayer) override;
 
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory")
     bool HasValidOneFactoryShell() const { return bOneFactoryShellValid; }
@@ -71,6 +73,7 @@ public:
 
 private:
     bool EnsureRuntimeBackbone(FString& OutReason);
+    void ActivatePrebuiltFactory(ALBOneFactoryPlayerController* Controller);
 
     UPROPERTY(Transient)
     TWeakObjectPtr<ALBOneFactoryBootstrap> OneFactoryBootstrap;
@@ -85,6 +88,9 @@ private:
 
     UPROPERTY(VisibleInstanceOnly, Category="Line Boss|OneFactory")
     bool bOneFactoryShellValid = false;
+
+    /** Prevent duplicate construction if BeginPlay and PostLogin overlap. */
+    bool bPrebuiltFactoryActivated = false;
 
     UPROPERTY(VisibleInstanceOnly, Category="Line Boss|OneFactory")
     FString OneFactoryStartupStatus = TEXT("ONEFACTORY STARTUP NOT YET VALIDATED");

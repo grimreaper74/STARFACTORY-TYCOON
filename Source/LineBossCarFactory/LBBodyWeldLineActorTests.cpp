@@ -3,6 +3,7 @@
 #include "LBFactoryFloorMarkingComponent.h"
 #include "LBFactoryProcessPortComponent.h"
 #include "LBStatusBeaconComponent.h"
+#include "LBVehiclePanelCatalog.h"
 
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -502,6 +503,77 @@ bool FLBBodyWeldCycleLineageAndAckTest::RunTest(const FString& Parameters)
         Line->IsBaseKitWorkpiecePresented());
 
     World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBBodyWeldRegisteredModelRecipeTest,
+    "LineBoss.BodyWeld.Runtime.RegisteredModelRecipeDrivesReservationAndBIWIdentity",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBBodyWeldRegisteredModelRecipeTest::RunTest(const FString& Parameters)
+{
+    (void)Parameters;
+    const FName ModelId(TEXT("NORTHSTAR_BODY_DEVELOPMENT"));
+    const FName OrderId(TEXT("ORDER-NORTHSTAR-001"));
+    const FName BaseKitTypeId(TEXT("NORTHSTAR_BODY_BIW_BASE_KIT"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+
+    FLBVehicleModelRecipe Recipe;
+    Recipe.ModelId = ModelId;
+    Recipe.DisplayName = TEXT("Northstar Body development programme");
+    Recipe.RecipeRevisionId = TEXT("NORTHSTAR_BODY_RECIPE_V001");
+    Recipe.PaintRouteProfileId = TEXT("PAINT_ROUTE_EDCOAT_VISIBLE_V001");
+    Recipe.GeometryAuthorityId = TEXT("NorthstarBodyGeometry_V001");
+    Recipe.PanelGeometryAuthorityId = TEXT("NorthstarBodyPanels_V001");
+    Recipe.BaseKitTypeId = BaseKitTypeId;
+    Recipe.bDevelopmentVisual = true;
+    Recipe.bPanelGeometryValidated = true;
+    Recipe.DefaultRevenuePence = 2900000;
+    Recipe.RequiredPanels = {
+        { TEXT("NORTHSTAR_HOOD"), TEXT("Northstar hood"), ELBPanelHandedness::None,
+            12, FVector(160.0f, 140.0f, 20.0f), NAME_None },
+        { TEXT("NORTHSTAR_TAILGATE"), TEXT("Northstar tailgate"), ELBPanelHandedness::None,
+            12, FVector(145.0f, 22.0f, 108.0f), NAME_None }
+    };
+    FString Reason;
+    if (!TestTrue(TEXT("Development model registers with an explicit Body Weld BOM"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(Recipe, Reason))) return false;
+
+    UWorld* World = nullptr;
+    ALBBodyWeldLineActor* Line = LBBodyWeldTests::SpawnLine(World, TEXT("LB_Weld_Northstar"));
+    if (!TestTrue(TEXT("Body Weld authority spawns"), World && Line))
+    {
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+    Line->SetAssignedOrder(OrderId);
+    int32 Serial = 1;
+    for (const FLBStampedPanelDefinition& Definition : Recipe.RequiredPanels)
+    {
+        FLBBodyWeldStillageInventory Stillage = LBBodyWeldTests::MakeStillage(
+            Definition.PanelTypeId, Serial, Serial, OrderId);
+        Stillage.VehicleModelId = ModelId;
+        Stillage.PanelUnits[0].VehicleModelId = ModelId;
+        Stillage.PanelUnits[0].PanelId = FName(*FString::Printf(TEXT("PTA-PANEL-%s-%s-%06d"),
+            *ModelId.ToString(), *Definition.PanelTypeId.ToString(), Serial));
+        if (!TestTrue(TEXT("Model-specific panel stillage is accepted"),
+            Line->ReceivePanelStillage(Stillage, Reason))) break;
+        ++Serial;
+    }
+    FLBBodyWeldBaseKitUnit Kit = LBBodyWeldTests::MakeBaseKit(1, 1, OrderId);
+    Kit.VehicleModelId = ModelId;
+    Kit.KitTypeId = BaseKitTypeId;
+    TestTrue(TEXT("Model-specific base kit is accepted"), Line->ReceiveBaseKit(Kit, Reason));
+    TestTrue(TEXT("Registered model reserves its own two-panel recipe"), Line->TryReserveRecipe(Reason));
+    Line->AdvanceSimulation(22.0f);
+    FLBBodyInWhiteRecord Body;
+    TestTrue(TEXT("Body identity and lineage preserve the selected model"),
+        Line->GetOutputBody(Body) && Body.VehicleModelId == ModelId && Body.Panels.Num() == 2
+        && Body.BodyId.ToString().StartsWith(TEXT("BIW-NORTHSTAR_BODY_DEVELOPMENT-")));
+
+    World->DestroyWorld(false);
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ModelId);
     return true;
 }
 

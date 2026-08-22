@@ -155,6 +155,8 @@ void ALBOneFactoryGameMode::BeginPlay()
         UE_LOG(LogLineBossOneFactoryGameMode, Display,
             TEXT("LINE_BOSS_ONEFACTORY_GAMEMODE valid=1 bootstrap_count=%d status=%s"),
             Bootstraps.Num(), *OneFactoryStartupStatus);
+        ActivatePrebuiltFactory(Cast<ALBOneFactoryPlayerController>(
+            World->GetFirstPlayerController()));
     }
     else
     {
@@ -162,6 +164,39 @@ void ALBOneFactoryGameMode::BeginPlay()
             TEXT("LINE_BOSS_ONEFACTORY_GAMEMODE valid=0 bootstrap_count=%d status=%s"),
             Bootstraps.Num(), *OneFactoryStartupStatus);
     }
+}
+
+void ALBOneFactoryGameMode::PostLogin(APlayerController* NewPlayer)
+{
+    Super::PostLogin(NewPlayer);
+    if (bOneFactoryShellValid)
+    {
+        ActivatePrebuiltFactory(Cast<ALBOneFactoryPlayerController>(NewPlayer));
+    }
+}
+
+void ALBOneFactoryGameMode::ActivatePrebuiltFactory(
+    ALBOneFactoryPlayerController* Controller)
+{
+    if (bPrebuiltFactoryActivated || !IsValid(Controller))
+    {
+        return;
+    }
+
+    FString Reason;
+    if (!Controller->ActivatePrebuiltFactory(Reason))
+    {
+        OneFactoryStartupStatus += FString::Printf(
+            TEXT(" | PREBUILT FACTORY STARTUP FAILED: %s"), *Reason);
+        UE_LOG(LogLineBossOneFactoryGameMode, Error, TEXT("%s"),
+            *OneFactoryStartupStatus);
+        return;
+    }
+
+    bPrebuiltFactoryActivated = true;
+    OneFactoryStartupStatus += TEXT(" | PREBUILT 2040 FACTORY COMMISSIONED");
+    UE_LOG(LogLineBossOneFactoryGameMode, Display,
+        TEXT("LINE_BOSS_ONEFACTORY_PREBUILT_READY %s"), *Reason);
 }
 
 bool ALBOneFactoryGameMode::EnsureRuntimeBackbone(FString& OutReason)

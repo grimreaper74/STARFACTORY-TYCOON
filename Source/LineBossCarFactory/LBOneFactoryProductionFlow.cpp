@@ -1,5 +1,7 @@
 #include "LBOneFactoryProductionFlow.h"
 
+#include "LBVehiclePanelCatalog.h"
+
 #include "Algo/AnyOf.h"
 #include "Misc/Crc.h"
 
@@ -19,6 +21,22 @@ namespace LBOneFactoryProductionFlowPrivate
         return false;
     }
 
+    bool HasDuplicatePanelIds(const TArray<FName>& Values)
+    {
+        TSet<FName> Unique;
+        for (const FName Value : Values)
+        {
+            if (Value.IsNone() || Unique.Contains(Value)) return true;
+            Unique.Add(Value);
+        }
+        return false;
+    }
+
+    bool IsProductionReadyRecipe(const FLBVehicleModelRecipe* Recipe)
+    {
+        return Recipe && LBVehicleModelCatalog::IsProductionReady(*Recipe);
+    }
+
     bool IsTerminal(const FLBOneFactoryVehicleUnitState& Unit)
     {
         return Unit.Stage == ELBOneFactoryVehicleStage::Dispatched
@@ -28,6 +46,30 @@ namespace LBOneFactoryProductionFlowPrivate
     bool IsUsableId(const FName Value)
     {
         return !Value.IsNone() && !Value.ToString().TrimStartAndEnd().IsEmpty();
+    }
+
+    bool HasExactPanelSet(const TArray<FName>& Expected, const TArray<FName>& Actual)
+    {
+        if (Expected.Num() != Actual.Num() || Expected.IsEmpty()) return false;
+        TSet<FName> ExpectedSet;
+        TSet<FName> ActualSet;
+        for (const FName Id : Expected)
+        {
+            if (!IsUsableId(Id) || ExpectedSet.Contains(Id)) return false;
+            ExpectedSet.Add(Id);
+        }
+        for (const FName Id : Actual)
+        {
+            if (!IsUsableId(Id) || ActualSet.Contains(Id) || !ExpectedSet.Contains(Id)) return false;
+            ActualSet.Add(Id);
+        }
+        return ActualSet.Num() == ExpectedSet.Num();
+    }
+
+    bool StageRequiresStampedPanelBOM(const ELBOneFactoryVehicleStage Stage)
+    {
+        return static_cast<uint8>(Stage)
+            >= static_cast<uint8>(ELBOneFactoryVehicleStage::BodyFraming);
     }
 }
 
@@ -146,6 +188,43 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
         return false;
     }
 
+    TMap<FName, const FLBOneFactoryVehicleContract*> ContractsById;
+    for (const FLBOneFactoryVehicleContract& Contract : State.Contracts)
+    {
+        if (!IsUsableId(Contract.ContractId)
+            || !IsUsableId(Contract.VehicleModelId)
+            || Contract.Quantity <= 0 || Contract.PricePerVehiclePence <= 0
+            || Contract.DispatchedCount < 0
+            || Contract.DispatchedCount > Contract.Quantity
+            || !FMath::IsFinite(Contract.DeadlineSimSeconds)
+            || ContractsById.Contains(Contract.ContractId))
+        {
+            OutReason = TEXT("ONEFACTORY CONTRACT IDENTITY OR QUANTITY IS INVALID");
+            return false;
+        }
+        const FLBVehicleModelRecipe* Recipe =
+            LBVehicleModelCatalog::Find(Contract.VehicleModelId);
+        if (!LBOneFactoryProductionFlowPrivate::IsProductionReadyRecipe(Recipe))
+        {
+            OutReason = TEXT("ONEFACTORY CONTRACT REFERENCES AN UNKNOWN OR UNVALIDATED VEHICLE PROGRAMME");
+            return false;
+        }
+        const bool bStateIsCoherent =
+            (Contract.State == ELBOneFactoryContractState::Open
+                && Contract.DispatchedCount < Contract.Quantity)
+            || (Contract.State == ELBOneFactoryContractState::Complete
+                && Contract.DispatchedCount == Contract.Quantity)
+            || (Contract.State == ELBOneFactoryContractState::Expired
+                && Contract.DispatchedCount < Contract.Quantity);
+        if (!bStateIsCoherent)
+        {
+            OutReason = TEXT("ONEFACTORY CONTRACT STATE AND DISPATCH COUNT DISAGREE");
+            return false;
+        }
+        ContractsById.Add(Contract.ContractId, &Contract);
+    }
+
+    TMap<FName, int32> FulfilledContractCounts;
     TSet<FName> UnitIds;
     TSet<FName> BuildOrderIds;
     TSet<FName> EvidenceIds;
@@ -162,6 +241,26 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
             || Unit.SourceMaterialUnitIds.IsEmpty())
         {
             OutReason = TEXT("ONEFACTORY VEHICLE UNIT CORE CONTRACT IS INVALID");
+            return false;
+        }
+
+        if (!Unit.RequiredPanelTypeIds.IsEmpty())
+        {
+            // The order owns its BOM. Looking it up from the mutable catalogue
+            // here would rewrite historic WIP when a future recipe is revised.
+            if (Unit.RequiredPanelTypeIds.Contains(NAME_None)
+                || HasDuplicatePanelIds(Unit.RequiredPanelTypeIds)
+                || (!HasExactPanelSet(Unit.RequiredPanelTypeIds,
+                    Unit.PressedPanelTypeIds)
+                    && StageRequiresStampedPanelBOM(Unit.Stage)))
+            {
+                OutReason = TEXT("ONEFACTORY VEHICLE PANEL BOM IS MISSING OR DUPLICATED");
+                return false;
+            }
+        }
+        else if (!Unit.PressedPanelTypeIds.IsEmpty())
+        {
+            OutReason = TEXT("ONEFACTORY VEHICLE HAS STAMPED PANELS WITHOUT A MODEL BOM");
             return false;
         }
 
@@ -242,6 +341,19 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
             OutReason = TEXT("ONEFACTORY VEHICLE COMPLETION FLAGS DISAGREE WITH STAGE");
             return false;
         }
+        if (!Unit.FulfilledContractId.IsNone())
+        {
+            const FLBOneFactoryVehicleContract* const* Contract =
+                ContractsById.Find(Unit.FulfilledContractId);
+            if (!Unit.bDispatched || !Contract || !*Contract
+                || (*Contract)->VehicleModelId != Unit.VehicleModelId
+                || (*Contract)->State == ELBOneFactoryContractState::Expired)
+            {
+                OutReason = TEXT("ONEFACTORY UNIT CONTRACT SETTLEMENT IS INVALID");
+                return false;
+            }
+            ++FulfilledContractCounts.FindOrAdd(Unit.FulfilledContractId);
+        }
         if (Unit.QualityState == ELBOneFactoryVehicleQualityState::Pending
             && !IsQualityGate(Unit.Stage))
         {
@@ -287,6 +399,15 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
     {
         OutReason = TEXT("ONEFACTORY PRODUCTION COUNTERS DISAGREE WITH VEHICLE RECORDS");
         return false;
+    }
+    for (const FLBOneFactoryVehicleContract& Contract : State.Contracts)
+    {
+        if (FulfilledContractCounts.FindRef(Contract.ContractId)
+            != Contract.DispatchedCount)
+        {
+            OutReason = TEXT("ONEFACTORY CONTRACT DISPATCH COUNT DOES NOT MATCH UNIT SETTLEMENTS");
+            return false;
+        }
     }
     OutReason = TEXT("ONEFACTORY PRODUCTION LEDGER VALID");
     return true;
@@ -458,6 +579,13 @@ bool ALBOneFactoryProductionFlowAuthority::AddVehicleContract(
         OutReason = TEXT("ONEFACTORY CONTRACT REQUIRES ID, MODEL, QUANTITY AND PRICE");
         return false;
     }
+    const FLBVehicleModelRecipe* Recipe =
+        LBVehicleModelCatalog::Find(Contract.VehicleModelId);
+    if (!LBOneFactoryProductionFlowPrivate::IsProductionReadyRecipe(Recipe))
+    {
+        OutReason = TEXT("ONEFACTORY CONTRACT REQUIRES A REGISTERED VEHICLE PROGRAMME WITH VALIDATED PANEL GEOMETRY");
+        return false;
+    }
     if (CurrentState.Contracts.ContainsByPredicate(
         [&Contract](const FLBOneFactoryVehicleContract& Existing)
         { return Existing.ContractId == Contract.ContractId; }))
@@ -531,10 +659,30 @@ bool ALBOneFactoryProductionFlowAuthority::ApplyFinancialPolicy(
         OutReason = TEXT("ONEFACTORY EMERGENCY RESCUE ALREADY OPEN");
         return true;
     }
+    const TArray<FLBVehicleModelRecipe>& Recipes = LBVehicleModelCatalog::GetRecipes();
+    TArray<const FLBVehicleModelRecipe*> EligibleRecipes;
+    for (const FLBVehicleModelRecipe& Recipe : Recipes)
+    {
+        if (LBOneFactoryProductionFlowPrivate::IsProductionReadyRecipe(&Recipe))
+        {
+            EligibleRecipes.Add(&Recipe);
+        }
+    }
+    if (EligibleRecipes.IsEmpty())
+    {
+        OutReason = TEXT("ONEFACTORY EMERGENCY RESCUE REQUIRES A REGISTERED VEHICLE PROGRAMME");
+        return false;
+    }
+    const int32 RescueProgrammeIndex = CurrentState.EmergencyContractSerial
+        % EligibleRecipes.Num();
+    const FLBVehicleModelRecipe& RescueRecipe = *EligibleRecipes[RescueProgrammeIndex];
     FLBOneFactoryVehicleContract Rescue;
     Rescue.ContractId = FName(*FString::Printf(TEXT("CON_EMERGENCY_%d"),
         ++CurrentState.EmergencyContractSerial));
-    Rescue.VehicleModelId = FName(TEXT("C2040"));
+    // Emergency work must come from the same catalogue as normal contracts.
+    // This keeps additional programmes economically real instead of relegating
+    // them to a UI-only selection.
+    Rescue.VehicleModelId = RescueRecipe.ModelId;
     Rescue.Quantity = 6;
     Rescue.PricePerVehiclePence = 4200000;
     Rescue.DeadlineSimSeconds = CurrentState.SimClockSeconds + 6.0 * 3600.0;
@@ -569,17 +717,42 @@ bool ALBOneFactoryProductionFlowAuthority::SeedStarterContracts(
         { TEXT("CON_STARTER_2"), 5, 3300000, 10.0 * 3600.0 },
         { TEXT("CON_STARTER_3"), 8, 3600000, 20.0 * 3600.0 },
     };
-    for (const FSeed& Seed : Seeds)
+    const TArray<FLBVehicleModelRecipe>& Recipes = LBVehicleModelCatalog::GetRecipes();
+    TArray<const FLBVehicleModelRecipe*> EligibleRecipes;
+    for (const FLBVehicleModelRecipe& Recipe : Recipes)
     {
+        if (LBOneFactoryProductionFlowPrivate::IsProductionReadyRecipe(&Recipe))
+        {
+            EligibleRecipes.Add(&Recipe);
+        }
+    }
+    if (EligibleRecipes.IsEmpty())
+    {
+        OutReason = TEXT("ONEFACTORY STARTER CONTRACTS REQUIRE A REGISTERED VEHICLE PROGRAMME");
+        return false;
+    }
+    for (int32 SeedIndex = 0; SeedIndex < UE_ARRAY_COUNT(Seeds); ++SeedIndex)
+    {
+        const FSeed& Seed = Seeds[SeedIndex];
+        const FLBVehicleModelRecipe& Recipe =
+            *EligibleRecipes[SeedIndex % EligibleRecipes.Num()];
         FLBOneFactoryVehicleContract Contract;
         Contract.ContractId = FName(Seed.Id);
-        Contract.VehicleModelId = FName(TEXT("C2040"));
+        // A factory-management game needs contracts to expose the programmes
+        // the plant can actually retool for.  The starter ladder therefore
+        // rotates deterministically through the registered catalogue instead
+        // of silently keeping every order on the original development car.
+        Contract.VehicleModelId = Recipe.ModelId;
         Contract.Quantity = Seed.Quantity;
         Contract.PricePerVehiclePence = Seed.PricePence;
         Contract.DeadlineSimSeconds =
             CurrentState.SimClockSeconds + Seed.DeadlineSeconds;
-        FString Ignored;
-        AddVehicleContract(Contract, Ignored);
+        FString AddReason;
+        if (!AddVehicleContract(Contract, AddReason))
+        {
+            OutReason = AddReason;
+            return false;
+        }
     }
     OutReason = TEXT("ONEFACTORY STARTER CONTRACTS SEEDED");
     return true;
@@ -671,6 +844,12 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
         OutReason = TEXT("ONEFACTORY VEHICLE ORDER REQUIRES COMPLETE IDENTITY");
         return false;
     }
+    const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(VehicleModelId);
+    if (!LBOneFactoryProductionFlowPrivate::IsProductionReadyRecipe(Recipe))
+    {
+        OutReason = TEXT("ONEFACTORY VEHICLE MODEL REQUIRES VALIDATED PANEL GEOMETRY AND A REGISTERED RECIPE REVISION");
+        return false;
+    }
     if (CurrentState.Units.ContainsByPredicate(
         [BuildOrderId](const FLBOneFactoryVehicleUnitState& Unit)
         { return Unit.BuildOrderId == BuildOrderId; }))
@@ -690,6 +869,7 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
         *VehicleModelId.ToString(), CurrentState.NextVehicleSerial));
     Unit.BuildOrderId = BuildOrderId;
     Unit.VehicleModelId = VehicleModelId;
+    Unit.VehicleRecipeRevisionId = Recipe->RecipeRevisionId;
     Unit.PaintProgrammeId = PaintProgrammeId;
     Unit.PaintColourId = PaintColourId;
     Unit.Stage = ELBOneFactoryVehicleStage::InboundCoil;
@@ -697,6 +877,12 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
     Unit.CurrentStationId = InboundStationId;
     Unit.CreatedAtSimSeconds = CurrentState.SimClockSeconds;
     Unit.SourceMaterialUnitIds.Add(SourceCoilLotId);
+    const TArray<FLBStampedPanelDefinition>& RequiredPanels = Recipe->RequiredPanels;
+    Unit.RequiredPanelTypeIds.Reserve(RequiredPanels.Num());
+    for (const FLBStampedPanelDefinition& Panel : RequiredPanels)
+    {
+        Unit.RequiredPanelTypeIds.Add(Panel.PanelTypeId);
+    }
     CurrentState.Units.Add(Unit);
     OutUnitId = Unit.UnitId;
     ++CurrentState.NextVehicleSerial;
@@ -752,10 +938,42 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
         return false;
     }
 
+    TArray<FName> PanelEvidenceIds;
+    if (Unit->Stage == ELBOneFactoryVehicleStage::Pressing
+        && NextStage == ELBOneFactoryVehicleStage::PressedPanelStillage
+        && !Unit->RequiredPanelTypeIds.IsEmpty())
+    {
+        if (!Unit->PressedPanelTypeIds.IsEmpty()
+            || Unit->RequiredPanelTypeIds.Contains(NAME_None)
+            || LBOneFactoryProductionFlowPrivate::HasDuplicatePanelIds(
+                Unit->RequiredPanelTypeIds))
+        {
+            OutReason = TEXT("ONEFACTORY PRESS CANNOT STAMP AN INVALID OR ALREADY-STAMPED ORDER PANEL BOM");
+            return false;
+        }
+        for (const FName PanelId : Unit->RequiredPanelTypeIds)
+        {
+            const FName PanelEvidence(*FString::Printf(
+                TEXT("OF_%s_PANEL_%s_STAMPED"), *Unit->UnitId.ToString(),
+                *PanelId.ToString()));
+            if (EvidenceIdExists(PanelEvidence))
+            {
+                OutReason = TEXT("ONEFACTORY PRESS PANEL BOM EVIDENCE IS DUPLICATED");
+                return false;
+            }
+            PanelEvidenceIds.Add(PanelEvidence);
+        }
+    }
+
     Unit->Stage = NextStage;
     Unit->Department = TargetDepartment;
     Unit->CurrentStationId = TargetStationId;
     Unit->EvidenceIds.Add(EvidenceId);
+    if (!PanelEvidenceIds.IsEmpty())
+    {
+        Unit->PressedPanelTypeIds = Unit->RequiredPanelTypeIds;
+        Unit->EvidenceIds.Append(PanelEvidenceIds);
+    }
     if (ULBOneFactoryProductionFlowLibrary::IsQualityGate(NextStage))
     {
         Unit->QualityState = ELBOneFactoryVehicleQualityState::Pending;

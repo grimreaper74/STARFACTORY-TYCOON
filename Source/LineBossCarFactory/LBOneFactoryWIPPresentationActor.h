@@ -81,12 +81,22 @@ public:
 
     static FName GetPresentationTag();
 
+    /**
+     * True only when this presenter has a deliberate, model-specific visual
+     * authority.  It must never use one programme's meshes as a stand-in for
+     * another programme while the catalogue grows.
+     */
+    static bool SupportsVehicleModel(FName VehicleModelId);
+
 private:
     UPROPERTY()
     TObjectPtr<USceneComponent> SceneRoot;
 
     UPROPERTY()
     TArray<TObjectPtr<UInstancedStaticMeshComponent>> Batches;
+    /** The exact validated 11-panel development set, shown only around pressed-panel WIP. */
+    UPROPERTY()
+    TArray<TObjectPtr<UInstancedStaticMeshComponent>> StampedPanelBatches;
     /** FinishedCar units also render rolling gear, so a car leaving GA
      *  stops looking identical to the painted shell entering it. */
     UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GearBatch;
@@ -107,6 +117,10 @@ private:
         const FLBOneFactoryVehicleUnitState& Unit,
         FTransform& OutTransform) const;
 
+    /** Rebuilds the presentation-only panel rack for one pressed-panel stillage. */
+    void AddStampedPanelSet(const FTransform& StillageTransform);
+
+
     /**
      * Where each live unit's instance sits, so a car can be moved every frame
      * without rebuilding the batches. Membership changes rarely; position
@@ -121,8 +135,12 @@ private:
     TArray<FInstanceRef> InstanceRefs;
 
     bool bMaterialsResolved = false;
+    /** A missing optional presentation mesh must fail closed once, never issue
+        an asynchronous load every frame and stall the playable game. */
+    bool bMaterialResolutionFailed = false;
     bool bHasBuiltOnce = false;
     uint32 LastSignature = 0;
     int32 VisibleUnitCount = 0;
     int32 LastLoggedUnitCount = INDEX_NONE;
+    int32 LastUnsupportedModelUnitCount = INDEX_NONE;
 };

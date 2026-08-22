@@ -18,8 +18,10 @@
 #include "LBFactoryBrandSubsystem.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 #include "LBOneFactoryOperationsSubsystem.h"
+#include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactorySaveSubsystem.h"
 #include "LBPlayerBuiltPressFlowController.h"
+#include "LBVehiclePanelCatalog.h"
 #include "EngineUtils.h"
 #include "InputCoreTypes.h"
 #include "UObject/StrongObjectPtr.h"
@@ -449,36 +451,13 @@ TArray<FBox2D> MakeProductionFlowPageTabBounds(
     return Result;
 }
 
-const TCHAR* ProductionFlowThumbnailKey(const FName StageId)
-{
-    if (StageId == TEXT("COIL_INTAKE")) return TEXT("CoilIntake");
-    if (StageId == TEXT("BLANK_BUFFER")) return TEXT("BlankBuffer");
-    if (StageId == TEXT("TRANSFER_PRESS")) return TEXT("TransferPress");
-    if (StageId == TEXT("PANEL_STILLAGES")) return TEXT("PanelStillages");
-    if (StageId == TEXT("BODY_WELD")) return TEXT("BodyWeld");
-    if (StageId == TEXT("ED_COAT")) return TEXT("EDCoat");
-    return nullptr;
-}
-
 UTexture2D* ResolveProductionFlowThumbnail(const FName StageId)
 {
-    const TCHAR* Key = ProductionFlowThumbnailKey(StageId);
-    if (!Key) return nullptr;
-
-    static TMap<FName, TStrongObjectPtr<UTexture2D>> CachedTextures;
-    static TSet<FName> AttemptedLoads;
-    if (const TStrongObjectPtr<UTexture2D>* Cached = CachedTextures.Find(StageId))
-        if (Cached->IsValid()) return Cached->Get();
-    if (AttemptedLoads.Contains(StageId)) return nullptr;
-    AttemptedLoads.Add(StageId);
-
-    const FString AssetName = FString::Printf(TEXT("T_LB_UI_PF_%s_v003"), Key);
-    const FSoftObjectPath AssetPath(FString::Printf(
-        TEXT("/Game/LineBoss/UI/ProductionFlow/v003/%s.%s"),
-        *AssetName, *AssetName));
-    UTexture2D* Texture = Cast<UTexture2D>(AssetPath.TryLoad());
-    if (Texture) CachedTextures.Add(StageId, TStrongObjectPtr<UTexture2D>(Texture));
-    return Texture;
+    // Keep the canvas HUD on the same clean-room native schematic policy as
+    // the UMG shell.  The caller draws a stage-specific schematic when this
+    // returns null.
+    (void)StageId;
+    return nullptr;
 }
 
 bool ResolveProductionStagePlacement(const FName StageId,
@@ -604,23 +583,6 @@ FLBFactoryBuildHUDLayout MakeFactoryBuildHUDLayout(
                 220.0f * S, 286.0f * S)});
     return Layout;
 }
-
-// The 2040 is the sole approved first-vehicle programme. Hydrogen remains a later
-// derivative, so the live order editor truthfully offers only the initial BEV here.
-const FName PreProductionVehicleModels[] = { TEXT("CAIRNWELL_2040") };
-const TCHAR* PreProductionVehicleDisplayNames[] = {
-    TEXT("CAIRNWELL 2040 / BEV PRE-PRODUCTION")
-};
-static_assert(UE_ARRAY_COUNT(PreProductionVehicleModels)
-    == UE_ARRAY_COUNT(PreProductionVehicleDisplayNames));
-const FName FuturePanelTypes[] = {
-    TEXT("DOOR_FRONT_LEFT"), TEXT("DOOR_FRONT_RIGHT"),
-    TEXT("DOOR_REAR_LEFT"), TEXT("DOOR_REAR_RIGHT"),
-    TEXT("FENDER_FRONT_LEFT"), TEXT("FENDER_FRONT_RIGHT"),
-    TEXT("HOOD_PANEL"), TEXT("ROOF_PANEL"),
-    TEXT("QUARTER_PANEL_LEFT"), TEXT("QUARTER_PANEL_RIGHT"),
-    TEXT("TAILGATE_PANEL")
-};
 
 const FLinearColor FactoryLiverySwatches[] = {
     FLinearColor(0.035f, 0.36f, 0.16f, 1.0f), // Cairnwell green
@@ -1446,9 +1408,11 @@ void ALBControlRoomHUD::RefreshModernManagementContext()
             }
             else if (ManagementPage == ELBManagementPage::SupportFleet)
             {
-                static const TCHAR* Labels[] = {TEXT("Select support unit"), TEXT("Dispatch selected unit"), TEXT("Recall selected unit")};
+                static const TCHAR* Labels[] = {TEXT("Select support unit"), TEXT("Dispatch selected unit"), TEXT("Recall selected unit"), TEXT("Service OneFactory plant")};
                 Title = Labels[Index];
-                Detail = TEXT("Use the existing support-fleet authority.");
+                Detail = Index == 3
+                    ? TEXT("Charge the scheduled service fee and reset plant maintenance wear.")
+                    : TEXT("Use the existing support-fleet authority.");
             }
             else if (ManagementPage == ELBManagementPage::Analytics)
             {
@@ -1904,7 +1868,7 @@ int32 ALBControlRoomHUD::GetManagementActionCount() const
                     return ULBOneFactoryOperationsSubsystem::UMGActionCount;
         return FindOperationsConsole() ? 9 : 5;
     case ELBManagementPage::PressTrains: return FindOperationsConsole() ? 1 : 0;
-    case ELBManagementPage::SupportFleet: return FindOperationsConsole() ? 3 : 0;
+    case ELBManagementPage::SupportFleet: return FindOperationsConsole() ? 4 : 0;
     // Overview actions are the six stable flow-stage selections. Confirm then
     // invokes the selected stage's single contextual primary action.
     case ELBManagementPage::Overview: return 6;
@@ -1959,16 +1923,34 @@ int32 ALBControlRoomHUD::GetManagementInformationLineCount() const
 
 FName ALBControlRoomHUD::GetSelectedVehicleModelId() const
 {
-    const int32 SafeIndex = FMath::Clamp(SelectedVehicleModel, 0,
-        UE_ARRAY_COUNT(PreProductionVehicleModels) - 1);
-    return PreProductionVehicleModels[SafeIndex];
+    const TArray<FLBVehicleModelRecipe>& Recipes = LBVehicleModelCatalog::GetRecipes();
+    if (Recipes.IsEmpty()) return NAME_None;
+    const int32 SafeIndex = FMath::Clamp(SelectedVehicleModel, 0, Recipes.Num() - 1);
+    return Recipes[SafeIndex].ModelId;
 }
 
 FString ALBControlRoomHUD::GetSelectedVehicleDisplayName() const
 {
-    const int32 SafeIndex = FMath::Clamp(SelectedVehicleModel, 0,
-        UE_ARRAY_COUNT(PreProductionVehicleDisplayNames) - 1);
-    return PreProductionVehicleDisplayNames[SafeIndex];
+    const TArray<FLBVehicleModelRecipe>& Recipes = LBVehicleModelCatalog::GetRecipes();
+    if (Recipes.IsEmpty()) return TEXT("NO REGISTERED VEHICLE PROGRAMME");
+    const int32 SafeIndex = FMath::Clamp(SelectedVehicleModel, 0, Recipes.Num() - 1);
+    return Recipes[SafeIndex].DisplayName;
+}
+
+FString ALBControlRoomHUD::GetSelectedVehicleProgrammeActionLabel() const
+{
+    const FString DisplayName = GetSelectedVehicleDisplayName();
+    return DisplayName == TEXT("NO REGISTERED VEHICLE PROGRAMME")
+        ? TEXT("NO VEHICLE PROGRAMME AVAILABLE")
+        : FString::Printf(TEXT("CHANGE PROGRAMME  [%s]"), *DisplayName.ToUpper());
+}
+
+FName ALBControlRoomHUD::GetSelectedPanelTypeId() const
+{
+    const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(GetSelectedVehicleModelId());
+    if (!Recipe || Recipe->RequiredPanels.IsEmpty()) return NAME_None;
+    const int32 SafeIndex = FMath::Clamp(SelectedPanelType, 0, Recipe->RequiredPanels.Num() - 1);
+    return Recipe->RequiredPanels[SafeIndex].PanelTypeId;
 }
 
 int32 ALBControlRoomHUD::GetVisibleFactoryMachineCardCount() const
@@ -3286,8 +3268,21 @@ bool ALBControlRoomHUD::ConfirmManagementAction()
     {
         switch (SelectedManagementAction)
         {
-        case 0: SelectedVehicleModel = (SelectedVehicleModel + 1) % UE_ARRAY_COUNT(PreProductionVehicleModels); return true;
-        case 1: SelectedPanelType = (SelectedPanelType + 1) % UE_ARRAY_COUNT(FuturePanelTypes); return true;
+        case 0:
+        {
+            const int32 RecipeCount = LBVehicleModelCatalog::GetRecipes().Num();
+            if (RecipeCount <= 0) return false;
+            SelectedVehicleModel = (SelectedVehicleModel + 1) % RecipeCount;
+            SelectedPanelType = 0;
+            return true;
+        }
+        case 1:
+        {
+            const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(GetSelectedVehicleModelId());
+            if (!Recipe || Recipe->RequiredPanels.IsEmpty()) return false;
+            SelectedPanelType = (SelectedPanelType + 1) % Recipe->RequiredPanels.Num();
+            return true;
+        }
         case 2: PlayerBatchQuantity = FMath::Max(1, PlayerBatchQuantity - 1); return true;
         case 3: PlayerBatchQuantity = FMath::Min(1000, PlayerBatchQuantity + 1); return true;
         case 4:
@@ -3295,7 +3290,8 @@ bool ALBControlRoomHUD::ConfirmManagementAction()
             {
                 FLBVehiclePanelBatch Batch;
                 Batch.VehicleModelId = GetSelectedVehicleModelId();
-                Batch.PanelTypeId = FuturePanelTypes[SelectedPanelType];
+                Batch.PanelTypeId = GetSelectedPanelTypeId();
+                if (Batch.PanelTypeId.IsNone()) return false;
                 Batch.RequestedQuantity = PlayerBatchQuantity;
                 FString Reason;
                 return Flow->QueuePanelBatch(Batch, Reason);
@@ -3338,6 +3334,15 @@ bool ALBControlRoomHUD::ConfirmManagementAction()
         if (SelectedManagementAction == 0) { Operations->CycleSupportUnit(); return true; }
         if (SelectedManagementAction == 1) return Operations->DispatchSelectedSupportUnit();
         if (SelectedManagementAction == 2) return Operations->RecallSelectedSupportUnit();
+        if (SelectedManagementAction == 3)
+        {
+            for (TActorIterator<ALBOneFactoryRuntimeCoordinator> It(GetWorld()); It; ++It)
+            {
+                if (!IsValid(*It) || It->IsActorBeingDestroyed()) continue;
+                FString Reason;
+                return It->PerformPlantMaintenance(Reason);
+            }
+        }
     }
     return false;
 }
@@ -3886,11 +3891,11 @@ void ALBControlRoomHUD::DrawManagementHUD()
         {
             const ALBPlayerBuiltPressFlowController* Flow = FindPlayerFlow();
             DrawLine(TEXT("VEHICLE PROGRAM"), GetSelectedVehicleDisplayName());
-            DrawLine(TEXT("PANEL BATCH"), FuturePanelTypes[SelectedPanelType].ToString());
+            DrawLine(TEXT("PANEL BATCH"), GetSelectedPanelTypeId().ToString());
             DrawLine(TEXT("QUANTITY"), FString::FromInt(PlayerBatchQuantity));
             DrawLine(TEXT("QUEUED ORDERS"), Flow
                 ? FString::FromInt(Flow->GetPanelBatches().Num()) : TEXT("ORDER SCHEDULER OFFLINE"));
-            DrawAction(TEXT("2040 BEV PROGRAM SELECTED"), 0);
+            DrawAction(GetSelectedVehicleProgrammeActionLabel(), 0);
             DrawAction(TEXT("CHANGE PANEL TYPE"), 1);
             DrawAction(TEXT("QUANTITY -"), 2);
             DrawAction(TEXT("QUANTITY +"), 3);

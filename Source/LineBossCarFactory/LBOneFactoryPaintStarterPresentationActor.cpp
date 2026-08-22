@@ -81,14 +81,11 @@ namespace LBOneFactoryPaintPresentationPrivate
         "SM_LB_EDLine_TreatmentLiquidSurface_Blockout_v001."
         "SM_LB_EDLine_TreatmentLiquidSurface_Blockout_v001");
     const TCHAR* EDImmersedBIWPath = TEXT(
-        "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
-        "Cairnwell2040Runtime_v001/Meshes/"
-        "SM_LB_C2040_BIW_AutomotiveSkeleton_v001."
-        "SM_LB_C2040_BIW_AutomotiveSkeleton_v001");
+        "/Game/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/"
+        "Layers/SM_LB_C2040_UpperStructure."
+        "SM_LB_C2040_UpperStructure");
     const TCHAR* EDImmersedBIWMaterialPath = TEXT(
-        "/Game/LineBoss/Factory/OneFactory/v001/Vehicles/"
-        "Cairnwell2040Runtime_v001/Materials/"
-        "M_LB_C2040_BIWGalvanized_v001.M_LB_C2040_BIWGalvanized_v001");
+        "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial");
     const TCHAR* EDProfiledRailMaterialPath = TEXT(
         "/Game/LineBoss/Candidates/PaintShop/EDLine/Runtime_v001/Materials/"
         "MI_LB_EDLine_StructuralSteel_Graphite_v001."
@@ -125,6 +122,18 @@ namespace LBOneFactoryPaintPresentationPrivate
     {
         ConstructorHelpers::FObjectFinder<TObjectType> Finder(Path);
         return Finder.Succeeded() ? Finder.Object.Get() : nullptr;
+    }
+
+    template <typename TObjectType>
+    TObjectType* ResolveCookedProfileObject(
+        const TObjectPtr<TObjectType>& CDOReference, const TCHAR* Path)
+    {
+        // The direct CDO reference is the primary cook dependency.  Some
+        // cooked class-default serializations discard constructor-populated
+        // defaults, however, so resolve the same frozen path as a strict
+        // runtime fallback rather than rolling the entire factory back.
+        return CDOReference ? CDOReference.Get()
+            : LoadObject<TObjectType>(nullptr, Path);
     }
 
     const FLBOneFactoryPaintStarterStationState* FindStation(
@@ -417,17 +426,17 @@ ALBOneFactoryPaintStarterPresentationActor::
     StatusBatch->SetCastShadow(false);
     ProgrammeColourBatch->SetCastShadow(false);
 
-    CuringOvenMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(CuringOvenPath));
-    PretreatmentMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(PretreatmentPath));
-    FlashOffMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FlashOffPath));
-    QualityLightMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(QualityLightPath));
-    BodySkidMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(BodySkidPath));
-    ServiceSetMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(ServiceSetPath));
-    AirExtractionMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(AirExtractionPath));
-    SprayBoothMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(SprayBoothPath));
-    CubeMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(CubePath));
-    SemanticBaseMaterial = TSoftObjectPtr<UMaterialInterface>(
-        FSoftObjectPath(BasicMaterialPath));
+    CuringOvenMesh = FindConstructorObject<UStaticMesh>(CuringOvenPath);
+    PretreatmentMesh = FindConstructorObject<UStaticMesh>(PretreatmentPath);
+    FlashOffMesh = FindConstructorObject<UStaticMesh>(FlashOffPath);
+    QualityLightMesh = FindConstructorObject<UStaticMesh>(QualityLightPath);
+    BodySkidMesh = FindConstructorObject<UStaticMesh>(BodySkidPath);
+    ServiceSetMesh = FindConstructorObject<UStaticMesh>(ServiceSetPath);
+    AirExtractionMesh = FindConstructorObject<UStaticMesh>(AirExtractionPath);
+    SprayBoothMesh = FindConstructorObject<UStaticMesh>(SprayBoothPath);
+    CubeMesh = FindConstructorObject<UStaticMesh>(CubePath);
+    SemanticBaseMaterial = FindConstructorObject<UMaterialInterface>(
+        BasicMaterialPath);
 
     EDTreatmentStartMesh = FindConstructorObject<UStaticMesh>(
         EDTreatmentStartPath);
@@ -610,28 +619,39 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
         return false;
     }
 
-    UStaticMesh* ResolvedCuring = CuringOvenMesh.LoadSynchronous();
-    UStaticMesh* ResolvedPretreatment = PretreatmentMesh.LoadSynchronous();
-    UStaticMesh* ResolvedFlash = FlashOffMesh.LoadSynchronous();
-    UStaticMesh* ResolvedQuality = QualityLightMesh.LoadSynchronous();
-    UStaticMesh* ResolvedSkid = BodySkidMesh.LoadSynchronous();
-    UStaticMesh* ResolvedService = ServiceSetMesh.LoadSynchronous();
-    UStaticMesh* ResolvedExtraction = AirExtractionMesh.LoadSynchronous();
-    UStaticMesh* ResolvedBooth = SprayBoothMesh.LoadSynchronous();
-    UStaticMesh* ResolvedCube = CubeMesh.LoadSynchronous();
-    UMaterialInterface* ResolvedMaterial = SemanticBaseMaterial.LoadSynchronous();
+    UStaticMesh* ResolvedCuring = ResolveCookedProfileObject(
+        CuringOvenMesh, CuringOvenPath);
+    UStaticMesh* ResolvedPretreatment = ResolveCookedProfileObject(
+        PretreatmentMesh, PretreatmentPath);
+    UStaticMesh* ResolvedFlash = ResolveCookedProfileObject(
+        FlashOffMesh, FlashOffPath);
+    UStaticMesh* ResolvedQuality = ResolveCookedProfileObject(
+        QualityLightMesh, QualityLightPath);
+    UStaticMesh* ResolvedSkid = ResolveCookedProfileObject(
+        BodySkidMesh, BodySkidPath);
+    UStaticMesh* ResolvedService = ResolveCookedProfileObject(
+        ServiceSetMesh, ServiceSetPath);
+    UStaticMesh* ResolvedExtraction = ResolveCookedProfileObject(
+        AirExtractionMesh, AirExtractionPath);
+    UStaticMesh* ResolvedBooth = ResolveCookedProfileObject(
+        SprayBoothMesh, SprayBoothPath);
+    UStaticMesh* ResolvedCube = ResolveCookedProfileObject(CubeMesh, CubePath);
+    UMaterialInterface* ResolvedMaterial = ResolveCookedProfileObject(
+        SemanticBaseMaterial, BasicMaterialPath);
     const TArray<UStaticMesh*> ResolvedMeshes = {
         ResolvedCuring, ResolvedPretreatment, ResolvedFlash, ResolvedQuality,
         ResolvedSkid, ResolvedService, ResolvedExtraction, ResolvedBooth,
         ResolvedCube};
-    const int32 RequiredLODs[] = {3, 3, 3, 3, 3, 3, 3, 2, 1};
     for (int32 Index = 0; Index < ResolvedMeshes.Num(); ++Index)
     {
-        if (!ResolvedMeshes[Index]
-            || ResolvedMeshes[Index]->GetNumLODs() != RequiredLODs[Index])
+        // The exact object reference is the portable runtime contract here.
+        // In a NullRHI validation run UE deliberately has no render-resource
+        // LOD data, so GetNumLODs() is not a valid availability test.  HISM
+        // owns the normal-play renderability check when an RHI is present.
+        if (!ResolvedMeshes[Index])
         {
             OutReason = FString::Printf(TEXT(
-                "PAINT PRESENTATION COULD NOT RESOLVE EXACT MESH/LOD CONTRACT AT INDEX %d"),
+                "PAINT PRESENTATION COULD NOT RESOLVE USABLE MESH AT INDEX %d"),
                 Index);
             ClearPresentation();
             return false;
@@ -644,8 +664,7 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
         EDTreatmentLiquidMesh.Get(), EDImmersedBIWMesh.Get()};
     for (int32 Index = 0; Index < SupplementalMeshes.Num(); ++Index)
     {
-        if (!SupplementalMeshes[Index]
-            || SupplementalMeshes[Index]->GetNumLODs() < 1)
+        if (!SupplementalMeshes[Index])
         {
             OutReason = FString::Printf(TEXT(
                 "PAINT PRESENTATION COULD NOT RESOLVE ED MESH AT CLOSURE INDEX %d"),
@@ -664,16 +683,19 @@ bool ALBOneFactoryPaintStarterPresentationActor::ConfigureFromLayout(
     if (!EDImmersedBIWMaterial)
     {
         OutReason = TEXT(
-            "PAINT PRESENTATION COULD NOT RESOLVE THE V013 C2040 BIW MATERIAL");
+            "PAINT PRESENTATION COULD NOT RESOLVE THE NATIVE WIP BIW OVERRIDE MATERIAL");
         ClearPresentation();
         return false;
     }
-    if (EDImmersedBIWMesh->GetNumLODs() != 3
-        || EDImmersedBIWMesh->GetStaticMaterials().Num() != 1
-        || EDImmersedBIWMesh->GetMaterial(0) != EDImmersedBIWMaterial.Get())
+    // This is deliberately the clean native WIP structure, not the old
+    // imported C2040 runtime BIW.  Its authored material is irrelevant: the
+    // HISM below applies the explicit, hard-referenced ED display override.
+    // Require usable geometry, rather than an internal material/LOD layout
+    // belonging to the retired development-car authority.
+    if (EDImmersedBIWMesh->GetStaticMaterials().IsEmpty())
     {
         OutReason = TEXT(
-            "PAINT PRESENTATION V013 C2040 BIW LOD/MATERIAL BINDING DRIFTED");
+            "PAINT PRESENTATION NATIVE WIP BIW GEOMETRY CONTRACT DRIFTED");
         ClearPresentation();
         return false;
     }

@@ -3,8 +3,13 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBOneFactoryBootstrap.h"
+#include "LBOneFactoryAssemblyStarterLayout.h"
+#include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
+#include "LBOneFactoryPressStarterLayout.h"
 #include "LBOneFactoryProductionFlow.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
+#include "LBVehiclePanelCatalog.h"
 
 namespace LBOneFactoryOperationsPrivate
 {
@@ -124,24 +129,13 @@ bool ULBOneFactoryOperationsSubsystem::ResolveRuntime(
     ALBOneFactoryProductionFlowAuthority*& OutProduction,
     ALBOneFactoryRuntimeCoordinator*& OutCoordinator, FString& OutReason) const
 {
-    using namespace LBOneFactoryOperationsPrivate;
     OutReason.Reset();
-    if (!FindExactActor(GetWorld(), TEXT("PRODUCTION FLOW AUTHORITY"),
-            OutProduction, OutReason)
-        || !FindExactActor(GetWorld(), TEXT("RUNTIME COORDINATOR"),
+    ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+        GetWorld() ? GetWorld()->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>()
+                   : nullptr;
+    if (!Registry || !Registry->ResolveRuntimeBackbone(OutProduction,
             OutCoordinator, OutReason))
-        return false;
-    if (!OutProduction->ActorHasTag(
-            ALBOneFactoryProductionFlowAuthority::GetAuthorityTag())
-        || !OutCoordinator->ActorHasTag(
-            ALBOneFactoryRuntimeCoordinator::GetCoordinatorTag()))
-    {
-        OutReason = TEXT(
-            "ONEFACTORY OPERATIONS RUNTIME BACKBONE IDENTITY TAG CONTRACT FAILED");
-        OutProduction = nullptr;
-        OutCoordinator = nullptr;
-        return false;
-    }
+    return false;
     return true;
 }
 
@@ -172,7 +166,9 @@ ULBOneFactoryOperationsSubsystem::GetUMGActions() const
     Actions.SetNum(UMGActionCount);
     for (int32 Index = 0; Index < Actions.Num(); ++Index)
         Actions[Index].ActionIndex = Index;
-    Actions[0].Title = TEXT("Create Cairnwell vehicle");
+    // The active recipe can be changed when the line is empty; the action must
+    // describe the configured programme rather than a specific development car.
+    Actions[0].Title = TEXT("Create configured vehicle");
     Actions[1].Title = TEXT("Select next vehicle");
     Actions[2].Title = TEXT("Start / advance cycle");
     Actions[3].Title = TEXT("Pass quality gate");
@@ -229,12 +225,25 @@ ULBOneFactoryOperationsSubsystem::GetUMGActions() const
             : RouteReason;
 
     const TArray<FName> UnitIds = OrderedRoutedUnitIds(Ledger);
-    Actions[1].bEnabled = !UnitIds.IsEmpty();
-    Actions[1].Detail = UnitIds.IsEmpty()
-        ? TEXT("CREATE A VEHICLE BEFORE SELECTING RUNTIME WIP")
-        : FString::Printf(TEXT("%d ROUTED VEHICLE%s | CURRENT %s"),
-            UnitIds.Num(), UnitIds.Num() == 1 ? TEXT("") : TEXT("S"),
-            *(UnitIds.Contains(SelectedUnitId) ? SelectedUnitId : UnitIds[0]).ToString());
+    const bool bCanChangeProgramme = UnitIds.IsEmpty()
+        && LBVehicleModelCatalog::GetRecipes().Num() > 1;
+    if (bCanChangeProgramme)
+    {
+        Actions[1].Title = TEXT("Change factory programme");
+        Actions[1].bEnabled = true;
+        Actions[1].Detail = TEXT(
+            "RETOOL ALL FOUR SHOPS TO THE NEXT REGISTERED VEHICLE MODEL BEFORE BUILDING WIP");
+    }
+    else
+    {
+        Actions[1].Title = TEXT("Select next vehicle");
+        Actions[1].bEnabled = !UnitIds.IsEmpty();
+        Actions[1].Detail = UnitIds.IsEmpty()
+            ? TEXT("REGISTER ANOTHER VEHICLE RECIPE OR CREATE A VEHICLE BEFORE SELECTING RUNTIME WIP")
+            : FString::Printf(TEXT("%d ROUTED VEHICLE%s | CURRENT %s"),
+                UnitIds.Num(), UnitIds.Num() == 1 ? TEXT("") : TEXT("S"),
+                *(UnitIds.Contains(SelectedUnitId) ? SelectedUnitId : UnitIds[0]).ToString());
+    }
 
     FName UnitId;
     FLBOneFactoryRuntimeVehicleStatus Status;
@@ -379,6 +388,141 @@ bool ULBOneFactoryOperationsSubsystem::CreateConfiguredVehicle(
     return bCreated;
 }
 
+bool ULBOneFactoryOperationsSubsystem::ChangeFactoryProgramme(
+    const FName TargetVehicleModelId, FString& OutReason)
+{
+    using namespace LBOneFactoryOperationsPrivate;
+    const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(TargetVehicleModelId);
+    if (!Recipe || !LBVehicleModelCatalog::IsProductionReady(*Recipe))
+    {
+        SetLastResult(false, TEXT("ONEFACTORY CHANGEOVER REQUIRES A REGISTERED PRODUCTION-READY MODEL RECIPE"), OutReason);
+        return false;
+    }
+    ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+    ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+    FString Reason;
+    if (!ResolveRuntime(Production, Coordinator, Reason))
+    {
+        SetLastResult(false, Reason, OutReason);
+        return false;
+    }
+    if (Production->GetActiveWIPCount() != 0)
+    {
+        SetLastResult(false, TEXT("ONEFACTORY CHANGEOVER REQUIRES ZERO ACTIVE WIP"), OutReason);
+        return false;
+    }
+    ALBOneFactoryPressStarterLayoutAuthority* Press = nullptr;
+    ALBOneFactoryBodyWeldStarterLayoutAuthority* Body = nullptr;
+    ALBOneFactoryPaintStarterLayoutAuthority* Paint = nullptr;
+    ALBOneFactoryAssemblyStarterLayoutAuthority* Assembly = nullptr;
+    if (!FindExactActor(GetWorld(), TEXT("PRESS LAYOUT AUTHORITY"), Press, Reason)
+        || !FindExactActor(GetWorld(), TEXT("BODY/WELD LAYOUT AUTHORITY"), Body, Reason)
+        || !FindExactActor(GetWorld(), TEXT("PAINT LAYOUT AUTHORITY"), Paint, Reason)
+        || !FindExactActor(GetWorld(), TEXT("ASSEMBLY LAYOUT AUTHORITY"), Assembly, Reason))
+    {
+        SetLastResult(false, Reason, OutReason);
+        return false;
+    }
+    const FLBOneFactoryPressStarterLayoutState PreviousPress = Press->CaptureLayout();
+    const FLBOneFactoryBodyWeldLayoutState PreviousBody = Body->CaptureLayout();
+    const FLBOneFactoryPaintStarterLayoutState PreviousPaint = Paint->CaptureLayout();
+    const FLBOneFactoryAssemblyLayoutState PreviousAssembly = Assembly->CaptureLayout();
+    FLBOneFactoryPressStarterLayoutState CandidatePress = PreviousPress;
+    FLBOneFactoryBodyWeldLayoutState CandidateBody = PreviousBody;
+    FLBOneFactoryPaintStarterLayoutState CandidatePaint = PreviousPaint;
+    FLBOneFactoryAssemblyLayoutState CandidateAssembly = PreviousAssembly;
+    const FName FirstPanel = Recipe->RequiredPanels[0].PanelTypeId;
+    for (FLBOneFactoryPressStarterStationState& Station : CandidatePress.Stations)
+    {
+        if (!Station.PanelTypeId.IsNone())
+        {
+            Station.VehicleModelId = TargetVehicleModelId;
+            Station.PanelTypeId = FirstPanel;
+            Station.DieId = ULBOneFactoryPressStarterLayoutLibrary::MakeDieId(FirstPanel);
+        }
+    }
+    CandidateBody.VehicleModelId = TargetVehicleModelId;
+    CandidatePaint.VehicleModelId = TargetVehicleModelId;
+    // A paint programme belongs to the selected vehicle recipe, not merely the
+    // swatch. Preserve the player's colour choice while retargeting every
+    // already programme-bound Paint station to the new model identity.
+    CandidatePaint.PaintProgrammeId =
+        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+            TargetVehicleModelId, CandidatePaint.SelectedBodyColour);
+    for (FLBOneFactoryPaintStarterStationState& Station : CandidatePaint.Stations)
+    {
+        if (!Station.PaintProgrammeId.IsNone())
+        {
+            Station.PaintProgrammeId = CandidatePaint.PaintProgrammeId;
+        }
+    }
+    CandidateAssembly.VehicleModelId = TargetVehicleModelId;
+    if (!ULBOneFactoryPressStarterLayoutLibrary::ValidateStarterLayout(CandidatePress, Reason)
+        || !ULBOneFactoryBodyWeldStarterLayoutLibrary::ValidateStarterLayout(CandidateBody, Reason)
+        || !ULBOneFactoryPaintStarterLayoutLibrary::ValidateStarterLayout(CandidatePaint, Reason)
+        || !ULBOneFactoryAssemblyStarterLayoutLibrary::ValidateStarterLayout(CandidateAssembly, Reason))
+    {
+        SetLastResult(false, Reason, OutReason);
+        return false;
+    }
+    const auto Rollback = [&]()
+    {
+        FString Ignored;
+        Press->RestoreLayout(PreviousPress, Ignored);
+        Body->RestoreLayout(PreviousBody, Ignored);
+        Paint->RestoreLayout(PreviousPaint, Ignored);
+        Assembly->RestoreLayout(PreviousAssembly, Ignored);
+    };
+    if (!Press->RestoreLayout(CandidatePress, Reason)
+        || !Body->RestoreLayout(CandidateBody, Reason)
+        || !Paint->RestoreLayout(CandidatePaint, Reason)
+        || !Assembly->RestoreLayout(CandidateAssembly, Reason))
+    {
+        Rollback();
+        SetLastResult(false, FString(TEXT("ONEFACTORY CHANGEOVER ROLLED BACK: ")) + Reason, OutReason);
+        return false;
+    }
+    SelectedUnitId = NAME_None;
+    SetLastResult(true, FString::Printf(TEXT("ONEFACTORY RETOOLED ALL FOUR SHOPS FOR %s (%s)"),
+        *Recipe->DisplayName, *Recipe->RecipeRevisionId.ToString()), OutReason);
+    return true;
+}
+
+bool ULBOneFactoryOperationsSubsystem::ChangeToNextFactoryProgramme(
+    FString& OutReason)
+{
+    using namespace LBOneFactoryOperationsPrivate;
+    ALBOneFactoryPaintStarterLayoutAuthority* Paint = nullptr;
+    FString Reason;
+    if (!FindExactActor(GetWorld(), TEXT("PAINT LAYOUT AUTHORITY"), Paint, Reason))
+    {
+        SetLastResult(false, Reason, OutReason);
+        return false;
+    }
+    const FName CurrentModelId = Paint->CaptureLayout().VehicleModelId;
+    const TArray<FLBVehicleModelRecipe>& Recipes = LBVehicleModelCatalog::GetRecipes();
+    TArray<const FLBVehicleModelRecipe*> EligibleRecipes;
+    for (const FLBVehicleModelRecipe& Recipe : Recipes)
+    {
+        if (LBVehicleModelCatalog::IsProductionReady(Recipe))
+        {
+            EligibleRecipes.Add(&Recipe);
+        }
+    }
+    const int32 CurrentIndex = EligibleRecipes.IndexOfByPredicate([CurrentModelId](
+        const FLBVehicleModelRecipe* Recipe)
+    {
+        return Recipe && Recipe->ModelId == CurrentModelId;
+    });
+    if (EligibleRecipes.Num() < 2 || CurrentIndex == INDEX_NONE)
+    {
+        SetLastResult(false, TEXT("ONEFACTORY CHANGEOVER REQUIRES A SECOND PRODUCTION-READY MODEL RECIPE"), OutReason);
+        return false;
+    }
+    const FName TargetModelId = EligibleRecipes[(CurrentIndex + 1) % EligibleRecipes.Num()]->ModelId;
+    return ChangeFactoryProgramme(TargetModelId, OutReason);
+}
+
 bool ULBOneFactoryOperationsSubsystem::SelectNextVehicle(FString& OutReason)
 {
     using namespace LBOneFactoryOperationsPrivate;
@@ -519,7 +663,17 @@ bool ULBOneFactoryOperationsSubsystem::ExecuteUMGAction(
     switch (ActionIndex)
     {
     case 0: return CreateConfiguredVehicle(OutReason);
-    case 1: return SelectNextVehicle(OutReason);
+    case 1:
+    {
+        ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+        ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+        FString RuntimeReason;
+        if (ResolveRuntime(Production, Coordinator, RuntimeReason)
+            && Production->GetActiveWIPCount() == 0
+            && LBVehicleModelCatalog::GetRecipes().Num() > 1)
+            return ChangeToNextFactoryProgramme(OutReason);
+        return SelectNextVehicle(OutReason);
+    }
     case 2: return StartOrAdvanceSelectedVehicle(OutReason);
     case 3: return PassSelectedQualityGate(OutReason);
     default: return RequestOrCompleteSelectedRework(OutReason);

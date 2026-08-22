@@ -1,0 +1,1207 @@
+{
+  "$schema": "lineboss/vehicle-wip-native-kit-v001/coordinate-recovery/v2",
+  "corrected_expected_unreal_bounds": {
+    "FrontDoor_L": [
+      {
+        "dimensions_cm": [
+          104.7712,
+          11.3,
+          72.1541
+        ],
+        "maximum_cm": [
+          60.2764,
+          93.95,
+          136.1291
+        ],
+        "minimum_cm": [
+          -44.4948,
+          82.65,
+          63.975
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          104.7712,
+          11.0,
+          72.1541
+        ],
+        "maximum_cm": [
+          60.2764,
+          93.95,
+          136.1291
+        ],
+        "minimum_cm": [
+          -44.4948,
+          82.95,
+          63.975
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          104.7712,
+          5.5,
+          72.1541
+        ],
+        "maximum_cm": [
+          60.2764,
+          90.95,
+          136.1291
+        ],
+        "minimum_cm": [
+          -44.4948,
+          85.45,
+          63.975
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "FrontFender_L": [
+      {
+        "dimensions_cm": [
+          152.2251,
+          9.1,
+          62.6659
+        ],
+        "maximum_cm": [
+          215.6118,
+          92.0,
+          104.0241
+        ],
+        "minimum_cm": [
+          63.3867,
+          82.9,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          152.2251,
+          8.25,
+          62.6659
+        ],
+        "maximum_cm": [
+          215.6118,
+          92.0,
+          104.0241
+        ],
+        "minimum_cm": [
+          63.3867,
+          83.75,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          152.2251,
+          6.0,
+          62.6659
+        ],
+        "maximum_cm": [
+          215.6118,
+          92.0,
+          104.0241
+        ],
+        "minimum_cm": [
+          63.3867,
+          86.0,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "GlassLightsFinish": [
+      {
+        "dimensions_cm": [
+          442.25,
+          218.0,
+          101.1
+        ],
+        "maximum_cm": [
+          225.75,
+          109.0,
+          155.9
+        ],
+        "minimum_cm": [
+          -216.5,
+          -109.0,
+          54.8
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          442.0,
+          218.0,
+          65.2672
+        ],
+        "maximum_cm": [
+          225.5,
+          109.0,
+          144.2672
+        ],
+        "minimum_cm": [
+          -216.5,
+          -109.0,
+          79.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          442.0,
+          182.5,
+          65.2672
+        ],
+        "maximum_cm": [
+          225.5,
+          91.25,
+          144.2672
+        ],
+        "minimum_cm": [
+          -216.5,
+          -91.25,
+          79.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "Hood": [
+      {
+        "dimensions_cm": [
+          157.8166,
+          157.0721,
+          8.3
+        ],
+        "maximum_cm": [
+          210.4166,
+          78.5361,
+          104.75
+        ],
+        "minimum_cm": [
+          52.6,
+          -78.5361,
+          96.45
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          157.8166,
+          157.0721,
+          8.3
+        ],
+        "maximum_cm": [
+          210.4166,
+          78.5361,
+          104.75
+        ],
+        "minimum_cm": [
+          52.6,
+          -78.5361,
+          96.45
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          157.8166,
+          157.0721,
+          5.5
+        ],
+        "maximum_cm": [
+          210.4166,
+          78.5361,
+          104.75
+        ],
+        "minimum_cm": [
+          52.6,
+          -78.5361,
+          99.25
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "InteriorTrim": [
+      {
+        "dimensions_cm": [
+          215.0,
+          164.5,
+          87.0
+        ],
+        "maximum_cm": [
+          91.0,
+          82.25,
+          134.0
+        ],
+        "minimum_cm": [
+          -124.0,
+          -82.25,
+          47.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          205.5,
+          148.0,
+          87.0
+        ],
+        "maximum_cm": [
+          91.0,
+          74.0,
+          134.0
+        ],
+        "minimum_cm": [
+          -114.5,
+          -74.0,
+          47.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          201.0,
+          148.0,
+          72.8458
+        ],
+        "maximum_cm": [
+          91.0,
+          74.0,
+          119.8458
+        ],
+        "minimum_cm": [
+          -110.0,
+          -74.0,
+          47.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "PowertrainChassis": [
+      {
+        "dimensions_cm": [
+          344.0,
+          162.0,
+          53.0
+        ],
+        "maximum_cm": [
+          156.0,
+          81.0,
+          62.0
+        ],
+        "minimum_cm": [
+          -188.0,
+          -81.0,
+          9.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          343.6894,
+          162.0,
+          53.0
+        ],
+        "maximum_cm": [
+          155.6894,
+          81.0,
+          62.0
+        ],
+        "minimum_cm": [
+          -188.0,
+          -81.0,
+          9.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          341.3205,
+          162.0,
+          53.0
+        ],
+        "maximum_cm": [
+          153.3205,
+          81.0,
+          62.0
+        ],
+        "minimum_cm": [
+          -188.0,
+          -81.0,
+          9.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "QuarterPanel_L": [
+      {
+        "dimensions_cm": [
+          142.2251,
+          9.1,
+          62.668
+        ],
+        "maximum_cm": [
+          -65.3897,
+          92.0,
+          104.0262
+        ],
+        "minimum_cm": [
+          -207.6147,
+          82.9,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          142.2251,
+          8.25,
+          62.668
+        ],
+        "maximum_cm": [
+          -65.3897,
+          92.0,
+          104.0262
+        ],
+        "minimum_cm": [
+          -207.6147,
+          83.75,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          142.2251,
+          6.0,
+          62.668
+        ],
+        "maximum_cm": [
+          -65.3897,
+          92.0,
+          104.0262
+        ],
+        "minimum_cm": [
+          -207.6147,
+          86.0,
+          41.3582
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "RearDoor_L": [
+      {
+        "dimensions_cm": [
+          113.9186,
+          11.3,
+          72.2358
+        ],
+        "maximum_cm": [
+          -26.6497,
+          93.95,
+          136.2358
+        ],
+        "minimum_cm": [
+          -140.5683,
+          82.65,
+          64.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          113.9186,
+          11.0,
+          72.2358
+        ],
+        "maximum_cm": [
+          -26.6497,
+          93.95,
+          136.2358
+        ],
+        "minimum_cm": [
+          -140.5683,
+          82.95,
+          64.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          113.9186,
+          5.5,
+          72.2358
+        ],
+        "maximum_cm": [
+          -26.6497,
+          90.95,
+          136.2358
+        ],
+        "minimum_cm": [
+          -140.5683,
+          85.45,
+          64.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "RollingGear": [
+      {
+        "dimensions_cm": [
+          347.0,
+          184.0,
+          72.0
+        ],
+        "maximum_cm": [
+          172.0,
+          92.0,
+          72.0
+        ],
+        "minimum_cm": [
+          -175.0,
+          -92.0,
+          0.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          347.0,
+          184.0,
+          72.0
+        ],
+        "maximum_cm": [
+          172.0,
+          92.0,
+          72.0
+        ],
+        "minimum_cm": [
+          -175.0,
+          -92.0,
+          0.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          347.0,
+          184.0,
+          72.0
+        ],
+        "maximum_cm": [
+          172.0,
+          92.0,
+          72.0
+        ],
+        "minimum_cm": [
+          -175.0,
+          -92.0,
+          0.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "Roof": [
+      {
+        "dimensions_cm": [
+          202.4595,
+          158.4472,
+          7.55
+        ],
+        "maximum_cm": [
+          72.2158,
+          79.2239,
+          153.25
+        ],
+        "minimum_cm": [
+          -130.2437,
+          -79.2233,
+          145.7
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          202.4595,
+          158.4472,
+          7.55
+        ],
+        "maximum_cm": [
+          72.2158,
+          79.2239,
+          153.25
+        ],
+        "minimum_cm": [
+          -130.2437,
+          -79.2233,
+          145.7
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          202.4595,
+          158.4472,
+          5.5
+        ],
+        "maximum_cm": [
+          72.2158,
+          79.2239,
+          153.25
+        ],
+        "minimum_cm": [
+          -130.2437,
+          -79.2233,
+          147.75
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "RoofClosures": [
+      {
+        "dimensions_cm": [
+          452.0,
+          190.5,
+          125.5
+        ],
+        "maximum_cm": [
+          230.0,
+          95.25,
+          157.5
+        ],
+        "minimum_cm": [
+          -222.0,
+          -95.25,
+          32.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          452.0,
+          190.5,
+          125.5
+        ],
+        "maximum_cm": [
+          230.0,
+          95.25,
+          157.5
+        ],
+        "minimum_cm": [
+          -222.0,
+          -95.25,
+          32.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          452.0,
+          190.5,
+          121.25
+        ],
+        "maximum_cm": [
+          230.0,
+          95.25,
+          153.25
+        ],
+        "minimum_cm": [
+          -222.0,
+          -95.25,
+          32.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "SideFrame_L": [
+      {
+        "dimensions_cm": [
+          372.5414,
+          15.25,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          92.0,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          76.75,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          372.5414,
+          13.0,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          92.0,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          79.0,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          372.5414,
+          13.0,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          92.0,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          79.0,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "SideFrame_R": [
+      {
+        "dimensions_cm": [
+          372.5414,
+          15.25,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          -76.75,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          -92.0,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          372.5414,
+          13.0,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          -79.0,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          -92.0,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          372.5414,
+          13.0,
+          111.8089
+        ],
+        "maximum_cm": [
+          184.7707,
+          -79.0,
+          153.4802
+        ],
+        "minimum_cm": [
+          -187.7707,
+          -92.0,
+          41.6713
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "Tailgate": [
+      {
+        "dimensions_cm": [
+          11.5,
+          156.8619,
+          64.4
+        ],
+        "maximum_cm": [
+          -178.0,
+          78.431,
+          132.2
+        ],
+        "minimum_cm": [
+          -189.5,
+          -78.431,
+          67.8
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          11.5,
+          156.8619,
+          64.4
+        ],
+        "maximum_cm": [
+          -178.0,
+          78.431,
+          132.2
+        ],
+        "minimum_cm": [
+          -189.5,
+          -78.431,
+          67.8
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          7.0,
+          156.8619,
+          64.4
+        ],
+        "maximum_cm": [
+          -182.5,
+          78.431,
+          132.2
+        ],
+        "minimum_cm": [
+          -189.5,
+          -78.431,
+          67.8
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "Underbody": [
+      {
+        "dimensions_cm": [
+          426.0,
+          152.0,
+          42.0
+        ],
+        "maximum_cm": [
+          213.0,
+          76.0,
+          58.5
+        ],
+        "minimum_cm": [
+          -213.0,
+          -76.0,
+          16.5
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          426.0,
+          152.0,
+          38.5
+        ],
+        "maximum_cm": [
+          213.0,
+          76.0,
+          55.0
+        ],
+        "minimum_cm": [
+          -213.0,
+          -76.0,
+          16.5
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          426.0,
+          152.0,
+          38.5
+        ],
+        "maximum_cm": [
+          213.0,
+          76.0,
+          55.0
+        ],
+        "minimum_cm": [
+          -213.0,
+          -76.0,
+          16.5
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "UpperStructure": [
+      {
+        "dimensions_cm": [
+          305.5,
+          173.0,
+          113.0
+        ],
+        "maximum_cm": [
+          139.0,
+          86.5,
+          154.0
+        ],
+        "minimum_cm": [
+          -166.5,
+          -86.5,
+          41.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          261.5,
+          173.0,
+          113.0
+        ],
+        "maximum_cm": [
+          95.0,
+          86.5,
+          154.0
+        ],
+        "minimum_cm": [
+          -166.5,
+          -86.5,
+          41.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "dimensions_cm": [
+          261.5,
+          173.0,
+          113.0
+        ],
+        "maximum_cm": [
+          95.0,
+          86.5,
+          154.0
+        ],
+        "minimum_cm": [
+          -166.5,
+          -86.5,
+          41.0
+        ],
+        "pivot_cm": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "destination_package_files": {
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_GlassLightsFinish.uasset": {
+      "bytes": 129881,
+      "sha256": "4555C296834C8E66E1A26CD2F491E66DC74547C178223B323BAF68B3593B4D53"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_InteriorTrim.uasset": {
+      "bytes": 144050,
+      "sha256": "80E54F74BCB34456E72043E2F62B4075F8DF4ECD55E9B7E48556ECDFB7D060F0"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_PowertrainChassis.uasset": {
+      "bytes": 181720,
+      "sha256": "D104B8531BF39D8FB31330CE1AFD9D3AEECA9CE76BBF04FBA66881ECD81EC298"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RollingGear.uasset": {
+      "bytes": 309443,
+      "sha256": "44F3ADAB9370FF6DC6D399E8E7F0779409C71843CB45BCEB800B2C9F740BF2E6"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_RoofClosures.uasset": {
+      "bytes": 288130,
+      "sha256": "08FC58D5D39B3434799656540CB0AE4DBAE0217F765E1CC6929C89CDB071C1E0"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_L.uasset": {
+      "bytes": 133168,
+      "sha256": "8F2ACA0C5B9F9EF2C86C2DDDE3E84FB62A303966795AA630250226AD619C7AC8"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_SideFrame_R.uasset": {
+      "bytes": 132336,
+      "sha256": "B44BCDF1751EAE3FDE9606F20BEAF879F92C44D2F0C74155B5B85F4670C33149"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_Underbody.uasset": {
+      "bytes": 180029,
+      "sha256": "C4D47677F7DA0DFE28F3D18FBA7832DC8D13CEF87EA7B424E2EBF730D6F95B86"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Layers/SM_LB_C2040_UpperStructure.uasset": {
+      "bytes": 131334,
+      "sha256": "2BBEF57A5A8E10659A8BC823997455C9B8C6E72B23B5B77FC404A90C59AE02EA"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontDoor_L.uasset": {
+      "bytes": 57949,
+      "sha256": "AFCF56A254C884D28ED32FDA9B72C957DAAB59F46C90AF8ACF9E1E0DD6101631"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_FrontFender_L.uasset": {
+      "bytes": 52882,
+      "sha256": "F3617D9FE935868777351006A81E7ADFA1C67E0DFC315C75A09AE57070F49CEF"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Hood.uasset": {
+      "bytes": 62176,
+      "sha256": "5337F152A7037B5DE026CFDC40103B464A5773FA2B11A4B30DD753DB98B82CA8"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_QuarterPanel_L.uasset": {
+      "bytes": 53037,
+      "sha256": "CCF1314643E9EA2831C0137620C4FA8C59E3006259015648B7DAFA2B177CF6B7"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_RearDoor_L.uasset": {
+      "bytes": 60808,
+      "sha256": "D12F8FB548F73C923942F06C959F45C60140EF106374F7AC2BB8C781D58930AC"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Roof.uasset": {
+      "bytes": 55747,
+      "sha256": "CCE909F5E8E6098ED4094342F1EFB0CA26649E830A66D524E6ECD39A31C6092D"
+    },
+    "Content/LineBoss/Native/Vehicles/Cairnwell2040/VehicleWIPNativeKit_v001/Panels/SM_LB_C2040_Tailgate.uasset": {
+      "bytes": 56648,
+      "sha256": "03A24EB61D752C644B16F85ABB08A3591347A7F3D0D86D45CF623933699F3961"
+    }
+  },
+  "import_baseline": {
+    "bytes": 7540274,
+    "path": "Scripts\\vehicle_wip_native_kit_unreal_import_baseline_v001.json",
+    "sha256": "DE0A122BEA3CBB4101444BE592E02CF9ED95F47366D7E9566F1C9E4B430564E8"
+  },
+  "policy": {
+    "fresh_editor_read_only_validation_required": true,
+    "mesh_material_lod_or_package_write_authorized": false,
+    "reimport_overwrite_delete_authorized": false
+  },
+  "proof": {
+    "asset_count": 16,
+    "authored_lod_count": 48,
+    "bounds_tolerance_cm": 0.25,
+    "coordinate_transform": "(X,Y,Z) exporter bounds -> (X,-Y,Z) Unreal bounds; negate and swap Y interval endpoints"
+  },
+  "source_import_contract": {
+    "bytes": 70723,
+    "path": "Scripts\\vehicle_wip_native_kit_unreal_import_contract_v001.json",
+    "sha256": "87D9FD32964CC0AD0F4AA52CC6F27A0E23BFDA23A18B2F714E6E2807CCA9684D"
+  },
+  "status": "FROZEN__READ_ONLY_NATIVE_VEHICLE_BOUNDS_VALIDATION__NO_REIMPORT_OR_PROMOTION",
+  "v001_import_failure": {
+    "files": {
+      "import_failure_v001.json": {
+        "bytes": 7494,
+        "sha256": "AD2F204526D3847F7B6A42DA54E2DD3AA8CB09E5F95510F47756705CB03D3FE8"
+      },
+      "lane_summary_v001.json": {
+        "bytes": 1461,
+        "sha256": "3A253CD12ED3EF6D568D97E25EAF4FEAAB361D57C466F2B3CF9468F580D26940"
+      },
+      "unreal_import.log": {
+        "bytes": 440132,
+        "sha256": "7F14BE8300AFDC523138D79374950C7596305395A18471CC9E0563A5E27BC74B"
+      },
+      "unreal_import.stderr.log": {
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      },
+      "unreal_import.stdout.log": {
+        "bytes": 0,
+        "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+      }
+    },
+    "reason": "exporter-space Y bounds compared after Unreal FBX handedness conversion",
+    "run_id": "20260821T015722Z-085b45bb"
+  }
+}

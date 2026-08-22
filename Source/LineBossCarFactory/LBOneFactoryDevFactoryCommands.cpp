@@ -20,9 +20,11 @@
 #include "GameFramework/PlayerController.h"
 #include "UnrealClient.h"
 #include "LBManagementPawn.h"
+#include "LBOneFactoryAssemblyStarterLayout.h"
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
+#include "LBOneFactoryPressStarterLayout.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
@@ -77,15 +79,6 @@ namespace
         return Enum ? Enum->GetNameStringByValue(Value) : FString(TEXT("?"));
     }
 
-    /** Monotonic suffix so every submitted quality evidence ID stays unique. */
-    int32 GDevEvidenceCounter = 0;
-
-    /**
-     * Build order IDs must stay unique for the life of the session, not just
-     * within one call, so staggering cars onto the line across several
-     * StartProduction calls does not collide with an existing order.
-     */
-    int32 GDevBuildOrderCounter = 0;
 }
 
 ALBOneFactoryRuntimeCoordinator* ULBOneFactoryDevFactory::FindCoordinator(
@@ -123,45 +116,113 @@ bool ULBOneFactoryDevFactory::BuildAndCommissionWholeFactory(
         return false;
     }
 
-    // Press, Body/Weld, Paint then Assembly: the contract's lifecycle order.
-    // CreateNewFactory establishes the Press starter, so it has no separate
-    // create step of its own.
-    using FBuilderStep = bool (ULBOneFactoryPlayerBuilderSubsystem::*)(FString&);
-    struct FNamedStep
-    {
-        const TCHAR* Label;
-        FBuilderStep Step;
-    };
-    static const FNamedStep Steps[] = {
-        { TEXT("CreateNewFactory"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CreateNewFactory },
-        { TEXT("CommissionPressStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CommissionPressStarter },
-        { TEXT("CreateBodyWeldStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CreateBodyWeldStarter },
-        { TEXT("CommissionBodyWeldStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CommissionBodyWeldStarter },
-        { TEXT("CreatePaintStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CreatePaintStarter },
-        { TEXT("CommissionPaintStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CommissionPaintStarter },
-        { TEXT("CreateAssemblyStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CreateAssemblyStarter },
-        { TEXT("CommissionAssemblyStarter"),
-            &ULBOneFactoryPlayerBuilderSubsystem::CommissionAssemblyStarter },
-    };
-
-    for (const FNamedStep& Named : Steps)
+    // The player-facing map may already contain a valid Press starter from a
+    // previous session or an authored map revision.  It is not an empty-shell
+    // error, and it must not make startup pretend that Body/Weld, Paint and
+    // Assembly exist.  Complete only the missing canonical departments in
+    // lifecycle order; every Builder call retains its own exact pair and
+    // provenance validation and refuses malformed/duplicate actors.
+    auto RunStep = [&Builder, &OutReason](const TCHAR* Label,
+        bool (ULBOneFactoryPlayerBuilderSubsystem::*Step)(FString&))
     {
         FString StepReason;
-        if (!(Builder->*(Named.Step))(StepReason))
+        if (!(Builder->*Step)(StepReason))
         {
-            OutReason = FString::Printf(TEXT("%s FAILED: %s"), Named.Label,
+            OutReason = FString::Printf(TEXT("%s FAILED: %s"), Label,
                 StepReason.IsEmpty() ? TEXT("no reason given") : *StepReason);
             return false;
         }
         UE_LOG(LogLineBossOneFactoryDev, Display,
-            TEXT("LINE_BOSS_DEV_BUILD_STEP ok=%s"), Named.Label);
+            TEXT("LINE_BOSS_DEV_BUILD_STEP ok=%s"), Label);
+        return true;
+    };
+
+    ALBOneFactoryPressStarterLayoutAuthority* Press =
+        FindExactlyOne<ALBOneFactoryPressStarterLayoutAuthority>(World);
+    if (!Press)
+    {
+        if (!RunStep(TEXT("CreateNewFactory"),
+                &ULBOneFactoryPlayerBuilderSubsystem::CreateNewFactory))
+        {
+            return false;
+        }
+        Press = FindExactlyOne<ALBOneFactoryPressStarterLayoutAuthority>(World);
+    }
+    if (!Press)
+    {
+        OutReason = TEXT("PREBUILT FACTORY REQUIRES EXACTLY ONE PRESS STARTER");
+        return false;
+    }
+    if (!Press->IsCommissioned() && !RunStep(TEXT("CommissionPressStarter"),
+            &ULBOneFactoryPlayerBuilderSubsystem::CommissionPressStarter))
+    {
+        return false;
+    }
+
+    ALBOneFactoryBodyWeldStarterLayoutAuthority* Body =
+        FindExactlyOne<ALBOneFactoryBodyWeldStarterLayoutAuthority>(World);
+    if (!Body)
+    {
+        if (!RunStep(TEXT("CreateBodyWeldStarter"),
+                &ULBOneFactoryPlayerBuilderSubsystem::CreateBodyWeldStarter))
+        {
+            return false;
+        }
+        Body = FindExactlyOne<ALBOneFactoryBodyWeldStarterLayoutAuthority>(World);
+    }
+    if (!Body)
+    {
+        OutReason = TEXT("PREBUILT FACTORY REQUIRES EXACTLY ONE BODY/WELD STARTER");
+        return false;
+    }
+    if (!Body->IsCommissioned() && !RunStep(TEXT("CommissionBodyWeldStarter"),
+            &ULBOneFactoryPlayerBuilderSubsystem::CommissionBodyWeldStarter))
+    {
+        return false;
+    }
+
+    ALBOneFactoryPaintStarterLayoutAuthority* Paint =
+        FindExactlyOne<ALBOneFactoryPaintStarterLayoutAuthority>(World);
+    if (!Paint)
+    {
+        if (!RunStep(TEXT("CreatePaintStarter"),
+                &ULBOneFactoryPlayerBuilderSubsystem::CreatePaintStarter))
+        {
+            return false;
+        }
+        Paint = FindExactlyOne<ALBOneFactoryPaintStarterLayoutAuthority>(World);
+    }
+    if (!Paint)
+    {
+        OutReason = TEXT("PREBUILT FACTORY REQUIRES EXACTLY ONE PAINT STARTER");
+        return false;
+    }
+    if (!Paint->IsCommissioned() && !RunStep(TEXT("CommissionPaintStarter"),
+            &ULBOneFactoryPlayerBuilderSubsystem::CommissionPaintStarter))
+    {
+        return false;
+    }
+
+    ALBOneFactoryAssemblyStarterLayoutAuthority* Assembly =
+        FindExactlyOne<ALBOneFactoryAssemblyStarterLayoutAuthority>(World);
+    if (!Assembly)
+    {
+        if (!RunStep(TEXT("CreateAssemblyStarter"),
+                &ULBOneFactoryPlayerBuilderSubsystem::CreateAssemblyStarter))
+        {
+            return false;
+        }
+        Assembly = FindExactlyOne<ALBOneFactoryAssemblyStarterLayoutAuthority>(World);
+    }
+    if (!Assembly)
+    {
+        OutReason = TEXT("PREBUILT FACTORY REQUIRES EXACTLY ONE ASSEMBLY STARTER");
+        return false;
+    }
+    if (!Assembly->IsCommissioned() && !RunStep(TEXT("CommissionAssemblyStarter"),
+            &ULBOneFactoryPlayerBuilderSubsystem::CommissionAssemblyStarter))
+    {
+        return false;
     }
 
     ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
@@ -206,11 +267,12 @@ bool ULBOneFactoryDevFactory::StartDemoProduction(UObject* WorldContextObject,
     }
 
     ALBOneFactoryRuntimeCoordinator* Coordinator = FindCoordinator(World);
+    ALBOneFactoryProductionFlowAuthority* Production = FindProductionFlow(World);
     ALBOneFactoryBodyWeldStarterLayoutAuthority* Body =
         FindExactlyOne<ALBOneFactoryBodyWeldStarterLayoutAuthority>(World);
     ALBOneFactoryPaintStarterLayoutAuthority* Paint =
         FindExactlyOne<ALBOneFactoryPaintStarterLayoutAuthority>(World);
-    if (!Coordinator || !Body || !Paint)
+    if (!Coordinator || !Production || !Body || !Paint)
     {
         OutReason = TEXT(
             "NEED EXACTLY ONE COORDINATOR, BODY/WELD AND PAINT AUTHORITY - "
@@ -226,8 +288,13 @@ bool ULBOneFactoryDevFactory::StartDemoProduction(UObject* WorldContextObject,
     int32 Started = 0;
     for (int32 Index = 0; Index < VehicleCount; ++Index)
     {
+        // The ledger owns the serial and persists it across save/load.  The
+        // demo command must use that same identity source as the player UMG,
+        // otherwise a restarted process repeats DEV_ORDER_001 and cannot
+        // resume production proof.
+        const int32 Serial = Production->CaptureLedger().NextVehicleSerial;
         const FName BuildOrderId(
-            *FString::Printf(TEXT("DEV_ORDER_%03d"), ++GDevBuildOrderCounter));
+            *FString::Printf(TEXT("OF_BUILD_%06d"), Serial));
         const FName CoilLotId(
             *FString::Printf(TEXT("COIL_%s"), *BuildOrderId.ToString()));
 
@@ -316,8 +383,10 @@ bool ULBOneFactoryDevFactory::AdvanceFactory(UObject* WorldContextObject,
         {
             continue;
         }
+        // StageRevision is persisted and changes at every quality decision,
+        // making this evidence identity replay-safe after a process restart.
         const FName EvidenceId(*FString::Printf(TEXT("DEV_QA_%s_%d"),
-            *Unit.UnitId.ToString(), ++GDevEvidenceCounter));
+            *Unit.UnitId.ToString(), Status.StageRevision));
         FString QualityReason;
         if (Coordinator->SubmitRuntimeQualityResult(Unit.UnitId,
                 ELBOneFactoryVehicleQualityState::Passed, EvidenceId,

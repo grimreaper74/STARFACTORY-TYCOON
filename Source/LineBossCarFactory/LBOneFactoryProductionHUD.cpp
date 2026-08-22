@@ -8,6 +8,7 @@
 #include "Internationalization/Text.h"
 #include "LBFactoryManagementSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
 #include "LBManagementRootWidget.h"
 #include "LBOneFactoryAlertCenterWidget.h"
 #include "LBOneFactoryDetailPanelWidget.h"
@@ -152,17 +153,14 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
         return false;
     }
 
+    ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+        const_cast<UWorld*>(World)->GetSubsystem<
+            ULBOneFactoryRuntimeRegistrySubsystem>();
     ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
     ALBOneFactoryProductionFlowAuthority* Production = nullptr;
-    for (TActorIterator<ALBOneFactoryRuntimeCoordinator> It(World); It; ++It)
-    {
-        if (IsValid(*It)) { Coordinator = *It; break; }
-    }
-    for (TActorIterator<ALBOneFactoryProductionFlowAuthority> It(World); It; ++It)
-    {
-        if (IsValid(*It)) { Production = *It; break; }
-    }
-    if (!Coordinator || !Production)
+    FString RegistryReason;
+    if (!Registry || !Registry->ResolveRuntimeBackbone(Production,
+            Coordinator, RegistryReason))
     {
         return false;
     }
@@ -218,6 +216,13 @@ bool ALBOneFactoryProductionHUD::CollectGroups(const UWorld* World,
         if (Unit.bDispatched)
         {
             ++OutDispatched;
+            continue;
+        }
+        // Scrap records remain in the ledger for traceability, but a scrapped
+        // car is no longer live WIP. Keep HUD flow counts in lockstep with the
+        // factory-floor presentation and production authority.
+        if (Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
+        {
             continue;
         }
         ++OutUnitsLive;
@@ -446,14 +451,14 @@ bool ALBOneFactoryProductionHUD::CollectManagement(const UWorld* World,
     {
         return false;
     }
+    ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+        const_cast<UWorld*>(World)->GetSubsystem<
+            ULBOneFactoryRuntimeRegistrySubsystem>();
     ALBOneFactoryProductionFlowAuthority* Production = nullptr;
-    for (TActorIterator<ALBOneFactoryProductionFlowAuthority>
-        It(const_cast<UWorld*>(World)); It; ++It)
-    {
-        Production = *It;
-        break;
-    }
-    if (!Production)
+    ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
+    FString RegistryReason;
+    if (!Registry || !Registry->ResolveRuntimeBackbone(Production,
+            Coordinator, RegistryReason))
     {
         return false;
     }

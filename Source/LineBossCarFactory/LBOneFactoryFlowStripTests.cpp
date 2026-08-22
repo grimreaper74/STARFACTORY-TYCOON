@@ -9,6 +9,7 @@
 #include "LBOneFactoryAssemblyStarterLayout.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryFlowStripWidget.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBOneFactoryFlowStripGroupsTest,
@@ -84,6 +85,49 @@ bool FLBOneFactoryFlowStripGroupsTest::RunTest(const FString& Parameters)
     }
 
     World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBOneFactoryFlowStripFirstSessionHintTest,
+    "LineBoss.OneFactory.UI.FlowStripFirstSessionHintUsesLivePriority",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBOneFactoryFlowStripFirstSessionHintTest::RunTest(const FString& Parameters)
+{
+    (void)Parameters;
+    TArray<FLBOneFactoryProcessGroup> Groups;
+    FLBOneFactoryProcessGroup Press;
+    Press.Label = TEXT("Press");
+    Groups.Add(Press);
+    FLBOneFactoryProcessGroup Paint;
+    Paint.Label = TEXT("Paint");
+    Groups.Add(Paint);
+
+    const FText Controls = ULBOneFactoryFlowStripWidget::BuildFirstSessionHint(
+        Groups, {}, INDEX_NONE);
+    TestTrue(TEXT("the empty factory hint tells the player how to start"),
+        Controls.ToString().Contains(TEXT("+ NEW ORDER")));
+
+    const FText Bottleneck = ULBOneFactoryFlowStripWidget::BuildFirstSessionHint(
+        Groups, {}, 1);
+    TestTrue(TEXT("a live bottleneck names the selected group"),
+        Bottleneck.ToString().Contains(TEXT("Bottleneck: Paint")));
+
+    FLBOneFactoryLiveAlert Alert;
+    Alert.GroupIndex = 0;
+    Alert.Message = FText::FromString(TEXT("Press is waiting for steel"));
+    const FText AlertHint = ULBOneFactoryFlowStripWidget::BuildFirstSessionHint(
+        Groups, {Alert}, 1);
+    TestTrue(TEXT("an actionable alert takes priority over capacity"),
+        AlertHint.ToString().Contains(TEXT("Attention: Press is waiting for steel")));
+    TestTrue(TEXT("the alert tells the player where to inspect"),
+        AlertHint.ToString().Contains(TEXT("Click Press below")));
+
+    Alert.GroupIndex = 99;
+    const FText InvalidAlert = ULBOneFactoryFlowStripWidget::BuildFirstSessionHint(
+        Groups, {Alert}, 1);
+    TestTrue(TEXT("an un-navigable alert cannot displace a real bottleneck"),
+        InvalidAlert.ToString().Contains(TEXT("Bottleneck: Paint")));
     return true;
 }
 
@@ -193,6 +237,27 @@ bool FLBOneFactoryLiveAlertPlumbingTest::RunTest(const FString& Parameters)
         TestTrue(TEXT("the alert message is written for the player"),
             !Hold->Message.IsEmpty());
     }
+
+    // The ledger retains scrap genealogy, but neither the floor nor the flow
+    // strip may present it as live WIP after the quality decision.
+    TestTrue(TEXT("a rejected inspection can scrap the held unit"),
+        Coordinator->SubmitRuntimeQualityResult(UnitId,
+            ELBOneFactoryVehicleQualityState::Scrapped,
+            TEXT("ALERT_PLUMBING_SCRAP"), Reason));
+    Groups.Reset();
+    Alerts.Reset();
+    UnitsLive = 0;
+    Dispatched = 0;
+    TestTrue(TEXT("groups recollect after scrap"),
+        ALBOneFactoryProductionHUD::CollectGroups(World, Groups, UnitsLive,
+            Dispatched, Alerts));
+    TestEqual(TEXT("scrapped vehicle is not reported as live WIP"),
+        UnitsLive, 0);
+    TestEqual(TEXT("scrapped vehicle is not reported as dispatched"),
+        Dispatched, 0);
+    TestFalse(TEXT("scrapped vehicle leaves no quality-hold alert"),
+        Alerts.ContainsByPredicate([](const FLBOneFactoryLiveAlert& Alert)
+        { return Alert.Status == ELBOneFactoryStationStatus::QualityHold; }));
 
     World->DestroyWorld(false);
     return true;

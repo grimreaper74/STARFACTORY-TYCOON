@@ -79,6 +79,10 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FName VehicleModelId = NAME_None;
 
+    /** Immutable recipe revision captured when this exact vehicle entered the line. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FName VehicleRecipeRevisionId = NAME_None;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FName PaintProgrammeId = NAME_None;
 
@@ -101,6 +105,14 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     /** Raw-material lots and pressed-panel batches allocated to this exact vehicle. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     TArray<FName> SourceMaterialUnitIds;
+
+    /** Immutable model BOM captured when this order entered the factory. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    TArray<FName> RequiredPanelTypeIds;
+
+    /** Panels actually recorded as stamped for this exact vehicle. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    TArray<FName> PressedPanelTypeIds;
 
     /** Immutable process, transfer and inspection evidence in chronological order. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)

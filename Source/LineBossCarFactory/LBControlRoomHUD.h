@@ -150,6 +150,10 @@ public:
     UFUNCTION(BlueprintPure, Category = "Cairnwell|Management") FName GetSelectedVehicleModelId() const;
     /** Player-facing programme label; it deliberately does not imply a final production BOM. */
     UFUNCTION(BlueprintPure, Category = "Cairnwell|Management") FString GetSelectedVehicleDisplayName() const;
+    /** The current action label for cycling production programmes; derived from the live catalogue. */
+    UFUNCTION(BlueprintPure, Category = "Cairnwell|Management") FString GetSelectedVehicleProgrammeActionLabel() const;
+    /** Selected panel from the selected programme's own recipe BOM. */
+    UFUNCTION(BlueprintPure, Category = "Cairnwell|Management") FName GetSelectedPanelTypeId() const;
     /** Number of machine catalogue cards currently visible, including the disabled ED-line milestone. */
     UFUNCTION(BlueprintPure, Category = "Cairnwell|Management") int32 GetVisibleFactoryMachineCardCount() const;
     /** True only for the visible, progression-locked ED-line milestone card. */

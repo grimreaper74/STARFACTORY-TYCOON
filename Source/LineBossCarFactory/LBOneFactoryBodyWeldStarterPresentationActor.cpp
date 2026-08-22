@@ -13,7 +13,9 @@ namespace LBOneFactoryBodyWeldPresentationPrivate
 {
     constexpr int32 ExpectedBatchCount = static_cast<int32>(
         ELBOneFactoryBodyWeldPresentationBatch::BatchCount);
-    constexpr int32 CanonicalInstanceCount = 597;
+    // Door left/right, bonnet and tailgate racks make the three closure
+    // sub-assemblies visible before their final body marriage.
+    constexpr int32 CanonicalInstanceCount = 600;
 
     /**
      * The dress pack rides every robot at a uniform 0.68: the PR004 trio's
@@ -739,7 +741,7 @@ int32 ALBOneFactoryBodyWeldStarterPresentationActor::
     case B::GuardPanel: return 18;
     case B::HMIPedestal: return 18;
     case B::PanelStillageEmpty: return 3;
-    case B::PanelStillageFull: return 5;
+    case B::PanelStillageFull: return 8;
     case B::SmallPartsBinOpen: return 7;
     case B::SmallPartsCrateOpen: return 5;
     case B::UtilityPedestal: return 15;
@@ -971,11 +973,29 @@ ALBOneFactoryBodyWeldStarterPresentationActor::
                 ELBOneFactoryBodyWeldPresentationBatch::ExtractionPedestal,
                 TEXT("EXTRACTION"), FVector(420.0f, 1450.0f, 0.0f));
         }
-        if (PositionIn(Position, {1, 5, 6, 8, 11}))
+        if (PositionIn(Position, {1, 5, 6, 8}))
         {
             AddSupportItem(Items, *Station,
                 ELBOneFactoryBodyWeldPresentationBatch::PanelStillageFull,
                 TEXT("STILLAGE_FULL"), FVector(-650.0f, -2020.0f, 0.0f));
+        }
+        if (Position == 11)
+        {
+            AddSupportItem(Items, *Station,
+                ELBOneFactoryBodyWeldPresentationBatch::PanelStillageFull,
+                TEXT("DOOR_SUBASSEMBLY_LEFT"), FVector(-650.0f, -2020.0f, 0.0f));
+            AddSupportItem(Items, *Station,
+                ELBOneFactoryBodyWeldPresentationBatch::PanelStillageFull,
+                TEXT("DOOR_SUBASSEMBLY_RIGHT"), FVector(650.0f, -2020.0f, 0.0f));
+        }
+        if (Position == 12)
+        {
+            AddSupportItem(Items, *Station,
+                ELBOneFactoryBodyWeldPresentationBatch::PanelStillageFull,
+                TEXT("BONNET_SUBASSEMBLY"), FVector(-650.0f, -2020.0f, 0.0f));
+            AddSupportItem(Items, *Station,
+                ELBOneFactoryBodyWeldPresentationBatch::PanelStillageFull,
+                TEXT("TAILGATE_SUBASSEMBLY"), FVector(650.0f, -2020.0f, 0.0f));
         }
         if (PositionIn(Position, {1, 11, 17}))
         {

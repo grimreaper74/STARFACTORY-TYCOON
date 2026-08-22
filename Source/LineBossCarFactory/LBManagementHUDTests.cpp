@@ -339,9 +339,12 @@ bool FLBConsoleFreePlayerBuilderHUDTest::RunTest(const FString& Parameters)
             HUD->GetManagementActionCount(), 5);
         TestEqual(TEXT("First playable vehicle uses the approved Cairnwell 2040 model identity"),
             HUD->GetSelectedVehicleModelId(), FName(TEXT("CAIRNWELL_2040")));
-        TestEqual(TEXT("Order editor truthfully labels the 2040 as a pre-production BEV"),
+        TestEqual(TEXT("Order editor truthfully labels the 2040 as a development BEV"),
             HUD->GetSelectedVehicleDisplayName(),
-            FString(TEXT("CAIRNWELL 2040 / BEV PRE-PRODUCTION")));
+            FString(TEXT("Cairnwell 2040 / BEV development programme")));
+        TestEqual(TEXT("Programme action is derived from the live selected programme, not a hard-coded car"),
+            HUD->GetSelectedVehicleProgrammeActionLabel(),
+            FString(TEXT("CHANGE PROGRAMME  [CAIRNWELL 2040 / BEV DEVELOPMENT PROGRAMME]")));
         TestTrue(TEXT("Existing controller programme control remains reachable"),
             HUD->ActivateManagementAction(0));
         TestEqual(TEXT("Programme control cannot leave the approved first vehicle"),

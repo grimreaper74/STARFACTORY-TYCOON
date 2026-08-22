@@ -50,9 +50,6 @@ namespace LBManagementShell
     const TCHAR* StageNames[] = {
         TEXT("Coil intake"), TEXT("Blank buffer"), TEXT("Transfer press"),
         TEXT("Panel stillages"), TEXT("Body weld"), TEXT("ED coat")};
-    const TCHAR* ThumbnailKeys[] = {
-        TEXT("CoilIntake"), TEXT("BlankBuffer"), TEXT("TransferPress"),
-        TEXT("PanelStillages"), TEXT("BodyWeld"), TEXT("EDCoat")};
     const FName DestinationIds[] = {
         TEXT("FACTORY"), TEXT("BUILD"), TEXT("ORDERS"), TEXT("ASSETS"),
         TEXT("MAINTENANCE"), TEXT("RESEARCH"), TEXT("ANALYTICS")};
@@ -174,17 +171,11 @@ TArray<FName> ULBManagementRootWidget::GetCanonicalManagementDestinationIds()
 
 FSoftObjectPath ULBManagementRootWidget::GetStageThumbnailPath(const FName StageId)
 {
-    for (int32 Index = 0; Index < ProductionStageCount; ++Index)
-    {
-        if (StageId == LBManagementShell::StageIds[Index])
-        {
-            const FString AssetName = FString::Printf(
-                TEXT("T_LB_UI_PF_%s_v003"), LBManagementShell::ThumbnailKeys[Index]);
-            return FSoftObjectPath(FString::Printf(
-                TEXT("/Game/LineBoss/UI/ProductionFlow/v003/%s.%s"),
-                *AssetName, *AssetName));
-        }
-    }
+    // Production cards deliberately use the native schematic beneath their
+    // live state data.  Do not soft-load historical imported thumbnails here:
+    // keeping this null makes a development or shipping cook independent of
+    // that third-party image pack.
+    (void)StageId;
     return FSoftObjectPath();
 }
 
@@ -210,6 +201,13 @@ bool ULBManagementRootWidget::HasTruthfulThroughput(
     const double GoodUnitsPerHour)
 {
     return GoodUnitsPerHour > KINDA_SMALL_NUMBER;
+}
+
+bool ULBManagementRootWidget::IsReservedGameplayKey(const FKey& Key)
+{
+    return Key == EKeys::W || Key == EKeys::A || Key == EKeys::S
+        || Key == EKeys::D || Key == EKeys::Q || Key == EKeys::E
+        || Key == EKeys::SpaceBar || Key == EKeys::Home;
 }
 
 TSharedRef<SWidget> ULBManagementRootWidget::RebuildWidget()
@@ -268,24 +266,31 @@ FReply ULBManagementRootWidget::NativeOnKeyDown(const FGeometry& InGeometry,
     const FKeyEvent& InKeyEvent)
 {
     const FKey Key = InKeyEvent.GetKey();
+    // This widget can receive focus after a mouse click. Keep the documented
+    // factory controls unhandled so the player controller receives them.
+    if (IsReservedGameplayKey(Key))
+        return FReply::Unhandled();
     if (Key == EKeys::F10 || Key == EKeys::Gamepad_Special_Right)
     {
         RequestDestination(TEXT("SETTINGS"));
         return FReply::Handled();
     }
-    if (Key == EKeys::Left || Key == EKeys::A
+    // Keep the mouse-first management shell from stealing the factory camera
+    // controls. A/D and Space are documented gameplay inputs (pan and pause),
+    // so the UI navigation route is deliberately arrows/Enter only.
+    if (Key == EKeys::Left
         || Key == EKeys::Gamepad_DPad_Left || Key == EKeys::Gamepad_LeftStick_Left)
     {
         SelectRelativeProductionStage(-1, true);
         return FReply::Handled();
     }
-    if (Key == EKeys::Right || Key == EKeys::D
+    if (Key == EKeys::Right
         || Key == EKeys::Gamepad_DPad_Right || Key == EKeys::Gamepad_LeftStick_Right)
     {
         SelectRelativeProductionStage(1, true);
         return FReply::Handled();
     }
-    if (Key == EKeys::Enter || Key == EKeys::SpaceBar
+    if (Key == EKeys::Enter
         || Key == EKeys::Virtual_Gamepad_Accept.GetVirtualKey()
         || Key == EKeys::Gamepad_FaceButton_Bottom)
     {
@@ -711,7 +716,7 @@ void ULBManagementRootWidget::BuildStageCard(const int32 StageIndex,
     ImageSlot->SetVerticalAlignment(VAlign_Fill);
     UTextBlock* ArtStatus = LBManagementShell::Text(WidgetTree,
         *FString::Printf(TEXT("StageArtStatus_%d"), StageIndex),
-        TEXT("ART IMPORT PENDING"), 12, LBManagementShell::Muted, true);
+        TEXT("LIVE SCHEMATIC"), 12, LBManagementShell::Muted, true);
     ArtStatus->SetJustification(ETextJustify::Center);
     ArtStatus->SetAutoWrapText(true);
     StageArtStatusLabels.Add(ArtStatus);
@@ -1014,7 +1019,7 @@ void ULBManagementRootWidget::RefreshStageCard(const int32 StageIndex)
         StageArtStatusLabels[StageIndex]->SetVisibility(Stage.bThumbnailAvailable
             ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
         StageArtStatusLabels[StageIndex]->SetText(FText::FromString(
-            TEXT("ART IMPORT PENDING\nSTRICT v003 SLOT")));
+            TEXT("LIVE SCHEMATIC\nNATIVE STAGE ICON")));
     }
     if (StageCardBorders.IsValidIndex(StageIndex))
     {

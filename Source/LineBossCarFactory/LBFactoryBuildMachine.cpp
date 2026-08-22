@@ -434,37 +434,28 @@ ALBFactoryBuildMachine::ALBFactoryBuildMachine()
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> GenericTintableMaterial(
         TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
     if (GenericTintableMaterial.Succeeded()) GenericLiveryMaterialParent = GenericTintableMaterial.Object;
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedInboundLorry(
-        TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004/Inbound/SM_CA_MW_InboundLorry_Approved_v006.SM_CA_MW_InboundLorry_Approved_v006"));
-    if (ApprovedInboundLorry.Succeeded()) ApprovedInboundLorryMesh = ApprovedInboundLorry.Object;
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedCoilHandlerBody(
-        TEXT("/Game/LineBoss/Runtime/PressShop/CoilHandlerAGV_v999/SM_Cairnwell_AGV_CHF01_StaticBody_v999.SM_Cairnwell_AGV_CHF01_StaticBody_v999"));
-    if (ApprovedCoilHandlerBody.Succeeded()) ApprovedCoilHandlerBodyMesh = ApprovedCoilHandlerBody.Object;
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedCoilHandlerLift(
-        TEXT("/Game/LineBoss/Runtime/PressShop/CoilHandlerAGV_v999/SM_Cairnwell_AGV_CHF01_LiftAssembly_v999.SM_Cairnwell_AGV_CHF01_LiftAssembly_v999"));
-    if (ApprovedCoilHandlerLift.Succeeded()) ApprovedCoilHandlerLiftMesh = ApprovedCoilHandlerLift.Object;
+    // Inbound logistics deliberately use simple project/engine primitives until the
+    // clean-room art replacement is ready. The machine logic does not depend on art.
+    ApprovedInboundLorryMesh = PlaceholderCubeMesh;
     static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedPR004CompleteCell(
         TEXT("/Game/LineBoss/Runtime/PressShop/PR004_v997/SM_Cairnwell_PR004_CompleteCell_Runtime_v997.SM_Cairnwell_PR004_CompleteCell_Runtime_v997"));
     if (ApprovedPR004CompleteCell.Succeeded()) ApprovedPR004CompleteCellMesh = ApprovedPR004CompleteCell.Object;
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedCoilSaddle(
-        TEXT("/Game/LineBoss/Runtime/PressShop/PR004_v997/SM_Cairnwell_AdjustableCoilSaddle_Runtime_v997.SM_Cairnwell_AdjustableCoilSaddle_Runtime_v997"));
-    if (ApprovedCoilSaddle.Succeeded()) ApprovedCoilSaddleMesh = ApprovedCoilSaddle.Object;
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedTrailerStand(
-        TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004/Inbound/SM_CA_MW_AdjustableCoilStand_Approved_v005.SM_CA_MW_AdjustableCoilStand_Approved_v005"));
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> ApprovedWrappedCoil(
-        TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003.SM_CA_MW_WrappedCoil_Repaired_v003"));
     for (UStaticMeshComponent* Stand : TrailerStandVisuals)
     {
-        if (ApprovedTrailerStand.Succeeded()) Stand->SetStaticMesh(ApprovedTrailerStand.Object);
+        Stand->SetStaticMesh(PlaceholderCubeMesh);
+        if (PlaceholderSteelMaterial) Stand->SetMaterial(0, PlaceholderSteelMaterial);
     }
-    if (ApprovedTrailerStand.Succeeded())
+    ReceivingSaddleRailAVisual->SetStaticMesh(PlaceholderCubeMesh);
+    ReceivingSaddleRailBVisual->SetStaticMesh(PlaceholderCubeMesh);
+    if (PlaceholderSteelMaterial)
     {
-        ReceivingSaddleRailAVisual->SetStaticMesh(ApprovedTrailerStand.Object);
-        ReceivingSaddleRailBVisual->SetStaticMesh(ApprovedTrailerStand.Object);
+        ReceivingSaddleRailAVisual->SetMaterial(0, PlaceholderSteelMaterial);
+        ReceivingSaddleRailBVisual->SetMaterial(0, PlaceholderSteelMaterial);
     }
     for (UStaticMeshComponent* Coil : TrailerCoilVisuals)
     {
-        if (ApprovedWrappedCoil.Succeeded()) Coil->SetStaticMesh(ApprovedWrappedCoil.Object);
+        Coil->SetStaticMesh(PlaceholderCylinderMesh);
+        if (PlaceholderCharcoalMaterial) Coil->SetMaterial(0, PlaceholderCharcoalMaterial);
     }
     static ConstructorHelpers::FObjectFinder<UStaticMesh> InboundCraneRunway(
         TEXT("/Game/LineBoss/IndustrialKit/MaterialHandling/BridgeCrane/InboundInstalledCrane/Candidate_v001/SM_CA_MW_InboundCrane_StaticRunwayFrame_v001.SM_CA_MW_InboundCrane_StaticRunwayFrame_v001"));
@@ -485,11 +476,13 @@ ALBFactoryBuildMachine::ALBFactoryBuildMachine()
     static ConstructorHelpers::FObjectFinder<UStaticMesh> PR002Payload(TEXT("/Game/LineBoss/Candidates/PressShop/PR002/RuntimeGLB_v922/SM_CA_MW_PR002_RemovableWrappedCoil_v922/StaticMeshes/SM_CA_MW_PR002_RemovableWrappedCoil_v922.SM_CA_MW_PR002_RemovableWrappedCoil_v922"));
     if (PR002Station.Succeeded()) PR002StationVisual->SetStaticMesh(PR002Station.Object);
     if (PR002Payload.Succeeded()) PR002PayloadVisual->SetStaticMesh(PR002Payload.Object);
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> PR005DetailedHMI(TEXT("/Game/LineBoss/Stations/Press/PR005/Candidate_v001/ArtDerivatives/HMI_v001/SM_CA_Factory_OperatorHMI_MeshyMaster_v632/StaticMeshes/SM_CA_MW_PR005_dHMI_Meshy_v001.SM_CA_MW_PR005_dHMI_Meshy_v001"));
-    if (PR005DetailedHMI.Succeeded())
+    // The operator HMI is intentionally a native project form, rather than an imported
+    // candidate asset.  Interaction remains owned by the machine and status beacon.
+    if (PlaceholderCubeMesh)
     {
-        PR005DetailedHMIMesh = PR005DetailedHMI.Object;
-        PR005DetailedHMIVisual->SetStaticMesh(PR005DetailedHMIMesh);
+        PR005NativeConsoleMesh = PlaceholderCubeMesh;
+        PR005DetailedHMIVisual->SetStaticMesh(PR005NativeConsoleMesh);
+        if (PlaceholderGreenMaterial) PR005DetailedHMIVisual->SetMaterial(0, PlaceholderGreenMaterial);
     }
 }
 
@@ -585,8 +578,8 @@ bool ALBFactoryBuildMachine::Configure(FName InMachineId, ELBFactoryBuildMachine
     {
     case ELBFactoryBuildMachineType::InboundDeliveryDock:
         RequiredAutomaticProcessSteps = 1;
-        // The approved loaded lorry is 16.50 x 2.55 x 4.00 m. The gameplay flow axis is local Y,
-        // so rotate the source's local-X vehicle length by 90 degrees rather than squashing it.
+        // The development lorry is a native primitive proxy at the real delivery footprint.
+        // The gameplay flow axis is local Y, so rotate its local-X length by 90 degrees.
         MachineHalfExtent = FVector(160.0f, 850.0f, 225.0f);
         // The actor pivot is the lorry/crane floor datum. Asset-bound audit v979 proves the
         // complete installed package spans local X -602.5..362.5, Y -944.5..825 and
@@ -597,7 +590,9 @@ bool ALBFactoryBuildMachine::Configure(FName InMachineId, ELBFactoryBuildMachine
         if (ApprovedVisual->GetStaticMesh())
         {
             ApprovedVisual->SetVisibility(true);
+            ApprovedVisual->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
             ApprovedVisual->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
+            ApprovedVisual->SetRelativeScale3D(FVector(16.5f, 2.55f, 4.0f));
             MachineBase->SetVisibility(false);
             MachineBody->SetVisibility(false);
             // Four independent wrapped coils on two adjustable support rails each. These are
@@ -607,13 +602,9 @@ bool ALBFactoryBuildMachine::Configure(FName InMachineId, ELBFactoryBuildMachine
             for (int32 CoilIndex = 0; CoilIndex < TrailerCoilVisuals.Num(); ++CoilIndex)
             {
                 const float CoilY = FirstCoilY + CoilIndex * CoilPitchCm;
-                // The repaired coil pivot is at its bottom face, not at its centre. Seat that
-                // face directly on the measured 132.8 cm top of the two trailer support rails.
-                TrailerCoilVisuals[CoilIndex]->SetRelativeLocation(FVector(0.0f, CoilY, 132.8f));
-                // The wrapped-coil source axis is local Y. Rotate it onto trailer local X so
-                // the bore faces both trailer sides and the side-entry handler ram can pass
-                // through it. A zero yaw incorrectly points every bore along the lorry.
+                TrailerCoilVisuals[CoilIndex]->SetRelativeLocation(FVector(0.0f, CoilY, 180.0f));
                 TrailerCoilVisuals[CoilIndex]->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));
+                TrailerCoilVisuals[CoilIndex]->SetRelativeScale3D(FVector(1.8f, 1.8f, 0.6f));
                 TrailerCoilVisuals[CoilIndex]->SetVisibility(true);
                 for (int32 Rail = 0; Rail < 2; ++Rail)
                 {
@@ -621,32 +612,41 @@ bool ALBFactoryBuildMachine::Configure(FName InMachineId, ELBFactoryBuildMachine
                     TrailerStandVisuals[StandIndex]->SetRelativeLocation(
                         FVector(0.0f, CoilY + (Rail == 0 ? -60.0f : 60.0f), 111.0f));
                     TrailerStandVisuals[StandIndex]->SetRelativeRotation(FRotator::ZeroRotator);
+                    TrailerStandVisuals[StandIndex]->SetRelativeScale3D(
+                        FVector(1.8f, 0.35f, 0.2f));
                     TrailerStandVisuals[StandIndex]->SetVisibility(true);
                 }
             }
-            // Driverless 30 t coil handler. The approved Meshy chassis keeps its detailed
-            // fixed mast; the separately built lift/backrest/bore-ram mesh is the only
-            // visible lifting component. Legacy crane-named slots remain only for save
-            // compatibility and as invisible transform followers.
-            InboundCraneRunwayVisual->SetStaticMesh(ApprovedCoilHandlerBodyMesh);
+            // Driverless coil handler built from project/engine primitives. The simple
+            // counterweight body and telescopic ram are deliberate development visuals;
+            // no imported vehicle-art provenance enters the playable factory path.
+            InboundCraneRunwayVisual->SetStaticMesh(PlaceholderCubeMesh);
             InboundCraneBridgeVisual->SetStaticMesh(nullptr);
             InboundCraneTrolleyVisual->SetStaticMesh(nullptr);
             InboundCraneHoistVisual->SetStaticMesh(nullptr);
-            InboundCHookVisual->SetStaticMesh(ApprovedCoilHandlerLiftMesh);
+            InboundCHookVisual->SetStaticMesh(PlaceholderCubeMesh);
+            if (PlaceholderGreenMaterial)
+                InboundCraneRunwayVisual->SetMaterial(0, PlaceholderGreenMaterial);
+            if (PlaceholderSteelMaterial)
+                InboundCHookVisual->SetMaterial(0, PlaceholderSteelMaterial);
             constexpr float HandlerStartX = 400.0f;
             const FTransform HandlerStart(FRotator::ZeroRotator,
-                // FBX bound audit v999: body minimum Z is -69.5503 cm.
-                FVector(HandlerStartX, FirstCoilY, 69.5503f), FVector::OneVector);
+                FVector(HandlerStartX, FirstCoilY, 70.0f), FVector::OneVector);
             InboundCraneRunwayVisual->SetRelativeTransform(HandlerStart);
             InboundCraneBridgeVisual->SetRelativeTransform(HandlerStart);
             InboundCraneTrolleyVisual->SetRelativeTransform(HandlerStart);
             InboundCraneHoistVisual->SetRelativeTransform(HandlerStart);
             InboundCHookVisual->SetRelativeTransform(HandlerStart);
-            ReceivingSaddleRailAVisual->SetStaticMesh(ApprovedCoilSaddleMesh);
+            InboundCraneRunwayVisual->SetRelativeScale3D(FVector(4.8f, 2.1f, 1.35f));
+            InboundCHookVisual->SetRelativeLocation(
+                FVector(HandlerStartX - 180.0f, FirstCoilY, 165.0f));
+            InboundCHookVisual->SetRelativeScale3D(FVector(2.5f, 0.3f, 0.3f));
+            ReceivingSaddleRailAVisual->SetStaticMesh(PlaceholderCubeMesh);
             // Keep the receiving saddle on the handler side of the trailer. The chassis
             // remains outside the trailer envelope; only the telescopic bore ram crosses
             // the deck to retrieve a coil and then retracts onto this saddle.
-            ReceivingSaddleRailAVisual->SetRelativeLocation(FVector(400.0f, 0.0f, 0.0f));
+            ReceivingSaddleRailAVisual->SetRelativeLocation(FVector(400.0f, 0.0f, 12.5f));
+            ReceivingSaddleRailAVisual->SetRelativeScale3D(FVector(2.4f, 0.8f, 0.25f));
             ReceivingSaddleRailBVisual->SetStaticMesh(nullptr);
             for (UStaticMeshComponent* HandlerPart : {InboundCraneRunwayVisual.Get(), InboundCraneBridgeVisual.Get(),
                 InboundCraneTrolleyVisual.Get(), InboundCraneHoistVisual.Get(), InboundCHookVisual.Get(),
@@ -852,14 +852,13 @@ bool ALBFactoryBuildMachine::Configure(FName InMachineId, ELBFactoryBuildMachine
         InputPort->TransportKind = ELBFactoryTransportKind::AGVHandoff;
         OutputPort->MaterialClass = ELBFactoryMaterialClass::Blank;
         OutputPort->TransportKind = ELBFactoryTransportKind::RollerConveyor;
-        // Preserve the detailed Meshy master exactly as imported. This is a separate
-        // visual-only component at the approved PR005 operator datum; gameplay still
-        // owns the existing interaction target and status beacon.
-        if (PR005DetailedHMIMesh)
+        // Native visual-only console at the operator datum; gameplay owns the existing
+        // interaction target and status beacon.
+        if (PR005NativeConsoleMesh)
         {
             PR005DetailedHMIVisual->SetRelativeLocation(FVector(-115.68f, -856.0f, -350.0f));
             PR005DetailedHMIVisual->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
-            PR005DetailedHMIVisual->SetRelativeScale3D(FVector(0.48f));
+            PR005DetailedHMIVisual->SetRelativeScale3D(FVector(0.48f, 0.28f, 0.78f));
             PR005DetailedHMIVisual->SetVisibility(true);
         }
         // Multiple parallel PR004 robots may merge into one preparation package.

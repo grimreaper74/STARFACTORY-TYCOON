@@ -127,6 +127,14 @@ bool FLBOneFactoryRuntimeFullTraversalTest::RunTest(
         return false;
     }
 
+    FLBOneFactoryVehicleContract Contract;
+    Contract.ContractId = TEXT("CON_RUNTIME_FULL");
+    Contract.VehicleModelId = Fixture.Body->CaptureLayout().VehicleModelId;
+    Contract.Quantity = 1;
+    Contract.PricePerVehiclePence = 3500000;
+    TestTrue(TEXT("A matching contract is available before the runtime route starts"),
+        Fixture.Production->AddVehicleContract(Contract, Reason));
+
     TArray<FLBOneFactoryRuntimeStationStep> Route;
     FName TopologyId;
     TestTrue(TEXT("Configured physical route resolves"),
@@ -253,6 +261,18 @@ bool FLBOneFactoryRuntimeFullTraversalTest::RunTest(
         Ledger.CompletedVehicleCount, 1);
     TestEqual(TEXT("Exactly one dispatched car"),
         Ledger.DispatchedVehicleCount, 1);
+    TestTrue(TEXT("Every automatic station completion accumulates serviceable fleet wear"),
+        Ledger.FleetWear01 > 0.0);
+    TestEqual(TEXT("Physical dispatch settles the matching contract"),
+        Ledger.Contracts[0].DispatchedCount, 1);
+    TestEqual(TEXT("Physical dispatch completes a one-car contract"),
+        Ledger.Contracts[0].State, ELBOneFactoryContractState::Complete);
+    TestEqual(TEXT("Dispatched unit records the settled contract identity"),
+        Ledger.Units[0].FulfilledContractId, Contract.ContractId);
+    TestEqual(TEXT("One press programme stamps the complete 11-panel model BOM"),
+        Ledger.Units[0].PressedPanelTypeIds.Num(), 11);
+    TestTrue(TEXT("The stamped BOM stays bound to the order recipe"),
+        Ledger.Units[0].PressedPanelTypeIds == Ledger.Units[0].RequiredPanelTypeIds);
     TestEqual(TEXT("The saved cursor records all 57 completed positions"),
         Ledger.Units[0].RuntimeCompletedStationCount, 57);
     TestTrue(TEXT("Physical work, quality and dispatch evidence survives"),

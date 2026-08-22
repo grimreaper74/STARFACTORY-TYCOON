@@ -55,6 +55,9 @@ public:
         ELBGraphicsStartupCoordinatorState State);
     static const TCHAR* GetStableSetupResultToken(ELBGraphicsSetupResult Result);
 
+    /** Converts inherited/unlimited frame-rate defaults to the safe demo cap. */
+    static bool ApplySafeDefaultFrameRateLimit(ULBGameUserSettings* Settings);
+
 private:
     void LogStartupResult(
         const ULBGameUserSettings* Settings,

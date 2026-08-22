@@ -692,9 +692,9 @@ bool FLBFactoryOrderedMachineCatalogueTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Inbound fixture receives deterministic identity"), Inbound && Inbound->Configure(
         TEXT("INBOUND-001"), ELBFactoryBuildMachineType::InboundDeliveryDock));
     const UStaticMeshComponent* LorryVisual = Inbound ? Inbound->GetApprovedVisualComponent() : nullptr;
-    TestTrue(TEXT("Inbound player asset uses the approved loaded lorry rather than a block"),
+    TestTrue(TEXT("Inbound player asset uses the native development lorry proxy"),
         LorryVisual && LorryVisual->IsVisible() && LorryVisual->GetStaticMesh()
-        && LorryVisual->GetStaticMesh()->GetPathName().Contains(TEXT("SM_CA_MW_InboundLorry_Approved_v006")));
+        && LorryVisual->GetStaticMesh()->GetPathName().Contains(TEXT("/Engine/BasicShapes/Cube")));
     TestTrue(TEXT("Loaded lorry keeps its full 16.5 m flow-axis envelope"), Inbound
         && FMath::IsNearlyEqual(Inbound->GetMachineHalfExtent().Y * 2.0f, 1700.0f));
     TestTrue(TEXT("Loaded lorry rotates source X length onto player flow Y"), LorryVisual
@@ -729,7 +729,7 @@ bool FLBFactoryOrderedMachineCatalogueTest::RunTest(const FString& Parameters)
             && VisiblePackageBounds.Max.X <= EnvelopeBounds.Max.X + 0.1f
             && VisiblePackageBounds.Max.Y <= EnvelopeBounds.Max.Y + 0.1f
             && VisiblePackageBounds.Max.Z <= EnvelopeBounds.Max.Z + 0.1f);
-        TestTrue(TEXT("Approved lorry floor is seated at the actor floor datum"), LorryVisual
+        TestTrue(TEXT("Development lorry proxy is seated at the actor floor datum"), LorryVisual
             && FMath::IsNearlyZero(LorryVisual->Bounds.GetBox().Min.Z, 0.1f));
     }
     TestEqual(TEXT("Player-built delivery arrives with four separate wrapped coils"),
@@ -749,7 +749,7 @@ bool FLBFactoryOrderedMachineCatalogueTest::RunTest(const FString& Parameters)
         Inbound ? Inbound->GetVisibleTrailerCoilCount() : 0, 3);
     TestTrue(TEXT("Delivery fixture can restore its first load for later assertions"),
         Inbound && Inbound->SetTrailerCoilVisible(0, true));
-    TestTrue(TEXT("Inbound package uses the approved visible autonomous coil-handler body and fused fixed mast"), Inbound
+    TestTrue(TEXT("Inbound package uses a visible native primitive coil-handler body"), Inbound
         && Inbound->GetInboundCoilHandlerChassisComponent()
         && Inbound->GetInboundCoilHandlerChassisComponent()->IsVisible()
         && Inbound->GetInboundCoilHandlerChassisComponent()->GetStaticMesh());

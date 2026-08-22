@@ -1,5 +1,7 @@
 #include "LBOneFactoryBodyWeldStarterLayout.h"
 
+#include "LBVehiclePanelCatalog.h"
+
 namespace LBOneFactoryBodyWeldStarterPrivate
 {
     constexpr float TransformTolerance = 0.001f;
@@ -15,6 +17,7 @@ namespace LBOneFactoryBodyWeldStarterPrivate
         ELBOneFactoryBodyWeldRobotRole LeftRobotRole;
         ELBOneFactoryBodyWeldRobotRole RightRobotRole;
         float NominalCycleSeconds;
+        FName SubassemblyCellId = NAME_None;
     };
 
     const TArray<FStationContract>& Contracts()
@@ -67,11 +70,13 @@ namespace LBOneFactoryBodyWeldStarterPrivate
             {11, P::ClosurePreparation,
                 {C::ClosureFit, C::PanelLogistics},
                 {R::ClosureHandling, R::PanelHandling},
-                R::ClosureHandling, R::ClosureHandling, 46.0f},
+                R::ClosureHandling, R::ClosureHandling, 46.0f,
+                TEXT("DOOR_SUBASSEMBLY_CELL")},
             {12, P::ClosureFitAndHingeSet,
                 {C::ClosureFit, C::SpotJoining},
                 {R::ClosureHandling, R::SpotWelding},
-                R::ClosureHandling, R::SpotWelding, 58.0f},
+                R::ClosureHandling, R::SpotWelding, 58.0f,
+                TEXT("BONNET_TAILGATE_SUBASSEMBLY_CELL")},
             {13, P::DimensionalGeometryScan,
                 {C::Metrology, C::Quality},
                 {R::VisionInspection, R::GeometryClamp},
@@ -385,8 +390,8 @@ FString ULBOneFactoryBodyWeldStarterLayoutLibrary::GetProgrammeDisplayName(
     case P::RoofAndCrossmemberFit: return TEXT("Roof and crossmember fit");
     case P::MainBodySpotWeld: return TEXT("Main-body spot weld");
     case P::AdhesiveAndBrazedSeams: return TEXT("Adhesive and brazed seams");
-    case P::ClosurePreparation: return TEXT("Closure preparation");
-    case P::ClosureFitAndHingeSet: return TEXT("Closure fit and hinge set");
+    case P::ClosurePreparation: return TEXT("Door sub-assembly and hinge preparation");
+    case P::ClosureFitAndHingeSet: return TEXT("Bonnet and tailgate sub-assembly / hinge set");
     case P::DimensionalGeometryScan: return TEXT("Dimensional geometry scan");
     case P::RespotAndFinishWeld: return TEXT("Respot and finish weld");
     case P::StudMountAndBracketWeld: return TEXT("Stud, mount and bracket weld");
@@ -461,6 +466,7 @@ ULBOneFactoryBodyWeldStarterLayoutLibrary::MakeCanonicalStarterLayout()
         Station.RightRobotRole = Contract.RightRobotRole;
         Station.bMirroredLargeSixAxisPair = true;
         Station.NominalCycleSeconds = Contract.NominalCycleSeconds;
+        Station.SubassemblyCellId = Contract.SubassemblyCellId;
     }
     for (int32 Position = 1; Position <= RequiredConnectionCount; ++Position)
     {
@@ -483,8 +489,7 @@ bool ULBOneFactoryBodyWeldStarterLayoutLibrary::ValidateStarterLayout(
 {
     if (State.Version != 1
         || State.LayoutId != LBOneFactoryBodyWeldStarterIds::Layout()
-        || State.VehicleModelId !=
-            LBOneFactoryBodyWeldStarterIds::VehicleModel()
+        || !LBVehicleModelCatalog::IsKnownModel(State.VehicleModelId)
         || State.Revision < 0
         || State.InputState !=
             ELBOneFactoryBodyWeldMaterialState::PressedPanelSet
@@ -526,6 +531,7 @@ bool ULBOneFactoryBodyWeldStarterLayoutLibrary::ValidateStarterLayout(
                 Station.FootprintSizeCm)
             || !FMath::IsFinite(Station.NominalCycleSeconds)
             || Station.NominalCycleSeconds <= 0.0f
+            || Station.SubassemblyCellId != Contract->SubassemblyCellId
             || Station.Capabilities != Contract->Capabilities
             || Station.SupportedRobotRoles != Contract->SupportedRobotRoles
             || !LBOneFactoryBodyWeldStarterPrivate::HasUniqueCapabilities(

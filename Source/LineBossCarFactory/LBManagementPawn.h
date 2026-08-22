@@ -225,6 +225,18 @@ public:
     /** Deterministic local developer-control camera pose; values retain the normal gameplay zoom limits. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|Camera")
     bool SetAutomationCamera(const FVector& WorldLocation, float YawDegrees, float ZoomDistanceCm);
+    /**
+     * Keyboard navigation is deliberately also routed through the player
+     * controller.  Native UMG can consume axis mapping events after a mouse
+     * click, so this held-key path keeps the mouse-first production HUD from
+     * making W/A/S/D, Q/E or Home stop working.
+     */
+    bool HandleDirectNavigationKey(const FKey& Key, bool bPressed);
+    /**
+     * Raw wheel fallback for the mouse-first production HUD.  Slate can
+     * consume MouseWheelAxis before the normal pawn axis binding runs.
+     */
+    bool HandleDirectZoomInput(float Value);
     UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMinimumManagementZoomDistance() { return 1000.0f; }
     UFUNCTION(BlueprintPure, Category="Line Boss|Camera") static float GetMinimumPlacementZoomDistance() { return 6500.0f; }
     /** Wide enough to frame the complete 189 m ED line without clipping either process port. */
@@ -344,6 +356,7 @@ private:
     TArray<TWeakObjectPtr<UPrimitiveComponent>> FactoryHighlightComponents;
     TArray<bool> FactoryHighlightPreviousCustomDepth;
     TSet<FKey> BrandingKeysDown;
+    TSet<FKey> DirectNavigationKeysDown;
     bool bInitialBuilderHUDReady = false;
     UPROPERTY(Transient) TObjectPtr<AActor> PlacementGhostActor;
     UPROPERTY(Transient) TObjectPtr<UMaterialInterface> PlacementGhostMaterialParent;

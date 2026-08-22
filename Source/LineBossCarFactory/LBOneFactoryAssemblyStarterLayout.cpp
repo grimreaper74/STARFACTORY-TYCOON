@@ -300,8 +300,7 @@ bool ULBOneFactoryAssemblyStarterLayoutLibrary::ValidateStarterLayout(
 {
     if (State.Version != 1
         || State.LayoutId != LBOneFactoryAssemblyStarterIds::Layout()
-        || State.VehicleModelId
-            != LBCairnwell2040PanelCatalog::GetVehicleModelId()
+        || !LBVehicleModelCatalog::IsKnownModel(State.VehicleModelId)
         || State.Revision < 0
         || State.InputState != ELBOneFactoryAssemblyMaterialState::PaintedBody
         || State.OutputState !=

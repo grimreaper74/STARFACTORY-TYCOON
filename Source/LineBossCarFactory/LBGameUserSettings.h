@@ -61,7 +61,7 @@ public:
 
     /**
      * Resolves Auto once per policy version. Desktop PCs benchmark; unsupported platforms
-     * and invalid results receive a safe High fallback. -NoHardwareBenchmark skips the
+     * and invalid results receive a safe Medium fallback. -NoHardwareBenchmark skips the
      * benchmark without consuming the player's future first-run benchmark.
      */
     UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Graphics",

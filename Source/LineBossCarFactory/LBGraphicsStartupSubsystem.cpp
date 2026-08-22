@@ -75,6 +75,19 @@ const TCHAR* ULBGraphicsStartupSubsystem::GetStableSetupResultToken(
     }
 }
 
+bool ULBGraphicsStartupSubsystem::ApplySafeDefaultFrameRateLimit(
+    ULBGameUserSettings* Settings)
+{
+    if (!Settings || (FMath::IsFinite(Settings->GetFrameRateLimit())
+            && Settings->GetFrameRateLimit() > 0.0f))
+    {
+        return false;
+    }
+    Settings->SetLineBossFrameRateLimit(60.0f);
+    Settings->SetLineBossVSyncEnabled(true);
+    return true;
+}
+
 void ULBGraphicsStartupSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -111,6 +124,14 @@ void ULBGraphicsStartupSubsystem::Initialize(FSubsystemCollectionBase& Collectio
     // never touches editor/commandlet/automation state, and it runs before any world
     // GameMode can begin play.
     Settings->LoadSettings(false);
+
+    // Older development builds persisted Unreal's unlimited default.  Retain a
+    // player's explicit finite preference, but never let an inherited unlimited
+    // value make the factory overview render flat-out on every launch.
+    if (ApplySafeDefaultFrameRateLimit(Settings))
+    {
+        Settings->ApplyAndSaveLineBossSettings(false);
+    }
 
     // Platform support remains an internal settings decision: unsupported platforms
     // persist their safe fallback. This flag is reserved for an explicit process

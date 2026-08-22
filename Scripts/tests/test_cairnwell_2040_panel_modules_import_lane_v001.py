@@ -129,6 +129,19 @@ class PanelLaneStaticTests(unittest.TestCase):
             self.assertEqual(panel["collision"]["simple_count"], 0)
             self.assertEqual(panel["collision"]["convex_count"], 0)
 
+    def test_unreal_bounds_reflect_exporter_y_interval_without_changing_extent(self) -> None:
+        # FBX convert_scene changes right-handed exporter space into Unreal's
+        # left-handed space.  A Y interval must therefore swap its endpoints
+        # while X/Z, the origin and dimensions remain stable.
+        bounds = self.preparer.unreal_space_bounds(
+            [5.2, 87.911636, 44.500467],
+            [91.2, 91.999531, 107.998729],
+        )
+        self.assertEqual(bounds["minimum_cm"], [5.2, -91.999531, 44.500467])
+        self.assertEqual(bounds["maximum_cm"], [91.2, -87.911636, 107.998729])
+        self.assertEqual(bounds["dimensions_cm"], [86.0, 4.087895, 63.498262])
+        self.assertEqual(bounds["pivot_cm"], [0.0, 0.0, 0.0])
+
     def test_runtime_authority_is_only_exact_v013_five_file_pass(self) -> None:
         runtime = self.payload["runtime_authority"]
         self.assertEqual(

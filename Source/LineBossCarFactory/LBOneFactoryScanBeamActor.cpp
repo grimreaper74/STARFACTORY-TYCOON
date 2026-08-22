@@ -1,6 +1,8 @@
 #include "LBOneFactoryScanBeamActor.h"
 
+#include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 ALBOneFactoryScanBeamActor::ALBOneFactoryScanBeamActor()
 {
@@ -13,8 +15,26 @@ ALBOneFactoryScanBeamActor::ALBOneFactoryScanBeamActor()
     BeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(
         TEXT("ScanBeam"));
     BeamMesh->SetupAttachment(RootComponent);
+    ScanLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("ScanGlow"));
+    ScanLight->SetupAttachment(BeamMesh);
+    ScanLight->SetLightColor(FLinearColor(0.03f, 0.85f, 1.0f));
+    ScanLight->SetIntensity(2400.0f);
+    ScanLight->SetAttenuationRadius(420.0f);
+    ScanLight->SetCastShadows(false);
+    ScanLight->SetVolumetricScatteringIntensity(0.35f);
+    // The actor owns its authored beam rather than relying on an editor-only
+    // per-instance override.  That keeps the scanner visible after a save,
+    // reload and cook, wherever the three inspection actors are placed.
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> ScanBeamAsset(
+        TEXT("/Game/LineBoss/ScanKit_v001/Meshes/SM_LB_Inspect_ScanBeam_v001.SM_LB_Inspect_ScanBeam_v001"));
+    if (ScanBeamAsset.Succeeded())
+    {
+        BeamMesh->SetStaticMesh(ScanBeamAsset.Object);
+    }
     BeamMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     BeamMesh->SetCastShadow(false);
+    BeamMesh->SetGenerateOverlapEvents(false);
+    BeamMesh->SetCanEverAffectNavigation(false);
 }
 
 void ALBOneFactoryScanBeamActor::Tick(const float DeltaSeconds)

@@ -2694,6 +2694,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::CommissionAssemblyStarter(
     }
     if (!Production->SetDepartmentCommissioned(
             ELBOneFactoryDepartment::Assembly, true, Reason)
+        || !Production->SeedStarterContracts(Reason)
         || !Coordinator->ValidateRuntimeFactory(Reason))
     {
         const FString Failure = Reason;
@@ -2707,7 +2708,7 @@ bool ULBOneFactoryPlayerBuilderSubsystem::CommissionAssemblyStarter(
         return false;
     }
     SetLastResult(true, TEXT(
-        "ASSEMBLY STARTER COMMISSIONED; LEDGER AGREES AND THE CONFIGURED 57-STATION ROUTE IS VALID"),
+        "ASSEMBLY STARTER COMMISSIONED; STARTER CONTRACTS SEEDED AND THE CONFIGURED 57-STATION ROUTE IS VALID"),
         OutReason);
     return true;
 }

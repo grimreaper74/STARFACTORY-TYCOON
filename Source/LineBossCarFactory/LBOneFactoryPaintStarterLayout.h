@@ -245,6 +245,16 @@ public:
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Paint|Programme")
     static FName MakePaintProgrammeId(ELBOneFactoryPaintColour Colour);
 
+    /**
+     * Returns a stable programme identity for a registered vehicle recipe and
+     * selectable body colour.  The model ID is deliberately part of the
+     * programme key: a future vehicle must never silently run under a
+     * Cairnwell paint programme just because it shares a colour swatch.
+     */
+    UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Paint|Programme")
+    static FName MakePaintProgrammeIdForModel(FName VehicleModelId,
+        ELBOneFactoryPaintColour Colour);
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Paint|Programme")
     static FString GetColourDisplayName(ELBOneFactoryPaintColour Colour);
 

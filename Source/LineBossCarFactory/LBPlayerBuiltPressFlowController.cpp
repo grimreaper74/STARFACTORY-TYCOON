@@ -9,6 +9,17 @@
 #include "LBStillageFLTFleetController.h"
 #include "LBVehiclePanelCatalog.h"
 
+namespace LBPlayerBuiltPressFlowPrivate
+{
+    bool IsValidBaseKitForRegisteredModel(const FLBBodyWeldBaseKitUnit& BaseKit)
+    {
+        const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(
+            BaseKit.VehicleModelId);
+        return Recipe && LBVehicleModelCatalog::IsProductionReady(*Recipe)
+            && BaseKit.KitTypeId == Recipe->BaseKitTypeId;
+    }
+}
+
 ALBPlayerBuiltPressFlowController::ALBPlayerBuiltPressFlowController()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -180,12 +191,11 @@ bool ALBPlayerBuiltPressFlowController::QueueBodyWeldBaseKitDelivery(
 {
     OutReason.Reset();
     if (BaseKit.KitId.IsNone() || BaseKit.OrderId.IsNone()
-        || BaseKit.KitTypeId != ALBBodyWeldLineActor::GetBaseKitTypeId()
-        || BaseKit.VehicleModelId != ALBBodyWeldLineActor::GetVehicleModelId()
+        || !LBPlayerBuiltPressFlowPrivate::IsValidBaseKitForRegisteredModel(BaseKit)
         || BaseKit.bReserved || BaseKit.bConsumed || DeliveryAuthorityId.IsNone()
         || TargetWeldLineId.IsNone())
     {
-        OutReason = TEXT("FINITE BASE KIT REQUIRES EXACT IDS AND STAGE-9 DELIVERY AUTHORITIES");
+        OutReason = TEXT("FINITE BASE KIT REQUIRES A PRODUCTION-READY MODEL RECIPE, ITS EXACT BASE-KIT FAMILY, AND STAGE-9 DELIVERY AUTHORITIES");
         return false;
     }
     const auto HasKitId = [&BaseKit](const FLBBodyWeldBaseKitDeliveryRecord& Existing)
@@ -209,11 +219,14 @@ bool ALBPlayerBuiltPressFlowController::QueueBodyWeldBaseKitDelivery(
 bool ALBPlayerBuiltPressFlowController::QueuePanelBatch(
     const FLBVehiclePanelBatch& Batch, FString& OutReason)
 {
-    if (!LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(
+    const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(
+        Batch.VehicleModelId);
+    if (!Recipe || !LBVehicleModelCatalog::IsProductionReady(*Recipe)
+        || !LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(
             Batch.VehicleModelId, Batch.PanelTypeId)
         || Batch.RequestedQuantity <= 0)
     {
-        OutReason = TEXT("SELECT AN APPROVED CAIRNWELL 2040 STAMPED PANEL AND A POSITIVE QUANTITY");
+        OutReason = TEXT("SELECT A PRODUCTION-READY MODEL, ITS APPROVED STAMPED PANEL, AND A POSITIVE QUANTITY");
         return false;
     }
     FLBVehiclePanelBatch Copy = Batch;
@@ -260,11 +273,14 @@ bool ALBPlayerBuiltPressFlowController::ValidateSaveState(
     TSet<FString> BatchKeys;
     for (const FLBVehiclePanelBatch& Batch : State.PanelBatches)
     {
+        const FLBVehicleModelRecipe* Recipe = LBVehicleModelCatalog::Find(
+            Batch.VehicleModelId);
         const FString BatchKey = FString::Printf(TEXT("%s|%s|%s"),
             *Batch.OrderId.ToString(), *Batch.VehicleModelId.ToString(),
             *Batch.PanelTypeId.ToString());
         if (Batch.OrderId.IsNone()
-            || !LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(
+            || !Recipe || !LBVehicleModelCatalog::IsProductionReady(*Recipe)
+            || !LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(
                 Batch.VehicleModelId, Batch.PanelTypeId)
             || Batch.RequestedQuantity <= 0 || Batch.DispatchedQuantity < 0
             || Batch.DispatchedQuantity > Batch.RequestedQuantity || BatchKeys.Contains(BatchKey)) return false;
@@ -287,7 +303,7 @@ bool ALBPlayerBuiltPressFlowController::ValidateSaveState(
     {
         if (Panel.OrderId.IsNone() || Panel.BlankId.IsNone()
             || !HasMatchingBatch(Panel.OrderId, Panel.VehicleModelId, Panel.PanelTypeId)
-            || !LBCairnwell2040PanelCatalog::IsApprovedStampedRecipe(
+            || !LBVehicleModelCatalog::IsApprovedStampedPanelRecipe(
                 Panel.VehicleModelId, Panel.PanelTypeId)
             || Panel.Disposition > ELBPanelDisposition::Rejected
             || !StaticEnum<ELBPanelFlowStage>()->IsValidEnumValue(
@@ -309,7 +325,7 @@ bool ALBPlayerBuiltPressFlowController::ValidateSaveState(
     int64 MaximumDeliverySequence = 0;
     for (const FLBPanelStillageLoad& Load : State.PanelStillages)
     {
-        const FLBStampedPanelDefinition* Definition = LBCairnwell2040PanelCatalog::Find(
+        const FLBStampedPanelDefinition* Definition = LBVehicleModelCatalog::FindPanelDefinition(
             Load.VehicleModelId, Load.PanelTypeId);
         if (Load.StillageId.IsNone() || Load.OrderId.IsNone()
             || !HasMatchingBatch(Load.OrderId, Load.VehicleModelId, Load.PanelTypeId) || !Definition
@@ -373,8 +389,7 @@ bool ALBPlayerBuiltPressFlowController::ValidateSaveState(
     {
         const FLBBodyWeldBaseKitUnit& Kit = Delivery.BaseKit;
         if (Kit.KitId.IsNone() || KitIds.Contains(Kit.KitId) || Kit.OrderId.IsNone()
-            || Kit.KitTypeId != ALBBodyWeldLineActor::GetBaseKitTypeId()
-            || Kit.VehicleModelId != ALBBodyWeldLineActor::GetVehicleModelId()
+            || !LBPlayerBuiltPressFlowPrivate::IsValidBaseKitForRegisteredModel(Kit)
             || Kit.DeliverySequence <= 0 || Kit.bReserved || Kit.bConsumed
             || Delivery.DeliveryAuthorityId.IsNone() || Delivery.TargetWeldLineId.IsNone()
             || Delivery.bTransferred != bExpectTransferred) return false;
@@ -894,7 +909,7 @@ bool ALBPlayerBuiltPressFlowController::TransferTrainPanelToInspection(
     {
         FName VehicleModelId;
         FName PanelTypeId;
-        if (LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(
+        if (LBVehicleModelCatalog::ParsePressedPanelUnitId(
                 PanelId, VehicleModelId, PanelTypeId))
         {
             Panel = PanelLineage.FindByPredicate(
@@ -929,7 +944,7 @@ void ALBPlayerBuiltPressFlowController::HandlePressPanelCompleted(
 {
     FName VehicleModelId;
     FName PanelTypeId;
-    if (!LBCairnwell2040PanelCatalog::ParsePressedPanelUnitId(
+    if (!LBVehicleModelCatalog::ParsePressedPanelUnitId(
             PanelId, VehicleModelId, PanelTypeId)) return;
 
     FString Prefix;
@@ -1066,7 +1081,7 @@ bool ALBPlayerBuiltPressFlowController::PackInspectedPanelIntoStillage(
         Load = FindOpenStillage(*Panel);
         if (!Load)
         {
-            const FLBStampedPanelDefinition* Definition = LBCairnwell2040PanelCatalog::Find(
+            const FLBStampedPanelDefinition* Definition = LBVehicleModelCatalog::FindPanelDefinition(
                 Panel->VehicleModelId, Panel->PanelTypeId);
             EmptyStorage = FindEmptyStillageStorage();
             if (Definition && EmptyStorage)

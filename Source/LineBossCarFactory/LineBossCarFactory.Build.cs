@@ -7,7 +7,7 @@ public class LineBossCarFactory : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new[]
         {
-            "Core", "CoreUObject", "Engine", "InputCore", "Json", "NavigationSystem", "Slate", "SlateCore", "UMG"
+            "Core", "CoreUObject", "Engine", "EnhancedInput", "InputCore", "Json", "NavigationSystem", "Slate", "SlateCore", "UMG"
         });
     }
 }

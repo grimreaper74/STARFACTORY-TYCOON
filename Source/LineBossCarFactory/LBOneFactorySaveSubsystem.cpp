@@ -9,6 +9,7 @@
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
 
 namespace LBOneFactorySaveSubsystemPrivate
 {
@@ -126,24 +127,19 @@ namespace LBOneFactorySaveSubsystemPrivate
         ALBOneFactoryRuntimeCoordinator*& OutCoordinator,
         FString& OutReason)
     {
-        if (!FindExactActor(World, TEXT("PRODUCTION LEDGER AUTHORITY"),
-                OutProduction, OutReason)
-            || !FindExactActor(World, TEXT("RUNTIME COORDINATOR"),
-                OutCoordinator, OutReason))
-            return false;
-        if (OutProduction->GetClass()
-                != ALBOneFactoryProductionFlowAuthority::StaticClass()
-            || OutCoordinator->GetClass()
-                != ALBOneFactoryRuntimeCoordinator::StaticClass()
-            || !OutProduction->ActorHasTag(
-                ALBOneFactoryProductionFlowAuthority::GetAuthorityTag())
-            || !OutCoordinator->ActorHasTag(
-                ALBOneFactoryRuntimeCoordinator::GetCoordinatorTag()))
+        OutProduction = nullptr;
+        OutCoordinator = nullptr;
+        ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+            World ? World->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>()
+                : nullptr;
+        if (!Registry || !Registry->ResolveRuntimeBackbone(
+                OutProduction, OutCoordinator, OutReason))
         {
-            OutProduction = nullptr;
-            OutCoordinator = nullptr;
-            OutReason = TEXT(
-                "ONEFACTORY SAVE RUNTIME BACKBONE IDENTITY TAG CONTRACT FAILED");
+            if (OutReason.IsEmpty())
+            {
+                OutReason = TEXT(
+                    "ONEFACTORY SAVE REQUIRES THE REGISTERED RUNTIME BACKBONE");
+            }
             return false;
         }
         return true;

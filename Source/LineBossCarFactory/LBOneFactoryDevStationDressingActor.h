@@ -31,13 +31,8 @@ enum class ELBOneFactoryDressingKind : uint8
     Bench,
     /** Overhead inspection light ramp, placed at quality gates. */
     LampRamp,
-    /**
-     * The complete v449 press-train visual: the whole accepted v438 Train A as
-     * one 306-section mesh, pinned to the Train A datum. Placed once, anchored
-     * at the committed ConfigurablePressTrain station transform, exactly as the
-     * detailed-press recovery design specifies for the first fidelity release.
-     */
-    PressTrain,
+    /** Native motion overlay for the authoritative OneFactory press aggregate. */
+    PressCycleOverlay,
     /** Wrapped steel coil, for the inbound receiving and coil store rows. */
     Coil,
     /** Adjustable coil stand beneath each stored coil. */
@@ -108,6 +103,7 @@ class LINEBOSSCARFACTORY_API ALBOneFactoryDevStationDressingActor : public AActo
 
 public:
     ALBOneFactoryDevStationDressingActor();
+    virtual void Tick(float DeltaSeconds) override;
 
     /** Dresses every station in the configured route. */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer")
@@ -144,6 +140,20 @@ private:
      */
     UPROPERTY()
     TArray<TObjectPtr<UActorComponent>> DynamicPieces;
+
+    /** Moving transfer carriage, enabled only while Press owns live WIP. */
+    UPROPERTY(Transient)
+    TObjectPtr<class UStaticMeshComponent> PressTransferCarriage;
+
+    FVector PressTransferOrigin = FVector::ZeroVector;
+    FQuat PressTransferRotation = FQuat::Identity;
+    float PressTransferSeconds = 0.0f;
+
+    /** Five native motion overlays, one for each visible press operation. */
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<class UStaticMeshComponent>> PressRamAssemblies;
+
+    TArray<FVector> PressRamOrigins;
 
     int32 DressedStations = 0;
     int32 PieceCount = 0;

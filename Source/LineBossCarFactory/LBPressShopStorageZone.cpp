@@ -58,10 +58,6 @@ ALBPressShopStorageZone::ALBPressShopStorageZone()
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> CoilStandMesh(TEXT(
-        "/Game/LineBoss/Runtime/PressShop/PR004_v997/SM_Cairnwell_AdjustableCoilSaddle_Runtime_v997.SM_Cairnwell_AdjustableCoilSaddle_Runtime_v997"));
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> WrappedCoilMesh(TEXT(
-        "/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003.SM_CA_MW_WrappedCoil_Repaired_v003"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> PanelStillageMesh(TEXT(
         "/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001/SM_LB_PanelStillage_Runtime_v001.SM_LB_PanelStillage_Runtime_v001"));
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> GreenMaterial(TEXT(
@@ -79,8 +75,10 @@ ALBPressShopStorageZone::ALBPressShopStorageZone()
         StandSaddles->SetStaticMesh(CubeMesh.Object);
         StoredLoads->SetStaticMesh(CubeMesh.Object);
     }
-    if (CoilStandMesh.Succeeded()) ApprovedCoilStandMesh = CoilStandMesh.Object;
-    if (WrappedCoilMesh.Succeeded()) ApprovedWrappedCoilMesh = WrappedCoilMesh.Object;
+    // Coil stillage stays intentionally primitive until its clean-room art is authored.
+    // Storage capacity, collision and material-flow behaviour are independent of these meshes.
+    if (CubeMesh.Succeeded()) ApprovedCoilStandMesh = CubeMesh.Object;
+    if (CylinderMesh.Succeeded()) ApprovedWrappedCoilMesh = CylinderMesh.Object;
     if (PanelStillageMesh.Succeeded()) ApprovedPanelStillageMesh = PanelStillageMesh.Object;
     if (GreenMaterial.Succeeded()) FactoryGreenMaterial = GreenMaterial.Object;
     if (CharcoalMaterial.Succeeded()) FactoryCharcoalMaterial = CharcoalMaterial.Object;

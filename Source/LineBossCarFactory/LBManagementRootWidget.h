@@ -231,6 +231,9 @@ public:
     UFUNCTION(BlueprintPure, Category="Line Boss|Management UI")
     static bool HasTruthfulThroughput(double GoodUnitsPerHour);
 
+    /** Inputs owned by the factory camera/simulation, never by HUD navigation. */
+    static bool IsReservedGameplayKey(const FKey& Key);
+
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void NativeOnInitialized() override;

@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBOneFactoryBodyWeldStarterLayout.h"
+#include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -47,21 +48,17 @@ namespace LBOneFactoryDressingPrivate
         { TEXT("Dress_Rack"),     TEXT("/Game/Meshes/SM_StorageShelvesBottom01"), 300.0 },
         { TEXT("Dress_Bench"),    TEXT("/Game/Meshes/SM_DeskControl_01"), 111.0 },
         { TEXT("Dress_LampRamp"), TEXT("/Game/Meshes/SM_AssemblyLineLampRamp"), 121.0 },
-        { TEXT("Dress_PressTrain"),
-          TEXT("/Game/LineBoss/PressTrains/RuntimeVisual_v449"
-               "/SM_CA_MW_PressTrain_CompleteRuntimeVisual_v449"), 5770.0 },
+        { TEXT("Dress_PressCycleOverlay"),
+          TEXT("/Engine/BasicShapes/Cube.Cube"), 5770.0 },
         { TEXT("Dress_Coil"),
-          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
-               "/Inbound/SM_CA_MW_WrappedCoil_Repaired_v003"), 181.0 },
+          TEXT("/Engine/BasicShapes/Cylinder.Cylinder"), 181.0 },
         { TEXT("Dress_CoilStand"),
-          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
-               "/Inbound/SM_CA_MW_AdjustableCoilStand_Approved_v005"), 190.0 },
+          TEXT("/Engine/BasicShapes/Cube.Cube"), 190.0 },
         { TEXT("Dress_Stillage"),
           TEXT("/Game/LineBoss/Candidates/WeldShop/PanelStillageRuntime_v001"
                "/SM_LB_PanelStillage_Runtime_v001"), 190.0 },
         { TEXT("Dress_Lorry"),
-          TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v004"
-               "/Inbound/SM_CA_MW_InboundLorry_Approved_v006"), 800.0 },
+          TEXT("/Engine/BasicShapes/Cube.Cube"), 800.0 },
         { TEXT("Dress_Destacker"),
           TEXT("/Game/LineBoss/Candidates/PressShop/CleanRebuild_v20260809_v012"
                "/PressTrains/SM_CA_MW_S01_Destack_Approved_v006"), 400.0 },
@@ -138,7 +135,7 @@ ALBOneFactoryDevStationDressingActor::ALBOneFactoryDevStationDressingActor()
 {
     using namespace LBOneFactoryDressingPrivate;
 
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
     SetReplicates(false);
     SetActorEnableCollision(false);
 
@@ -184,6 +181,72 @@ ALBOneFactoryDevStationDressingActor::ALBOneFactoryDevStationDressingActor()
 FName ALBOneFactoryDevStationDressingActor::GetDressingTag()
 {
     return FName(TEXT("LB.OneFactory.DevStationDressing"));
+}
+
+void ALBOneFactoryDevStationDressingActor::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (!PressTransferCarriage) return;
+
+    bool bTrainActive = false;
+    float CycleProgress = 0.0f;
+    if (UWorld* World = GetWorld())
+    {
+        for (TActorIterator<ALBOneFactoryProductionFlowAuthority> It(World);
+            It; ++It)
+        {
+            if (!IsValid(*It)) continue;
+            const FLBOneFactoryProductionLedgerState Ledger =
+                It->CaptureLedger();
+            for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
+            {
+                if (Unit.bRuntimeStarted
+                    && Unit.Department == ELBOneFactoryDepartment::Press)
+                {
+                    bTrainActive = true;
+                    if (Unit.RuntimeCycleDurationSeconds > KINDA_SMALL_NUMBER)
+                    {
+                        CycleProgress = FMath::Fmod(
+                            Unit.RuntimeCycleElapsedSeconds
+                                / Unit.RuntimeCycleDurationSeconds,
+                            1.0f);
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    PressTransferCarriage->SetVisibility(bTrainActive, true);
+    for (UStaticMeshComponent* Ram : PressRamAssemblies)
+    {
+        if (Ram) Ram->SetVisibility(bTrainActive, true);
+    }
+    if (!bTrainActive) return;
+
+    // This visual carriage is enabled only during a live press step. Its
+    // short pass makes motion obvious from the management camera.
+    PressTransferSeconds = FMath::Fmod(PressTransferSeconds + DeltaSeconds,
+        3.6f);
+    const float Alpha = FMath::Abs(PressTransferSeconds / 1.8f - 1.0f);
+    const float Travel = FMath::Lerp(-2300.0f, 2300.0f, Alpha);
+    PressTransferCarriage->SetWorldLocation(
+        PressTransferOrigin + PressTransferRotation.RotateVector(
+            FVector(0.0f, Travel, 560.0f)));
+
+    // Stagger the five strokes through the real deterministic station cycle.
+    // This is presentation-only: the production ledger remains authoritative.
+    for (int32 Index = 0; Index < PressRamAssemblies.Num(); ++Index)
+    {
+        UStaticMeshComponent* Ram = PressRamAssemblies[Index];
+        if (!Ram || !PressRamOrigins.IsValidIndex(Index)) continue;
+        const float Phase = FMath::Fmod(CycleProgress + 0.19f * Index, 1.0f);
+        const float Stroke = FMath::Pow(FMath::Sin(PI * Phase), 6.0f);
+        Ram->SetWorldLocation(PressRamOrigins[Index]
+            + PressTransferRotation.RotateVector(FVector(0.0f, 0.0f,
+                -135.0f * Stroke)));
+    }
 }
 
 void ALBOneFactoryDevStationDressingActor::Place(
@@ -313,6 +376,10 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         }
     }
     DynamicPieces.Reset();
+    PressTransferCarriage = nullptr;
+    PressRamAssemblies.Reset();
+    PressRamOrigins.Reset();
+    PressTransferSeconds = 0.0f;
 
     for (int32 Index = 0; Index < Route.Num(); ++Index)
     {
@@ -367,15 +434,13 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
         {
         case ELBOneFactoryDepartment::Press:
         {
-            // The detailed-press recovery design: the complete v449 Train A
-            // visual is anchored once at the committed ConfigurablePressTrain
-            // station transform, with the mesh's pinned local transform -
-            // location [9.25, 2367.5, 0], rotation zero, scale 100 - applied
-            // relative to that datum. Its 57.7 m span covers the working length
-            // of the press line, so the other press positions get material
-            // handling rather than generic machines: coils on stands at the
-            // inbound and storage rows, staged stillages at dispatch, and
-            // nothing that would interpenetrate the train.
+            // The commissioned press shop has one coherent production train:
+            // coil receipt -> blank preparation -> Train A -> inspection ->
+            // stillage dispatch.  Earlier recovery dressing placed this whole
+            // 57.7 m Train A mesh four times across the bay, which made the
+            // player view read as duplicate, intersecting presses rather than
+            // a legible line.  Keep the train singular and let the dedicated
+            // route stations own all surrounding logistics.
             static const FName PressTrainStation(TEXT("OF_PRESS_TRAIN_001"));
             static const FName InboundStation(
                 TEXT("OF_PRESS_INBOUND_RECEIVING_001"));
@@ -390,42 +455,66 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 const FVector TrainAt = Datum.GetLocation()
                     + Datum.GetRotation().RotateVector(
                         FVector(9.25, 2367.5, 0.0));
-                // The pinned v449 mesh is one complete train row, placed four
-                // times at the reference row pitch. The reference map's own
-                // v049 aggregates were tried in its place and read near-black
-                // under the Moorcross lighting standard - the restored map
-                // only reads because of its own authored lights - so the
-                // recovery doc's v449 pin stands and the aggregates are
-                // filtered out of the manifest.
-                if (UStaticMesh* TrainMesh = Cast<UStaticMesh>(
+                // The OneFactory PressStarterPresentation owns the one
+                // verified native aggregate at this datum.  Do not place a
+                // second legacy train over it: that was the source of the
+                // duplicated, intersecting machines in the player view.
+                if (UStaticMesh* MotionMesh = Cast<UStaticMesh>(
                     StaticLoadObject(UStaticMesh::StaticClass(), nullptr,
                         Kinds[static_cast<int32>(
-                            ELBOneFactoryDressingKind::PressTrain)].Path)))
+                            ELBOneFactoryDressingKind::PressCycleOverlay)].Path)))
                 {
-                    for (int32 TrainIndex = 0; TrainIndex < 4; ++TrainIndex)
+                    UMaterialInterface* Green = Cast<UMaterialInterface>(
+                        StaticLoadObject(UMaterialInterface::StaticClass(), nullptr,
+                            TEXT("/Game/LineBoss/Factory/OneFactory/v001/Native/Press/DetailedPresentation_v001/Materials/M_CA_MW_PR009_LayeredCairnwellGreen_v086.M_CA_MW_PR009_LayeredCairnwellGreen_v086")));
+                    UMaterialInterface* Safety = Cast<UMaterialInterface>(
+                        StaticLoadObject(UMaterialInterface::StaticClass(), nullptr,
+                            TEXT("/Game/LineBoss/Factory/OneFactory/v001/Native/Press/DetailedPresentation_v001/Materials/M_CA_MW_PR009_LayeredSafetyYellow_v086.M_CA_MW_PR009_LayeredSafetyYellow_v086")));
+
+                    // A moving crossbar makes the real active press cycle
+                    // legible. It is hidden unless Press owns live WIP.
+                    PressTransferCarriage = NewObject<UStaticMeshComponent>(this);
+                    DynamicPieces.Add(PressTransferCarriage);
+                    PressTransferCarriage->SetupAttachment(SceneRoot);
+                    PressTransferCarriage->SetMobility(EComponentMobility::Movable);
+                    PressTransferCarriage->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                    PressTransferCarriage->SetCanEverAffectNavigation(false);
+                    PressTransferCarriage->SetStaticMesh(MotionMesh);
+                    PressTransferCarriage->SetMaterial(0, Safety);
+                    PressTransferCarriage->SetWorldScale3D(FVector(5.5f, 0.30f, 0.15f));
+                    PressTransferOrigin = TrainAt;
+                    PressTransferRotation = Datum.GetRotation();
+                    PressTransferCarriage->SetWorldLocation(
+                        PressTransferOrigin + PressTransferRotation.RotateVector(
+                            FVector(0.0f, -2300.0f, 560.0f)));
+                    PressTransferCarriage->SetWorldRotation(PressTransferRotation);
+                    PressTransferCarriage->SetVisibility(false);
+                    PressTransferCarriage->RegisterComponent();
+                    ++PieceCount;
+
+                    // Five clear rams sit over the existing native train's
+                    // five operations.  They are motion overlays, not WIP
+                    // or another machine set, and never affect collision.
+                    for (int32 PressIndex = 0; PressIndex < 5; ++PressIndex)
                     {
-                        // 2200 cm row pitch: the reference grid every
-                        // row-keyed manifest asset is authored on (identity
-                        // plates at ref Y 0/2200/4400/6600; v356 pitch
-                        // receipts record centre_pitch_cm 2200.0). The
-                        // earlier 2251 had no provenance and pushed rows
-                        // B-D off the grid by 51/102/153 cm.
-                        const FVector SiblingOffset =
-                            Datum.GetRotation().RotateVector(
-                                FVector(-2200.0 * TrainIndex, 0.0, 0.0));
-                        UStaticMeshComponent* Train =
-                            NewObject<UStaticMeshComponent>(this);
-                        DynamicPieces.Add(Train);
-                        Train->SetupAttachment(SceneRoot);
-                        Train->SetMobility(EComponentMobility::Movable);
-                        Train->SetCollisionEnabled(
-                            ECollisionEnabled::NoCollision);
-                        Train->SetCanEverAffectNavigation(false);
-                        Train->SetStaticMesh(TrainMesh);
-                        Train->SetWorldLocationAndRotation(
-                            TrainAt + SiblingOffset, Datum.GetRotation());
-                        Train->SetWorldScale3D(FVector(100.0));
-                        Train->RegisterComponent();
+                        UStaticMeshComponent* Ram = NewObject<UStaticMeshComponent>(this);
+                        DynamicPieces.Add(Ram);
+                        PressRamAssemblies.Add(Ram);
+                        Ram->SetupAttachment(SceneRoot);
+                        Ram->SetMobility(EComponentMobility::Movable);
+                        Ram->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                        Ram->SetCanEverAffectNavigation(false);
+                        Ram->SetStaticMesh(MotionMesh);
+                        Ram->SetMaterial(0, Green);
+                        Ram->SetWorldScale3D(FVector(6.4f, 2.25f, 0.34f));
+                        const FVector Origin = TrainAt + Datum.GetRotation()
+                            .RotateVector(FVector(0.0f,
+                                -1600.0f + 800.0f * PressIndex, 650.0f));
+                        PressRamOrigins.Add(Origin);
+                        Ram->SetWorldLocation(Origin);
+                        Ram->SetWorldRotation(Datum.GetRotation());
+                        Ram->SetVisibility(false);
+                        Ram->RegisterComponent();
                         ++PieceCount;
                     }
                 }
@@ -449,17 +538,14 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                 const FQuat AlongRows =
                     R * FQuat(FVector::UpVector, PI * 0.5);
 
-                // PR-043 full/empty stillage marshalling: three lanes of
-                // four between the row lines, east of the trains.
-                for (int32 Lane = 0; Lane < 3; ++Lane)
+                // A single clear outbound lane holds the finished panel
+                // stillages.  It remains visibly separate from the train and
+                // leaves an uninterrupted service aisle around the press.
+                for (int32 Slot = 0; Slot < 4; ++Slot)
                 {
-                    const double LaneX = -1100.0 - 2200.0 * Lane;
-                    for (int32 Slot = 0; Slot < 4; ++Slot)
-                    {
-                        Place(ELBOneFactoryDressingKind::Stillage,
-                            AtLocal(LaneX, 3800.0 + 420.0 * Slot)
-                                + FVector(0.0, 0.0, 58.0), R);
-                    }
+                    Place(ELBOneFactoryDressingKind::Stillage,
+                        AtLocal(-1500.0, 3800.0 + 460.0 * Slot)
+                            + FVector(0.0, 0.0, 58.0), R);
                 }
                 // PR-044 FLT dispatch: the outbound lorry at the east dock.
                 Place(ELBOneFactoryDressingKind::Lorry,
@@ -591,10 +677,9 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                     bool bClearOfTrain = true;
                     if (Train)
                     {
-                        // Test in the datum's local frame - the station is
-                        // player-movable and rotatable - and against all four
-                        // train rows at the reference 2200 pitch, not just
-                        // row A.
+                        // Test in the datum's local frame.  The completed
+                        // train is singular, so the blank-prep destacker must
+                        // only clear its one real footprint.
                         const FQuat TrainRot =
                             Train->WorldTransform.GetRotation();
                         const FVector TrainCentre =
@@ -603,16 +688,10 @@ bool ALBOneFactoryDevStationDressingActor::BuildFromRoute(FString& OutReason)
                                 FVector(9.25, 2367.5, 0.0));
                         const FVector LocalDelta =
                             TrainRot.UnrotateVector(At - TrainCentre);
-                        for (int32 Row = 0; Row < 4; ++Row)
+                        if (FMath::Abs(LocalDelta.X) <= 900.0
+                            && FMath::Abs(LocalDelta.Y) <= 3100.0)
                         {
-                            const double RowDeltaX =
-                                LocalDelta.X + 2200.0 * Row;
-                            if (FMath::Abs(RowDeltaX) <= 900.0
-                                && FMath::Abs(LocalDelta.Y) <= 3100.0)
-                            {
-                                bClearOfTrain = false;
-                                break;
-                            }
+                            bClearOfTrain = false;
                         }
                     }
                     if (bClearOfTrain)

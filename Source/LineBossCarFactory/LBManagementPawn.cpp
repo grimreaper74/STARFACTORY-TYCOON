@@ -28,6 +28,7 @@
 #include "LBPressTrainIdentitySubsystem.h"
 #include "LBPressShopBuildAuthority.h"
 #include "LBPressShopStorageZone.h"
+#include "LBOneFactoryPlayerController.h"
 #include "LBCoilAGVController.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/OverlapResult.h"
@@ -1372,6 +1373,17 @@ void ALBManagementPawn::Zoom(float Value)
     if (!FMath::IsNearlyZero(Value)) bFactoryFocusTransitionActive = false;
 }
 
+bool ALBManagementPawn::HandleDirectZoomInput(const float Value)
+{
+    if (!FMath::IsFinite(Value) || FMath::IsNearlyZero(Value))
+    {
+        return false;
+    }
+
+    Zoom(Value);
+    return true;
+}
+
 float ALBManagementPawn::GetManagementZoomDistance() const
 {
     return CameraBoom ? CameraBoom->TargetArmLength : DesiredZoomDistance;
@@ -1699,8 +1711,58 @@ bool ALBManagementPawn::SetAutomationCamera(const FVector& WorldLocation,
     return true;
 }
 
+bool ALBManagementPawn::HandleDirectNavigationKey(const FKey& Key,
+    const bool bPressed)
+{
+    const bool bNavigationKey = Key == EKeys::W || Key == EKeys::S
+        || Key == EKeys::A || Key == EKeys::D || Key == EKeys::Q
+        || Key == EKeys::E;
+    if (Key == EKeys::Home)
+    {
+        if (bPressed)
+        {
+            ResetCamera();
+        }
+        return true;
+    }
+    if (!bNavigationKey)
+    {
+        return false;
+    }
+
+    if (bPressed)
+    {
+        DirectNavigationKeysDown.Add(Key);
+    }
+    else
+    {
+        DirectNavigationKeysDown.Remove(Key);
+    }
+
+    ForwardInput = (DirectNavigationKeysDown.Contains(EKeys::W) ? 1.0f : 0.0f)
+        - (DirectNavigationKeysDown.Contains(EKeys::S) ? 1.0f : 0.0f);
+    RightInput = (DirectNavigationKeysDown.Contains(EKeys::D) ? 1.0f : 0.0f)
+        - (DirectNavigationKeysDown.Contains(EKeys::A) ? 1.0f : 0.0f);
+    RotateInput = (DirectNavigationKeysDown.Contains(EKeys::E) ? 1.0f : 0.0f)
+        - (DirectNavigationKeysDown.Contains(EKeys::Q) ? 1.0f : 0.0f);
+    if (bPressed)
+    {
+        bFactoryFocusTransitionActive = false;
+    }
+    return true;
+}
+
 void ALBManagementPawn::StartPressTrainPlacement()
 {
+    // The release demo starts with the factory already built. The pawn owns
+    // the legacy press-placement binding and receives B before the controller,
+    // so route it to a production order instead of exposing construction.
+    if (ALBOneFactoryPlayerController* OneFactoryController =
+            Cast<ALBOneFactoryPlayerController>(GetController()))
+    {
+        OneFactoryController->PlaceOrder();
+        return;
+    }
     StartMachinePlacement(ELBFactoryBuildMachineType::PressTrain);
 }
 

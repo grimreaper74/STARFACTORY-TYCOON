@@ -170,10 +170,8 @@ public:
     UStaticMeshComponent* GetInboundCoilHandlerRamComponent() const { return InboundCHookVisual; }
 
     /**
-     * The approved CHF01 body is presently one textured mesh, so its wheels cannot be
-     * separated without replacing owner-approved art. These explicit axle roots preserve
-     * the correct fixed-front/rear-steer hierarchy and are the binding points for a later
-     * surgically separated wheel set.
+     * Native primitive coil-handler body: these explicit axle roots preserve the
+     * fixed-front/rear-steer hierarchy without depending on imported vehicle art.
      */
     UFUNCTION(BlueprintPure, Category="Cairnwell|Factory Builder|Machine|Inbound|Steering")
     USceneComponent* GetInboundCoilHandlerFixedFrontAxleRoot() const
@@ -290,12 +288,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UStaticMesh> PlaceholderCubeMesh;
     UPROPERTY(Transient) TObjectPtr<UStaticMesh> PlaceholderCylinderMesh;
     UPROPERTY(Transient) TObjectPtr<UStaticMesh> ApprovedInboundLorryMesh;
-    UPROPERTY(Transient) TObjectPtr<UStaticMesh> ApprovedCoilHandlerBodyMesh;
-    UPROPERTY(Transient) TObjectPtr<UStaticMesh> ApprovedCoilHandlerLiftMesh;
     UPROPERTY(Transient) TObjectPtr<UStaticMesh> ApprovedPR004CompleteCellMesh;
-    UPROPERTY(Transient) TObjectPtr<UStaticMesh> ApprovedCoilSaddleMesh;
-    /** Textured Meshy master imported as a visual-only PR005 candidate. */
-    UPROPERTY(Transient) TObjectPtr<UStaticMesh> PR005DetailedHMIMesh;
+    /** Native low-complexity PR005 operator-console form; visual-only. */
+    UPROPERTY(Transient) TObjectPtr<UStaticMesh> PR005NativeConsoleMesh;
     UPROPERTY(Transient) TObjectPtr<UMaterialInterface> PlaceholderGreenMaterial;
     UPROPERTY(Transient) TObjectPtr<UMaterialInterface> PlaceholderCharcoalMaterial;
     UPROPERTY(Transient) TObjectPtr<UMaterialInterface> PlaceholderYellowMaterial;

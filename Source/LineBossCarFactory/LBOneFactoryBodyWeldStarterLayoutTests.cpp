@@ -24,6 +24,7 @@ namespace LBOneFactoryBodyWeldStarterTestsPrivate
                 == Right.bMirroredLargeSixAxisPair
             && FMath::IsNearlyEqual(Left.NominalCycleSeconds,
                 Right.NominalCycleSeconds, 0.001f)
+            && Left.SubassemblyCellId == Right.SubassemblyCellId
             && Left.ActiveOrReservedUnitIds
                 == Right.ActiveOrReservedUnitIds;
     }
@@ -113,6 +114,15 @@ bool FLBOneFactoryBodyWeldCanonicalLayoutTest::RunTest(
         ELBOneFactoryBodyWeldMaterialState::PressedPanelSet);
     TestEqual(TEXT("Body/Weld produces a body in white"), State.OutputState,
         ELBOneFactoryBodyWeldMaterialState::BodyInWhite);
+    const FLBOneFactoryBodyWeldStationState* DoorCell =
+        LBOneFactoryBodyWeldStarterTestsPrivate::FindStation(State, 11);
+    const FLBOneFactoryBodyWeldStationState* BonnetTailgateCell =
+        LBOneFactoryBodyWeldStarterTestsPrivate::FindStation(State, 12);
+    TestTrue(TEXT("Door panels have their own sub-assembly cell before marriage"),
+        DoorCell && DoorCell->SubassemblyCellId == TEXT("DOOR_SUBASSEMBLY_CELL"));
+    TestTrue(TEXT("Bonnet and tailgate have their own sub-assembly cell before marriage"),
+        BonnetTailgateCell && BonnetTailgateCell->SubassemblyCellId
+            == TEXT("BONNET_TAILGATE_SUBASSEMBLY_CELL"));
 
     TSet<ELBOneFactoryBodyWeldProgramme> Programmes;
     int32 MirroredRobotCount = 0;

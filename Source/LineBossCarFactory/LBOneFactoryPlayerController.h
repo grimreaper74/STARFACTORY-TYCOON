@@ -4,6 +4,9 @@
 #include "GameFramework/PlayerController.h"
 #include "LBOneFactoryPlayerController.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
+
 /**
  * Player commands for Moorcross Works.
  *
@@ -13,10 +16,9 @@
  * commission the factory, put orders on the line, control the clock and resolve
  * quality holds without opening a console.
  *
- * Bindings are direct key binds rather than Enhanced Input actions so the shell
- * needs no new Content assets and works in a packaged build immediately. Moving
- * to Enhanced Input with authored actions and a rebindable mapping context is
- * the natural follow-up, not a blocker.
+ * Commands are registered through a dedicated Enhanced Input mapping context.
+ * The controller-bound focus route remains as a compatibility guard for native
+ * UMG focus, which must never make advertised keyboard controls unreachable.
  */
 UCLASS()
 class LINEBOSSCARFACTORY_API ALBOneFactoryPlayerController : public APlayerController
@@ -26,11 +28,29 @@ class LINEBOSSCARFACTORY_API ALBOneFactoryPlayerController : public APlayerContr
 public:
     ALBOneFactoryPlayerController();
 
+    virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
+
+    /**
+     * Last-resort game input route. Native UMG controls can legitimately own
+     * Slate focus after a mouse click; route supported factory shortcuts here
+     * before PlayerInput dispatch so they stay usable without a controller.
+     */
+    virtual bool InputKey(const FInputKeyEventArgs& Params) override;
+
+    /** Runs a player shortcut while a native UMG control owns keyboard focus. */
+    bool HandleKeyboardShortcut(const FKey& Key);
 
     /** Creates and commissions all four departments, then dresses the site. */
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
     void CommissionFactory();
+
+    /**
+     * Brings the shipped prebuilt factory online. This is also used by the
+     * game mode at startup so release players begin with a working line,
+     * rather than a construction-only empty site.
+     */
+    bool ActivatePrebuiltFactory(FString& OutReason);
 
     /** Puts one more vehicle order on the line. */
     UFUNCTION(BlueprintCallable, Exec, Category="Line Boss|OneFactory|Player")
@@ -80,6 +100,11 @@ public:
     void LoadFactory();
 
 private:
+    void InstallEnhancedInputMappings();
+    void BindEnhancedInputActions();
+    UInputAction* CreateCommandAction(FName ActionName);
+    void MapCommand(UInputAction* Action, const FKey& Key);
+
     void ApplyTimeScale(float TimeScale);
     bool ResolveOldestHold(FName& OutUnitId, FString& OutReason) const;
     void FocusShopGroup(int32 GroupIndex);
@@ -94,5 +119,40 @@ private:
 
     /** Last speed used, so pause can restore what the player had chosen. */
     float LastRunningTimeScale = 1.0f;
-    int32 QualityEvidenceCounter = 0;
+
+    /** Runtime-created until these are promoted to rebindable authored assets. */
+    UPROPERTY(Transient)
+    TObjectPtr<UInputMappingContext> OneFactoryInputContext;
+
+    UPROPERTY(Transient)
+    bool bEnhancedInputContextInstalled = false;
+
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> PlaceOrderInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> TogglePauseInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> SpeedNormalInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> SpeedFastInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> SpeedVeryFastInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> PassQualityInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> ReworkInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> ServiceInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> SaveInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> LoadInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> FocusPressInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> FocusBodyInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> FocusPaintInputAction;
+    UPROPERTY(Transient)
+    TObjectPtr<UInputAction> FocusAssemblyInputAction;
 };

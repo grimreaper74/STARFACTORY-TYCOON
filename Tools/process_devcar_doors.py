@@ -89,6 +89,11 @@ for fname, tag, length, height in DOORS:
         c = f.calc_center_median()
         if c.z < h_full * 0.60 and c.y > y_min + 0.11:
             return True
+        # The doubled inner strut at the rear frame corner - interior
+        # depth up at the top rear, behind the outer frame plane.
+        if (c.z > h_full * 0.58 and c.x > x_hi - 0.14
+                and c.y > y_min + 0.10):
+            return True
         # Stubs hanging inside the window aperture: interior-depth
         # faces in the aperture band, away from the frame perimeter.
 

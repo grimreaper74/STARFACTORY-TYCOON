@@ -1,5 +1,7 @@
 #include "LBOneFactoryRuntimeCoordinator.h"
 
+#include "LBVehiclePanelCatalog.h"
+
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBFactoryManagementSubsystem.h"
@@ -103,6 +105,23 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
     {
         return Unit.Stage == ELBOneFactoryVehicleStage::Dispatched
             || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped;
+    }
+
+    FName PaintColourId(const ELBOneFactoryPaintColour Colour)
+    {
+        switch (Colour)
+        {
+        case ELBOneFactoryPaintColour::BodyInWhite: return TEXT("BODY_IN_WHITE");
+        case ELBOneFactoryPaintColour::EDPrimerGrey: return TEXT("ED_PRIMER_GREY");
+        case ELBOneFactoryPaintColour::ArcticWhite: return TEXT("ARCTIC_WHITE");
+        case ELBOneFactoryPaintColour::FoundryGraphite:
+            return TEXT("FOUNDRY_GRAPHITE");
+        case ELBOneFactoryPaintColour::CairnwellTeal:
+            return TEXT("CAIRNWELL_TEAL");
+        case ELBOneFactoryPaintColour::SignalRed: return TEXT("SIGNAL_RED");
+        case ELBOneFactoryPaintColour::AuroraBlue: return TEXT("AURORA_BLUE");
+        default: return NAME_None;
+        }
     }
 
     bool LedgerDepartmentCommissioned(
@@ -772,6 +791,52 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
         Unit.EvidenceIds.Add(EvidenceId);
         return true;
     }
+
+    bool StampRequiredPanelBOM(FLBOneFactoryProductionLedgerState& Ledger,
+        FLBOneFactoryVehicleUnitState& Unit, FString& OutReason)
+    {
+        if (Unit.RequiredPanelTypeIds.IsEmpty()
+            || Unit.RequiredPanelTypeIds.Contains(NAME_None)
+            || !Unit.PressedPanelTypeIds.IsEmpty())
+        {
+            OutReason = TEXT("ONEFACTORY PRESS CANNOT STAMP A MISSING OR ALREADY-STAMPED ORDER PANEL BOM");
+            return false;
+        }
+        TSet<FName> UniquePanels;
+        for (const FName PanelId : Unit.RequiredPanelTypeIds)
+        {
+            if (UniquePanels.Contains(PanelId)
+                || Unit.PressedPanelTypeIds.Contains(PanelId)
+                || !AddEvidence(Ledger, Unit,
+                    FName(*FString::Printf(TEXT("OF_%s_PANEL_%s_STAMPED"),
+                        *Unit.UnitId.ToString(), *PanelId.ToString())),
+                    OutReason))
+            {
+                OutReason = TEXT("ONEFACTORY PRESS PANEL BOM STAMP EVIDENCE IS INVALID");
+                return false;
+            }
+            UniquePanels.Add(PanelId);
+            Unit.PressedPanelTypeIds.Add(PanelId);
+        }
+        return true;
+    }
+
+    bool HasCompleteStampedPanelBOM(const FLBOneFactoryVehicleUnitState& Unit)
+    {
+        if (Unit.RequiredPanelTypeIds.IsEmpty()
+            || Unit.RequiredPanelTypeIds.Num() != Unit.PressedPanelTypeIds.Num())
+        {
+            return false;
+        }
+        for (const FName PanelId : Unit.RequiredPanelTypeIds)
+        {
+            if (PanelId.IsNone() || !Unit.PressedPanelTypeIds.Contains(PanelId))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 ALBOneFactoryRuntimeCoordinator::ALBOneFactoryRuntimeCoordinator()
@@ -843,6 +908,17 @@ bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrder(
     const FName PaintProgrammeId, const FName PaintColourId,
     const FName SourceCoilLotId, FName& OutUnitId, FString& OutReason)
 {
+    return CreateRuntimeVehicleOrderInternal(BuildOrderId, VehicleModelId,
+        PaintProgrammeId, PaintColourId, SourceCoilLotId, false, OutUnitId,
+        OutReason);
+}
+
+bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrderInternal(
+    const FName BuildOrderId, const FName VehicleModelId,
+    const FName PaintProgrammeId, const FName PaintColourId,
+    const FName SourceCoilLotId, const bool bStartImmediately,
+    FName& OutUnitId, FString& OutReason)
+{
     using namespace LBOneFactoryRuntimeCoordinatorPrivate;
     OutUnitId = NAME_None;
     FAuthorities Actors;
@@ -901,7 +977,7 @@ bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrder(
     Unit->RuntimeCycleDurationSeconds = Route[0].NominalCycleSeconds;
     Unit->RuntimeTopologyId = TopologyId;
     Unit->RuntimeCurrentAssignmentId = Route[0].AssignmentId;
-    Unit->bRuntimeStarted = false;
+    Unit->bRuntimeStarted = bStartImmediately;
     Unit->Stage = Route[0].SemanticStage;
     Unit->Department = Route[0].Department;
     Unit->CurrentStationId = Route[0].StationId;
@@ -912,7 +988,79 @@ bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrder(
         OutUnitId = NAME_None;
         return false;
     }
-    OutReason = TEXT("ONEFACTORY VEHICLE CREATED WITH EXACTLY ONE PRESS-INBOUND RESERVATION");
+    OutReason = bStartImmediately
+        ? TEXT("ONEFACTORY AUTOMATION CREATED AND STARTED ONE CONTRACT VEHICLE")
+        : TEXT("ONEFACTORY VEHICLE CREATED WITH EXACTLY ONE PRESS-INBOUND RESERVATION");
+    return true;
+}
+
+bool ALBOneFactoryRuntimeCoordinator::DispatchNextOpenContract(
+    FName& OutUnitId, FString& OutReason)
+{
+    using namespace LBOneFactoryRuntimeCoordinatorPrivate;
+    OutUnitId = NAME_None;
+    FAuthorities Actors;
+    if (!ResolveAuthorities(*this, Actors, OutReason)) return false;
+    const FSnapshots State = Capture(Actors);
+    TArray<FLBOneFactoryRuntimeStationStep> Route;
+    FName TopologyId;
+    if (!BuildRoute(State, Route, TopologyId, OutReason)
+        || !ValidateComposite(State, Route, TopologyId, OutReason))
+        return false;
+
+    const FName ConfiguredModelId = State.Paint.VehicleModelId;
+    const FName ConfiguredPaintProgrammeId = State.Paint.PaintProgrammeId;
+    const FName ConfiguredPaintColourId = PaintColourId(
+        State.Paint.SelectedBodyColour);
+    if (ConfiguredModelId.IsNone() || ConfiguredPaintProgrammeId.IsNone()
+        || ConfiguredPaintColourId.IsNone())
+    {
+        OutReason = TEXT("ONEFACTORY AUTOMATION REQUIRES A COMPLETE PAINT PROGRAMME CONFIGURATION");
+        return false;
+    }
+
+    int32 RemainingContractVehicles = 0;
+    for (const FLBOneFactoryVehicleContract& Contract : State.Ledger.Contracts)
+    {
+        if (Contract.State == ELBOneFactoryContractState::Open
+            && Contract.VehicleModelId == ConfiguredModelId)
+        {
+            RemainingContractVehicles += Contract.Quantity
+                - Contract.DispatchedCount;
+        }
+    }
+    int32 ActiveVehiclesForModel = 0;
+    for (const FLBOneFactoryVehicleUnitState& Unit : State.Ledger.Units)
+    {
+        if (Unit.VehicleModelId == ConfiguredModelId && !IsTerminal(Unit))
+            ++ActiveVehiclesForModel;
+    }
+    if (RemainingContractVehicles <= ActiveVehiclesForModel)
+    {
+        OutReason = TEXT("ONEFACTORY AUTOMATION HAS NO UNSCHEDULED COMPATIBLE CONTRACT WORK");
+        return true;
+    }
+    if (ActiveVehiclesForModel >= State.Ledger.MaximumConcurrentWIP)
+    {
+        OutReason = TEXT("ONEFACTORY AUTOMATION IS HOLDING AT THE CONFIGURED WIP LIMIT");
+        return true;
+    }
+
+    const int32 Serial = State.Ledger.NextVehicleSerial;
+    const FName BuildOrderId(*FString::Printf(TEXT("OF_AUTO_BUILD_%06d"),
+        Serial));
+    const FName CoilLotId(*FString::Printf(TEXT("OF_AUTO_COIL_LOT_%06d"),
+        Serial));
+    if (!CreateRuntimeVehicleOrderInternal(BuildOrderId, ConfiguredModelId,
+            ConfiguredPaintProgrammeId, ConfiguredPaintColourId, CoilLotId,
+            true, OutUnitId, OutReason))
+    {
+        OutUnitId = NAME_None;
+        return false;
+    }
+    OutReason = FString::Printf(
+        TEXT("ONEFACTORY AUTOMATION STARTED %s FOR THE OLDEST COMPATIBLE OPEN CONTRACT"),
+        *OutUnitId.ToString());
     return true;
 }
 
@@ -1056,6 +1204,13 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
     const FName StationEvidence = MakeStationEvidence(*Unit, SourceStep);
     if (!AddEvidence(Candidate.Ledger, *Unit, StationEvidence, OutReason))
         return false;
+    if (SourceStep.StationId == LBOneFactoryPressStarterIds::PressTrain())
+    {
+        if (!StampRequiredPanelBOM(Candidate.Ledger, *Unit, OutReason))
+        {
+            return false;
+        }
+    }
     ++Unit->StageRevision;
     ++Unit->RuntimeCompletedStationCount;
 
@@ -1063,6 +1218,12 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
     if (Route.IsValidIndex(NextCursor))
     {
         const FLBOneFactoryRuntimeStationStep& TargetStep = Route[NextCursor];
+        if (TargetStep.SemanticStage == ELBOneFactoryVehicleStage::BodyFraming
+            && !HasCompleteStampedPanelBOM(*Unit))
+        {
+            OutReason = TEXT("ONEFACTORY BODY FRAMING REQUIRES THE COMPLETE MODEL-MATCHED PRESSED PANEL BOM");
+            return false;
+        }
         if (!TargetGateAllowsTransfer(Current, TargetStep.Department, OutReason))
         {
             const FString HoldReason = OutReason;
@@ -1075,6 +1236,12 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
         // one cycle at this sim time.
         RecordStationCompletion(SourceStep.Department,
             CandidateLedger.SimClockSeconds);
+        // The physical route is the live production path.  Keep its wear and
+        // deterministic quality-risk state in step with the logical ledger
+        // path so maintenance and inspection decisions have real gameplay
+        // consequences rather than remaining test-only bookkeeping.
+        Candidate.Ledger.FleetWear01 = FMath::Min(1.0,
+            Candidate.Ledger.FleetWear01 + 0.0004);
         Unit->RuntimeStationCursor = NextCursor;
         Unit->RuntimeCycleElapsedSeconds = 0.0f;
         Unit->RuntimeCycleDurationSeconds = TargetStep.NominalCycleSeconds;
@@ -1083,7 +1250,12 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
         Unit->Department = TargetStep.Department;
         Unit->Stage = TargetStep.SemanticStage;
         if (TargetStep.bQualityGate)
+        {
             Unit->QualityState = ELBOneFactoryVehicleQualityState::Pending;
+            Unit->bDefectSuspected =
+                ULBOneFactoryProductionFlowLibrary::IsDefectSuspected(
+                    Unit->UnitId, Candidate.Ledger.FleetWear01);
+        }
         if (TargetStep.SemanticStage
             == ELBOneFactoryVehicleStage::FinishedVehicle)
         {
@@ -1125,6 +1297,25 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
     Unit->Stage = ELBOneFactoryVehicleStage::Dispatched;
     Unit->Department = ELBOneFactoryDepartment::Assembly;
     Unit->bDispatched = true;
+    // The automatic physical route is the authoritative production path.
+    // Settle its dispatch against the oldest matching open contract just as
+    // the legacy logical advance path does, so revenue and order state
+    // describe the same finished vehicle.
+    for (FLBOneFactoryVehicleContract& Contract : Candidate.Ledger.Contracts)
+    {
+        if (Contract.State != ELBOneFactoryContractState::Open
+            || Contract.VehicleModelId != Unit->VehicleModelId)
+        {
+            continue;
+        }
+        ++Contract.DispatchedCount;
+        Unit->FulfilledContractId = Contract.ContractId;
+        if (Contract.DispatchedCount >= Contract.Quantity)
+        {
+            Contract.State = ELBOneFactoryContractState::Complete;
+        }
+        break;
+    }
     ++Unit->StageRevision;
     ++Candidate.Ledger.DispatchedVehicleCount;
     ++Candidate.Ledger.Revision;
@@ -1167,6 +1358,21 @@ bool ALBOneFactoryRuntimeCoordinator::TickAutomaticFlow(
     {
         if (!TickVehicle(UnitId, DeltaSeconds, OutReason)) return false;
         ++OutProcessedUnitCount;
+    }
+    if (bAutoDispatchOpenContracts)
+    {
+        FName AutoStartedUnitId = NAME_None;
+        FString AutomationReason;
+        if (!DispatchNextOpenContract(AutoStartedUnitId, AutomationReason))
+        {
+            OutReason = AutomationReason;
+            return false;
+        }
+        if (!AutoStartedUnitId.IsNone())
+        {
+            ++OutProcessedUnitCount;
+            OutReason = AutomationReason;
+        }
     }
     // Non-fatal: the economy reconciles from deterministic ids, so a missing
     // management subsystem (some validation worlds) must not stop the line.
@@ -1215,11 +1421,14 @@ float ALBOneFactoryRuntimeCoordinator::MeasuredRatePerHour(
 bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
 {
     using namespace LBOneFactoryRuntimeCoordinatorPrivate;
-    // Placeholder economy constants until P3 contracts carry real prices:
-    // one dispatched Cairnwell pays a flat price; the plant burns a flat
-    // operating cost for every completed simulation hour.
-    constexpr int64 VehicleRevenuePence = 3200000;
+    // The plant operating cost remains a site policy. Vehicle spot value is
+    // deliberately held by the model recipe so future programmes can have
+    // their own economics without another coordinator branch.
     constexpr int64 PlantOperatingCostPencePerHour = 150000;
+    // Completing a sale is also the programme's evidence-backed progression
+    // event. Keep it tied to the same idempotent unit identity as revenue so
+    // reloading or repeatedly reconciling cannot farm research points.
+    constexpr int64 VehicleDispatchResearchPoints = 5;
 
     UWorld* World = GetWorld();
     ULBFactoryManagementSubsystem* Management =
@@ -1246,8 +1455,18 @@ bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
         {
             continue;
         }
-        // Contract price when the unit settled one; spot price otherwise.
-        int64 UnitPrice = VehicleRevenuePence;
+        const FLBVehicleModelRecipe* Recipe =
+            LBVehicleModelCatalog::Find(Unit.VehicleModelId);
+        if (!Recipe || Recipe->DefaultRevenuePence <= 0)
+        {
+            OutReason = FString::Printf(
+                TEXT("ONEFACTORY ECONOMY REJECTED UNPRICED VEHICLE PROGRAMME: %s"),
+                *Unit.VehicleModelId.ToString());
+            return false;
+        }
+        // Contract price when the unit settled one; its registered programme
+        // spot price otherwise.
+        int64 UnitPrice = Recipe->DefaultRevenuePence;
         if (!Unit.FulfilledContractId.IsNone())
         {
             for (const FLBOneFactoryVehicleContract& Contract :
@@ -1265,6 +1484,10 @@ bool ALBOneFactoryRuntimeCoordinator::ReconcileEconomy(FString& OutReason)
         if (Management->TryRecordOrderRevenue(TransactionId, Unit.UnitId,
                 UnitPrice))
         {
+            const FName ResearchEventId(*FString::Printf(TEXT("OF_RP_%s"),
+                *Unit.UnitId.ToString()));
+            Management->GrantResearchPoints(ResearchEventId, Unit.UnitId,
+                VehicleDispatchResearchPoints);
             ++RevenuePosted;
         }
     }
@@ -1459,6 +1682,7 @@ bool ALBOneFactoryRuntimeCoordinator::GetVehicleRuntimeStatus(
     OutStatus.QualityState = Unit->QualityState;
     OutStatus.StationCursor = Unit->RuntimeStationCursor;
     OutStatus.CompletedStationCount = Unit->RuntimeCompletedStationCount;
+    OutStatus.StageRevision = Unit->StageRevision;
     OutStatus.TotalStationCount = Unit->RuntimeTotalStationCount;
     OutStatus.CycleElapsedSeconds = Unit->RuntimeCycleElapsedSeconds;
     OutStatus.CycleDurationSeconds = Unit->RuntimeCycleDurationSeconds;

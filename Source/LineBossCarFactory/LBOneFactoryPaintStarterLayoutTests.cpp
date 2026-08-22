@@ -1,4 +1,5 @@
 #include "LBOneFactoryPaintStarterLayout.h"
+#include "LBVehiclePanelCatalog.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -143,6 +144,40 @@ bool FLBOneFactoryPaintStarterCanonicalTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Process colours cannot be selected as body colours"),
         ULBOneFactoryPaintStarterLayoutLibrary::IsPlayerSelectableColour(
             ELBOneFactoryPaintColour::EDPrimerGrey));
+
+    // Programme identity must follow the selected vehicle recipe.  This keeps
+    // a future car's paint orders separate from Cairnwell even when both offer
+    // the same factory colour palette.
+    const FName AlternateModelId(TEXT("PAINT_PROGRAMME_TEST_MODEL"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(AlternateModelId);
+    FLBVehicleModelRecipe AlternateRecipe;
+    AlternateRecipe.ModelId = AlternateModelId;
+    AlternateRecipe.DisplayName = TEXT("Paint programme test vehicle");
+    AlternateRecipe.RecipeRevisionId = TEXT("PAINT_PROGRAMME_TEST_RECIPE_V001");
+    AlternateRecipe.PaintRouteProfileId = TEXT("PAINT_ROUTE_EDCOAT_VISIBLE_V001");
+    AlternateRecipe.GeometryAuthorityId = TEXT("PaintProgrammeTestGeometry_V001");
+    AlternateRecipe.PanelGeometryAuthorityId = TEXT("PaintProgrammeTestPanels_V001");
+    AlternateRecipe.BaseKitTypeId = TEXT("PAINT_PROGRAMME_TEST_BIW_KIT");
+    AlternateRecipe.DefaultRevenuePence = 100;
+    AlternateRecipe.bDevelopmentVisual = true;
+    AlternateRecipe.bPanelGeometryValidated = true;
+    AlternateRecipe.RequiredPanels.Add({TEXT("HOOD_PANEL"), TEXT("Hood"),
+        ELBPanelHandedness::None, 1, FVector(100.0f), NAME_None});
+    TestTrue(TEXT("an alternate development recipe can be registered for paint programme IDs"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(AlternateRecipe, Reason));
+    TestEqual(TEXT("Cairnwell retains its existing programme identity"),
+        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeId(
+            ELBOneFactoryPaintColour::SignalRed),
+        FName(TEXT("PAINT_CAIRNWELL_2040_SIGNAL_RED_V1")));
+    TestEqual(TEXT("alternate model receives its own programme identity"),
+        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+            AlternateModelId, ELBOneFactoryPaintColour::SignalRed),
+        FName(TEXT("PAINT_PAINT_PROGRAMME_TEST_MODEL_SIGNAL_RED_V1")));
+    TestTrue(TEXT("alternate development recipe cleanup succeeds"),
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(AlternateModelId));
+    TestEqual(TEXT("unknown models cannot generate a paint programme"),
+        ULBOneFactoryPaintStarterLayoutLibrary::MakePaintProgrammeIdForModel(
+            TEXT("UNKNOWN_MODEL"), ELBOneFactoryPaintColour::SignalRed), NAME_None);
 
     int32 ProgrammeBound = 0;
     int32 ProgrammeSelectors = 0;

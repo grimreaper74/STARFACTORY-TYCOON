@@ -47,7 +47,7 @@ bool FLBOneFactorySimClockTest::RunTest(const FString& Parameters)
         ELBOneFactoryDepartment::Press, true, Reason));
     FName UnitId;
     TestTrue(Reason, Production->CreateVehicleOrder(
-        FName(TEXT("ORDER_CLOCK_1")), FName(TEXT("C2040")),
+        FName(TEXT("ORDER_CLOCK_1")), FName(TEXT("CAIRNWELL_2040")),
         FName(TEXT("PP_STD")), FName(TEXT("EMERALD")),
         FName(TEXT("COIL_LOT_1")), FName(TEXT("OF_P01_INBOUND")),
         UnitId, Reason));

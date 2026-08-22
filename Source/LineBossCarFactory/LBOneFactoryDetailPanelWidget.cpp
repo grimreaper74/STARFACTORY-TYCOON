@@ -16,6 +16,8 @@
 #include "EngineUtils.h"
 #include "LBOneFactoryOperationsSubsystem.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
+#include "LBOneFactoryRuntimeRegistrySubsystem.h"
+#include "LBOneFactoryPlayerController.h"
 #include "LBOneFactoryUITypes.h"
 
 #define LOCTEXT_NAMESPACE "LineBossOneFactoryUI"
@@ -92,6 +94,18 @@ void ULBOneFactoryDetailPanelWidget::NativeConstruct()
     Super::NativeConstruct();
     // The widget spans the viewport; only the panel's controls take hits.
     SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+FReply ULBOneFactoryDetailPanelWidget::NativeOnPreviewKeyDown(
+    const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+    if (ALBOneFactoryPlayerController* Controller =
+            Cast<ALBOneFactoryPlayerController>(GetOwningPlayer());
+        Controller && Controller->HandleKeyboardShortcut(InKeyEvent.GetKey()))
+    {
+        return FReply::Handled();
+    }
+    return Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent);
 }
 
 void ULBOneFactoryDetailPanelWidget::BuildTree()
@@ -366,11 +380,17 @@ void ULBOneFactoryDetailPanelWidget::OnPrimaryActionClicked()
     {
     case EPrimaryAction::ServiceFleet:
     {
-        TActorIterator<ALBOneFactoryRuntimeCoordinator> It(World);
-        if (It)
+        if (ULBOneFactoryRuntimeRegistrySubsystem* Registry =
+                World->GetSubsystem<ULBOneFactoryRuntimeRegistrySubsystem>())
         {
+            ALBOneFactoryProductionFlowAuthority* Production = nullptr;
+            ALBOneFactoryRuntimeCoordinator* Coordinator = nullptr;
             FString Reason;
-            It->PerformPlantMaintenance(Reason);
+            if (Registry->ResolveRuntimeBackbone(Production, Coordinator,
+                    Reason))
+            {
+                Coordinator->PerformPlantMaintenance(Reason);
+            }
         }
         break;
     }

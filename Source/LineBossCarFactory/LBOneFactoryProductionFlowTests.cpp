@@ -1,4 +1,5 @@
 #include "LBOneFactoryProductionFlow.h"
+#include "LBVehiclePanelCatalog.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -50,11 +51,11 @@ bool FLBOneFactoryProductionEndToEndTest::RunTest(const FString& Parameters)
     CommissionAll(*Authority, Reason);
     FName UnitId;
     TestTrue(TEXT("Commissioned Press accepts one complete vehicle order"),
-        Authority->CreateVehicleOrder(TEXT("ORDER-0001"), TEXT("CAIRNWELL-2040"),
+        Authority->CreateVehicleOrder(TEXT("ORDER-0001"), TEXT("CAIRNWELL_2040"),
             TEXT("PAINT-CAIRNWELL-TEAL"), TEXT("CAIRNWELL-TEAL"),
             TEXT("COIL-LOT-0001"), TEXT("PRESS-INBOUND"), UnitId, Reason));
     TestEqual(TEXT("First deterministic vehicle identity"), UnitId,
-        FName(TEXT("CAIRNWELL-2040-000001")));
+        FName(TEXT("CAIRNWELL_2040-000001")));
 
     int32 EvidenceSerial = 1;
     for (;;)
@@ -89,12 +90,101 @@ bool FLBOneFactoryProductionEndToEndTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Dispatched unit retains complete material and process genealogy"),
         Result.Units[0].SourceMaterialUnitIds.Num() == 1
         && Result.Units[0].SourceMaterialUnitIds[0] == TEXT("COIL-LOT-0001")
-        && Result.Units[0].EvidenceIds.Num() == 20
+        && Result.Units[0].RequiredPanelTypeIds.Num() == 11
+        && Result.Units[0].PressedPanelTypeIds
+            == Result.Units[0].RequiredPanelTypeIds
+        && Result.Units[0].EvidenceIds.Num() == 31
         && Result.Units[0].bCompleted && Result.Units[0].bDispatched);
     TestTrue(TEXT("Final ledger validates"),
         ULBOneFactoryProductionFlowLibrary::ValidateLedger(Result, Reason));
     DestroyWorld(World);
     return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBOneFactoryRegisteredProgrammeOrderTest,
+    "LineBoss.OneFactory.ProductionFlow.RegisteredProgrammeSeedsItsOwnPanelBOM",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBOneFactoryRegisteredProgrammeOrderTest::RunTest(const FString& Parameters)
+{
+    using namespace LBOneFactoryProductionFlowTestsPrivate;
+    const FName ProgrammeId(TEXT("NORTHSTAR_ORDER_DEVELOPMENT"));
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ProgrammeId);
+
+    FLBVehicleModelRecipe Programme;
+    Programme.ModelId = ProgrammeId;
+    Programme.DisplayName = TEXT("Northstar order-path development programme");
+    Programme.RecipeRevisionId = TEXT("NORTHSTAR_ORDER_RECIPE_V001");
+    Programme.PaintRouteProfileId = TEXT("PAINT_ROUTE_EDCOAT_VISIBLE_V001");
+    Programme.GeometryAuthorityId = TEXT("NorthstarOrderGeometry_V001");
+    Programme.PanelGeometryAuthorityId = TEXT("NorthstarOrderPanels_V001");
+    Programme.BaseKitTypeId = TEXT("NORTHSTAR_ORDER_DEVELOPMENT_BIW_BASE_KIT");
+    Programme.bDevelopmentVisual = true;
+    Programme.bPanelGeometryValidated = true;
+    Programme.DefaultRevenuePence = 2500000;
+    Programme.RequiredPanels = {
+        { TEXT("NORTHSTAR_ORDER_HOOD"), TEXT("Northstar order hood"), ELBPanelHandedness::None,
+            10, FVector(160.0f, 140.0f, 20.0f), NAME_None },
+        { TEXT("NORTHSTAR_ORDER_TAILGATE"), TEXT("Northstar order tailgate"), ELBPanelHandedness::None,
+            10, FVector(145.0f, 22.0f, 108.0f), NAME_None }
+    };
+
+    FString Reason;
+    if (!TestTrue(TEXT("programme registration succeeds before order creation"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(Programme, Reason)))
+    {
+        return false;
+    }
+
+    UWorld* World = MakeWorld(TEXT("LBOneFactoryRegisteredProgrammeOrderTest"));
+    ALBOneFactoryProductionFlowAuthority* Authority = MakeAuthority(World);
+    if (!TestNotNull(TEXT("production authority exists"), Authority))
+    {
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ProgrammeId);
+        DestroyWorld(World);
+        return false;
+    }
+
+    Authority->SetDepartmentCommissioned(ELBOneFactoryDepartment::Press, true, Reason);
+    FName UnitId;
+    const bool bCreated = Authority->CreateVehicleOrder(TEXT("NORTHSTAR-ORDER-0001"), ProgrammeId,
+        TEXT("PAINT-NORTHSTAR-DEV"), TEXT("NORTHSTAR-DEV"), TEXT("COIL-NORTHSTAR-0001"),
+        TEXT("PRESS-INBOUND"), UnitId, Reason);
+    TestTrue(TEXT("a registered additional programme can enter the shared production line"), bCreated);
+    const FLBOneFactoryProductionLedgerState Ledger = Authority->CaptureLedger();
+    const FLBOneFactoryVehicleUnitState* Unit = Ledger.Units.FindByPredicate([UnitId](const FLBOneFactoryVehicleUnitState& Row)
+        { return Row.UnitId == UnitId; });
+    TestNotNull(TEXT("the additional programme creates a unit"), Unit);
+    if (Unit)
+    {
+        TestEqual(TEXT("the unit retains the programme identity"), Unit->VehicleModelId, ProgrammeId);
+        TestEqual(TEXT("the unit freezes the programme recipe revision at order entry"),
+            Unit->VehicleRecipeRevisionId, Programme.RecipeRevisionId);
+        TestEqual(TEXT("the unit captures exactly the new programme BOM"), Unit->RequiredPanelTypeIds.Num(), 2);
+        TestTrue(TEXT("the captured BOM contains the programme hood"),
+            Unit->RequiredPanelTypeIds.Contains(TEXT("NORTHSTAR_ORDER_HOOD")));
+        TestTrue(TEXT("the captured BOM contains the programme tailgate"),
+            Unit->RequiredPanelTypeIds.Contains(TEXT("NORTHSTAR_ORDER_TAILGATE")));
+    }
+
+    // A later art/BOM revision is a new programme authority, not permission to
+    // mutate vehicles that already entered the factory under V001.
+    FLBVehicleModelRecipe RevisedProgramme = Programme;
+    RevisedProgramme.RecipeRevisionId = TEXT("NORTHSTAR_ORDER_RECIPE_V002");
+    RevisedProgramme.RequiredPanels = {
+        { TEXT("NORTHSTAR_ORDER_V002_HOOD"), TEXT("Northstar revised hood"),
+            ELBPanelHandedness::None, 10, FVector(160.0f, 140.0f, 20.0f), NAME_None }
+    };
+    TestTrue(TEXT("the original programme can be replaced by a later recipe revision"),
+        LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ProgrammeId));
+    TestTrue(TEXT("the later recipe revision registers under the stable model ID"),
+        LBVehicleModelCatalog::RegisterDevelopmentRecipe(RevisedProgramme, Reason));
+    TestTrue(TEXT("the V001 vehicle ledger remains valid after the catalogue advances"),
+        ULBOneFactoryProductionFlowLibrary::ValidateLedger(Ledger, Reason));
+
+    LBVehicleModelCatalog::UnregisterDevelopmentRecipe(ProgrammeId);
+    DestroyWorld(World);
+    return bCreated && Unit != nullptr;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBOneFactoryProductionRuntimeGateTest,
@@ -111,13 +201,13 @@ bool FLBOneFactoryProductionRuntimeGateTest::RunTest(const FString& Parameters)
     FString Reason;
     FName UnitId;
     TestFalse(TEXT("Uncommissioned Press rejects orders"),
-        Authority->CreateVehicleOrder(TEXT("ORDER-GATE"), TEXT("CAIRNWELL-2040"),
+        Authority->CreateVehicleOrder(TEXT("ORDER-GATE"), TEXT("CAIRNWELL_2040"),
             TEXT("PAINT-RED"), TEXT("SIGNAL-RED"), TEXT("COIL-GATE"),
             TEXT("PRESS-INBOUND"), UnitId, Reason));
 
     Authority->SetDepartmentCommissioned(ELBOneFactoryDepartment::Press, true, Reason);
     TestTrue(TEXT("Commissioned Press accepts order"),
-        Authority->CreateVehicleOrder(TEXT("ORDER-GATE"), TEXT("CAIRNWELL-2040"),
+        Authority->CreateVehicleOrder(TEXT("ORDER-GATE"), TEXT("CAIRNWELL_2040"),
             TEXT("PAINT-RED"), TEXT("SIGNAL-RED"), TEXT("COIL-GATE"),
             TEXT("PRESS-INBOUND"), UnitId, Reason));
     Authority->SetLinePaused(true, Reason);
@@ -163,7 +253,7 @@ bool FLBOneFactoryProductionSaveRollbackTest::RunTest(const FString& Parameters)
     FString Reason;
     CommissionAll(*Source, Reason);
     FName UnitId;
-    Source->CreateVehicleOrder(TEXT("ORDER-SAVE"), TEXT("CAIRNWELL-2040"),
+    Source->CreateVehicleOrder(TEXT("ORDER-SAVE"), TEXT("CAIRNWELL_2040"),
         TEXT("PAINT-AURORA"), TEXT("AURORA-BLUE"), TEXT("COIL-SAVE"),
         TEXT("PRESS-INBOUND"), UnitId, Reason);
     for (int32 Step = 0; Step < 6; ++Step)

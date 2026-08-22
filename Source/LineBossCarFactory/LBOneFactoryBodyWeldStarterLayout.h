@@ -125,6 +125,14 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryBodyWeldStationState
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     float NominalCycleSeconds = 0.0f;
 
+    /**
+     * Optional named sub-assembly cell inside this BIW station.  Closure
+     * work remains on the same physical route but doors must not be confused
+     * with the bonnet/tailgate build-up before final body marriage.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    FName SubassemblyCellId = NAME_None;
+
     /** Any live or reserved unit blocks configuration and commissioning. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     TArray<FName> ActiveOrReservedUnitIds;

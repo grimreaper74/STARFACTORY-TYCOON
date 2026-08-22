@@ -348,7 +348,6 @@ public:
     bool RestoreSaveState(const FLBBodyWeldLineSaveState& State);
 
 private:
-    static constexpr int32 ExpectedPanelFamilyCount = 11;
     static constexpr int32 MaximumPendingEmptyReturns = 32;
     static constexpr float ClosurePreparationDurationSeconds = 5.0f;
     static constexpr float FramingDurationSeconds = 6.0f;
@@ -437,6 +436,9 @@ private:
     void RefreshOperatingState();
     void RefreshPresentation();
     bool FindFirstMissingRecipeItem(FString& OutReason) const;
+    bool FindFirstMissingRecipeItemForModel(FName ModelId, FString& OutReason) const;
+    bool ResolveReservableModel(FName& OutModelId, TArray<FName>& OutPanelFamilies,
+        FName& OutBaseKitTypeId, FString& OutReason) const;
     bool ValidateActiveReservationReferences(bool bExpectConsumed) const;
     bool WouldCommitOverflowEmptyReturnQueue() const;
     void SetFault(FName Reason);
