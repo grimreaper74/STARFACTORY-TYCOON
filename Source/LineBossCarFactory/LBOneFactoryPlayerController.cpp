@@ -27,6 +27,25 @@ DEFINE_LOG_CATEGORY_STATIC(LogLineBossOneFactoryPlayer, Display, All);
 
 namespace LBOneFactoryPlayerPrivate
 {
+    const FName RooflessPresentationTag(
+        TEXT("LB.PressShop.RooflessPresentation.v002"));
+
+    bool HasRooflessPresentationMarker(const UWorld* World)
+    {
+        if (!World)
+        {
+            return false;
+        }
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            if (IsValid(*It) && It->Tags.Contains(RooflessPresentationTag))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * The three quality gates are real work positions on the canonical route,
      * not generic scenery.  Keeping the scanner placement derived from that
@@ -469,7 +488,13 @@ void ALBOneFactoryPlayerController::EnsureSitePresentation()
         // 2200 cm eaves: the restored shop's wide-span trusses hang at
         // 1740 cm with their top chords near 2000, so a 1400 wall left the
         // whole roof zone floating against void.
-        Envelope->BuildFromRoute(6000.0, 2200.0, StepReason);
+        // The presentation candidate owns a saved semantic promise that it is
+        // roofless. Honour that promise in the runtime envelope rather than
+        // asking a capture script to mutate visibility after startup.
+        const bool bIncludeRoofDecks =
+            !LBOneFactoryPlayerPrivate::HasRooflessPresentationMarker(World);
+        Envelope->BuildFromRouteWithRoofPolicy(6000.0, 2200.0,
+            bIncludeRoofDecks, StepReason);
     }
 
     ALBOneFactoryDevStationDressingActor* Dressing = nullptr;
@@ -515,16 +540,16 @@ void ALBOneFactoryPlayerController::EnsureSitePresentation()
 
     ULBOneFactoryDevFactory::SetRoofHidden(this, true, 900.0, StepReason);
 
-    // The detailed press train now stands at the ConfigurablePressTrain
-    // station, so the 268-primitive press blockout must no longer render,
-    // exactly as the detailed-press recovery design specifies. Visibility
-    // only; LB.OneFactory.PressBlockout 1 restores it.
+    // The legacy imported press scenery has been retired above. Keep the
+    // curated native S01-S07 presentation visible: an older recovery rule
+    // hid every press actor here, which also hid the real train after it had
+    // been configured successfully.
     for (TActorIterator<ALBOneFactoryPressStarterPresentationActor> It(World);
         It; ++It)
     {
         if (IsValid(*It))
         {
-            It->SetActorHiddenInGame(true);
+            It->SetActorHiddenInGame(false);
         }
     }
     ULBOneFactoryDevFactory::EnsureDevLighting(this, 9.0f, StepReason);

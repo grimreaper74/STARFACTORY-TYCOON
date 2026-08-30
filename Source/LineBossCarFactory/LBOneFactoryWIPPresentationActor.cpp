@@ -3,8 +3,10 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactoryRuntimeRegistrySubsystem.h"
+#include "LBPressShopOverheadPresentationActor.h"
 #include "LBVehiclePanelCatalog.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -12,6 +14,8 @@
 
 namespace LBOneFactoryWIPPresentationPrivate
 {
+    constexpr double OverheadPresentationRediscoverySeconds = 1.0;
+
     constexpr int32 VisualCount =
         static_cast<int32>(ELBOneFactoryWIPVisual::FinishedCar) + 1;
 
@@ -208,6 +212,56 @@ bool ALBOneFactoryWIPPresentationActor::SupportsVehicleModel(const FName Vehicle
     return VehicleModelId == LBCairnwell2040PanelCatalog::GetVehicleModelId();
 }
 
+bool ALBOneFactoryWIPPresentationActor::
+    IsOverheadPressPresentationAuthoritative(
+        const ALBPressShopOverheadPresentationActor* Presentation)
+{
+    return IsValid(Presentation) && Presentation->IsPresentationEnabled()
+        && !Presentation->IsActorBeingDestroyed()
+        && !Presentation->IsHidden();
+}
+
+bool ALBOneFactoryWIPPresentationActor::
+    HasEnabledOverheadPressPresentation(UWorld* World)
+{
+    using namespace LBOneFactoryWIPPresentationPrivate;
+    if (!World) return false;
+
+    ALBPressShopOverheadPresentationActor* Cached =
+        CachedOverheadPressPresentation.Get();
+    if (IsOverheadPressPresentationAuthoritative(Cached))
+    {
+        // Enable/disable is deliberately checked every frame so the generic
+        // Press WIP returns immediately when the overhead view is switched.
+        return true;
+    }
+
+    const double WorldSeconds = World->GetTimeSeconds();
+    if (WorldSeconds < NextOverheadPresentationDiscoverySeconds)
+    {
+        return false;
+    }
+    NextOverheadPresentationDiscoverySeconds =
+        WorldSeconds + OverheadPresentationRediscoverySeconds;
+
+    ALBPressShopOverheadPresentationActor* FirstValid =
+        IsValid(Cached) && !Cached->IsActorBeingDestroyed() ? Cached : nullptr;
+    for (TActorIterator<ALBPressShopOverheadPresentationActor> It(World); It;
+        ++It)
+    {
+        ALBPressShopOverheadPresentationActor* Candidate = *It;
+        if (!IsValid(Candidate) || Candidate->IsActorBeingDestroyed()) continue;
+        if (!FirstValid) FirstValid = Candidate;
+        if (IsOverheadPressPresentationAuthoritative(Candidate))
+        {
+            CachedOverheadPressPresentation = Candidate;
+            return true;
+        }
+    }
+    CachedOverheadPressPresentation = FirstValid;
+    return false;
+}
+
 ELBOneFactoryWIPVisual ALBOneFactoryWIPPresentationActor::VisualForStage(
     const ELBOneFactoryVehicleStage Stage)
 {
@@ -218,6 +272,7 @@ ELBOneFactoryWIPVisual ALBOneFactoryWIPPresentationActor::VisualForStage(
         return ELBOneFactoryWIPVisual::Coil;
 
     case ELBOneFactoryVehicleStage::Pressing:
+    case ELBOneFactoryVehicleStage::PressPanelInspection:
     case ELBOneFactoryVehicleStage::PressedPanelStillage:
         return ELBOneFactoryWIPVisual::PanelStack;
 
@@ -520,6 +575,20 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
 
     const FLBOneFactoryProductionLedgerState Ledger = Production->CaptureLedger();
 
+    // The isolated 2126 overhead controller owns Press WIP only while its
+    // presentation is explicitly enabled. A typed weak reference makes the
+    // steady-state check O(1); absent controllers are rediscovered at most
+    // once per second rather than by an untyped full-world scan every frame.
+    const bool bOverheadPressPresentationActive =
+        HasEnabledOverheadPressPresentation(World);
+    const auto IsOwnedByOverheadPressPresentation =
+        [bOverheadPressPresentationActive](
+            const FLBOneFactoryVehicleUnitState& Unit)
+        {
+            return bOverheadPressPresentationActive
+                && Unit.Department == ELBOneFactoryDepartment::Press;
+        };
+
     // Membership signature: which unit is drawn in which batch. A unit changes
     // batch only when it earns a new stage, so this changes rarely. Position
     // changes every frame and is handled by updating transforms in place - an
@@ -527,7 +596,7 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
     uint32 Signature = static_cast<uint32>(Route.Num());
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
-        if (Unit.bDispatched
+        if (IsOwnedByOverheadPressPresentation(Unit) || Unit.bDispatched
             || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
         {
             continue;
@@ -598,7 +667,7 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
         int32 UnsupportedUnitCount = 0;
         for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
         {
-            if (Unit.bDispatched
+            if (IsOwnedByOverheadPressPresentation(Unit) || Unit.bDispatched
                 || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
             {
                 continue;
@@ -634,7 +703,7 @@ bool ALBOneFactoryWIPPresentationActor::RefreshFromLedger(FString& OutReason)
     for (const FLBOneFactoryVehicleUnitState& Unit : Ledger.Units)
     {
         // A dispatched car has left the building; it is no longer on the line.
-        if (Unit.bDispatched
+        if (IsOwnedByOverheadPressPresentation(Unit) || Unit.bDispatched
             || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
         {
             continue;

@@ -6,28 +6,35 @@
 #include "LBOneFactoryTypes.h"
 #include "LBOneFactoryProductionFlow.generated.h"
 
+class ALBOneFactoryRuntimeCoordinator;
+
 /** One logical vehicle identity from allocated coil through customer dispatch. */
 UENUM(BlueprintType)
 enum class ELBOneFactoryVehicleStage : uint8
 {
-    InboundCoil,
-    BlankPreparation,
-    Pressing,
-    PressedPanelStillage,
-    BodyFraming,
-    BodyInWhite,
-    BodyQualityInspection,
-    Pretreatment,
-    EDCoat,
-    ColourCoat,
-    Cure,
-    PaintQualityInspection,
-    GeneralAssemblyTrim,
-    PowertrainMarriage,
-    RollingChassis,
-    EndOfLineInspection,
-    FinishedVehicle,
-    Dispatched
+    // These explicit values are part of the V001 save contract. Never reorder
+    // or renumber them: serialized genealogy stores this enum as a uint8.
+    InboundCoil = 0,
+    BlankPreparation = 1,
+    Pressing = 2,
+    PressedPanelStillage = 3,
+    BodyFraming = 4,
+    BodyInWhite = 5,
+    BodyQualityInspection = 6,
+    Pretreatment = 7,
+    EDCoat = 8,
+    ColourCoat = 9,
+    Cure = 10,
+    PaintQualityInspection = 11,
+    GeneralAssemblyTrim = 12,
+    PowertrainMarriage = 13,
+    RollingChassis = 14,
+    EndOfLineInspection = 15,
+    FinishedVehicle = 16,
+    Dispatched = 17,
+
+    /** Added append-only for the V002 Press route; old ordinals stay intact. */
+    PressPanelInspection = 18
 };
 
 /** Current decision at the active quality gate. Prior evidence remains in the ledger. */
@@ -155,6 +162,15 @@ struct LINEBOSSCARFACTORY_API FLBOneFactoryVehicleUnitState
     /** Hash of station order, assignments, programmes and nominal cycles. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     FName RuntimeTopologyId = NAME_None;
+
+    /**
+     * Persisted semantic route profile.  Zero is the additive default read
+     * from pre-V002 saves and is conservatively resolved as V001 while the
+     * unit is active, unless its saved topology or append-only stage proves
+     * V002.  New work is stamped with the current profile before admission.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
+    int32 RouteProfileVersion = 0;
 
     /** Exact configured work assignment at the occupied physical position. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
@@ -316,6 +332,10 @@ class LINEBOSSCARFACTORY_API ULBOneFactoryProductionFlowLibrary :
     GENERATED_BODY()
 
 public:
+    static constexpr int32 UnversionedRouteProfile = 0;
+    static constexpr int32 LegacyRouteProfileV001 = 1;
+    static constexpr int32 PressInspectionRouteProfileV002 = 2;
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Production")
     static FLBOneFactoryProductionLedgerState MakeEmptyLedger();
 
@@ -333,6 +353,15 @@ public:
 
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Production")
     static bool IsQualityGate(ELBOneFactoryVehicleStage InStage);
+
+    /**
+     * Resolves additive pre-V002 saves without rewriting them on load.
+     * Explicit profile wins; otherwise topology and the append-only Press
+     * inspection stage are used as proof, with all ambiguous active/manual
+     * genealogy remaining V001 until it reaches a terminal state.
+     */
+    static int32 ResolveRouteProfileVersion(
+        const FLBOneFactoryVehicleUnitState& Unit);
 
     /**
      * Deterministic defect suspicion: a unit-id hash against fleet wear.
@@ -434,9 +463,20 @@ public:
     static FName GetAuthorityTag();
 
 private:
+    friend class ALBOneFactoryRuntimeCoordinator;
+
     UPROPERTY(VisibleInstanceOnly, SaveGame,
         Category="Line Boss|OneFactory|Production")
     FLBOneFactoryProductionLedgerState CurrentState;
+
+    /** Coordinator-only path; direct/manual callers cannot claim routed mode. */
+    bool CreateRoutedVehicleOrder(FName BuildOrderId, FName VehicleModelId,
+        FName PaintProgrammeId, FName PaintColourId, FName SourceCoilLotId,
+        FName InboundStationId, FName& OutUnitId, FString& OutReason);
+    bool CreateVehicleOrderInternal(FName BuildOrderId, FName VehicleModelId,
+        FName PaintProgrammeId, FName PaintColourId, FName SourceCoilLotId,
+        FName InboundStationId, bool bRoutedAdmission, FName& OutUnitId,
+        FString& OutReason);
 
     FLBOneFactoryVehicleUnitState* FindUnit(FName UnitId);
     const FLBOneFactoryVehicleUnitState* FindUnit(FName UnitId) const;

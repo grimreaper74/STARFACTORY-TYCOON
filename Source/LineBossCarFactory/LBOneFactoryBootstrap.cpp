@@ -14,8 +14,12 @@ namespace LBOneFactoryBootstrapPrivate
 {
     bool ContainsForbiddenPresentationToken(const FString& Value)
     {
-        return Value.Contains(TEXT("Meshy"), ESearchCase::IgnoreCase)
-            || Value.Contains(TEXT("ExternalGenerated"), ESearchCase::IgnoreCase);
+        // RETIRED 2026-08-24 (spacecraft pivot): the generator-name ban
+        // ("Meshy"/"ExternalGenerated" substrings) is lifted - generated
+        // assets are judged by their recorded provenance, not their name.
+        // See SPACECRAFT_PIVOT_AUTHORITY_v001.md and the reversal plan.
+        (void)Value;
+        return false;
     }
 
     bool HasTagPrefix(const AActor& Actor, const TCHAR* Prefix)
@@ -100,7 +104,6 @@ bool ALBOneFactoryBootstrap::ActorIsForbiddenLegacyFixture(const AActor& Actor)
     if (LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.Legacy"))
         || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.VisualQA"))
         || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.Visual.QA"))
-        || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.Meshy"))
         || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.Vehicle.CoilAGV"))
         || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor, TEXT("LB.Inbound.Visual.Lorry"))
         || LBOneFactoryBootstrapPrivate::HasTagPrefix(Actor,
@@ -117,7 +120,6 @@ bool ALBOneFactoryBootstrap::ActorIsForbiddenLegacyFixture(const AActor& Actor)
     const FString ActorIdentity = Actor.GetName() + TEXT(" ") + Actor.GetActorNameOrLabel();
     return ActorIdentity.Contains(TEXT("FallbackFloor"), ESearchCase::IgnoreCase)
         || ActorIdentity.Contains(TEXT("VisualQA"), ESearchCase::IgnoreCase)
-        || ActorIdentity.Contains(TEXT("Meshy"), ESearchCase::IgnoreCase)
         || ActorIdentity.Contains(TEXT("Lorry"), ESearchCase::IgnoreCase);
 }
 
@@ -217,6 +219,9 @@ FLBOneFactoryWorldAudit ALBOneFactoryBootstrap::AuditWorld(UWorld* World)
         if (ActorUsesForbiddenProvenance(*Actor, ForbiddenReference))
         {
             ++Audit.ForbiddenProvenanceActorCount;
+            UE_LOG(LogTemp, Warning,
+                TEXT("ONEFACTORY FORBIDDEN PROVENANCE: %s (%s)"),
+                *Actor->GetActorNameOrLabel(), *ForbiddenReference);
         }
     }
 

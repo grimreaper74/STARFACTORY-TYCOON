@@ -80,6 +80,12 @@ namespace LBOneFactoryHUDPrivate
 
     int32 GroupIndexForStage(const ELBOneFactoryVehicleStage Stage)
     {
+        // PressPanelInspection was appended at ordinal 18 to preserve every
+        // serialized V001 value; it still belongs to the Press process group.
+        if (Stage == ELBOneFactoryVehicleStage::PressPanelInspection)
+        {
+            return 1;
+        }
         const uint8 Value = static_cast<uint8>(Stage);
         for (int32 Index = 0; Index < GroupCount; ++Index)
         {

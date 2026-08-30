@@ -10,6 +10,36 @@
 namespace LBOneFactoryRuntimeCoordinatorPrivate
 {
     constexpr float CycleToleranceSeconds = 0.001f;
+    constexpr int32 PressPanelInspectionRouteIndex = 5;
+
+    /**
+     * Runtime route versions are deliberately independent of the save schema.
+     * Routed units persist an exact topology id; manual units persist the
+     * additive route-profile field. Pre-V002 zero/default manual genealogy is
+     * conservatively V001, so all active V001 work drains before V002 admits.
+     */
+    enum class ERouteProfile : uint8
+    {
+        LegacyV001,
+        PressInspectionV002
+    };
+
+    /**
+     * Exact topology written by the released pre-relocation V001 route.
+     * This is an input-only migration alias: MakeTopologyId still computes
+     * the identity of the current physical route and never emits this value.
+     */
+    const FName& FrozenPersistedV001TopologyAlias()
+    {
+        static const FName Alias(
+            TEXT("OF_RUNTIME_TOPOLOGY_V001_C9F61F4B"));
+        return Alias;
+    }
+
+    bool IsFrozenPersistedV001TopologyAlias(const FName TopologyId)
+    {
+        return TopologyId == FrozenPersistedV001TopologyAlias();
+    }
 
     struct FAuthorities
     {
@@ -105,6 +135,16 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
     {
         return Unit.Stage == ELBOneFactoryVehicleStage::Dispatched
             || Unit.QualityState == ELBOneFactoryVehicleQualityState::Scrapped;
+    }
+
+    bool HasActiveManualWIP(
+        const FLBOneFactoryProductionLedgerState& Ledger)
+    {
+        return Ledger.Units.ContainsByPredicate([](
+            const FLBOneFactoryVehicleUnitState& Unit)
+            {
+                return !IsTerminal(Unit) && Unit.RuntimeStationCursor < 0;
+            });
     }
 
     FName PaintColourId(const ELBOneFactoryPaintColour Colour)
@@ -219,10 +259,28 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
         return INDEX_NONE;
     }
 
-    FName MakeTopologyId(
-        const TArray<FLBOneFactoryRuntimeStationStep>& Route)
+    void ApplyPressRouteProfile(
+        TArray<FLBOneFactoryRuntimeStationStep>& Route,
+        const ERouteProfile Profile)
     {
-        FString Contract(TEXT("ONEFACTORY_RUNTIME_ROUTE_V001"));
+        check(Route.IsValidIndex(PressPanelInspectionRouteIndex));
+        FLBOneFactoryRuntimeStationStep& Inspection =
+            Route[PressPanelInspectionRouteIndex];
+        Inspection.SemanticStage = Profile == ERouteProfile::LegacyV001
+            ? ELBOneFactoryVehicleStage::Pressing
+            : ELBOneFactoryVehicleStage::PressPanelInspection;
+        Inspection.bQualityGate = Profile ==
+            ERouteProfile::PressInspectionV002;
+    }
+
+    FName MakeTopologyId(
+        const TArray<FLBOneFactoryRuntimeStationStep>& Route,
+        const ERouteProfile Profile)
+    {
+        const bool bLegacy = Profile == ERouteProfile::LegacyV001;
+        FString Contract(bLegacy
+            ? TEXT("ONEFACTORY_RUNTIME_ROUTE_V001")
+            : TEXT("ONEFACTORY_RUNTIME_ROUTE_V002"));
         for (const FLBOneFactoryRuntimeStationStep& Step : Route)
         {
             const FVector Location = Step.WorldTransform.GetLocation();
@@ -236,8 +294,56 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
                 Step.bQualityGate ? 1 : 0, Location.X, Location.Y, Location.Z,
                 Rotation.Yaw);
         }
-        return FName(*FString::Printf(TEXT("OF_RUNTIME_TOPOLOGY_V001_%08X"),
-            FCrc::StrCrc32(*Contract)));
+        const uint32 ContractCrc = FCrc::StrCrc32(*Contract);
+        if (bLegacy)
+        {
+            return FName(*FString::Printf(
+                TEXT("OF_RUNTIME_TOPOLOGY_V001_%08X"), ContractCrc));
+        }
+        return FName(*FString::Printf(
+            TEXT("OF_RUNTIME_TOPOLOGY_V002_%08X"), ContractCrc));
+    }
+
+    bool IsLegacyRouteTopology(const FName TopologyId)
+    {
+        return TopologyId.ToString().StartsWith(
+            TEXT("OF_RUNTIME_TOPOLOGY_V001_"));
+    }
+
+    bool IsAllowedLegacyRoutedTopology(const FName SavedTopologyId,
+        const FName ComputedLegacyTopologyId)
+    {
+        return SavedTopologyId == ComputedLegacyTopologyId
+            || IsFrozenPersistedV001TopologyAlias(SavedTopologyId);
+    }
+
+    void NormalizeFrozenV001TopologyAliasForMutation(
+        FLBOneFactoryProductionLedgerState& Ledger,
+        const FName MutatedUnitId,
+        const FName ComputedSelectedTopologyId)
+    {
+        if (!IsLegacyRouteTopology(ComputedSelectedTopologyId)) return;
+        FLBOneFactoryVehicleUnitState* Unit = Ledger.Units.FindByPredicate(
+            [MutatedUnitId](const FLBOneFactoryVehicleUnitState& Candidate)
+            { return Candidate.UnitId == MutatedUnitId; });
+        if (!Unit || Unit->RuntimeStationCursor < 0
+            || ULBOneFactoryProductionFlowLibrary::
+                ResolveRouteProfileVersion(*Unit)
+                != ULBOneFactoryProductionFlowLibrary::
+                    LegacyRouteProfileV001)
+        {
+            return;
+        }
+        if (IsFrozenPersistedV001TopologyAlias(Unit->RuntimeTopologyId))
+        {
+            Unit->RuntimeTopologyId = ComputedSelectedTopologyId;
+        }
+        if (Unit->RouteProfileVersion ==
+            ULBOneFactoryProductionFlowLibrary::UnversionedRouteProfile)
+        {
+            Unit->RouteProfileVersion = ULBOneFactoryProductionFlowLibrary::
+                LegacyRouteProfileV001;
+        }
     }
 
     bool BuildRoute(const FSnapshots& State,
@@ -270,7 +376,7 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
             ELBOneFactoryVehicleStage::BlankPreparation,
             ELBOneFactoryVehicleStage::BlankPreparation,
             ELBOneFactoryVehicleStage::Pressing,
-            ELBOneFactoryVehicleStage::Pressing,
+            ELBOneFactoryVehicleStage::PressPanelInspection,
             ELBOneFactoryVehicleStage::PressedPanelStillage
         };
         for (int32 Index = 0; Index < 7; ++Index)
@@ -295,7 +401,7 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
             AddStep(OutRoute, ELBOneFactoryDepartment::Press,
                 Station->StationId, Station->WorldTransform, WorkIds,
                 TEXT("PRESS_ASSIGNMENT"), PressCycles[Index],
-                PressStages[Index], false);
+                PressStages[Index], Index == PressPanelInspectionRouteIndex);
         }
 
         const int32 BodyMarriagePosition = FindBodyProgrammePosition(State.Body,
@@ -430,8 +536,93 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
             OutRoute.Reset();
             return false;
         }
-        OutTopologyId = MakeTopologyId(OutRoute);
-        OutReason = TEXT("ONEFACTORY CONFIGURED 57-STATION ROUTE VALID");
+        const FName CurrentTopologyId = MakeTopologyId(OutRoute,
+            ERouteProfile::PressInspectionV002);
+        TArray<FLBOneFactoryRuntimeStationStep> LegacyRoute = OutRoute;
+        ApplyPressRouteProfile(LegacyRoute, ERouteProfile::LegacyV001);
+        const FName LegacyTopologyId = MakeTopologyId(LegacyRoute,
+            ERouteProfile::LegacyV001);
+
+        ERouteProfile SelectedProfile = ERouteProfile::PressInspectionV002;
+        bool bActiveProfileSelected = false;
+        bool bHasActiveManualMode = false;
+        bool bHasActiveRoutedMode = false;
+        for (const FLBOneFactoryVehicleUnitState& Unit : State.Ledger.Units)
+        {
+            if (IsTerminal(Unit)) continue;
+
+            bHasActiveManualMode |= Unit.RuntimeStationCursor < 0;
+            bHasActiveRoutedMode |= Unit.RuntimeStationCursor >= 0;
+            if (bHasActiveManualMode && bHasActiveRoutedMode)
+            {
+                OutReason = TEXT(
+                    "ONEFACTORY RUNTIME CANNOT MIX ACTIVE MANUAL AND ROUTED WIP");
+                OutRoute.Reset();
+                return false;
+            }
+
+            ERouteProfile UnitProfile;
+            const int32 PersistedProfile =
+                ULBOneFactoryProductionFlowLibrary::
+                    ResolveRouteProfileVersion(Unit);
+            if (PersistedProfile == ULBOneFactoryProductionFlowLibrary::
+                    LegacyRouteProfileV001)
+            {
+                UnitProfile = ERouteProfile::LegacyV001;
+            }
+            else if (PersistedProfile == ULBOneFactoryProductionFlowLibrary::
+                    PressInspectionRouteProfileV002)
+            {
+                UnitProfile = ERouteProfile::PressInspectionV002;
+            }
+            else
+            {
+                OutReason = FString::Printf(
+                    TEXT("ONEFACTORY RUNTIME ROUTE PROFILE IS INVALID FOR ACTIVE UNIT %s"),
+                    *Unit.UnitId.ToString());
+                OutRoute.Reset();
+                return false;
+            }
+
+            // Manual genealogy has no physical topology. Routed WIP must
+            // still prove the exact topology for the profile inferred above.
+            if (Unit.RuntimeStationCursor >= 0
+                && ((UnitProfile == ERouteProfile::LegacyV001
+                        && !IsAllowedLegacyRoutedTopology(
+                            Unit.RuntimeTopologyId, LegacyTopologyId))
+                    || (UnitProfile == ERouteProfile::PressInspectionV002
+                        && Unit.RuntimeTopologyId != CurrentTopologyId)))
+            {
+                OutReason = FString::Printf(
+                    TEXT("ONEFACTORY RUNTIME TOPOLOGY DRIFTED FOR ACTIVE UNIT %s"),
+                    *Unit.UnitId.ToString());
+                OutRoute.Reset();
+                return false;
+            }
+            if (bActiveProfileSelected && UnitProfile != SelectedProfile)
+            {
+                OutReason = TEXT(
+                    "ONEFACTORY RUNTIME CANNOT MIX ACTIVE V001 AND V002 ROUTE PROFILES");
+                OutRoute.Reset();
+                return false;
+            }
+            SelectedProfile = UnitProfile;
+            bActiveProfileSelected = true;
+        }
+
+        if (SelectedProfile == ERouteProfile::LegacyV001)
+        {
+            OutRoute = MoveTemp(LegacyRoute);
+            OutTopologyId = LegacyTopologyId;
+            OutReason = TEXT(
+                "ONEFACTORY LEGACY V001 ROUTE VALID; ACTIVE ROUTED OR MANUAL WIP MUST DRAIN BEFORE V002 ADMISSION");
+        }
+        else
+        {
+            OutTopologyId = CurrentTopologyId;
+            OutReason = TEXT(
+                "ONEFACTORY CONFIGURED 57-STATION V002 ROUTE WITH PRESS QUALITY GATE VALID");
+        }
         return true;
     }
 
@@ -555,17 +746,51 @@ namespace LBOneFactoryRuntimeCoordinatorPrivate
                     State.Ledger, StationByUnit, DepartmentByUnit, OutReason))
                 return false;
 
+        // A terminal unit is durable genealogy, not live WIP. After the last
+        // V001 unit drains, the line selects V002, but the dispatched/scrapped
+        // record must remain valid under the unchanged physical layout. The
+        // computed companion and the single frozen pre-relocation V001 alias
+        // are accepted; every other claimed topology remains fail-closed.
+        TArray<FLBOneFactoryRuntimeStationStep> CompanionRoute = Route;
+        const ERouteProfile CompanionProfile = IsLegacyRouteTopology(TopologyId)
+            ? ERouteProfile::PressInspectionV002
+            : ERouteProfile::LegacyV001;
+        ApplyPressRouteProfile(CompanionRoute, CompanionProfile);
+        const FName CompanionTopologyId = MakeTopologyId(
+            CompanionRoute, CompanionProfile);
+
+        const bool bSelectedLegacy = IsLegacyRouteTopology(TopologyId);
+        const FName ComputedLegacyTopologyId = bSelectedLegacy
+            ? TopologyId : CompanionTopologyId;
+        const FName ComputedCurrentTopologyId = bSelectedLegacy
+            ? CompanionTopologyId : TopologyId;
+
         for (const FLBOneFactoryVehicleUnitState& Unit : State.Ledger.Units)
         {
             if (Unit.RuntimeStationCursor < 0) continue;
-            if (Unit.RuntimeTopologyId != TopologyId)
+            const bool bTerminal = IsTerminal(Unit);
+            const int32 ResolvedProfile =
+                ULBOneFactoryProductionFlowLibrary::
+                    ResolveRouteProfileVersion(Unit);
+            const bool bLegacyProfile = ResolvedProfile ==
+                ULBOneFactoryProductionFlowLibrary::LegacyRouteProfileV001;
+            const bool bCurrentProfile = ResolvedProfile ==
+                ULBOneFactoryProductionFlowLibrary::
+                    PressInspectionRouteProfileV002;
+            const bool bTopologyAllowed = bLegacyProfile
+                ? IsAllowedLegacyRoutedTopology(Unit.RuntimeTopologyId,
+                    ComputedLegacyTopologyId)
+                : bCurrentProfile
+                    && Unit.RuntimeTopologyId == ComputedCurrentTopologyId;
+            if (!bTopologyAllowed
+                || (!bTerminal && bLegacyProfile != bSelectedLegacy))
             {
                 OutReason = FString::Printf(
                     TEXT("ONEFACTORY RUNTIME TOPOLOGY DRIFTED FOR UNIT %s"),
                     *Unit.UnitId.ToString());
                 return false;
             }
-            if (IsTerminal(Unit))
+            if (bTerminal)
             {
                 if (StationByUnit.Contains(Unit.UnitId))
                 {
@@ -929,6 +1154,18 @@ bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrderInternal(
     if (!BuildRoute(RollbackState, Route, TopologyId, OutReason)
         || !ValidateComposite(RollbackState, Route, TopologyId, OutReason))
         return false;
+    if (IsLegacyRouteTopology(TopologyId))
+    {
+        OutReason = TEXT(
+            "ONEFACTORY V002 ADMISSION HOLD: ACTIVE V001 ROUTE WIP MUST DRAIN FIRST (INCLUDING UNVERSIONED MANUAL GENEALOGY)");
+        return false;
+    }
+    if (HasActiveManualWIP(RollbackState.Ledger))
+    {
+        OutReason = TEXT(
+            "ONEFACTORY V002 ROUTED ADMISSION HOLD: ACTIVE MANUAL WIP MUST DRAIN FIRST");
+        return false;
+    }
     if (VehicleModelId != RollbackState.Body.VehicleModelId
         || PaintProgrammeId != RollbackState.Paint.PaintProgrammeId)
     {
@@ -956,7 +1193,8 @@ bool ALBOneFactoryRuntimeCoordinator::CreateRuntimeVehicleOrderInternal(
         return false;
     }
 
-    if (!Actors.Production->CreateVehicleOrder(BuildOrderId, VehicleModelId,
+    if (!Actors.Production->CreateRoutedVehicleOrder(
+            BuildOrderId, VehicleModelId,
             PaintProgrammeId, PaintColourId, SourceCoilLotId,
             Route[0].StationId, OutUnitId, OutReason))
         return false;
@@ -1007,6 +1245,21 @@ bool ALBOneFactoryRuntimeCoordinator::DispatchNextOpenContract(
     if (!BuildRoute(State, Route, TopologyId, OutReason)
         || !ValidateComposite(State, Route, TopologyId, OutReason))
         return false;
+    if (IsLegacyRouteTopology(TopologyId))
+    {
+        // This is an expected soft hold, not corruption: existing V001 work
+        // keeps advancing, while automatic dispatch cannot prolong the legacy
+        // profile by admitting another V001 unit.
+        OutReason = TEXT(
+            "ONEFACTORY AUTOMATION HOLDS NEW ADMISSION WHILE V001 ROUTE WIP DRAINS");
+        return true;
+    }
+    if (HasActiveManualWIP(State.Ledger))
+    {
+        OutReason = TEXT(
+            "ONEFACTORY AUTOMATION HOLDS NEW ROUTED ADMISSION WHILE MANUAL WIP DRAINS");
+        return true;
+    }
 
     const FName ConfiguredModelId = State.Paint.VehicleModelId;
     const FName ConfiguredPaintProgrammeId = State.Paint.PaintProgrammeId;
@@ -1095,6 +1348,8 @@ bool ALBOneFactoryRuntimeCoordinator::StartVehicle(const FName UnitId,
         return false;
     }
     Unit->bRuntimeStarted = true;
+    NormalizeFrozenV001TopologyAliasForMutation(
+        Candidate, UnitId, TopologyId);
     ++Candidate.Revision;
     if (!ApplyLedgerOnly(Actors, Current, Candidate, Route, TopologyId,
             OutReason))
@@ -1140,6 +1395,10 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
     const FLBOneFactoryRuntimeStationStep& SourceStep =
         Route[Existing->RuntimeStationCursor];
     FLBOneFactoryProductionLedgerState CandidateLedger = Current.Ledger;
+    // Normalize only the transactional candidate. A failed/no-op hold leaves
+    // the loaded alias byte-identical; the first actual commit restamps it.
+    NormalizeFrozenV001TopologyAliasForMutation(
+        CandidateLedger, UnitId, TopologyId);
     FLBOneFactoryVehicleUnitState* Unit = FindUnit(CandidateLedger, UnitId);
     check(Unit);
     const float NewElapsed = FMath::Min(Unit->RuntimeCycleDurationSeconds,
@@ -1210,6 +1469,16 @@ bool ALBOneFactoryRuntimeCoordinator::TickVehicle(const FName UnitId,
         {
             return false;
         }
+    }
+    if (Unit->RouteProfileVersion ==
+        ULBOneFactoryProductionFlowLibrary::UnversionedRouteProfile)
+    {
+        // Persist the conservative inference on the first committed runtime
+        // mutation. Merely validating/loading an old save remains read-only.
+        Unit->RouteProfileVersion = IsLegacyRouteTopology(TopologyId)
+            ? ULBOneFactoryProductionFlowLibrary::LegacyRouteProfileV001
+            : ULBOneFactoryProductionFlowLibrary::
+                PressInspectionRouteProfileV002;
     }
     ++Unit->StageRevision;
     ++Unit->RuntimeCompletedStationCount;
@@ -1585,6 +1854,8 @@ bool ALBOneFactoryRuntimeCoordinator::SubmitRuntimeQualityResult(
     FLBOneFactoryVehicleUnitState* CandidateUnit =
         FindUnit(Candidate.Ledger, UnitId);
     check(CandidateUnit);
+    NormalizeFrozenV001TopologyAliasForMutation(
+        Candidate.Ledger, UnitId, TopologyId);
     if (QualityState == ELBOneFactoryVehicleQualityState::Scrapped)
     {
         if (!RemoveReservation(Candidate,
@@ -1601,7 +1872,8 @@ bool ALBOneFactoryRuntimeCoordinator::SubmitRuntimeQualityResult(
             return false;
         }
     }
-    else if (!ValidateComposite(Candidate, Route, TopologyId, OutReason))
+    else if (!ApplyLedgerOnly(Actors, Current, Candidate.Ledger, Route,
+            TopologyId, OutReason))
     {
         FString Ignored;
         Actors.Production->RestoreLedger(Current.Ledger, Ignored);
@@ -1642,6 +1914,8 @@ bool ALBOneFactoryRuntimeCoordinator::CompleteRuntimeRework(
     FLBOneFactoryVehicleUnitState* Unit = FindUnit(Candidate, UnitId);
     check(Unit);
     Unit->RuntimeCycleElapsedSeconds = 0.0f;
+    NormalizeFrozenV001TopologyAliasForMutation(
+        Candidate, UnitId, TopologyId);
     ++Candidate.Revision;
     if (!ApplyLedgerOnly(Actors, Current, Candidate, Route, TopologyId,
             OutReason))

@@ -548,9 +548,9 @@ bool ALBOneFactoryAssemblyStarterPresentationActor::
             "ASSEMBLY PRESENTATION REQUIRES EXACTLY EIGHT AUTHORED AND TWO ENGINE REFERENCES");
         return false;
     }
+    // Generator-name tokens RETIRED 2026-08-24 (spacecraft-pivot ruling).
     static const TCHAR* ForbiddenTokens[] = {
-        TEXT("Meshy"), TEXT("RuntimeGLB"), TEXT("ExternalGenerated"),
-        TEXT("OriginalHighPoly"), TEXT("/Downloads/"),
+        TEXT("/Downloads/"),
         TEXT("/Developer/Validation/")};
     const FString AuthoredRoot = TEXT(
         "/Game/LineBoss/Candidates/AssemblyShop/AssemblyLineNativeKit_v001/");

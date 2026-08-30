@@ -800,13 +800,14 @@ bool ALBOneFactoryBodyWeldStarterPresentationActor::
     // v002 deliberately unlocks two roots that v001 forbade: the
     // BodyShopUnderbodySlice_v001 pack (clean native Blender source, frozen
     // roundtrip PASS) and the BodyWeldLine/Runtime_v001 fixture (clean-room
-    // derivative with an Unreal promotion receipt). WeldRobotRuntime is
-    // newly forbidden: its tool meshes derive from the Meshy SpotRobot
-    // intake and must never drift into this NativeOnly contract.
+    // derivative with an Unreal promotion receipt).
+    // 2026-08-24: the generator-name tokens were RETIRED (spacecraft-pivot
+    // ruling; provenance is judged by its record). WeldRobotRuntime stays
+    // excluded here because this list pins THIS contract's exact asset set,
+    // not because of its generator lineage.
     static const TCHAR* ForbiddenTokens[] =
     {
-        TEXT("Meshy"), TEXT("RuntimeGLB"), TEXT("ExternalGenerated"),
-        TEXT("OriginalHighPoly"), TEXT("/Downloads/"),
+        TEXT("/Downloads/"),
         TEXT("/Developer/Validation/"), TEXT("Robots/WeldRobotRuntime")
     };
     const FString RobotRoot = TEXT(

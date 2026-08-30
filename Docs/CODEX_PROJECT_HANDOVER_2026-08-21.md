@@ -143,3 +143,74 @@ worklog, proceed - but the hard rules above are his and fixed. When a
 delivery lands, say exactly which files changed so integration can be
 scoped; blanket refreshes are how we corrupted a mesh this week, and
 they are gone for good.
+
+## 2026-08-24 addendum — Press Shop 2126 overhead candidate
+
+Status is **validation-only and not Steam-ready**.  The exact current release
+record is in
+[`ReleaseGate/CURRENT_GAMEPLAY_STATUS.md`](ReleaseGate/CURRENT_GAMEPLAY_STATUS.md)
+and the hashes and receipts are in
+[`ReleaseGate/VALIDATION_EVIDENCE.md`](ReleaseGate/VALIDATION_EVIDENCE.md).
+
+Passed technical evidence:
+
+- The isolated v006 map is
+  `/Game/LineBoss/Candidates/PressShop/PressShop2126_OverheadPresentation_v006/Maps/LB_MoorcrossWorks_PressShop2126_OverheadPresentation_v006`,
+  SHA-256
+  `34840087dad80312c8d7d1e010489fcb277bebfee3597f831aa53d89349ef9ec`.
+  Its install receipt is SHA-256
+  `c0b76461edabd0a455e2a4b2bb47774e797d1817d2c38f3ca4d17054934d380c`;
+  the v005 source map and every protected authority/candidate map retained its
+  before/after hash.
+- Exact regular PIE passed the native-player 57-route lifecycle through 11
+  visual checkpoints: inbound and preparation, S04 contact, S06 transfer,
+  inspection hold, explicit quality PASS, palletising and outbound.  All 146
+  visual layers remained bound, the same unit identity was retained, and no
+  project content or dirty-package set changed.
+- Runtime legacy-press curation now exempts only the dedicated
+  `ALBPressShopOverheadVisualLayerActor`, so the real overhead layers survive
+  while a generic candidate actor cannot evade retirement with tags.  The
+  focused indexed test passed 1/1 with two retained synthetic-world teardown
+  warnings.
+- Four failed live-HUD attempts (`v001`–`v004`) remain preserved.  The fourth
+  produced a diagnostic 1920x1080 PNG but its receipt correctly remains FAIL:
+  the screenshot-loading flush re-entered the tick after the first request was
+  submitted; later re-entrant calls saw that request pending, returned false and
+  made the outer path report a false refusal.  The explicit `REQUESTING_CAPTURE`
+  guard is covered by 24/24 Python contract tests.
+- Successor `v005` is a technical capture PASS: regular PIE, real RHI, native
+  player/UMG, one player `PlaceOrder`, exactly one restricted UI screenshot
+  request, natural S04 `DESCENDING` press state and unchanged map/install
+  hashes.  The PNG is 1920x1080, 2,331,974 bytes, SHA-256
+  `2c062279d1324432e14a6748be41e3ea5cfe7e7a77b1c4ac5bd1260ee192e624`;
+  its receipt is SHA-256
+  `b1f1cf716fdae5111d88588b5101f0b9da4fcecdc67acb499982213de449f660`.
+
+Open blocker: the live `v005` frame fails the human visual gate.  An opaque
+building roof/upper shell fills the camera and hides the Press Shop machinery,
+contrary to the
+[`true-overhead visual authority`](PressShop/PRESS_SHOP_2126_TRUE_OVERHEAD_VISUAL_AUTHORITY_v001.md).
+Remove or runtime-hide that occluder in the scoped candidate lane and recapture
+before visual approval.  No current evidence proves cook, package, performance,
+Shipping behavior or Steam-art acceptance.
+
+### 2026-08-24 same-session successor — roof removed, sprite visibility still open
+
+The roof blocker above has now been corrected in native runtime code.  A saved
+actor carrying `LB.PressShop.RooflessPresentation.v002` makes the runtime
+envelope omit only its four department roof decks; legacy maps without that
+marker still receive four.  The focused native test
+`LineBoss.OneFactory.ActualPlayer.RooflessPresentationSkipsOnlyRoofDecks`
+passed 1/1 and proves walls, dado, clerestory and the site slab are unchanged.
+
+The next live-HUD run (`20260824T032352721491Z`, log suffix `v006`) technically
+passed again with one native request, 146 bound layers, natural S04
+`DESCENDING`, a 1920x1080 PNG and unchanged map hash.  Receipt SHA-256 is
+`bcb9db8d2d3aafbd56719c6cbbe1fcca919b29523de91b3df6896999a49801fd`;
+PNG SHA-256 is
+`7fc7376f5ae019df5a973da347e6418686269dc1109370ecb45d217a6fd97a68`.
+Human review still fails: the roof is gone, but the detailed machinery sprites
+do not render in the live frame; pads, labels and a few structural strips are
+visible.  The exact remaining depth/material/visibility cause was not proven
+before shutdown.  Resume with a read-only regular-PIE layer/depth audit; do not
+promote this frame or guess at the cause.

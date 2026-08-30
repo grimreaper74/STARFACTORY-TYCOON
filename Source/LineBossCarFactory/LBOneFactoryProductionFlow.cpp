@@ -68,8 +68,16 @@ namespace LBOneFactoryProductionFlowPrivate
 
     bool StageRequiresStampedPanelBOM(const ELBOneFactoryVehicleStage Stage)
     {
-        return static_cast<uint8>(Stage)
-            >= static_cast<uint8>(ELBOneFactoryVehicleStage::BodyFraming);
+        // PressPanelInspection is append-only (value 18) to preserve the V001
+        // serialized ordinals, so semantic ordering must not be inferred from
+        // the underlying enum value here.
+        return Stage == ELBOneFactoryVehicleStage::PressPanelInspection
+            || (static_cast<uint8>(Stage)
+                    >= static_cast<uint8>(
+                        ELBOneFactoryVehicleStage::BodyFraming)
+                && static_cast<uint8>(Stage)
+                    <= static_cast<uint8>(
+                        ELBOneFactoryVehicleStage::Dispatched));
     }
 }
 
@@ -93,6 +101,7 @@ ELBOneFactoryDepartment ULBOneFactoryProductionFlowLibrary::GetDepartmentForStag
     case ELBOneFactoryVehicleStage::InboundCoil:
     case ELBOneFactoryVehicleStage::BlankPreparation:
     case ELBOneFactoryVehicleStage::Pressing:
+    case ELBOneFactoryVehicleStage::PressPanelInspection:
     case ELBOneFactoryVehicleStage::PressedPanelStillage:
         return ELBOneFactoryDepartment::Press;
     case ELBOneFactoryVehicleStage::BodyFraming:
@@ -120,6 +129,8 @@ bool ULBOneFactoryProductionFlowLibrary::GetNextStage(
     case ELBOneFactoryVehicleStage::BlankPreparation:
         OutStage = ELBOneFactoryVehicleStage::Pressing; return true;
     case ELBOneFactoryVehicleStage::Pressing:
+        OutStage = ELBOneFactoryVehicleStage::PressPanelInspection; return true;
+    case ELBOneFactoryVehicleStage::PressPanelInspection:
         OutStage = ELBOneFactoryVehicleStage::PressedPanelStillage; return true;
     case ELBOneFactoryVehicleStage::PressedPanelStillage:
         OutStage = ELBOneFactoryVehicleStage::BodyFraming; return true;
@@ -158,8 +169,37 @@ bool ULBOneFactoryProductionFlowLibrary::IsQualityGate(
     const ELBOneFactoryVehicleStage InStage)
 {
     return InStage == ELBOneFactoryVehicleStage::BodyQualityInspection
+        || InStage == ELBOneFactoryVehicleStage::PressPanelInspection
         || InStage == ELBOneFactoryVehicleStage::PaintQualityInspection
         || InStage == ELBOneFactoryVehicleStage::EndOfLineInspection;
+}
+
+int32 ULBOneFactoryProductionFlowLibrary::ResolveRouteProfileVersion(
+    const FLBOneFactoryVehicleUnitState& Unit)
+{
+    if (Unit.RouteProfileVersion != UnversionedRouteProfile)
+    {
+        return Unit.RouteProfileVersion;
+    }
+
+    const FString Topology = Unit.RuntimeTopologyId.ToString();
+    if (Topology.StartsWith(TEXT("OF_RUNTIME_TOPOLOGY_V002_")))
+    {
+        return PressInspectionRouteProfileV002;
+    }
+    if (Topology.StartsWith(TEXT("OF_RUNTIME_TOPOLOGY_V001_")))
+    {
+        return LegacyRouteProfileV001;
+    }
+
+    // The append-only stage cannot exist in a genuine V001 genealogy record,
+    // so it is sufficient proof for a V002 manual save written before the
+    // explicit profile field landed. Every other ambiguous unversioned record
+    // remains V001 until terminal; this is the conservative no-silent-upgrade
+    // policy for pre-V002 manual WIP.
+    return Unit.Stage == ELBOneFactoryVehicleStage::PressPanelInspection
+        ? PressInspectionRouteProfileV002
+        : LegacyRouteProfileV001;
 }
 
 bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
@@ -232,6 +272,9 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
     int32 CompletedCount = 0;
     int32 DispatchedCount = 0;
     int32 MaximumObservedSerial = 0;
+    int32 ActiveRouteProfile = UnversionedRouteProfile;
+    bool bHasActiveManualWIP = false;
+    bool bHasActiveRoutedWIP = false;
     for (const FLBOneFactoryVehicleUnitState& Unit : State.Units)
     {
         if (Unit.Version != UnitVersion || !IsUsableId(Unit.UnitId)
@@ -241,6 +284,27 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
             || Unit.SourceMaterialUnitIds.IsEmpty())
         {
             OutReason = TEXT("ONEFACTORY VEHICLE UNIT CORE CONTRACT IS INVALID");
+            return false;
+        }
+
+        if (Unit.RouteProfileVersion < UnversionedRouteProfile
+            || Unit.RouteProfileVersion > PressInspectionRouteProfileV002)
+        {
+            OutReason = TEXT("ONEFACTORY VEHICLE ROUTE PROFILE VERSION IS INVALID");
+            return false;
+        }
+        const int32 ResolvedRouteProfile = ResolveRouteProfileVersion(Unit);
+        const FString SavedTopology = Unit.RuntimeTopologyId.ToString();
+        if ((Unit.RouteProfileVersion == LegacyRouteProfileV001
+                && (SavedTopology.StartsWith(
+                        TEXT("OF_RUNTIME_TOPOLOGY_V002_"))
+                    || Unit.Stage ==
+                        ELBOneFactoryVehicleStage::PressPanelInspection))
+            || (Unit.RouteProfileVersion == PressInspectionRouteProfileV002
+                && SavedTopology.StartsWith(
+                    TEXT("OF_RUNTIME_TOPOLOGY_V001_"))))
+        {
+            OutReason = TEXT("ONEFACTORY VEHICLE ROUTE PROFILE CONTRADICTS ITS GENEALOGY");
             return false;
         }
 
@@ -379,7 +443,28 @@ bool ULBOneFactoryProductionFlowLibrary::ValidateLedger(
             }
             EvidenceIds.Add(EvidenceId);
         }
-        if (!IsTerminal(Unit)) ++ActiveCount;
+        if (!IsTerminal(Unit))
+        {
+            ++ActiveCount;
+            bHasActiveRoutedWIP |= bUsesAutomaticRuntime;
+            bHasActiveManualWIP |= !bUsesAutomaticRuntime;
+            if (bHasActiveManualWIP && bHasActiveRoutedWIP)
+            {
+                OutReason = TEXT(
+                    "ONEFACTORY CANNOT MIX ACTIVE MANUAL AND ROUTED WIP");
+                return false;
+            }
+            if (ActiveRouteProfile == UnversionedRouteProfile)
+            {
+                ActiveRouteProfile = ResolvedRouteProfile;
+            }
+            else if (ActiveRouteProfile != ResolvedRouteProfile)
+            {
+                OutReason = TEXT(
+                    "ONEFACTORY CANNOT MIX ACTIVE V001 AND V002 ROUTE PROFILES");
+                return false;
+            }
+        }
         if (Unit.bCompleted) ++CompletedCount;
         if (Unit.bDispatched) ++DispatchedCount;
 
@@ -824,6 +909,28 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
     const FName SourceCoilLotId, const FName InboundStationId,
     FName& OutUnitId, FString& OutReason)
 {
+    return CreateVehicleOrderInternal(BuildOrderId, VehicleModelId,
+        PaintProgrammeId, PaintColourId, SourceCoilLotId, InboundStationId,
+        false, OutUnitId, OutReason);
+}
+
+bool ALBOneFactoryProductionFlowAuthority::CreateRoutedVehicleOrder(
+    const FName BuildOrderId, const FName VehicleModelId,
+    const FName PaintProgrammeId, const FName PaintColourId,
+    const FName SourceCoilLotId, const FName InboundStationId,
+    FName& OutUnitId, FString& OutReason)
+{
+    return CreateVehicleOrderInternal(BuildOrderId, VehicleModelId,
+        PaintProgrammeId, PaintColourId, SourceCoilLotId, InboundStationId,
+        true, OutUnitId, OutReason);
+}
+
+bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrderInternal(
+    const FName BuildOrderId, const FName VehicleModelId,
+    const FName PaintProgrammeId, const FName PaintColourId,
+    const FName SourceCoilLotId, const FName InboundStationId,
+    const bool bRoutedAdmission, FName& OutUnitId, FString& OutReason)
+{
     OutUnitId = NAME_None;
     if (!IsDepartmentCommissioned(ELBOneFactoryDepartment::Press))
     {
@@ -862,6 +969,40 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
         OutReason = TEXT("ONEFACTORY MAXIMUM CONCURRENT WIP REACHED");
         return false;
     }
+    const bool bHasActiveManualWIP = CurrentState.Units.ContainsByPredicate([](
+        const FLBOneFactoryVehicleUnitState& Existing)
+        {
+            return !LBOneFactoryProductionFlowPrivate::IsTerminal(Existing)
+                && Existing.RuntimeStationCursor < 0;
+        });
+    const bool bHasActiveRoutedWIP = CurrentState.Units.ContainsByPredicate([](
+        const FLBOneFactoryVehicleUnitState& Existing)
+        {
+            return !LBOneFactoryProductionFlowPrivate::IsTerminal(Existing)
+                && Existing.RuntimeStationCursor >= 0;
+        });
+    if ((!bRoutedAdmission && bHasActiveRoutedWIP)
+        || (bRoutedAdmission && bHasActiveManualWIP))
+    {
+        OutReason = bRoutedAdmission
+            ? TEXT("ONEFACTORY ROUTED ADMISSION HOLD: ACTIVE MANUAL WIP MUST DRAIN")
+            : TEXT("ONEFACTORY MANUAL ADMISSION HOLD: ACTIVE ROUTED WIP MUST DRAIN");
+        return false;
+    }
+    if (CurrentState.Units.ContainsByPredicate([](
+            const FLBOneFactoryVehicleUnitState& Existing)
+        {
+            return !LBOneFactoryProductionFlowPrivate::IsTerminal(Existing)
+                && ULBOneFactoryProductionFlowLibrary::
+                    ResolveRouteProfileVersion(Existing)
+                    != ULBOneFactoryProductionFlowLibrary::
+                        PressInspectionRouteProfileV002;
+        }))
+    {
+        OutReason = TEXT(
+            "ONEFACTORY V002 ADMISSION HOLD: ACTIVE V001 OR UNVERSIONED WIP MUST DRAIN");
+        return false;
+    }
 
     FLBOneFactoryVehicleUnitState Unit;
     Unit.Version = LBOneFactoryProductionFlowPrivate::UnitVersion;
@@ -875,6 +1016,8 @@ bool ALBOneFactoryProductionFlowAuthority::CreateVehicleOrder(
     Unit.Stage = ELBOneFactoryVehicleStage::InboundCoil;
     Unit.Department = ELBOneFactoryDepartment::Press;
     Unit.CurrentStationId = InboundStationId;
+    Unit.RouteProfileVersion =
+        ULBOneFactoryProductionFlowLibrary::PressInspectionRouteProfileV002;
     Unit.CreatedAtSimSeconds = CurrentState.SimClockSeconds;
     Unit.SourceMaterialUnitIds.Add(SourceCoilLotId);
     const TArray<FLBStampedPanelDefinition>& RequiredPanels = Recipe->RequiredPanels;
@@ -901,8 +1044,31 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
         OutReason = TEXT("ONEFACTORY VEHICLE ADVANCE IDENTITY IS INVALID");
         return false;
     }
+    const int32 RouteProfile =
+        ULBOneFactoryProductionFlowLibrary::ResolveRouteProfileVersion(*Unit);
+    if (RouteProfile !=
+            ULBOneFactoryProductionFlowLibrary::LegacyRouteProfileV001
+        && RouteProfile != ULBOneFactoryProductionFlowLibrary::
+            PressInspectionRouteProfileV002)
+    {
+        OutReason = TEXT("ONEFACTORY VEHICLE ROUTE PROFILE IS INVALID");
+        return false;
+    }
     ELBOneFactoryVehicleStage NextStage;
-    if (!ULBOneFactoryProductionFlowLibrary::GetNextStage(Unit->Stage, NextStage))
+    bool bHasNextStage = false;
+    if (RouteProfile ==
+            ULBOneFactoryProductionFlowLibrary::LegacyRouteProfileV001
+        && Unit->Stage == ELBOneFactoryVehicleStage::Pressing)
+    {
+        NextStage = ELBOneFactoryVehicleStage::PressedPanelStillage;
+        bHasNextStage = true;
+    }
+    else
+    {
+        bHasNextStage = ULBOneFactoryProductionFlowLibrary::GetNextStage(
+            Unit->Stage, NextStage);
+    }
+    if (!bHasNextStage)
     {
         OutReason = TEXT("ONEFACTORY VEHICLE IS ALREADY DISPATCHED");
         return false;
@@ -940,7 +1106,8 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
 
     TArray<FName> PanelEvidenceIds;
     if (Unit->Stage == ELBOneFactoryVehicleStage::Pressing
-        && NextStage == ELBOneFactoryVehicleStage::PressedPanelStillage
+        && (NextStage == ELBOneFactoryVehicleStage::PressPanelInspection
+            || NextStage == ELBOneFactoryVehicleStage::PressedPanelStillage)
         && !Unit->RequiredPanelTypeIds.IsEmpty())
     {
         if (!Unit->PressedPanelTypeIds.IsEmpty()
@@ -965,6 +1132,13 @@ bool ALBOneFactoryProductionFlowAuthority::AdvanceVehicle(
         }
     }
 
+    if (Unit->RouteProfileVersion ==
+        ULBOneFactoryProductionFlowLibrary::UnversionedRouteProfile)
+    {
+        // The next committed genealogy mutation makes the conservative
+        // migration durable without rewriting the save merely by loading it.
+        Unit->RouteProfileVersion = RouteProfile;
+    }
     Unit->Stage = NextStage;
     Unit->Department = TargetDepartment;
     Unit->CurrentStationId = TargetStationId;

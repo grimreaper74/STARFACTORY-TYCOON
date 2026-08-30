@@ -1442,7 +1442,9 @@ bool ALBPressShopCampaignController::PreflightCampaign(const ULBPressShopSaveGam
     }
     if (SaveRoot->SaveFormatVersion >= 14 && SaveRoot->bHasInboundDelivery
         && (SaveRoot->InboundDelivery.SaveVersion < 1
-            || SaveRoot->InboundDelivery.SaveVersion > 6
+            || SaveRoot->InboundDelivery.SaveVersion > 7
+            || (SaveRoot->InboundDelivery.SaveVersion >= 7
+                && !FMath::IsFinite(SaveRoot->InboundDelivery.TrailerRelativeYawDegrees))
             || SaveRoot->InboundDelivery.InboundDockId.IsNone()
             || SaveRoot->InboundDelivery.PR002MachineId.IsNone()
             || SaveRoot->InboundDelivery.CompletedDeliveries < 0

@@ -475,6 +475,7 @@ ULBOneFactoryPressStarterLayoutLibrary::MakeNativeOnlyProfile()
     {
         TEXT("/Script/LineBossCarFactory.LBOneFactoryPressStarterLayoutAuthority"),
         TEXT("/Script/LineBossCarFactory.LBOneFactoryPressStarterPresentationActor"),
+        TEXT("/Script/LineBossCarFactory.LBOneFactoryPressArtDirectionActor"),
         TEXT("/Script/LineBossCarFactory.LBFactoryAGVInfrastructure")
     };
     Profile.AllowedAssetRoots =
@@ -484,12 +485,11 @@ ULBOneFactoryPressStarterLayoutLibrary::MakeNativeOnlyProfile()
         TEXT("/Engine/EngineMaterials/"),
         TEXT("/Game/LineBoss/Factory/OneFactory/v001/Native/Press/")
     };
+    // Generator-name tokens (Meshy/RuntimeGLB/ExternalGenerated/OriginalHighPoly)
+    // RETIRED 2026-08-24 per the spacecraft-pivot ruling: provenance is judged
+    // by its declared record. Working-state/licence tokens remain.
     Profile.ForbiddenSourceTokens =
     {
-        TEXT("Meshy"),
-        TEXT("RuntimeGLB"),
-        TEXT("ExternalGenerated"),
-        TEXT("OriginalHighPoly"),
         TEXT("/Downloads/"),
         TEXT("/Developer/Validation/"),
         TEXT("/Candidates/"),

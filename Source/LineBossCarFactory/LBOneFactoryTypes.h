@@ -27,7 +27,10 @@ enum class ELBOneFactorySharedSpineRole : uint8
 
 /**
  * Declared provenance for an asset entering the OneFactory presentation.
- * Unspecified and ExternalGenerated deliberately fail the NativeOnly policy.
+ * Unspecified always fails. ExternalGenerated fails the NativeOnly policy
+ * but is ACCEPTED under GeneratedAllowed when it carries a source record -
+ * the 2026-08-24 spacecraft-pivot ruling: what an asset must prove is its
+ * record, not its birthplace (see SPACECRAFT_PIVOT_AUTHORITY_v001.md).
  */
 UENUM(BlueprintType)
 enum class ELBOneFactoryAssetProvenance : uint8
@@ -40,12 +43,17 @@ enum class ELBOneFactoryAssetProvenance : uint8
     ExternalGenerated
 };
 
-/** The first release shell has one explicit, fail-closed asset policy. */
+/**
+ * Fail-closed asset policies. NativeOnly is the car-era shell policy;
+ * GeneratedAllowed (spacecraft era) additionally accepts declared
+ * ExternalGenerated assets with a recorded source. Append-only for saves.
+ */
 UENUM(BlueprintType)
 enum class ELBOneFactoryProvenancePolicy : uint8
 {
     Unspecified,
-    NativeOnly
+    NativeOnly,
+    GeneratedAllowed
 };
 
 /** Stable, world-space department floor allocation; SizeCm is the full 3D extent. */

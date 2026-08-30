@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LBSpacecraftDifficulty.h"
 #include "GameFramework/GameUserSettings.h"
 #include "LBGameUserSettings.generated.h"
 
@@ -102,6 +103,50 @@ public:
     UFUNCTION(BlueprintCallable, Category="Line Boss|Settings")
     void ApplyAndSaveLineBossSettings(bool bCheckForCommandLineOverrides = true);
 
+    /** Spacecraft-era player preferences: audio and camera feel. The
+     *  clamps are the contract - out-of-range config never applies. */
+    static constexpr float MinCameraSpeedScale = 0.25f;
+    static constexpr float MaxCameraSpeedScale = 2.0f;
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|Settings|Audio")
+    float GetMasterVolume() const { return MasterVolume; }
+
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Audio")
+    void SetMasterVolume(float NewVolume);
+
+    /** Pushes the master volume onto the world's audio device (transient
+     *  by engine design - reapplied at startup and on change). Safe with
+     *  no audio device (-nosound / NullRHI automation). */
+    void ApplyMasterVolumeToWorld(UWorld* World) const;
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|Settings|Camera")
+    bool IsEdgeScrollEnabled() const { return bEdgeScrollEnabled; }
+
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Camera")
+    void SetEdgeScrollEnabled(bool bEnabled) { bEdgeScrollEnabled = bEnabled; }
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|Settings|Camera")
+    float GetCameraPanSpeedScale() const { return CameraPanSpeedScale; }
+
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Camera")
+    void SetCameraPanSpeedScale(float NewScale);
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|Settings|Camera")
+    float GetCameraZoomSpeedScale() const { return CameraZoomSpeedScale; }
+
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Camera")
+    void SetCameraZoomSpeedScale(float NewScale);
+
+    UFUNCTION(BlueprintPure, Category="Line Boss|Settings|Camera")
+    bool IsZoomInverted() const { return bInvertZoom; }
+
+    UFUNCTION(BlueprintCallable, Category="Line Boss|Settings|Camera")
+    void SetZoomInverted(bool bInverted) { bInvertZoom = bInverted; }
+
+    /** Pure clamp seams shared with automation. */
+    static float ClampMasterVolume01(float Volume);
+    static float ClampCameraSpeedScale(float Scale);
+
     /** Pure seams used by startup code and automation without running the benchmark. */
     static bool TryGetScalabilityLevelForPreset(ELBGraphicsPreset Preset, int32& OutLevel);
     static bool HasHardwareBenchmarkCommandLineOptOut(const TCHAR* CommandLine);
@@ -111,10 +156,24 @@ public:
         bool bPlatformSupportsBenchmark,
         bool bAllowedByCaller,
         bool bCommandLineOptOut);
+    /** GAMEPLAY DIFFICULTY (owner 2026-08-27). Unreal has no notion of
+     *  one - GameUserSettings is graphics scalability - so it is kept
+     *  here beside the other player choices and persisted the same way.
+     *  Applied to the running game by the spacecraft game mode. */
+    ELBSpacecraftDifficulty GetSpacecraftDifficulty() const
+    {
+        return SpacecraftDifficulty;
+    }
+    void SetSpacecraftDifficulty(ELBSpacecraftDifficulty Difficulty);
+
     static bool AreBenchmarkScoresUsable(float CPUScore, float GPUScore);
     static bool IsHardwareBenchmarkSupportedOnThisPlatform();
 
 private:
+    UPROPERTY(Config)
+    ELBSpacecraftDifficulty SpacecraftDifficulty =
+        ELBSpacecraftDifficulty::Standard;
+
     UPROPERTY(Config)
     int32 GraphicsSetupVersion = 0;
 
@@ -126,6 +185,21 @@ private:
 
     UPROPERTY(Config)
     bool bUsedHardwareBenchmarkFallback = false;
+
+    UPROPERTY(Config)
+    float MasterVolume = 1.0f;
+
+    UPROPERTY(Config)
+    bool bEdgeScrollEnabled = false;
+
+    UPROPERTY(Config)
+    float CameraPanSpeedScale = 1.0f;
+
+    UPROPERTY(Config)
+    float CameraZoomSpeedScale = 1.0f;
+
+    UPROPERTY(Config)
+    bool bInvertZoom = false;
 
     static bool IsKnownPreset(ELBGraphicsPreset Preset);
     void CacheSafeFallback(bool bMarkSetupComplete);

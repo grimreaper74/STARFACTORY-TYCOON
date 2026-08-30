@@ -67,6 +67,14 @@ UInstancedStaticMeshComponent* ALBOneFactoryDevEnvelopeActor::MakeBatch(
 bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
     const double WallHeightCm, FString& OutReason)
 {
+    return BuildFromRouteWithRoofPolicy(PaddingCm, WallHeightCm,
+        true, OutReason);
+}
+
+bool ALBOneFactoryDevEnvelopeActor::BuildFromRouteWithRoofPolicy(
+    const double PaddingCm, const double WallHeightCm,
+    const bool bIncludeRoofDecks, FString& OutReason)
+{
     using namespace LBOneFactoryDevEnvelopePrivate;
 
     UWorld* World = GetWorld();
@@ -344,37 +352,43 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         }
 
         // One roof deck per shop, each on its own untagged actor so the
-        // camera-height roof toggle governs them all together.
-        if (AStaticMeshActor* Deck = World->SpawnActor<AStaticMeshActor>(
+        // camera-height roof toggle governs them all together. A map-authored
+        // roofless presentation marker suppresses only these decks while
+        // retaining every other envelope batch.
+        if (bIncludeRoofDecks)
+        {
+            if (AStaticMeshActor* Deck = World->SpawnActor<AStaticMeshActor>(
                 AStaticMeshActor::StaticClass(),
                 FVector(BuildingCentre.X, BuildingCentre.Y,
                     WallHeightCm - 50.0),
                 FRotator::ZeroRotator))
-        {
-            if (UStaticMeshComponent* DeckMesh =
-                    Deck->GetStaticMeshComponent())
             {
-                DeckMesh->SetMobility(EComponentMobility::Movable);
-                DeckMesh->SetStaticMesh(Cube);
-                DeckMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-                if (UMaterialInstanceDynamic* DeckMaterial =
-                        UMaterialInstanceDynamic::Create(Base, this))
+                if (UStaticMeshComponent* DeckMesh =
+                        Deck->GetStaticMeshComponent())
                 {
-                    const FLinearColor DeckColour =
-                        FLinearColor::FromSRGBColor(
-                            FColor::FromHex(TEXT("26292E")));
-                    DeckMaterial->SetVectorParameterValue(TEXT("Color"),
-                        DeckColour);
-                    DeckMaterial->SetVectorParameterValue(TEXT("BaseColor"),
-                        DeckColour);
-                    DeckMesh->SetMaterial(0, DeckMaterial);
-                    Materials.Add(DeckMaterial);
+                    DeckMesh->SetMobility(EComponentMobility::Movable);
+                    DeckMesh->SetStaticMesh(Cube);
+                    DeckMesh->SetCollisionEnabled(
+                        ECollisionEnabled::NoCollision);
+                    if (UMaterialInstanceDynamic* DeckMaterial =
+                            UMaterialInstanceDynamic::Create(Base, this))
+                    {
+                        const FLinearColor DeckColour =
+                            FLinearColor::FromSRGBColor(
+                                FColor::FromHex(TEXT("26292E")));
+                        DeckMaterial->SetVectorParameterValue(TEXT("Color"),
+                            DeckColour);
+                        DeckMaterial->SetVectorParameterValue(
+                            TEXT("BaseColor"), DeckColour);
+                        DeckMesh->SetMaterial(0, DeckMaterial);
+                        Materials.Add(DeckMaterial);
+                    }
                 }
+                Deck->SetActorScale3D(
+                    FVector(BuildingX / CubeCm, BuildingY / CubeCm, 0.2));
+                RoofDecks.Add(Deck);
+                ++PieceCount;
             }
-            Deck->SetActorScale3D(
-                FVector(BuildingX / CubeCm, BuildingY / CubeCm, 0.2));
-            RoofDecks.Add(Deck);
-            ++PieceCount;
         }
     }
 
@@ -407,4 +421,37 @@ bool ALBOneFactoryDevEnvelopeActor::BuildFromRoute(const double PaddingCm,
         TEXT("site %.0f x %.0f cm, shop height %.0f, %d piece(s) across separate shop buildings"),
         SizeX, SizeY, WallHeightCm, PieceCount);
     return true;
+}
+
+int32 ALBOneFactoryDevEnvelopeActor::GetRoofDeckCount() const
+{
+    int32 Count = 0;
+    for (const AActor* Deck : RoofDecks)
+    {
+        if (IsValid(Deck))
+        {
+            ++Count;
+        }
+    }
+    return Count;
+}
+
+int32 ALBOneFactoryDevEnvelopeActor::GetWallInstanceCount() const
+{
+    return Walls ? Walls->GetInstanceCount() : 0;
+}
+
+int32 ALBOneFactoryDevEnvelopeActor::GetDadoInstanceCount() const
+{
+    return Dado ? Dado->GetInstanceCount() : 0;
+}
+
+int32 ALBOneFactoryDevEnvelopeActor::GetClerestoryInstanceCount() const
+{
+    return Clerestory ? Clerestory->GetInstanceCount() : 0;
+}
+
+int32 ALBOneFactoryDevEnvelopeActor::GetSiteSlabInstanceCount() const
+{
+    return Ceiling ? Ceiling->GetInstanceCount() : 0;
 }

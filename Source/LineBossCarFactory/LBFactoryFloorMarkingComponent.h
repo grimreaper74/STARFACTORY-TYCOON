@@ -25,7 +25,11 @@ enum class ELBFactoryFloorMarkingSemantic : uint8
     VehicleLane,
     PedestrianCrossing,
     EmptyStillageStorage,
-    StillageLoadingBay
+    StillageLoadingBay,
+    /** Large, deliberately graphic Press Shop station field; lightened Cairnwell derivative. */
+    PressZoneFill,
+    /** Literal BRAND_IDENTITY_AUTHORITY Warm White lane and zone edge. */
+    PressCreamLane
 };
 
 UCLASS(ClassGroup=(LineBoss), meta=(BlueprintSpawnableComponent))

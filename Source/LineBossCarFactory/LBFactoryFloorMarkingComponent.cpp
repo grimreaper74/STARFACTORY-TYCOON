@@ -44,6 +44,12 @@ FLinearColor ULBFactoryFloorMarkingComponent::GetSemanticColour(
         return FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("2F80ED")));
     case ELBFactoryFloorMarkingSemantic::StillageLoadingBay:
         return FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("F2A93B")));
+    case ELBFactoryFloorMarkingSemantic::PressZoneFill:
+        // Graphic floor field derived from Cairnwell Green, intentionally
+        // light enough to read below machinery at the management camera.
+        return FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("A7C6B0")));
+    case ELBFactoryFloorMarkingSemantic::PressCreamLane:
+        return FLinearColor::FromSRGBColor(FColor::FromHex(TEXT("F3F1E9")));
     default:
         return FLinearColor::White;
     }

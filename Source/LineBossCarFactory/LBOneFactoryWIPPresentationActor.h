@@ -6,9 +6,11 @@
 #include "LBOneFactoryWIPPresentationActor.generated.h"
 
 class ALBOneFactoryRuntimeCoordinator;
+class ALBPressShopOverheadPresentationActor;
 class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
+class UWorld;
 struct FLBOneFactoryRuntimeStationStep;
 
 /**
@@ -88,6 +90,10 @@ public:
      */
     static bool SupportsVehicleModel(FName VehicleModelId);
 
+    /** Shared predicate used by the cached discovery path and native tests. */
+    static bool IsOverheadPressPresentationAuthoritative(
+        const ALBPressShopOverheadPresentationActor* Presentation);
+
 private:
     UPROPERTY()
     TObjectPtr<USceneComponent> SceneRoot;
@@ -120,6 +126,9 @@ private:
     /** Rebuilds the presentation-only panel rack for one pressed-panel stillage. */
     void AddStampedPanelSet(const FTransform& StillageTransform);
 
+    /** Typed discovery is bounded; a valid controller is then checked in O(1). */
+    bool HasEnabledOverheadPressPresentation(UWorld* World);
+
 
     /**
      * Where each live unit's instance sits, so a car can be moved every frame
@@ -143,4 +152,10 @@ private:
     int32 VisibleUnitCount = 0;
     int32 LastLoggedUnitCount = INDEX_NONE;
     int32 LastUnsupportedModelUnitCount = INDEX_NONE;
+
+    UPROPERTY(Transient)
+    TWeakObjectPtr<ALBPressShopOverheadPresentationActor>
+        CachedOverheadPressPresentation;
+
+    double NextOverheadPresentationDiscoverySeconds = 0.0;
 };

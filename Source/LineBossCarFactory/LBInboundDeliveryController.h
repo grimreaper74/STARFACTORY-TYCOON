@@ -6,6 +6,7 @@
 
 class ALBFactoryBuildMachine;
 class ALBCoilAGVController;
+class ALBInboundArticulatedCarrierActor;
 class USceneComponent;
 class UStaticMeshComponent;
 
@@ -45,7 +46,7 @@ USTRUCT(BlueprintType)
 struct FLBInboundDeliverySaveState
 {
     GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame) int32 SaveVersion = 6;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame) int32 SaveVersion = 7;
     /** v6 prevents a native One Factory save from restoring through the legacy lorry path. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame)
     ELBInboundDeliverySourceMode SourceMode = ELBInboundDeliverySourceMode::LegacyLorry;
@@ -70,6 +71,8 @@ struct FLBInboundDeliverySaveState
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame) FTransform CraneHookTransform;
     /** v5 adds the driverless coil-handler chassis; v1-v4 crane fields remain compatible aliases. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame) FTransform CoilHandlerChassisTransform;
+    /** v7 preserves the independent IN-01B hitch angle; ordinary retained lorries leave this at zero. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame) float TrailerRelativeYawDegrees = 0.0f;
 };
 
 /**
@@ -242,6 +245,9 @@ private:
     FVector HookHomeLocation = FVector::ZeroVector;
     FVector HoistHomeLocation = FVector::ZeroVector;
     TArray<FTransform> TrailerCoilHomeTransforms;
+    /** Disposable rounded route generated from the certified approach/dock contract. */
+    TArray<FVector> ArticulatedLorryRuntimePath;
+    int32 ArticulatedLorryRuntimePathIndex = INDEX_NONE;
     float CoilHandlerTravelSpeedCmPerSecond = 0.0f;
     float CoilHandlerRearSteerAngleDegrees = 0.0f;
     bool bCoilHandlerDriveCommandActive = false;
@@ -264,6 +270,14 @@ private:
     bool DiscoverPlayerBuilderEndpoints();
     bool CommitHandoff(FString& OutReason);
     bool DispatchFromSaddle(FString& OutReason);
+    bool PlanArticulatedLorryRoute(FString& OutReason);
+    bool MoveArticulatedLorryAlongRoute(float Speed, float DeltaSeconds,
+        bool& bOutArrived, FString& OutReason);
+    ALBInboundArticulatedCarrierActor* GetArticulatedLorry() const;
+    void AttachAvailableCoilsToArticulatedTrailer();
+    void DetachActiveCoilFromArticulatedTrailer();
+    void RefreshAttachedTrailerCoilHomeTransforms();
+    void ResetArticulatedLorryRoute();
     bool MoveActorTo(AActor* Actor, const FVector& Target, float Speed, float DeltaSeconds);
     bool MoveComponentTo(USceneComponent* Component, const FVector& Target, float Speed, float DeltaSeconds);
     bool DrivePlayerBuiltCoilHandlerToRamTarget(const FVector& RamTarget,

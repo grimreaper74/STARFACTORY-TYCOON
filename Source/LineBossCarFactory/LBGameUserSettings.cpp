@@ -1,5 +1,7 @@
 #include "LBGameUserSettings.h"
 
+#include "AudioDevice.h"
+#include "Engine/World.h"
 #include "Misc/App.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -11,6 +13,12 @@ void ULBGameUserSettings::SetToDefaults()
     LastHardwareBenchmarkVersion = 0;
     SelectedGraphicsPreset = ELBGraphicsPreset::Auto;
     bUsedHardwareBenchmarkFallback = false;
+    MasterVolume = 1.0f;
+    // Off by default: the genre reference ships without edge scrolling.
+    bEdgeScrollEnabled = false;
+    CameraPanSpeedScale = 1.0f;
+    CameraZoomSpeedScale = 1.0f;
+    bInvertZoom = false;
 }
 
 void ULBGameUserSettings::LoadSettings(const bool bForceReload)
@@ -28,6 +36,55 @@ void ULBGameUserSettings::LoadSettings(const bool bForceReload)
         GraphicsSetupVersion = 0;
         bUsedHardwareBenchmarkFallback = false;
     }
+    // Hand-edited or corrupt config never applies out of range.
+    MasterVolume = ClampMasterVolume01(MasterVolume);
+    CameraPanSpeedScale = ClampCameraSpeedScale(CameraPanSpeedScale);
+    CameraZoomSpeedScale = ClampCameraSpeedScale(CameraZoomSpeedScale);
+}
+
+float ULBGameUserSettings::ClampMasterVolume01(const float Volume)
+{
+    if (!FMath::IsFinite(Volume)) return 1.0f;
+    return FMath::Clamp(Volume, 0.0f, 1.0f);
+}
+
+float ULBGameUserSettings::ClampCameraSpeedScale(const float Scale)
+{
+    if (!FMath::IsFinite(Scale)) return 1.0f;
+    return FMath::Clamp(Scale, MinCameraSpeedScale, MaxCameraSpeedScale);
+}
+
+void ULBGameUserSettings::SetMasterVolume(const float NewVolume)
+{
+    MasterVolume = ClampMasterVolume01(NewVolume);
+}
+
+void ULBGameUserSettings::SetSpacecraftDifficulty(
+    ELBSpacecraftDifficulty Difficulty)
+{
+    SpacecraftDifficulty = Difficulty;
+    // Take effect at once as well as persisting: the player changed it
+    // to change the game they are playing, not the one they load next.
+    FLBSpacecraftDifficulty::SetCurrent(Difficulty);
+}
+
+void ULBGameUserSettings::ApplyMasterVolumeToWorld(UWorld* World) const
+{
+    if (World == nullptr) return;
+    if (FAudioDeviceHandle AudioDevice = World->GetAudioDevice())
+    {
+        AudioDevice->SetTransientPrimaryVolume(MasterVolume);
+    }
+}
+
+void ULBGameUserSettings::SetCameraPanSpeedScale(const float NewScale)
+{
+    CameraPanSpeedScale = ClampCameraSpeedScale(NewScale);
+}
+
+void ULBGameUserSettings::SetCameraZoomSpeedScale(const float NewScale)
+{
+    CameraZoomSpeedScale = ClampCameraSpeedScale(NewScale);
 }
 
 ULBGameUserSettings* ULBGameUserSettings::GetLineBossGameUserSettings()

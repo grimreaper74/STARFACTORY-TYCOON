@@ -4,6 +4,8 @@
 #include "LBCoilAGVController.h"
 #include "LBFactoryBuildMachine.h"
 #include "LBFactoryTransportLink.h"
+#include "LBInboundArticulatedCarrierActor.h"
+#include "LBMobileRoutePlanner.h"
 #include "LBPressShopStorageZone.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -430,6 +432,9 @@ bool ALBInboundDeliveryController::ConfigureVisualSequence(AActor* InLorry, AAct
     bLorryDocked = LorryActor->GetActorLocation().Equals(LorryDockPoint, 2.0f);
     bVisualSequenceBound = true;
     bPlayerBuiltComponentSequence = false;
+    AttachAvailableCoilsToArticulatedTrailer();
+    RefreshAttachedTrailerCoilHomeTransforms();
+    ResetArticulatedLorryRoute();
     return true;
 }
 
@@ -500,6 +505,17 @@ bool ALBInboundDeliveryController::HasRequiredLink(
 
 void ALBInboundDeliveryController::ClearLegacyVisualSequenceBinding()
 {
+    if (LorryActor)
+    {
+        for (AActor* Coil : TrailerCoilActors)
+        {
+            if (Coil && Coil->GetAttachParentActor() == LorryActor)
+            {
+                Coil->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+            }
+        }
+    }
+    ResetArticulatedLorryRoute();
     LorryActor = nullptr;
     CraneBridgeActor = nullptr;
     CraneTrolleyActor = nullptr;
@@ -534,6 +550,11 @@ bool ALBInboundDeliveryController::StartDelivery(const FName CoilId, FString& Ou
         OutReason = TEXT("NATIVE INBOUND DELIVERY LOST ITS EXACT PROCEDURAL AGV PRESENTATION");
         return false;
     }
+    if (bVisualSequenceBound && !bPlayerBuiltComponentSequence && !bLorryDocked
+        && GetArticulatedLorry() && !PlanArticulatedLorryRoute(OutReason))
+    {
+        return false;
+    }
     const FLBFactoryBuildMachineSaveState DockBefore = InboundDock->CaptureSaveState();
     if (!InboundDock->ReceiveDeliveredUnit(CoilId))
     {
@@ -558,6 +579,7 @@ bool ALBInboundDeliveryController::StartDelivery(const FName CoilId, FString& Ou
         {
             InboundDock->RestoreSaveState(DockBefore);
             ActiveCoilId = NAME_None;
+            ResetArticulatedLorryRoute();
             OutReason = TEXT("THE NEXT TRAILER COIL IS NOT AVAILABLE FOR THE COIL-HANDLER AGV");
             return false;
         }
@@ -719,7 +741,22 @@ void ALBInboundDeliveryController::Tick(const float DeltaSeconds)
         if (Phase == ELBInboundDeliveryPhase::TruckReverse)
         {
             const FVector Before = LorryActor->GetActorLocation();
-            const bool bDocked = MoveActorTo(LorryActor, LorryDockPoint, LorryReverseSpeedCmPerSecond, DeltaSeconds);
+            bool bDocked = false;
+            FString MotionReason;
+            if (GetArticulatedLorry())
+            {
+                if (!MoveArticulatedLorryAlongRoute(LorryReverseSpeedCmPerSecond,
+                    DeltaSeconds, bDocked, MotionReason))
+                {
+                    LatchFault(MotionReason);
+                    return;
+                }
+            }
+            else
+            {
+                bDocked = MoveActorTo(LorryActor, LorryDockPoint,
+                    LorryReverseSpeedCmPerSecond, DeltaSeconds);
+            }
             const FVector TrailerDelta = LorryActor->GetActorLocation() - Before;
             if (!TrailerDelta.IsNearlyZero())
             {
@@ -727,14 +764,20 @@ void ALBInboundDeliveryController::Tick(const float DeltaSeconds)
                 {
                     if (TrailerCoilActors[Index] && !TrailerCoilActors[Index]->IsHidden())
                     {
-                        TrailerCoilActors[Index]->AddActorWorldOffset(TrailerDelta, false, nullptr, ETeleportType::TeleportPhysics);
-                        TrailerCoilHomeTransforms[Index].AddToTranslation(TrailerDelta);
+                        if (TrailerCoilActors[Index]->GetAttachParentActor() != LorryActor)
+                        {
+                            TrailerCoilActors[Index]->AddActorWorldOffset(TrailerDelta,
+                                false, nullptr, ETeleportType::TeleportPhysics);
+                            TrailerCoilHomeTransforms[Index].AddToTranslation(TrailerDelta);
+                        }
                     }
                 }
+                RefreshAttachedTrailerCoilHomeTransforms();
             }
             if (bDocked)
             {
                 bLorryDocked = true;
+                ResetArticulatedLorryRoute();
                 EnterPhase(ELBInboundDeliveryPhase::DockProving);
             }
             return;
@@ -762,6 +805,7 @@ void ALBInboundDeliveryController::Tick(const float DeltaSeconds)
         }
         if (Phase == ELBInboundDeliveryPhase::HookEngage)
         {
+            DetachActiveCoilFromArticulatedTrailer();
             ApplyCarriedCoilPose(HookActor->GetActorLocation());
             if (PhaseElapsedSeconds >= HookEngageSeconds) EnterPhase(ELBInboundDeliveryPhase::CoilLift);
             return;
@@ -837,6 +881,179 @@ bool ALBInboundDeliveryController::MoveActorTo(AActor* Actor, const FVector& Tar
     const FVector Next = FMath::VInterpConstantTo(Actor->GetActorLocation(), Target, DeltaSeconds, Speed);
     Actor->SetActorLocation(Next, false, nullptr, ETeleportType::TeleportPhysics);
     return Next.Equals(Target, 1.0f);
+}
+
+ALBInboundArticulatedCarrierActor* ALBInboundDeliveryController::GetArticulatedLorry() const
+{
+    return Cast<ALBInboundArticulatedCarrierActor>(LorryActor);
+}
+
+void ALBInboundDeliveryController::ResetArticulatedLorryRoute()
+{
+    ArticulatedLorryRuntimePath.Reset();
+    ArticulatedLorryRuntimePathIndex = INDEX_NONE;
+}
+
+bool ALBInboundDeliveryController::PlanArticulatedLorryRoute(FString& OutReason)
+{
+    ResetArticulatedLorryRoute();
+    ALBInboundArticulatedCarrierActor* Carrier = GetArticulatedLorry();
+    if (!Carrier || !GetWorld())
+    {
+        OutReason = TEXT("ARTICULATED INBOUND ROUTE NEEDS ITS NATIVE CARRIER AND WORLD");
+        return false;
+    }
+    if (Carrier->GetActorLocation().Equals(LorryDockPoint, 1.0f))
+    {
+        OutReason = TEXT("ARTICULATED INBOUND CARRIER IS ALREADY AT ITS DOCK DATUM");
+        return true;
+    }
+
+    LBMobileRoutePlanner::FSettings Settings;
+    // The planner consumes a circumscribed footprint.  Preserve the exact 16.50 x
+    // 2.55 m parked authority, rather than pretending the tractor alone owns clearance.
+    Settings.VehicleHalfExtentCm = FVector2D(825.0f, 127.5f);
+    Settings.EnvelopeClearanceCm = 50.0f;
+    Settings.CornerRadiusCm = 650.0f;
+    Settings.MaximumCurveStepDegrees = 6.0f;
+    if (!LBMobileRoutePlanner::BuildClearanceAwarePath(GetWorld(),
+        Carrier->GetActorLocation(), {LorryDockPoint}, Settings,
+        ArticulatedLorryRuntimePath) || ArticulatedLorryRuntimePath.IsEmpty())
+    {
+        ResetArticulatedLorryRoute();
+        OutReason = TEXT("NO CLEARANCE-SAFE ROUNDED ROUTE EXISTS FOR THE 16.50 M ARTICULATED CARRIER");
+        return false;
+    }
+    FVector PreviousPoint = Carrier->GetActorLocation();
+    FVector PreviousDirection = FVector::ZeroVector;
+    for (const FVector& Point : ArticulatedLorryRuntimePath)
+    {
+        const FVector Direction = (Point - PreviousPoint).GetSafeNormal2D();
+        if (!Direction.IsNearlyZero() && !PreviousDirection.IsNearlyZero()
+            && FMath::Abs(FMath::FindDeltaAngleDegrees(
+                PreviousDirection.Rotation().Yaw, Direction.Rotation().Yaw))
+                > Settings.MaximumCurveStepDegrees + 0.25f)
+        {
+            ResetArticulatedLorryRoute();
+            OutReason = TEXT("ARTICULATED INBOUND ROUTE REJECTED AN UNROUNDED CORNER");
+            return false;
+        }
+        if (!Direction.IsNearlyZero()) PreviousDirection = Direction;
+        PreviousPoint = Point;
+    }
+    ArticulatedLorryRuntimePathIndex = 0;
+    OutReason = TEXT("ARTICULATED INBOUND ROUTE PLANNED WITH THE FULL TRACTOR/TRAILER ENVELOPE");
+    return true;
+}
+
+bool ALBInboundDeliveryController::MoveArticulatedLorryAlongRoute(
+    const float Speed, const float DeltaSeconds, bool& bOutArrived,
+    FString& OutReason)
+{
+    bOutArrived = false;
+    ALBInboundArticulatedCarrierActor* Carrier = GetArticulatedLorry();
+    if (!Carrier || Speed <= 0.0f || DeltaSeconds <= 0.0f)
+    {
+        OutReason = TEXT("ARTICULATED INBOUND ROUTE RECEIVED AN INVALID MOTION COMMAND");
+        return false;
+    }
+    if (!ArticulatedLorryRuntimePath.IsValidIndex(ArticulatedLorryRuntimePathIndex))
+    {
+        if (!PlanArticulatedLorryRoute(OutReason)) return false;
+        if (Carrier->GetActorLocation().Equals(LorryDockPoint, 1.0f))
+        {
+            bOutArrived = true;
+            return true;
+        }
+    }
+
+    while (ArticulatedLorryRuntimePath.IsValidIndex(ArticulatedLorryRuntimePathIndex)
+        && Carrier->GetActorLocation().Equals(
+            ArticulatedLorryRuntimePath[ArticulatedLorryRuntimePathIndex], 1.0f))
+    {
+        ++ArticulatedLorryRuntimePathIndex;
+    }
+    if (!ArticulatedLorryRuntimePath.IsValidIndex(ArticulatedLorryRuntimePathIndex))
+    {
+        bOutArrived = Carrier->GetActorLocation().Equals(LorryDockPoint, 1.0f);
+        OutReason = bOutArrived
+            ? TEXT("ARTICULATED INBOUND CARRIER REACHED ITS DOCK DATUM")
+            : TEXT("ARTICULATED INBOUND ROUTE ENDED AWAY FROM ITS DOCK DATUM");
+        return bOutArrived;
+    }
+
+    const FVector Current = Carrier->GetActorLocation();
+    const FVector Target = ArticulatedLorryRuntimePath[ArticulatedLorryRuntimePathIndex];
+    const FVector SegmentStart = ArticulatedLorryRuntimePathIndex == 0
+        ? Current : ArticulatedLorryRuntimePath[ArticulatedLorryRuntimePathIndex - 1];
+    FVector SegmentDirection = (Target - SegmentStart).GetSafeNormal2D();
+    if (SegmentDirection.IsNearlyZero())
+        SegmentDirection = (Target - Current).GetSafeNormal2D();
+    if (SegmentDirection.IsNearlyZero())
+    {
+        ++ArticulatedLorryRuntimePathIndex;
+        OutReason = TEXT("ARTICULATED INBOUND ROUTE SKIPPED A DUPLICATE POINT");
+        return true;
+    }
+
+    FTransform NextPose = Carrier->GetActorTransform();
+    NextPose.SetLocation(FMath::VInterpConstantTo(Current, Target,
+        DeltaSeconds, Speed));
+    // IN-01 reverses trailer-first, so local +X follows each rounded route segment.
+    NextPose.SetRotation(FRotator(0.0f, SegmentDirection.Rotation().Yaw, 0.0f).Quaternion());
+    if (!Carrier->AdvanceTractorPoseAndSolveTrailer(NextPose, OutReason))
+    {
+        return false;
+    }
+    if (Carrier->GetActorLocation().Equals(Target, 1.0f))
+    {
+        ++ArticulatedLorryRuntimePathIndex;
+    }
+    bOutArrived = !ArticulatedLorryRuntimePath.IsValidIndex(
+        ArticulatedLorryRuntimePathIndex)
+        && Carrier->GetActorLocation().Equals(LorryDockPoint, 1.0f);
+    OutReason = bOutArrived
+        ? TEXT("ARTICULATED INBOUND CARRIER REACHED ITS DOCK DATUM")
+        : TEXT("ARTICULATED INBOUND CARRIER ADVANCED ALONG ITS ROUNDED ROUTE");
+    return true;
+}
+
+void ALBInboundDeliveryController::AttachAvailableCoilsToArticulatedTrailer()
+{
+    ALBInboundArticulatedCarrierActor* Carrier = GetArticulatedLorry();
+    USceneComponent* CargoRoot = Carrier ? Carrier->GetTrailerCargoRoot() : nullptr;
+    if (!CargoRoot) return;
+    for (AActor* Coil : TrailerCoilActors)
+    {
+        if (Coil && !Coil->IsHidden())
+        {
+            Coil->AttachToComponent(CargoRoot, FAttachmentTransformRules::KeepWorldTransform);
+        }
+    }
+}
+
+void ALBInboundDeliveryController::DetachActiveCoilFromArticulatedTrailer()
+{
+    if (!LorryActor || !TrailerCoilActors.IsValidIndex(ActiveVisualCoilIndex)) return;
+    AActor* ActiveCoil = TrailerCoilActors[ActiveVisualCoilIndex];
+    if (ActiveCoil && ActiveCoil->GetAttachParentActor() == LorryActor)
+    {
+        ActiveCoil->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+    }
+}
+
+void ALBInboundDeliveryController::RefreshAttachedTrailerCoilHomeTransforms()
+{
+    if (!LorryActor) return;
+    for (int32 Index = 0; Index < TrailerCoilActors.Num(); ++Index)
+    {
+        AActor* Coil = TrailerCoilActors[Index];
+        if (Coil && Coil->GetAttachParentActor() == LorryActor
+            && TrailerCoilHomeTransforms.IsValidIndex(Index))
+        {
+            TrailerCoilHomeTransforms[Index] = Coil->GetActorTransform();
+        }
+    }
 }
 
 bool ALBInboundDeliveryController::MoveComponentTo(USceneComponent* Component, const FVector& Target,
@@ -1345,6 +1562,8 @@ FLBInboundDeliverySaveState ALBInboundDeliveryController::CaptureSaveState() con
     State.bLorryDocked = bLorryDocked;
     if (LorryActor) State.LorryTransform = LorryActor->GetActorTransform();
     else if (InboundDock) State.LorryTransform = InboundDock->GetActorTransform();
+    if (const ALBInboundArticulatedCarrierActor* Carrier = GetArticulatedLorry())
+        State.TrailerRelativeYawDegrees = Carrier->GetTrailerRelativeYawDegrees();
     if (TrailerCoilActors.IsValidIndex(ActiveVisualCoilIndex) && TrailerCoilActors[ActiveVisualCoilIndex])
         State.ActiveCoilTransform = TrailerCoilActors[ActiveVisualCoilIndex]->GetActorTransform();
     else if (PlayerTrailerCoilComponents.IsValidIndex(ActiveVisualCoilIndex)
@@ -1373,8 +1592,19 @@ bool ALBInboundDeliveryController::RestoreSaveState(const FLBInboundDeliverySave
     const FName SavedPR002Id = State.SaveVersion >= 3 ? State.PR002MachineId : State.CoilStoreId;
     const ELBInboundDeliverySourceMode SavedSourceMode = State.SaveVersion >= 6
         ? State.SourceMode : ELBInboundDeliverySourceMode::LegacyLorry;
-    if ((State.SaveVersion < 1 || State.SaveVersion > 6)
+    ALBInboundArticulatedCarrierActor* ArticulatedCarrier = GetArticulatedLorry();
+    const float SavedTrailerYaw = State.SaveVersion >= 7
+        ? State.TrailerRelativeYawDegrees : 0.0f;
+    const FRotator SavedLorryRotation = State.LorryTransform.Rotator();
+    const bool bValidArticulatedLorryPose = !ArticulatedCarrier
+        || (State.LorryTransform.IsValid() && !State.LorryTransform.ContainsNaN()
+            && FMath::Abs(SavedLorryRotation.Pitch) <= 0.01f
+            && FMath::Abs(SavedLorryRotation.Roll) <= 0.01f
+            && State.LorryTransform.GetScale3D().Equals(FVector::OneVector, 0.01f)
+            && ArticulatedCarrier->IsTrailerRelativeYawWithinLimits(SavedTrailerYaw));
+    if ((State.SaveVersion < 1 || State.SaveVersion > 7)
         || State.CompletedDeliveries < 0 || State.InboundDockId.IsNone() || SavedPR002Id.IsNone()
+        || !bValidArticulatedLorryPose
         || !StaticEnum<ELBInboundDeliverySourceMode>()->IsValidEnumValue(
             static_cast<int64>(SavedSourceMode))
         || SavedSourceMode != SourceMode
@@ -1392,7 +1622,35 @@ bool ALBInboundDeliveryController::RestoreSaveState(const FLBInboundDeliverySave
     bLorryDocked = State.SaveVersion >= 2 && State.bLorryDocked;
     if (State.SaveVersion >= 2 && bVisualSequenceBound)
     {
-        if (LorryActor) LorryActor->SetActorTransform(State.LorryTransform, false, nullptr, ETeleportType::TeleportPhysics);
+        if (ArticulatedCarrier)
+        {
+            FString CarrierReason;
+            if (!ArticulatedCarrier->ResetStraightAtTractorPose(
+                    State.LorryTransform, CarrierReason)
+                || !ArticulatedCarrier->SetTrailerRelativeYawDegrees(
+                    SavedTrailerYaw, CarrierReason))
+            {
+                return false;
+            }
+            AttachAvailableCoilsToArticulatedTrailer();
+            const bool bCoilHasLeftTrailer = State.Phase == ELBInboundDeliveryPhase::HookEngage
+                || State.Phase == ELBInboundDeliveryPhase::CoilLift
+                || State.Phase == ELBInboundDeliveryPhase::CraneToSaddle
+                || State.Phase == ELBInboundDeliveryPhase::CoilLower
+                || State.Phase == ELBInboundDeliveryPhase::SaddleRelease
+                || State.Phase == ELBInboundDeliveryPhase::WaitingForStorage
+                || State.Phase == ELBInboundDeliveryPhase::AGVDispatch
+                || State.Phase == ELBInboundDeliveryPhase::AGVHandoff
+                || State.Phase == ELBInboundDeliveryPhase::AGVReturn;
+            if (bCoilHasLeftTrailer) DetachActiveCoilFromArticulatedTrailer();
+            RefreshAttachedTrailerCoilHomeTransforms();
+            ResetArticulatedLorryRoute();
+        }
+        else if (LorryActor)
+        {
+            LorryActor->SetActorTransform(State.LorryTransform, false, nullptr,
+                ETeleportType::TeleportPhysics);
+        }
         if (TrailerCoilActors.IsValidIndex(ActiveVisualCoilIndex) && TrailerCoilActors[ActiveVisualCoilIndex])
             TrailerCoilActors[ActiveVisualCoilIndex]->SetActorTransform(State.ActiveCoilTransform, false, nullptr, ETeleportType::TeleportPhysics);
         else if (PlayerTrailerCoilComponents.IsValidIndex(ActiveVisualCoilIndex)
@@ -1422,7 +1680,7 @@ bool ALBInboundDeliveryController::RestoreSaveState(const FLBInboundDeliverySave
     }
     if (bPlayerBuiltComponentSequence)
     {
-        // v1-v5 did not persist a transient steering command. Resume from the exact saved
+        // v1-v6 did not persist a transient steering command. Resume from the exact saved
         // chassis pose with zero speed and let the next tick derive a safe rear-wheel lock.
         ResetCoilHandlerDriveState();
     }

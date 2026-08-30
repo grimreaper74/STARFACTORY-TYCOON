@@ -322,9 +322,11 @@ ULBOneFactoryPaintStarterLayoutLibrary::MakeNativeOnlyProfile()
     AddAsset(BasicMaterialPath,
         ELBOneFactoryAssetProvenance::NativeProcedural, 0);
 
+    // Generator-name tokens (Meshy/RuntimeGLB/ExternalGenerated/OriginalHighPoly)
+    // RETIRED 2026-08-24 per the spacecraft-pivot ruling: provenance is judged
+    // by its declared record. Working-state/licence tokens remain.
     Profile.ForbiddenSourceTokens = {
-        TEXT("Meshy"),
-        TEXT("ExternalGenerated"),
+        // raw-generator working files are still never production sources
         TEXT("Industrial_Welding_Ro"),
         TEXT("part-segmentation"),
         TEXT("AI_Character_output")

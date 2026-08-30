@@ -843,7 +843,11 @@ void ALBDeveloperAutomationBridge::WriteSessionDescriptor()
         TEXT("select_factory_actor"), TEXT("jump_to_alert"),
         TEXT("set_camera"), TEXT("place_machine"), TEXT("place_storage"),
         TEXT("queue_panel_batch"), TEXT("step_flow"), TEXT("support_robot"),
-        TEXT("coil_agv"), TEXT("capture_screenshot")};
+        TEXT("coil_agv"), TEXT("capture_screenshot"),
+        // exec is advertised like every other verb: a descriptor that
+        // under-reports what the bridge accepts is a trap for whoever
+        // reads it to find out what they can do.
+        TEXT("exec")};
     TArray<TSharedPtr<FJsonValue>> Commands;
     for (const FString& Command : CommandNames) Commands.Add(MakeShared<FJsonValueString>(Command));
     Session->SetArrayField(TEXT("commands"), Commands);
@@ -1130,6 +1134,55 @@ bool ALBDeveloperAutomationBridge::ExecuteCommand(const FString& Type,
     {
         OutResult = CaptureState();
         return OutResult.IsValid();
+    }
+
+    if (Type == TEXT("exec"))
+    {
+        // RUN A CONSOLE COMMAND IN THE LIVE SESSION. This is the one
+        // verb that makes the bridge worth having: every dev command
+        // this project has - Place, Start, Jump, Watch, Screenshot,
+        // Drones, Status - is registered as a console command, so one
+        // exec verb reaches all of them and every one added later,
+        // instead of the bridge needing a bespoke handler per command
+        // and drifting behind them.
+        //
+        // The point is a PERSISTENT session. Driving a running game
+        // costs a file write; relaunching one costs thirty seconds of
+        // engine start plus however long the simulation needs to warm
+        // back up to the state being looked at. Over a day of visual
+        // work that difference is most of the day.
+        //
+        // Scope: the bridge is already developer-only - it is never
+        // constructed in Shipping, is off unless the process was
+        // launched with -LineBossAutomationBridge, and opens no
+        // socket. exec adds no reach beyond what the console the
+        // developer already has open can do.
+        FString Command;
+        if (!Args.IsValid()
+            || !Args->TryGetStringField(TEXT("command"), Command)
+            || Command.TrimStartAndEnd().IsEmpty())
+        {
+            return InvalidArguments(TEXT("exec needs a non-empty 'command'"));
+        }
+        Command = Command.TrimStartAndEnd();
+        if (Command.Len() > 512)
+        {
+            return InvalidArguments(TEXT("exec command is too long"));
+        }
+        if (GEngine == nullptr || World == nullptr)
+        {
+            OutErrorCode = TEXT("WORLD_NOT_READY");
+            OutErrorMessage = TEXT("No world to run a command in.");
+            return false;
+        }
+        // The command's own log output is the developer's feedback, as
+        // it is at the console; the bridge reports only that it ran.
+        // Claiming a result the console never returned would be worse
+        // than reporting none.
+        const bool bHandled = GEngine->Exec(World, *Command);
+        OutResult->SetStringField(TEXT("command"), Command);
+        OutResult->SetBoolField(TEXT("handled"), bHandled);
+        return true;
     }
 
     if (Type == TEXT("open_ui"))

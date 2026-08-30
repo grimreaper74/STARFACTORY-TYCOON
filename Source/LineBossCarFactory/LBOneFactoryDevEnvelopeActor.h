@@ -33,16 +33,30 @@ public:
     ALBOneFactoryDevEnvelopeActor();
 
     /**
-     * Builds walls, a ceiling deck and roof-line clerestory strips around the
-     * configured route. Padding is added beyond the outermost stations so the
-     * aisles do not run straight into a wall.
+     * Builds walls, a site slab, roof decks and roof-line clerestory strips
+     * around the configured route. Padding is added beyond the outermost
+     * stations so the aisles do not run straight into a wall.
      */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer")
     bool BuildFromRoute(double PaddingCm, double WallHeightCm,
         FString& OutReason);
 
+    /**
+     * Explicit presentation-policy variant. Roofless candidate maps retain
+     * the envelope walls, dado, clerestory and site slab but do not receive
+     * the four runtime roof decks that would cover a true-overhead view.
+     */
+    bool BuildFromRouteWithRoofPolicy(double PaddingCm, double WallHeightCm,
+        bool bIncludeRoofDecks, FString& OutReason);
+
     UFUNCTION(BlueprintPure, Category="Line Boss|OneFactory|Developer")
     int32 GetPieceCount() const { return PieceCount; }
+
+    int32 GetRoofDeckCount() const;
+    int32 GetWallInstanceCount() const;
+    int32 GetDadoInstanceCount() const;
+    int32 GetClerestoryInstanceCount() const;
+    int32 GetSiteSlabInstanceCount() const;
 
     static FName GetEnvelopeTag();
 

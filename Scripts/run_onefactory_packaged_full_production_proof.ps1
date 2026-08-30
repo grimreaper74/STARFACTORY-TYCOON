@@ -23,6 +23,7 @@ New-Item -ItemType Directory -Force -Path $runRoot | Out-Null
 $stamp = Get-Date -Format 'yyyyMMddTHHmmssZ'
 $log = Join-Path $runRoot "full_production_$stamp.log"
 $receipt = Join-Path $runRoot "full_production_$stamp.json"
+$fallbackLog = Join-Path (Split-Path -Parent $game) 'LineBossCarFactory.log'
 
 # ExecCmds is comma-delimited in UE.  Keeping the entire value quoted avoids
 # the launcher treating a following command as a map URL.
@@ -42,6 +43,7 @@ $arguments = @(
     "-ExecCmds=`"$commands`""
 )
 
+$startedUtc = (Get-Date).ToUniversalTime()
 $process = Start-Process -FilePath $game -WorkingDirectory $root -ArgumentList $arguments -PassThru
 if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
     Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
@@ -51,7 +53,15 @@ if ($process.ExitCode -ne 0) {
     throw "Packaged full-production proof exited $($process.ExitCode). See $log"
 }
 if (-not (Test-Path -LiteralPath $log)) {
-    throw "Packaged run exited without producing a log: $log"
+    # UE packaged games can ignore -abslog and use the executable directory
+    # when their bootstrapper owns the command line.  Accept that documented
+    # fallback only when it was created by this invocation.
+    if ((Test-Path -LiteralPath $fallbackLog) -and
+        ((Get-Item -LiteralPath $fallbackLog).LastWriteTimeUtc -ge $startedUtc)) {
+        $log = $fallbackLog
+    } else {
+        throw "Packaged run exited without producing a current log: $log or $fallbackLog"
+    }
 }
 
 $text = Get-Content -LiteralPath $log -Raw

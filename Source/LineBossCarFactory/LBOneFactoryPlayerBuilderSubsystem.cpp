@@ -1,5 +1,6 @@
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 
+#include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "LBFactoryBuildMachine.h"
@@ -11,11 +12,17 @@
 #include "LBOneFactoryBootstrap.h"
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPaintStarterPresentationActor.h"
+#include "LBOneFactoryPressArtDirectionActor.h"
 #include "LBOneFactoryPressStarterLayout.h"
+#include "LBOneFactoryPressFeedController.h"
+#include "LBOneFactoryPressFeedPresentationActor.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
+#include "LBOneFactoryPressToolingSupportActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
 #include "LBOneFactorySaveGame.h"
+#include "LBPressTrainAStation.h"
+#include "LBPressShopOverheadVisualLayerActor.h"
 #include "LBVehiclePanelCatalog.h"
 
 namespace LBOneFactoryPlayerBuilderPrivate
@@ -58,6 +65,70 @@ namespace LBOneFactoryPlayerBuilderPrivate
         for (int32 Index = Actors.Num() - 1; Index >= 0; --Index)
             if (IsLive(Actors[Index])) Actors[Index]->Destroy();
         Actors.Reset();
+    }
+
+    int32 RetireLegacyPressPresentationForOneFactory(UWorld* World)
+    {
+        // OneFactory is the fixed, curated factory experience.  The old player-
+        // placeable press-train actor has a separate save/build workflow and still
+        // references candidate-era art. The protected map also contains map-baked
+        // StaticMeshActors from the old PressShop candidate folder and the
+        // map-baked Stations/Press and Candidates/PressTrains imports. Neither may
+        // coexist with the native S01-S07 presentation. Retiring them at runtime
+        // preserves the old sandbox and other departments while keeping OneFactory
+        // unambiguous and preventing their non-Nanite shadow cost.
+        if (!World) return 0;
+        TArray<AActor*> RetiredActors;
+        const auto IsRetiredPressMesh = [](const UStaticMeshComponent* Component)
+        {
+            const UStaticMesh* Mesh = Component
+                ? Component->GetStaticMesh() : nullptr;
+            if (!Mesh) return false;
+            const FString MeshPath = Mesh->GetPathName();
+            return MeshPath.Contains(TEXT("/Game/LineBoss/Candidates/PressShop/"),
+                       ESearchCase::IgnoreCase)
+                || MeshPath.Contains(TEXT("/Game/LineBoss/Stations/Press/"),
+                       ESearchCase::IgnoreCase)
+                || MeshPath.Contains(TEXT("/Game/LineBoss/Candidates/PressTrains/"),
+                       ESearchCase::IgnoreCase)
+                || MeshPath.Contains(TEXT("/Game/LineBoss/Developer/Validation/BlenderApproved"),
+                       ESearchCase::IgnoreCase)
+                || MeshPath.Contains(TEXT("/Game/LineBoss/Developer/Validation/PressTrains/"),
+                       ESearchCase::IgnoreCase);
+        };
+        for (TActorIterator<ALBPressTrainAStation> It(World); It; ++It)
+            if (IsLive(*It)) RetiredActors.AddUnique(*It);
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            AActor* Actor = *It;
+            if (!IsLive(Actor)) continue;
+            // The guarded overhead candidate deliberately uses one shared
+            // plane asset from the candidate PressShop tree.  Its dedicated
+            // runtime layer class is the current presentation contract, not
+            // legacy map dressing.  Exempt only that final native class;
+            // tagged generic actors using the same candidate mesh must still
+            // be retired by the path rule below.
+            if (Actor->IsA<ALBPressShopOverheadVisualLayerActor>()) continue;
+            TInlineComponentArray<UStaticMeshComponent*> MeshComponents(Actor);
+            const bool bUsesRetiredPressMesh = MeshComponents.ContainsByPredicate(
+                IsRetiredPressMesh);
+            if (bUsesRetiredPressMesh)
+            {
+                // PIE can defer destruction of a level-owned StaticMeshActor.
+                // Hide its retired source immediately so it can never overlap
+                // the native S01-S07 train for the current frame.
+                for (UStaticMeshComponent* Component : MeshComponents)
+                    if (IsRetiredPressMesh(Component))
+                    {
+                        Component->SetVisibility(false, true);
+                        Component->SetHiddenInGame(true, true);
+                    }
+                Actor->SetActorHiddenInGame(true);
+                RetiredActors.AddUnique(Actor);
+            }
+        }
+        for (AActor* Actor : RetiredActors) Actor->Destroy();
+        return RetiredActors.Num();
     }
 
     bool HasActiveOrReservedWIP(
@@ -1420,7 +1491,123 @@ bool ULBOneFactoryPlayerBuilderSubsystem::MaterialiseStarterPresentation(
     {
         return false;
     }
-    OutReason = TEXT("EXACT NATIVE PRESS PRESENTATION MATERIALISED");
+    FActorSpawnParameters ToolingParameters;
+    ToolingParameters.Name = TEXT("LB_OneFactory_PressToolingSupport_v001");
+    ToolingParameters.Owner = OutPresentation;
+    ToolingParameters.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ALBOneFactoryPressToolingSupportActor* Tooling =
+        World->SpawnActor<ALBOneFactoryPressToolingSupportActor>(
+            ALBOneFactoryPressToolingSupportActor::StaticClass(),
+            FTransform::Identity, ToolingParameters);
+    if (!LBOneFactoryPlayerBuilderPrivate::IsLive(Tooling)
+        || !Tooling->ConfigureFromPressLayout(Authority.CaptureLayout(), OutReason))
+    {
+        if (LBOneFactoryPlayerBuilderPrivate::IsLive(Tooling))
+            Tooling->Destroy();
+        OutPresentation->Destroy();
+        OutPresentation = nullptr;
+        if (OutReason.IsEmpty())
+            OutReason = TEXT("NATIVE PRESS TOOLING SUPPORT FAILED TO MATERIALISE");
+        return false;
+    }
+    Tooling->AttachToActor(OutPresentation,
+        FAttachmentTransformRules::KeepWorldTransform);
+    FActorSpawnParameters FeedParameters;
+    FeedParameters.Name = TEXT("LB_OneFactory_PressFeed_v001");
+    FeedParameters.Owner = OutPresentation;
+    FeedParameters.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ALBOneFactoryPressFeedController* Feed =
+        World->SpawnActor<ALBOneFactoryPressFeedController>(
+            ALBOneFactoryPressFeedController::StaticClass(),
+            FTransform::Identity, FeedParameters);
+    if (!LBOneFactoryPlayerBuilderPrivate::IsLive(Feed)
+        || !Feed->ConfigureAutomaticRoute(OutReason))
+    {
+        if (LBOneFactoryPlayerBuilderPrivate::IsLive(Feed)) Feed->Destroy();
+        Tooling->Destroy();
+        OutPresentation->Destroy();
+        OutPresentation = nullptr;
+        if (OutReason.IsEmpty())
+            OutReason = TEXT("NATIVE PR008-PR010 FEED ROUTE FAILED TO MATERIALISE");
+        return false;
+    }
+    Feed->AttachToActor(OutPresentation,
+        FAttachmentTransformRules::KeepWorldTransform);
+    FActorSpawnParameters FeedVisualParameters;
+    FeedVisualParameters.Name = TEXT("LB_OneFactory_PressFeedPresentation_v001");
+    FeedVisualParameters.Owner = OutPresentation;
+    FeedVisualParameters.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ALBOneFactoryPressFeedPresentationActor* FeedVisual =
+        World->SpawnActor<ALBOneFactoryPressFeedPresentationActor>(
+            ALBOneFactoryPressFeedPresentationActor::StaticClass(),
+            FTransform::Identity, FeedVisualParameters);
+    if (!LBOneFactoryPlayerBuilderPrivate::IsLive(FeedVisual)
+        || !FeedVisual->ConfigureFromPressLayout(Authority.CaptureLayout(), OutReason))
+    {
+        if (LBOneFactoryPlayerBuilderPrivate::IsLive(FeedVisual)) FeedVisual->Destroy();
+        Feed->Destroy(); Tooling->Destroy(); OutPresentation->Destroy();
+        OutPresentation = nullptr;
+        if (OutReason.IsEmpty())
+            OutReason = TEXT("NATIVE PR008-PR010 PRESENTATION FAILED TO MATERIALISE");
+        return false;
+    }
+    FeedVisual->AttachToActor(OutPresentation,
+        FAttachmentTransformRules::KeepWorldTransform);
+    const FLBOneFactoryPressNativeOnlyProfile PressProfile =
+        ULBOneFactoryPressStarterLayoutLibrary::MakeNativeOnlyProfile();
+    const TArray<FSoftObjectPath> ArtDirectionAssets =
+        ALBOneFactoryPressArtDirectionActor::GetRequiredNativeAssetPaths();
+    if (!ALBOneFactoryPressArtDirectionActor::ValidateNativeArtDirectionReferences(
+            ArtDirectionAssets, OutReason))
+    {
+        FeedVisual->Destroy(); Feed->Destroy(); Tooling->Destroy();
+        OutPresentation->Destroy(); OutPresentation = nullptr;
+        return false;
+    }
+    for (const FSoftObjectPath& Asset : ArtDirectionAssets)
+    {
+        if (!ULBOneFactoryPressStarterLayoutLibrary::ValidateNativeReference(
+                PressProfile,
+                ALBOneFactoryPressArtDirectionActor::GetArtDirectionClassPath(),
+                Asset.ToString(), ELBOneFactoryAssetProvenance::NativeAuthored,
+                OutReason))
+        {
+            FeedVisual->Destroy(); Feed->Destroy(); Tooling->Destroy();
+            OutPresentation->Destroy(); OutPresentation = nullptr;
+            return false;
+        }
+    }
+    FActorSpawnParameters ArtDirectionParameters;
+    ArtDirectionParameters.Name = TEXT("LB_OneFactory_PressArtDirection_v001");
+    ArtDirectionParameters.Owner = OutPresentation;
+    ArtDirectionParameters.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ALBOneFactoryPressArtDirectionActor* ArtDirection =
+        World->SpawnActor<ALBOneFactoryPressArtDirectionActor>(
+            ALBOneFactoryPressArtDirectionActor::StaticClass(),
+            FTransform::Identity, ArtDirectionParameters);
+    if (!LBOneFactoryPlayerBuilderPrivate::IsLive(ArtDirection)
+        || !ArtDirection->ConfigureFromPressPresentation(
+            *OutPresentation, Authority.CaptureLayout(), OutReason))
+    {
+        if (LBOneFactoryPlayerBuilderPrivate::IsLive(ArtDirection))
+            ArtDirection->Destroy();
+        FeedVisual->Destroy(); Feed->Destroy(); Tooling->Destroy();
+        OutPresentation->Destroy(); OutPresentation = nullptr;
+        if (OutReason.IsEmpty())
+            OutReason = TEXT("NATIVE PRESS ART-DIRECTION LAYER FAILED TO MATERIALISE");
+        return false;
+    }
+    ArtDirection->AttachToActor(OutPresentation,
+        FAttachmentTransformRules::KeepWorldTransform);
+    const int32 RetiredLegacyPresentationCount =
+        LBOneFactoryPlayerBuilderPrivate::RetireLegacyPressPresentationForOneFactory(World);
+    OutReason = RetiredLegacyPresentationCount > 0
+        ? FString::Printf(TEXT("NATIVE PRESS, ART DIRECTION, TOOLING, PR008-PR010 ROUTE AND FEED PRESENTATION MATERIALISED; RETIRED %d LEGACY PRESS PRESENTATION ACTOR(S)"), RetiredLegacyPresentationCount)
+        : TEXT("NATIVE PRESS, ART DIRECTION, TOOLING, PR008-PR010 ROUTE AND FEED PRESENTATION MATERIALISED");
     return true;
 }
 
@@ -4692,6 +4879,12 @@ bool ULBOneFactoryPlayerBuilderSubsystem::ExecuteUMGAction(
             OutReason);
         return false;
     }
+    // A restored/pre-populated OneFactory can reach the management surface without
+    // passing through MaterialiseStarterPresentation. Curate the visible press
+    // department before evaluating even a disabled action so candidate map dressing
+    // cannot reappear behind an already-live native presentation.
+    LBOneFactoryPlayerBuilderPrivate::RetireLegacyPressPresentationForOneFactory(
+        GetWorld());
     const TArray<FLBOneFactoryBuilderUMGAction> Actions = GetUMGActions();
     if (!Actions[ActionIndex].bEnabled)
     {

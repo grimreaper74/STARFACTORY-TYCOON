@@ -27,6 +27,12 @@
 # *.uasset / *.umap / *.fbx / *.blend before un-ignoring these directories.
 /Content/
 /SourceAssets/
+# Same reasoning: ArchivedCarEraContent (~15 GB) and ArtSource (~1.3 GB) are
+# the same class of binary tree, just archived/renamed rather than deleted.
+# ArchivedCarEraSource is deliberately NOT here - it holds the superseded
+# car-era .cpp/.h source kept as evidence, a few MB of text, not binaries.
+/ArchivedCarEraContent/
+/ArtSource/
 
 # --- Local scratch / stray artefacts ----------------------------------------
 /work/

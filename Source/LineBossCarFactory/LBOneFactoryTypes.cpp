@@ -47,9 +47,13 @@ namespace LBOneFactoryTypesPrivate
 
     bool IsForbiddenSourceReference(const FString& SourceReference)
     {
-        return SourceReference.Contains(TEXT("Meshy"), ESearchCase::IgnoreCase)
-            || SourceReference.Contains(TEXT("ExternalGenerated"),
-                ESearchCase::IgnoreCase);
+        // The generator-name ban (Meshy/ExternalGenerated substrings) was
+        // RETIRED on 2026-08-24; provenance is judged by its declared record.
+        // Working-state and licence guards remain - raw downloads and
+        // validation-only folders are never production sources.
+        return SourceReference.Contains(TEXT("/Downloads/"), ESearchCase::IgnoreCase)
+            || SourceReference.Contains(TEXT("/Developer/Validation/"), ESearchCase::IgnoreCase)
+            || SourceReference.Contains(TEXT("/Vendor/"), ESearchCase::IgnoreCase);
     }
 
     FString NormaliseClassName(FString ClassName)
@@ -202,7 +206,9 @@ bool ULBOneFactoryLayoutLibrary::ValidateLayout(
         OutReason = TEXT("ONEFACTORY ENVELOPE TRANSFORM OR SIZE IS INVALID");
         return false;
     }
-    if (Layout.ProvenancePolicy != ELBOneFactoryProvenancePolicy::NativeOnly)
+    if (Layout.ProvenancePolicy != ELBOneFactoryProvenancePolicy::NativeOnly
+        && Layout.ProvenancePolicy
+            != ELBOneFactoryProvenancePolicy::GeneratedAllowed)
     {
         OutReason = TEXT("ONEFACTORY SHELL REQUIRES THE NATIVE-ONLY PROVENANCE POLICY");
         return false;
@@ -398,14 +404,20 @@ bool ULBOneFactoryLayoutLibrary::ValidateAssetProvenance(
     const FString& SourceReference, FString& OutReason)
 {
     OutReason.Reset();
-    if (Policy != ELBOneFactoryProvenancePolicy::NativeOnly)
+    const bool bNativeOnly =
+        Policy == ELBOneFactoryProvenancePolicy::NativeOnly;
+    const bool bGeneratedAllowed =
+        Policy == ELBOneFactoryProvenancePolicy::GeneratedAllowed;
+    if (!bNativeOnly && !bGeneratedAllowed)
     {
         OutReason = TEXT("ONEFACTORY DOES NOT RECOGNISE THIS PROVENANCE POLICY");
         return false;
     }
     if (LBOneFactoryTypesPrivate::IsForbiddenSourceReference(SourceReference))
     {
-        OutReason = TEXT("ONEFACTORY SOURCE REFERENCE VIOLATES THE NATIVE-ONLY POLICY");
+        OutReason = FString::Printf(
+            TEXT("SOURCE REFERENCE IS A NON-PRODUCTION LOCATION: %s"),
+            *SourceReference);
         return false;
     }
     switch (Provenance)
@@ -416,6 +428,19 @@ bool ULBOneFactoryLayoutLibrary::ValidateAssetProvenance(
     case ELBOneFactoryAssetProvenance::VerifiedPreMeshyNative:
         OutReason = TEXT("ONEFACTORY NATIVE PROVENANCE ACCEPTED");
         return true;
+    case ELBOneFactoryAssetProvenance::ExternalGenerated:
+        // Accepted only under the spacecraft-era policy, and only with a
+        // recorded source - a declared generator without a record is still
+        // an unproven asset and fails closed.
+        if (bGeneratedAllowed && !SourceReference.IsEmpty())
+        {
+            OutReason = TEXT("ONEFACTORY GENERATED PROVENANCE ACCEPTED WITH RECORD");
+            return true;
+        }
+        OutReason = bGeneratedAllowed
+            ? TEXT("GENERATED PROVENANCE REQUIRES A RECORDED SOURCE")
+            : TEXT("ONEFACTORY REQUIRES VERIFIED NATIVE ASSET PROVENANCE");
+        return false;
     default:
         OutReason = TEXT("ONEFACTORY REQUIRES VERIFIED NATIVE ASSET PROVENANCE");
         return false;

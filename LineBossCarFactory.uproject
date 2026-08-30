@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{9FAADC1E-4FD1-62E3-B76A-24BA2170A646}",
+	"EngineAssociation": "5.8",
 	"Category": "Line Boss: Car Factory",
 	"Description": "PC-first modular automotive factory management game. Clean Unreal build; the Godot project remains preserved as the simulation and asset reference.",
 	"Modules": [

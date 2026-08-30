@@ -115,3 +115,47 @@ player-editable safety/logistics infrastructure.
    weld vertical slice before general assembly.
 6. Run the v1031 Shipping finish checklist on new campaign, build, production,
    save/load, fault/recovery and performance journeys.
+
+## Update, 2026-08-24 — Press Shop 2126 overhead candidate
+
+The isolated
+`LB_MoorcrossWorks_PressShop2126_OverheadPresentation_v006` lane is
+**validation-only**.  Its technical state and its visual state are separate:
+
+- **Technical PASS:** the v006 install preserved the v005 source visuals and all
+  protected maps; exact regular PIE passed the 57-route native-player lifecycle
+  through inspection hold/PASS, palletising and outbound with 146 bound visual
+  layers and unchanged fingerprints.  Runtime legacy-press cleanup now retains
+  the dedicated overhead visual-layer class, and its focused test passed 1/1
+  with two recorded teardown warnings.
+- **Capture-mechanism PASS:** after four preserved failed attempts, live-HUD run
+  `v005` made exactly one native 1920x1080 request in regular PIE with real RHI,
+  one player order, native top bar/flow strip and a natural S04 press stroke.
+  The map and install-receipt hashes were unchanged.  The earlier `v004` PNG is
+  diagnostic only: its receipt is FAIL because loading-flush re-entry caused a
+  later request attempt to encounter the first request still pending and return
+  a false bridge-refusal result.
+- **Human visual gate FAIL:** the accepted technical PNG is dominated by an
+  opaque roof/upper shell, so the machinery and process story are not visible.
+  This violates the roofless 2126 authority and blocks Steam-art acceptance.
+
+The current screenshot is evidence that the capture path works, not evidence
+that the art works.  Cook, packaged behavior, performance, Shipping validation
+and human Steam visual approval remain open.  Do not describe this candidate as
+Steam-ready.  Exact receipts, hashes and the five-run chronology are recorded in
+[Validation evidence](VALIDATION_EVIDENCE.md).
+
+### Same-session status update
+
+The candidate-specific roofless runtime policy is now built and its focused
+native test passes 1/1: marked maps create zero runtime roof decks, unmarked
+legacy maps create four, and other envelope structure is unchanged.  A fresh
+regular-PIE live-HUD run (`20260824T032352721491Z`) technically passed with one
+request and unchanged map/install hashes.  Its roof is correctly absent.
+
+The human visual gate remains **FAIL**, now for a narrower reason: detailed
+machine sprite layers are not visible in the live frame although the receipt
+reports 146 bound layers; station pads, labels and limited structural strips
+remain visible.  Root cause analysis was interrupted for safe shutdown and must
+resume read-only.  This supersedes the roof as the strongest current visual
+blocker, but it does not change the candidate's non-Steam-ready status.

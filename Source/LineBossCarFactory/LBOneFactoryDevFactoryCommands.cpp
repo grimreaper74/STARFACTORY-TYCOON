@@ -2,6 +2,9 @@
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/LightComponent.h"
+#include "Components/LightComponentBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -10,10 +13,14 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Components/RectLightComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/PointLight.h"
 #include "Engine/PostProcessVolume.h"
+#include "Engine/RectLight.h"
+#include "Engine/Scene.h"
 #include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 #include "Engine/SkyLight.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -25,6 +32,7 @@
 #include "LBOneFactoryPaintStarterLayout.h"
 #include "LBOneFactoryPlayerBuilderSubsystem.h"
 #include "LBOneFactoryPressStarterLayout.h"
+#include "LBOneFactoryPressArtDirectionActor.h"
 #include "LBOneFactoryPressStarterPresentationActor.h"
 #include "LBOneFactoryProductionFlow.h"
 #include "LBOneFactoryRuntimeCoordinator.h"
@@ -72,6 +80,621 @@ namespace
         }
         return GEngine->GetWorldFromContextObject(
             WorldContextObject, EGetWorldErrorMode::ReturnNull);
+    }
+
+    const FName DevLightTag(TEXT("LB.OneFactory.DevLighting"));
+    const FName PressBStylizedLightingTag(
+        TEXT("LB.OneFactory.PressBStylizedLighting"));
+    // This is the map-authored 800,000 lm authority for OneFactory.  The
+    // B_stylized rig replaces it only for the live runtime session; the map
+    // asset itself is never edited.
+    const FName OneFactoryLightingAuthorityTag(
+        TEXT("LB.OneFactory.Lighting.Authority.5000K.v001"));
+    const FName OneFactoryShellTag(TEXT("LB.OneFactory.Shell.v001"));
+    const FName NativeOnlyTag(TEXT("LB.Provenance.NativeOnly"));
+    const FName OneFactoryEnvironmentTag(TEXT("LB.OneFactory.Environment"));
+    // Old visual-review lights are explicitly marked as non-process visual
+    // decoration.  They must not mix with B_stylized's approved calibration.
+    const FName VisualOnlyLightTag(TEXT("LB.Environment.VisualOnly"));
+    const FName NotProcessWIPTag(TEXT("LB.NotProcessWIP"));
+    const FName PressTransplantLightTag(TEXT("LB.Press.Transplant"));
+    const FName ZoneLightingTag(TEXT("LB.Zone.Lighting"));
+    const FName SiteLightingTag(TEXT("LB.Site.Lighting"));
+    constexpr int32 ExpectedVisualOnlyLegacyLightCount = 157;
+    void RestoreCleanShellRoofForPressArtDirection(UWorld* World)
+    {
+        if (!World) return;
+        // SetRoofHidden owns the per-world list of components it hid.  Calling
+        // SetActorHiddenInGame here was insufficient: the cutaway changes
+        // component visibility, not actor hidden state.  Restore through the
+        // same owner so this remains exact and session-local.
+        FString RoofReason;
+        if (!ULBOneFactoryDevFactory::SetRoofHidden(
+            World, false, 900.0, RoofReason))
+        {
+            UE_LOG(LogLineBossOneFactoryDev, Warning,
+                TEXT("PRESS B_STYLIZED could not restore roof: %s"),
+                *RoofReason);
+        }
+    }
+
+    void DestroyRuntimeActorsWithTag(UWorld* World, const FName Tag)
+    {
+        if (!World) return;
+        TArray<AActor*> Matches;
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            if (IsValid(*It) && It->ActorHasTag(Tag))
+            {
+                Matches.Add(*It);
+            }
+        }
+        for (AActor* Actor : Matches)
+        {
+            if (IsValid(Actor)) Actor->Destroy();
+        }
+    }
+
+    namespace LBOneFactoryPressBLightingPrivate
+    {
+        /** Exact runtime state of the map lighting authority before B takes over. */
+        struct FMapAuthorityState
+        {
+            TWeakObjectPtr<URectLightComponent> Component;
+            float Intensity = 0.0f;
+            bool bVisible = true;
+        };
+
+        static TMap<TWeakObjectPtr<UWorld>, FMapAuthorityState> GAuthorityStatePerWorld;
+
+        struct FVisualOnlyLightState
+        {
+            TWeakObjectPtr<ULightComponentBase> Component;
+            float Intensity = 0.0f;
+            bool bVisible = true;
+        };
+
+        static TMap<TWeakObjectPtr<UWorld>, TArray<FVisualOnlyLightState>>
+            GVisualOnlyLightStatePerWorld;
+
+        void PruneStaleWorldState()
+        {
+            for (auto It = GAuthorityStatePerWorld.CreateIterator(); It; ++It)
+            {
+                if (!It->Key.IsValid())
+                {
+                    It.RemoveCurrent();
+                }
+            }
+            for (auto It = GVisualOnlyLightStatePerWorld.CreateIterator(); It; ++It)
+            {
+                if (!It->Key.IsValid())
+                {
+                    It.RemoveCurrent();
+                }
+            }
+        }
+
+        bool CanSetLightIntensity(const ULightComponentBase* Light)
+        {
+            return Cast<ULightComponent>(Light) || Cast<USkyLightComponent>(Light);
+        }
+
+        bool SetLightIntensity(ULightComponentBase* Light, const float Intensity)
+        {
+            if (ULightComponent* StandardLight = Cast<ULightComponent>(Light))
+            {
+                StandardLight->SetIntensity(Intensity);
+                return true;
+            }
+            if (USkyLightComponent* SkyLight = Cast<USkyLightComponent>(Light))
+            {
+                SkyLight->SetIntensity(Intensity);
+                return true;
+            }
+            return false;
+        }
+
+        bool GatherVisualOnlyLights(UWorld* World,
+            TArray<ULightComponentBase*>& OutLights, FString& OutReason)
+        {
+            OutLights.Reset();
+            if (!World)
+            {
+                OutReason = TEXT("PRESS B_STYLIZED HAS NO WORLD");
+                return false;
+            }
+
+            for (TActorIterator<AActor> It(World); It; ++It)
+            {
+                AActor* Actor = *It;
+                if (!IsValid(Actor)
+                    || !Actor->ActorHasTag(VisualOnlyLightTag)
+                    || !Actor->ActorHasTag(NotProcessWIPTag)
+                    // The map's authoritative RectLight is handled through
+                    // its own exact provenance gate below.
+                    || Actor->ActorHasTag(OneFactoryLightingAuthorityTag))
+                {
+                    continue;
+                }
+
+                const int32 KnownLightProvenanceCount =
+                    (Actor->ActorHasTag(PressTransplantLightTag) ? 1 : 0)
+                    + (Actor->ActorHasTag(ZoneLightingTag) ? 1 : 0)
+                    + (Actor->ActorHasTag(SiteLightingTag) ? 1 : 0);
+                // Do not broadly affect every visual-only actor: these three
+                // mutually-exclusive tags are the audited, map-authored
+                // legacy photo-light families only.
+                if (KnownLightProvenanceCount != 1)
+                {
+                    continue;
+                }
+
+                TInlineComponentArray<ULightComponentBase*> Components(Actor);
+                for (ULightComponentBase* Light : Components)
+                {
+                    if (!IsValid(Light))
+                    {
+                        continue;
+                    }
+                    if (!CanSetLightIntensity(Light))
+                    {
+                        OutReason = FString::Printf(TEXT(
+                            "PRESS B_STYLIZED FOUND UNSUPPORTED VISUAL-ONLY LIGHT COMPONENT ON %s"),
+                            *Actor->GetActorNameOrLabel());
+                        return false;
+                    }
+                    OutLights.Add(Light);
+                }
+            }
+            return true;
+        }
+
+        URectLightComponent* FindOneFactoryLightingAuthority(
+            UWorld* World, FString& OutReason)
+        {
+            if (!World)
+            {
+                OutReason = TEXT("PRESS B_STYLIZED HAS NO WORLD");
+                return nullptr;
+            }
+
+            TArray<ARectLight*> Matches;
+            for (TActorIterator<ARectLight> It(World); It; ++It)
+            {
+                if (IsValid(*It)
+                    && It->ActorHasTag(OneFactoryLightingAuthorityTag)
+                    && It->ActorHasTag(OneFactoryShellTag)
+                    && It->ActorHasTag(NativeOnlyTag)
+                    && It->ActorHasTag(OneFactoryEnvironmentTag))
+                {
+                    Matches.Add(*It);
+                }
+            }
+            if (Matches.Num() != 1)
+            {
+                OutReason = FString::Printf(TEXT(
+                    "PRESS B_STYLIZED REQUIRES EXACTLY ONE ONEFACTORY LIGHTING AUTHORITY (found %d)"),
+                    Matches.Num());
+                return nullptr;
+            }
+
+            URectLightComponent* Light =
+                Cast<URectLightComponent>(Matches[0]->GetLightComponent());
+            if (!Light)
+            {
+                OutReason = TEXT("PRESS B_STYLIZED MAP LIGHTING AUTHORITY HAS NO RECT COMPONENT");
+                return nullptr;
+            }
+            return Light;
+        }
+
+        bool IsOneFactoryLightingAuthorityNeutralized(const UWorld* World)
+        {
+            FString IgnoredReason;
+            URectLightComponent* Light = FindOneFactoryLightingAuthority(
+                const_cast<UWorld*>(World), IgnoredReason);
+            return Light && !Light->IsVisible()
+                && FMath::IsNearlyZero(Light->Intensity);
+        }
+
+        void NeutralizeOneFactoryLightingAuthority(
+            UWorld* World, URectLightComponent* Light)
+        {
+            check(World && Light);
+            PruneStaleWorldState();
+            FMapAuthorityState& State = GAuthorityStatePerWorld.FindOrAdd(World);
+            if (!State.Component.IsValid())
+            {
+                State.Component = Light;
+                State.Intensity = Light->Intensity;
+                State.bVisible = Light->IsVisible();
+            }
+            // Reversible live-session handover.  This prevents the map's
+            // 800,000 lm fixture from swamping B's six 1,200 lm fixtures.
+            Light->SetIntensity(0.0f);
+            Light->SetVisibility(false, false);
+        }
+
+        void RestoreOneFactoryLightingAuthority(UWorld* World)
+        {
+            if (!World) return;
+            PruneStaleWorldState();
+            FMapAuthorityState State;
+            if (!GAuthorityStatePerWorld.RemoveAndCopyValue(World, State))
+            {
+                return;
+            }
+            if (URectLightComponent* Light = State.Component.Get())
+            {
+                Light->SetIntensity(State.Intensity);
+                Light->SetVisibility(State.bVisible, false);
+            }
+        }
+
+        bool AreVisualOnlyLightsNeutralized(const UWorld* World)
+        {
+            TArray<ULightComponentBase*> Lights;
+            FString IgnoredReason;
+            if (!GatherVisualOnlyLights(
+                const_cast<UWorld*>(World), Lights, IgnoredReason))
+            {
+                return false;
+            }
+            for (const ULightComponentBase* Light : Lights)
+            {
+                if (!Light || Light->IsVisible()
+                    || !FMath::IsNearlyZero(Light->Intensity))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        void NeutralizeVisualOnlyLights(UWorld* World,
+            const TArray<ULightComponentBase*>& Lights)
+        {
+            check(World);
+            PruneStaleWorldState();
+            TArray<FVisualOnlyLightState>* Existing =
+                GVisualOnlyLightStatePerWorld.Find(World);
+            if (!Existing)
+            {
+                TArray<FVisualOnlyLightState> State;
+                State.Reserve(Lights.Num());
+                for (ULightComponentBase* Light : Lights)
+                {
+                    if (!IsValid(Light)) continue;
+                    FVisualOnlyLightState& Entry = State.AddDefaulted_GetRef();
+                    Entry.Component = Light;
+                    Entry.Intensity = Light->Intensity;
+                    Entry.bVisible = Light->IsVisible();
+                }
+                GVisualOnlyLightStatePerWorld.Add(World, MoveTemp(State));
+            }
+            for (ULightComponentBase* Light : Lights)
+            {
+                if (!IsValid(Light)) continue;
+                const bool bSet = SetLightIntensity(Light, 0.0f);
+                check(bSet);
+                Light->SetVisibility(false, false);
+            }
+        }
+
+        void RestoreVisualOnlyLights(UWorld* World)
+        {
+            if (!World) return;
+            PruneStaleWorldState();
+            TArray<FVisualOnlyLightState> State;
+            if (!GVisualOnlyLightStatePerWorld.RemoveAndCopyValue(World, State))
+            {
+                return;
+            }
+            for (const FVisualOnlyLightState& Entry : State)
+            {
+                if (ULightComponentBase* Light = Entry.Component.Get())
+                {
+                    const bool bSet = SetLightIntensity(Light, Entry.Intensity);
+                    check(bSet);
+                    Light->SetVisibility(Entry.bVisible, false);
+                }
+            }
+        }
+    }
+
+    bool IsCompletePressBStylizedLighting(const UWorld* World)
+    {
+        if (!World) return false;
+        int32 RectCount = 0;
+        int32 DirectionalCount = 0;
+        int32 SkyCount = 0;
+        int32 GradeCount = 0;
+        bool bRectValuesMatch = true;
+        bool bDirectionalValuesMatch = true;
+        bool bSkyValuesMatch = true;
+        bool bGradeValuesMatch = true;
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            AActor* Actor = *It;
+            if (!IsValid(Actor) || !Actor->ActorHasTag(PressBStylizedLightingTag))
+            {
+                continue;
+            }
+            if (ARectLight* Rect = Cast<ARectLight>(Actor))
+            {
+                ++RectCount;
+                const URectLightComponent* Light =
+                    Cast<URectLightComponent>(Rect->GetLightComponent());
+                bRectValuesMatch &= Light
+                    && Light->IntensityUnits == ELightUnits::Lumens
+                    && FMath::IsNearlyEqual(Light->Intensity, 1200.0f)
+                    && Light->bUseTemperature
+                    && FMath::IsNearlyEqual(Light->Temperature, 5000.0f);
+            }
+            else if (ADirectionalLight* Sun = Cast<ADirectionalLight>(Actor))
+            {
+                ++DirectionalCount;
+                const UDirectionalLightComponent* Light =
+                    Cast<UDirectionalLightComponent>(Sun->GetLightComponent());
+                bDirectionalValuesMatch &= Light
+                    && FMath::IsNearlyEqual(Light->Intensity, 0.30f);
+            }
+            else if (ASkyLight* Sky = Cast<ASkyLight>(Actor))
+            {
+                ++SkyCount;
+                const USkyLightComponent* Light = Sky->GetLightComponent();
+                bSkyValuesMatch &= Light
+                    && FMath::IsNearlyEqual(Light->Intensity, 0.20f)
+                    && Light->SourceType == SLS_CapturedScene
+                    && !Light->bLowerHemisphereIsBlack;
+            }
+            else if (APostProcessVolume* Grade = Cast<APostProcessVolume>(Actor))
+            {
+                ++GradeCount;
+                bGradeValuesMatch &= Grade->bUnbound
+                    && Grade->Priority > 1000.0f
+                    && Grade->Settings.bOverride_AutoExposureBias
+                    && FMath::IsNearlyEqual(
+                        Grade->Settings.AutoExposureBias, -0.50f);
+            }
+        }
+        return RectCount == 6 && DirectionalCount == 1 && SkyCount == 1
+            && GradeCount == 1 && bRectValuesMatch && bDirectionalValuesMatch
+            && bSkyValuesMatch && bGradeValuesMatch
+            && LBOneFactoryPressBLightingPrivate::
+                IsOneFactoryLightingAuthorityNeutralized(World)
+            && LBOneFactoryPressBLightingPrivate::
+                AreVisualOnlyLightsNeutralized(World);
+    }
+
+    void ClearPartialPressBStylizedLighting(UWorld* World)
+    {
+        if (!World) return;
+        TArray<AActor*> Destroyed;
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            AActor* Actor = *It;
+            if (!IsValid(Actor)
+                || !Actor->ActorHasTag(PressBStylizedLightingTag))
+            {
+                continue;
+            }
+            // Every B asset is transient and tagged.  Removing all of them
+            // makes a retry deterministic; map-authored light state is
+            // restored separately below.
+            Destroyed.Add(Actor);
+        }
+        for (AActor* Actor : Destroyed)
+        {
+            if (IsValid(Actor)) Actor->Destroy();
+        }
+        // If this is a retry or teardown, return the durable map light to the
+        // exact state it had before B took over.  A successful new B build
+        // neutralizes it again only after all B actors are configured.
+        LBOneFactoryPressBLightingPrivate::
+            RestoreOneFactoryLightingAuthority(World);
+        LBOneFactoryPressBLightingPrivate::RestoreVisualOnlyLights(World);
+    }
+
+    bool EnsurePressBStylizedLighting(UWorld* World, FString& OutReason)
+    {
+        if (!World)
+        {
+            OutReason = TEXT("PRESS B_STYLIZED HAS NO WORLD");
+            return false;
+        }
+        if (IsCompletePressBStylizedLighting(World))
+        {
+            RestoreCleanShellRoofForPressArtDirection(World);
+            OutReason = TEXT("PRESS B_STYLIZED LIGHTING ALREADY COMPLETE");
+            return true;
+        }
+
+        ALBOneFactoryPressStarterPresentationActor* Presentation =
+            FindExactlyOne<ALBOneFactoryPressStarterPresentationActor>(World);
+        FTransform PressStation = FTransform::Identity;
+        if (!Presentation || !Presentation->IsPresentationConfigured()
+            || !Presentation->GetConfiguredStationTransform(
+                LBOneFactoryPressStarterIds::PressTrain(), PressStation)
+            || PressStation.ContainsNaN())
+        {
+            OutReason = TEXT("PRESS B_STYLIZED REQUIRES ONE CONFIGURED NATIVE PRESS PRESENTATION");
+            return false;
+        }
+
+        FString AuthorityReason;
+        URectLightComponent* MapLightingAuthority =
+            LBOneFactoryPressBLightingPrivate::FindOneFactoryLightingAuthority(
+                World, AuthorityReason);
+        if (!MapLightingAuthority)
+        {
+            OutReason = AuthorityReason;
+            return false;
+        }
+
+        TArray<ULightComponentBase*> VisualOnlyLights;
+        FString VisualOnlyReason;
+        if (!LBOneFactoryPressBLightingPrivate::GatherVisualOnlyLights(
+            World, VisualOnlyLights, VisualOnlyReason))
+        {
+            OutReason = VisualOnlyReason;
+            return false;
+        }
+        if (VisualOnlyLights.Num() != ExpectedVisualOnlyLegacyLightCount)
+        {
+            OutReason = FString::Printf(TEXT(
+                "PRESS B_STYLIZED LEGACY-LIGHT CONTRACT FAILED: expected %d, found %d"),
+                ExpectedVisualOnlyLegacyLightCount, VisualOnlyLights.Num());
+            return false;
+        }
+
+        ClearPartialPressBStylizedLighting(World);
+        DestroyRuntimeActorsWithTag(World, DevLightTag);
+
+        const FTransform LocalTrainAnchor(FQuat::Identity,
+            FVector(9.25f, 2367.5f, 0.0f));
+        const FTransform WorldTrainAnchor = LocalTrainAnchor * PressStation;
+        if (WorldTrainAnchor.ContainsNaN())
+        {
+            OutReason = TEXT("PRESS B_STYLIZED TRAIN ANCHOR IS INVALID");
+            return false;
+        }
+
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        TArray<AActor*> Spawned;
+        const auto FailAndClear = [&Spawned, &OutReason, World](const TCHAR* Reason)
+        {
+            for (AActor* Actor : Spawned)
+            {
+                if (IsValid(Actor)) Actor->Destroy();
+            }
+            LBOneFactoryPressBLightingPrivate::
+                RestoreOneFactoryLightingAuthority(World);
+            LBOneFactoryPressBLightingPrivate::RestoreVisualOnlyLights(World);
+            OutReason = Reason;
+            return false;
+        };
+
+        const FVector FixtureLocalLocations[] =
+        {
+            FVector(-950.0f, -3600.0f, 1050.0f),
+            FVector( 950.0f, -3600.0f, 1050.0f),
+            FVector(-950.0f,     0.0f, 1050.0f),
+            FVector( 950.0f,     0.0f, 1050.0f),
+            FVector(-950.0f,  3600.0f, 1050.0f),
+            FVector( 950.0f,  3600.0f, 1050.0f)
+        };
+        const FQuat DownwardLocalRotation(FRotator(-90.0f, 0.0f, 0.0f));
+        const FQuat FixtureWorldRotation =
+            WorldTrainAnchor.GetRotation() * DownwardLocalRotation;
+        for (const FVector& LocalLocation : FixtureLocalLocations)
+        {
+            ARectLight* Fixture = World->SpawnActor<ARectLight>(
+                ARectLight::StaticClass(),
+                WorldTrainAnchor.TransformPosition(LocalLocation),
+                FixtureWorldRotation.Rotator(), Params);
+            if (!Fixture)
+            {
+                return FailAndClear(TEXT("PRESS B_STYLIZED COULD NOT SPAWN A RECT FIXTURE"));
+            }
+            Spawned.Add(Fixture);
+            Fixture->Tags.AddUnique(PressBStylizedLightingTag);
+            URectLightComponent* Light =
+                Cast<URectLightComponent>(Fixture->GetLightComponent());
+            if (!Light)
+            {
+                return FailAndClear(TEXT("PRESS B_STYLIZED RECT FIXTURE HAS NO LIGHT COMPONENT"));
+            }
+            Light->SetMobility(EComponentMobility::Movable);
+            Light->SetIntensityUnits(ELightUnits::Lumens);
+            Light->SetIntensity(1200.0f);
+            // Factory-wide lighting authority: nominal 5000 K.  The older
+            // B prototype used default D65 even though its standard calls
+            // for a shared temperature across departments.
+            Light->SetUseTemperature(true);
+            Light->SetTemperature(5000.0f);
+            Light->SetSourceWidth(650.0f);
+            Light->SetSourceHeight(160.0f);
+            Light->SetAttenuationRadius(2600.0f);
+            Light->SetCastShadows(false);
+        }
+
+        const FVector BLightOrigin = WorldTrainAnchor.GetLocation();
+        const FQuat SunWorldRotation = WorldTrainAnchor.GetRotation()
+            * FQuat(FRotator(-52.0f, 28.0f, 0.0f));
+        ADirectionalLight* SunActor = World->SpawnActor<ADirectionalLight>(
+            ADirectionalLight::StaticClass(), BLightOrigin,
+            SunWorldRotation.Rotator(), Params);
+        if (!SunActor)
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED COULD NOT SPAWN ITS SUN"));
+        }
+        Spawned.Add(SunActor);
+        SunActor->Tags.AddUnique(PressBStylizedLightingTag);
+        UDirectionalLightComponent* Sun =
+            Cast<UDirectionalLightComponent>(SunActor->GetLightComponent());
+        if (!Sun)
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED SUN HAS NO DIRECTIONAL COMPONENT"));
+        }
+        Sun->SetMobility(EComponentMobility::Movable);
+        Sun->SetIntensity(0.30f);
+
+        ASkyLight* SkyActor = World->SpawnActor<ASkyLight>(
+            ASkyLight::StaticClass(), BLightOrigin + FVector(0.0f, 0.0f, 1000.0f),
+            FRotator::ZeroRotator, Params);
+        if (!SkyActor)
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED COULD NOT SPAWN ITS SKY"));
+        }
+        Spawned.Add(SkyActor);
+        SkyActor->Tags.AddUnique(PressBStylizedLightingTag);
+        USkyLightComponent* Sky = SkyActor->GetLightComponent();
+        if (!Sky)
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED SKY HAS NO SKY COMPONENT"));
+        }
+        Sky->SetMobility(EComponentMobility::Movable);
+        Sky->SetIntensity(0.20f);
+        Sky->SourceType = SLS_CapturedScene;
+        Sky->bLowerHemisphereIsBlack = false;
+        Sky->RecaptureSky();
+
+        APostProcessVolume* Grade = World->SpawnActor<APostProcessVolume>(
+            APostProcessVolume::StaticClass(), FVector::ZeroVector,
+            FRotator::ZeroRotator, Params);
+        if (!Grade)
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED COULD NOT SPAWN ITS EXPOSURE VOLUME"));
+        }
+        Spawned.Add(Grade);
+        Grade->Tags.AddUnique(PressBStylizedLightingTag);
+        Grade->bUnbound = true;
+        Grade->Priority = 2001.0f;
+        Grade->BlendWeight = 1.0f;
+        Grade->Settings.bOverride_AutoExposureBias = true;
+        Grade->Settings.AutoExposureBias = -0.50f;
+
+        // Do this last: if a fixture, grade, sun or sky could not be made,
+        // the map authority has not changed at all.
+        LBOneFactoryPressBLightingPrivate::
+            NeutralizeOneFactoryLightingAuthority(World, MapLightingAuthority);
+        LBOneFactoryPressBLightingPrivate::
+            NeutralizeVisualOnlyLights(World, VisualOnlyLights);
+        RestoreCleanShellRoofForPressArtDirection(World);
+
+        if (!IsCompletePressBStylizedLighting(World))
+        {
+            return FailAndClear(TEXT("PRESS B_STYLIZED POST-BUILD CONTRACT FAILED"));
+        }
+
+        OutReason = FString::Printf(TEXT(
+            "PRESS B_STYLIZED ACTIVE: 6x1200 lm rect fixtures, runtime sun 0.30, runtime sky 0.20, exposure -0.50, %d visual-only legacy light(s) suppressed"),
+            VisualOnlyLights.Num());
+        return true;
     }
 
     FString EnumName(const UEnum* Enum, const int64 Value)
@@ -525,7 +1148,34 @@ bool ULBOneFactoryDevFactory::EnsureDevLighting(UObject* WorldContextObject,
         return false;
     }
 
-    static const FName DevLightTag(TEXT("LB.OneFactory.DevLighting"));
+    int32 ArtDirectionCount = 0;
+    ALBOneFactoryPressArtDirectionActor* ArtDirection = nullptr;
+    for (TActorIterator<ALBOneFactoryPressArtDirectionActor> It(World); It; ++It)
+    {
+        if (IsValid(*It) && !It->IsActorBeingDestroyed())
+        {
+            ArtDirection = *It;
+            ++ArtDirectionCount;
+        }
+    }
+    if (ArtDirectionCount > 1)
+    {
+        OutReason = TEXT("PRESS B_STYLIZED REFUSED DUPLICATE ART-DIRECTION ACTORS");
+        return false;
+    }
+    if (ArtDirectionCount == 1)
+    {
+        if (!ArtDirection || !ArtDirection->IsArtDirectionConfigured())
+        {
+            OutReason = TEXT("PRESS B_STYLIZED REFUSED AN UNCONFIGURED ART-DIRECTION ACTOR");
+            return false;
+        }
+        // The B-stylized calibration is authoritative for this art-directed
+        // Press Shop. Intensity remains part of the generic fallback API but
+        // is deliberately ignored here: B specifies its six fixture values.
+        return EnsurePressBStylizedLighting(World, OutReason);
+    }
+
     for (TActorIterator<AActor> It(World); It; ++It)
     {
         if (IsValid(*It) && It->Tags.Contains(DevLightTag))
@@ -889,12 +1539,17 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         return false;
     }
 
-    // Roof visibility follows the camera: a management shot from above the
-    // eaves needs the roof out of the way, a floor-level close-up needs it
-    // back or the frame tops out in black void.
+    // The B-stylized Press lane deliberately retains the authored roof and
+    // overhead silhouette. Other departments keep the historic camera-aware
+    // cutaway behavior.
     constexpr double RoofHideAboveZCm = 900.0;
+    const ALBOneFactoryPressArtDirectionActor* PressArtDirection =
+        FindExactlyOne<ALBOneFactoryPressArtDirectionActor>(World);
+    const bool bUseRoofedPressComposition = PressArtDirection
+        && PressArtDirection->IsArtDirectionConfigured();
     FString RoofReason;
-    SetRoofHidden(WorldContextObject, Eye.Z > RoofHideAboveZCm,
+    SetRoofHidden(WorldContextObject,
+        !bUseRoofedPressComposition && Eye.Z > RoofHideAboveZCm,
         RoofHideAboveZCm, RoofReason);
 
     // The live player path hands the solved pose to the player's own pawn and
@@ -984,6 +1639,513 @@ bool ULBOneFactoryDevFactory::FrameProductionLine(UObject* WorldContextObject,
         TEXT("framed %d %s %s; footprint %.0fx%.0f; distance=%.0f"),
         Counted, *Wanted, bFramedFromBays ? TEXT("authored bay(s)")
             : TEXT("station(s)"), Size.X, Size.Y, Distance);
+    return true;
+}
+
+bool ULBOneFactoryDevFactory::FrameTransientPhotoCamera(
+    UObject* WorldContextObject, const FVector EyeWorldLocation,
+    const FVector TargetWorldLocation, const float FieldOfViewDegrees,
+    const float ExposureBias, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NEED A WORLD");
+        return false;
+    }
+    if (EyeWorldLocation.ContainsNaN() || TargetWorldLocation.ContainsNaN()
+        || !FMath::IsFinite(FieldOfViewDegrees) || !FMath::IsFinite(ExposureBias))
+    {
+        OutReason = TEXT("PHOTO CAMERA INPUT IS NOT FINITE");
+        return false;
+    }
+
+    const FVector Aim = TargetWorldLocation - EyeWorldLocation;
+    if (Aim.SizeSquared() < FMath::Square(100.0f))
+    {
+        OutReason = TEXT("PHOTO CAMERA EYE AND TARGET ARE TOO CLOSE");
+        return false;
+    }
+
+    APlayerController* Controller = World->GetFirstPlayerController();
+    if (!Controller)
+    {
+        OutReason = TEXT("NO PLAYER CONTROLLER");
+        return false;
+    }
+
+    // Keep at most one transient capture camera in a runtime world.  The
+    // shared dev-camera tag is retained so a department-tour camera cannot
+    // secretly remain the view target beneath a photo capture.
+    static const FName DevCameraTag(TEXT("LB.OneFactory.DevCamera"));
+    static const FName PhotoCameraTag(TEXT("LB.OneFactory.PressPhotoCamera"));
+    for (TActorIterator<ACameraActor> It(World); It; ++It)
+    {
+        if (IsValid(*It) && (It->Tags.Contains(DevCameraTag)
+            || It->Tags.Contains(PhotoCameraTag)))
+        {
+            It->Destroy();
+        }
+    }
+
+    const ALBOneFactoryPressArtDirectionActor* PressArtDirection =
+        FindExactlyOne<ALBOneFactoryPressArtDirectionActor>(World);
+    const bool bUseRoofedPressComposition = PressArtDirection
+        && PressArtDirection->IsArtDirectionConfigured();
+    if (bUseRoofedPressComposition
+        && !FMath::IsNearlyEqual(ExposureBias, -0.50f, 0.001f))
+    {
+        OutReason = TEXT("PRESS B_STYLIZED PHOTO REQUIRES EXPOSURE BIAS -0.50");
+        return false;
+    }
+
+    // The art-directed Press Shop needs at least one roofed, crane-visible
+    // capture path. Generic close-ups retain the established roof cutaway.
+    FString RoofReason;
+    SetRoofHidden(WorldContextObject, !bUseRoofedPressComposition,
+        900.0, RoofReason);
+
+    // The map's global column rhythm is correct for normal play but several
+    // pillars fall directly between the known Press photo eyes and S01-S07.
+    // This exact HISM batch is a presentation-only cutaway: it is restored
+    // with the PIE world and cannot change the authored factory shell.
+    FString StructuralCutawayReason;
+    if (!SetPressPhotoStructuralCutaway(WorldContextObject, true,
+        StructuralCutawayReason))
+    {
+        UE_LOG(LogLineBossOneFactoryDev, Error,
+            TEXT("LINE_BOSS_PRESS_PHOTO_CUTAWAY structural=%s"),
+            *StructuralCutawayReason);
+        OutReason = FString::Printf(TEXT("PHOTO STRUCTURAL CUTAWAY FAILED: %s"),
+            *StructuralCutawayReason);
+        return false;
+    }
+    FString ForegroundCutawayReason;
+    if (!SetPressPhotoForegroundCutaway(WorldContextObject, true,
+        ForegroundCutawayReason))
+    {
+        UE_LOG(LogLineBossOneFactoryDev, Error,
+            TEXT("LINE_BOSS_PRESS_PHOTO_CUTAWAY foreground=%s"),
+            *ForegroundCutawayReason);
+        OutReason = FString::Printf(TEXT("PHOTO FOREGROUND CUTAWAY FAILED: %s"),
+            *ForegroundCutawayReason);
+        return false;
+    }
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ACameraActor* Camera = World->SpawnActor<ACameraActor>(
+        ACameraActor::StaticClass(), EyeWorldLocation, Aim.Rotation(), Params);
+    if (!Camera)
+    {
+        OutReason = TEXT("COULD NOT SPAWN PHOTO CAMERA");
+        return false;
+    }
+
+    Camera->SetActorEnableCollision(false);
+    Camera->Tags.AddUnique(PhotoCameraTag);
+    if (UCameraComponent* Lens = Camera->GetCameraComponent())
+    {
+        Lens->SetFieldOfView(FMath::Clamp(FieldOfViewDegrees, 15.0f, 120.0f));
+        Lens->PostProcessSettings.bOverride_AutoExposureBias = true;
+        Lens->PostProcessSettings.AutoExposureBias = bUseRoofedPressComposition
+            ? -0.50f : FMath::Clamp(ExposureBias, -5.0f, 5.0f);
+        Lens->PostProcessBlendWeight = 1.0f;
+    }
+    Controller->SetViewTargetWithBlend(Camera, 0.0f);
+
+    OutReason = FString::Printf(
+        TEXT("transient photo camera; eye=%s target=%s fov=%.1f exposure=%.2f roofedPress=%d roof=%s structure=%s foreground=%s"),
+        *EyeWorldLocation.ToCompactString(), *TargetWorldLocation.ToCompactString(),
+        FieldOfViewDegrees, bUseRoofedPressComposition ? -0.50f : ExposureBias,
+        bUseRoofedPressComposition ? 1 : 0, *RoofReason,
+        *StructuralCutawayReason, *ForegroundCutawayReason);
+    return true;
+}
+
+namespace LBOneFactoryPressPhotoPrivate
+{
+    struct FComponentVisibilityState
+    {
+        TWeakObjectPtr<UStaticMeshComponent> Component;
+        bool bWasVisible = false;
+        bool bWasHiddenInGame = false;
+    };
+
+    struct FHiddenShellColumnInstance
+    {
+        int32 Index = INDEX_NONE;
+        FTransform OriginalLocalTransform = FTransform::Identity;
+    };
+
+    struct FStructuralCutawayState
+    {
+        TArray<FComponentVisibilityState> HiddenWalls;
+        TWeakObjectPtr<UHierarchicalInstancedStaticMeshComponent> ShellColumns;
+        TArray<FHiddenShellColumnInstance> HiddenShellColumnInstances;
+        bool bHidden = false;
+    };
+
+    struct FForegroundCutawayState
+    {
+        TArray<FComponentVisibilityState> Hidden;
+        bool bHidden = false;
+    };
+
+    static TMap<TWeakObjectPtr<UWorld>, FStructuralCutawayState>
+        GStructuralStatePerWorld;
+    static TMap<TWeakObjectPtr<UWorld>, FForegroundCutawayState>
+        GForegroundStatePerWorld;
+
+    static const FName VisualOnlyTag(TEXT("LB.Environment.VisualOnly"));
+    static const FName NotWipTag(TEXT("LB.NotProcessWIP"));
+    static const FName PressTransplantTag(TEXT("LB.Press.Transplant"));
+    static const FName ShellColumnsComponentTag(
+        TEXT("LB.OneFactory.HISM.Columns.v001"));
+    static const FString ExpectedCubePath(TEXT("/Engine/BasicShapes/Cube.Cube"));
+
+    bool HasLegacyPhotoProvenance(const AActor* Actor)
+    {
+        return Actor && Actor->Tags.Contains(VisualOnlyTag)
+            && Actor->Tags.Contains(NotWipTag)
+            && Actor->Tags.Contains(PressTransplantTag);
+    }
+
+    bool ResolveExactCubeComponent(AActor* Actor,
+        UStaticMeshComponent*& OutComponent)
+    {
+        OutComponent = nullptr;
+        if (!Actor)
+        {
+            return false;
+        }
+        TInlineComponentArray<UStaticMeshComponent*> Components(Actor);
+        if (Components.Num() != 1 || !IsValid(Components[0])
+            || !Components[0]->GetStaticMesh()
+            || Components[0]->GetStaticMesh()->GetPathName() != ExpectedCubePath)
+        {
+            return false;
+        }
+        OutComponent = Components[0];
+        return true;
+    }
+
+    bool BoundsMatch(const UStaticMeshComponent* Component,
+        const FVector& ExpectedOrigin, const FVector& ExpectedExtent)
+    {
+        return Component && Component->Bounds.Origin.Equals(ExpectedOrigin, 1.0f)
+            && Component->Bounds.BoxExtent.Equals(ExpectedExtent, 1.0f);
+    }
+
+    void RestoreVisibility(TArray<FComponentVisibilityState>& Saved)
+    {
+        for (const FComponentVisibilityState& Entry : Saved)
+        {
+            if (UStaticMeshComponent* Component = Entry.Component.Get())
+            {
+                Component->SetVisibility(Entry.bWasVisible, false);
+                Component->SetHiddenInGame(Entry.bWasHiddenInGame, false);
+            }
+        }
+        Saved.Reset();
+    }
+
+    void RememberAndHide(UStaticMeshComponent* Component,
+        TArray<FComponentVisibilityState>& Saved)
+    {
+        if (!Component)
+        {
+            return;
+        }
+        Saved.Add({ Component, Component->IsVisible(),
+            Component->bHiddenInGame != 0 });
+        Component->SetVisibility(false, false);
+        Component->SetHiddenInGame(true, false);
+    }
+}
+
+bool ULBOneFactoryDevFactory::SetPressPhotoStructuralCutaway(
+    UObject* WorldContextObject, const bool bHidden, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NO WORLD");
+        return false;
+    }
+
+    for (auto It = LBOneFactoryPressPhotoPrivate::GStructuralStatePerWorld.CreateIterator();
+        It; ++It)
+    {
+        if (!It->Key.IsValid())
+        {
+            It.RemoveCurrent();
+        }
+    }
+    LBOneFactoryPressPhotoPrivate::FStructuralCutawayState& State =
+        LBOneFactoryPressPhotoPrivate::GStructuralStatePerWorld.FindOrAdd(World);
+
+    if (!bHidden)
+    {
+        const int32 RestoredWalls = State.HiddenWalls.Num();
+        LBOneFactoryPressPhotoPrivate::RestoreVisibility(State.HiddenWalls);
+
+        int32 RestoredColumns = 0;
+        if (UHierarchicalInstancedStaticMeshComponent* Columns =
+            State.ShellColumns.Get())
+        {
+            for (int32 Index = 0; Index < State.HiddenShellColumnInstances.Num(); ++Index)
+            {
+                const LBOneFactoryPressPhotoPrivate::FHiddenShellColumnInstance&
+                    Saved = State.HiddenShellColumnInstances[Index];
+                if (Columns->UpdateInstanceTransform(Saved.Index,
+                    Saved.OriginalLocalTransform, false,
+                    Index == State.HiddenShellColumnInstances.Num() - 1, true))
+                {
+                    ++RestoredColumns;
+                }
+            }
+        }
+        State.ShellColumns.Reset();
+        State.HiddenShellColumnInstances.Reset();
+        State.bHidden = false;
+        OutReason = FString::Printf(
+            TEXT("restored %d Press-photo wall(s) and %d shell column instance(s)"),
+            RestoredWalls, RestoredColumns);
+        return true;
+    }
+
+    if (State.bHidden)
+    {
+        OutReason = TEXT("Press-photo occluder cutaway already active");
+        return true;
+    }
+
+    // The photo audit proves only these two legacy wall panels cross the
+    // current native capture paths.  Match their tagged cube geometry and
+    // world bounds, not their editor labels or the broad transplant tag.
+    static const FVector EastWallOrigin(-2700.0f, 8000.0f, 900.0f);
+    static const FVector EastWallExtent(15.0f, 6000.0f, 900.0f);
+    static const FVector SouthWallOrigin(-13700.0f, 14000.0f, 900.0f);
+    static const FVector SouthWallExtent(11000.0f, 15.0f, 900.0f);
+    int32 EastWallCount = 0;
+    int32 SouthWallCount = 0;
+    TArray<UStaticMeshComponent*> WallCandidates;
+    TArray<UHierarchicalInstancedStaticMeshComponent*> ShellColumnCandidates;
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        AActor* Actor = *It;
+        if (!IsValid(Actor) || Actor->IsActorBeingDestroyed())
+        {
+            continue;
+        }
+
+        for (UActorComponent* RawComponent : Actor->GetComponents())
+        {
+            UHierarchicalInstancedStaticMeshComponent* Hism =
+                Cast<UHierarchicalInstancedStaticMeshComponent>(RawComponent);
+            if (IsValid(Hism)
+                && Hism->ComponentTags.Contains(
+                    LBOneFactoryPressPhotoPrivate::ShellColumnsComponentTag))
+            {
+                ShellColumnCandidates.Add(Hism);
+            }
+        }
+
+        if (!LBOneFactoryPressPhotoPrivate::HasLegacyPhotoProvenance(Actor))
+        {
+            continue;
+        }
+        UStaticMeshComponent* Cube = nullptr;
+        if (!LBOneFactoryPressPhotoPrivate::ResolveExactCubeComponent(Actor, Cube))
+        {
+            continue;
+        }
+        if (LBOneFactoryPressPhotoPrivate::BoundsMatch(Cube, EastWallOrigin,
+            EastWallExtent))
+        {
+            ++EastWallCount;
+            WallCandidates.Add(Cube);
+        }
+        if (LBOneFactoryPressPhotoPrivate::BoundsMatch(Cube, SouthWallOrigin,
+            SouthWallExtent))
+        {
+            ++SouthWallCount;
+            WallCandidates.Add(Cube);
+        }
+    }
+
+    if (EastWallCount != 1 || SouthWallCount != 1 || WallCandidates.Num() != 2)
+    {
+        OutReason = FString::Printf(
+            TEXT("PHOTO WALL CUTAWAY CONTRACT FAILED: east=%d south=%d total=%d"),
+            EastWallCount, SouthWallCount, WallCandidates.Num());
+        return false;
+    }
+    if (ShellColumnCandidates.Num() != 1
+        || ShellColumnCandidates[0]->GetInstanceCount() != 22
+        || !ShellColumnCandidates[0]->GetStaticMesh()
+        || ShellColumnCandidates[0]->GetStaticMesh()->GetPathName()
+            != LBOneFactoryPressPhotoPrivate::ExpectedCubePath)
+    {
+        OutReason = FString::Printf(
+            TEXT("PHOTO SHELL COLUMN CONTRACT FAILED: batches=%d instances=%d"),
+            ShellColumnCandidates.Num(), ShellColumnCandidates.Num() == 1
+                ? ShellColumnCandidates[0]->GetInstanceCount() : -1);
+        return false;
+    }
+
+    struct FExpectedShellColumn
+    {
+        int32 Index;
+        FVector WorldLocation;
+    };
+    static const FExpectedShellColumn ExpectedShellColumns[] =
+    {
+        { 3, FVector(-24400.0f, 14500.0f, 1500.0f) },
+        { 5, FVector(-18300.0f, 14500.0f, 1500.0f) },
+        { 7, FVector(-12200.0f, 14500.0f, 1500.0f) },
+        { 9, FVector(-6100.0f, 14500.0f, 1500.0f) },
+        { 11, FVector(0.0f, 14500.0f, 1500.0f) }
+    };
+    UHierarchicalInstancedStaticMeshComponent* ShellColumns =
+        ShellColumnCandidates[0];
+    TArray<LBOneFactoryPressPhotoPrivate::FHiddenShellColumnInstance>
+        SavedColumns;
+    for (const FExpectedShellColumn& Expected : ExpectedShellColumns)
+    {
+        FTransform LocalTransform;
+        FTransform WorldTransform;
+        if (!ShellColumns->GetInstanceTransform(Expected.Index, LocalTransform, false)
+            || !ShellColumns->GetInstanceTransform(Expected.Index, WorldTransform, true)
+            || !WorldTransform.GetLocation().Equals(Expected.WorldLocation, 1.0f))
+        {
+            OutReason = FString::Printf(
+                TEXT("PHOTO SHELL COLUMN POSITION CONTRACT FAILED: index=%d"),
+                Expected.Index);
+            return false;
+        }
+        SavedColumns.Add({ Expected.Index, LocalTransform });
+    }
+
+    for (UStaticMeshComponent* Wall : WallCandidates)
+    {
+        LBOneFactoryPressPhotoPrivate::RememberAndHide(Wall, State.HiddenWalls);
+    }
+    for (int32 Index = 0; Index < SavedColumns.Num(); ++Index)
+    {
+        FTransform HiddenTransform = SavedColumns[Index].OriginalLocalTransform;
+        HiddenTransform.SetScale3D(FVector::ZeroVector);
+        if (!ShellColumns->UpdateInstanceTransform(SavedColumns[Index].Index,
+            HiddenTransform, false, Index == SavedColumns.Num() - 1, true))
+        {
+            for (int32 RestoreIndex = 0; RestoreIndex < Index; ++RestoreIndex)
+            {
+                ShellColumns->UpdateInstanceTransform(SavedColumns[RestoreIndex].Index,
+                    SavedColumns[RestoreIndex].OriginalLocalTransform, false,
+                    RestoreIndex == Index - 1, true);
+            }
+            LBOneFactoryPressPhotoPrivate::RestoreVisibility(State.HiddenWalls);
+            OutReason = TEXT("PHOTO SHELL COLUMN CUTAWAY UPDATE FAILED");
+            return false;
+        }
+    }
+    State.ShellColumns = ShellColumns;
+    State.HiddenShellColumnInstances = MoveTemp(SavedColumns);
+    State.bHidden = true;
+    OutReason = TEXT("hid 2 audited wall panels and 5 audited shell column instances");
+    return true;
+}
+
+bool ULBOneFactoryDevFactory::SetPressPhotoForegroundCutaway(
+    UObject* WorldContextObject, const bool bHidden, FString& OutReason)
+{
+    UWorld* World = ResolveWorld(WorldContextObject);
+    if (!World)
+    {
+        OutReason = TEXT("NO WORLD");
+        return false;
+    }
+
+    for (auto It = LBOneFactoryPressPhotoPrivate::GForegroundStatePerWorld.CreateIterator();
+        It; ++It)
+    {
+        if (!It->Key.IsValid())
+        {
+            It.RemoveCurrent();
+        }
+    }
+    LBOneFactoryPressPhotoPrivate::FForegroundCutawayState& State =
+        LBOneFactoryPressPhotoPrivate::GForegroundStatePerWorld.FindOrAdd(World);
+
+    if (!bHidden)
+    {
+        const int32 Restored = State.Hidden.Num();
+        LBOneFactoryPressPhotoPrivate::RestoreVisibility(State.Hidden);
+        State.bHidden = false;
+        OutReason = FString::Printf(
+            TEXT("restored %d exact Press-photo foreground post(s)"), Restored);
+        return true;
+    }
+    if (State.bHidden)
+    {
+        OutReason = TEXT("Press-photo foreground cutaway already active");
+        return true;
+    }
+
+    // This is a deliberately separate capture-only aesthetic tier. These 67
+    // legacy posts have the same source tag as useful context and lights, so
+    // label prefix, exact cube mesh, dimensions, provenance and count are all
+    // required before a single component is hidden.
+    static const FString LegacyColumnPrefix(TEXT("PT_LB_PRESS_Column_"));
+    // Bounds carry half-extents; the audited legacy posts are 45 x 45 x
+    // 1800 cm cubes, therefore report 22.5 x 22.5 x 900 cm here.
+    static const FVector ExpectedColumnExtent(22.5f, 22.5f, 900.0f);
+    // Only the photo rectangle is in scope. Nine matching legacy posts sit
+    // south of this lane and remain untouched in the live factory.
+    static const FBox PhotoRectangle(
+        FVector(-26000.0f, 4000.0f, -100.0f),
+        FVector(3000.0f, 16000.0f, 4000.0f));
+    TArray<UStaticMeshComponent*> Candidates;
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        AActor* Actor = *It;
+        if (!IsValid(Actor) || Actor->IsActorBeingDestroyed()
+            || !Actor->GetActorNameOrLabel().StartsWith(LegacyColumnPrefix)
+            || !LBOneFactoryPressPhotoPrivate::HasLegacyPhotoProvenance(Actor))
+        {
+            continue;
+        }
+        UStaticMeshComponent* Cube = nullptr;
+        if (!LBOneFactoryPressPhotoPrivate::ResolveExactCubeComponent(Actor, Cube)
+            || !Cube->Bounds.BoxExtent.Equals(ExpectedColumnExtent, 1.0f))
+        {
+            OutReason = FString::Printf(
+                TEXT("PHOTO FOREGROUND POST CONTRACT FAILED: %s"),
+                *Actor->GetActorNameOrLabel());
+            return false;
+        }
+        if (!PhotoRectangle.IsInsideOrOn(Cube->Bounds.Origin))
+        {
+            continue;
+        }
+        Candidates.Add(Cube);
+    }
+    if (Candidates.Num() != 67)
+    {
+        OutReason = FString::Printf(
+            TEXT("PHOTO FOREGROUND POST COUNT CONTRACT FAILED: expected 67, found %d"),
+            Candidates.Num());
+        return false;
+    }
+
+    for (UStaticMeshComponent* Component : Candidates)
+    {
+        LBOneFactoryPressPhotoPrivate::RememberAndHide(Component, State.Hidden);
+    }
+    State.bHidden = true;
+    OutReason = TEXT("hid 67 exact legacy Press-photo foreground posts");
     return true;
 }
 
@@ -1420,6 +2582,120 @@ void ALBOneFactoryDevTourActor::Tick(const float DeltaSeconds)
 }
 
 // ---------------------------------------------------------------------------
+// Packaged runtime performance / LOD capture.
+// ---------------------------------------------------------------------------
+
+ALBOneFactoryDevPerformanceCaptureActor::ALBOneFactoryDevPerformanceCaptureActor()
+{
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
+    SetReplicates(false);
+    SetActorEnableCollision(false);
+}
+
+void ALBOneFactoryDevPerformanceCaptureActor::BeginCapture(
+    const int32 InSettleFrames, const int32 InSampleFrames,
+    const FString& InLabel, const bool bInQuitAfterCapture)
+{
+    SettleFramesRemaining = FMath::Max(1, InSettleFrames);
+    SampleFramesRemaining = FMath::Max(30, InSampleFrames);
+    Label = InLabel.IsEmpty() ? TEXT("WholeFactory") : InLabel;
+    bQuitAfterCapture = bInQuitAfterCapture;
+    FrameTimesMs.Reset();
+    FrameTimesMs.Reserve(SampleFramesRemaining);
+}
+
+void ALBOneFactoryDevPerformanceCaptureActor::Tick(const float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (SettleFramesRemaining > 0)
+    {
+        --SettleFramesRemaining;
+        return;
+    }
+
+    if (SampleFramesRemaining > 0)
+    {
+        // DeltaSeconds is the rendered game-frame time in the real executable.
+        // Discard hitches above one second: they are debugger/OS stalls, not a
+        // useful representation of the steady factory scene.
+        if (DeltaSeconds > 0.0f && DeltaSeconds < 1.0f)
+        {
+            FrameTimesMs.Add(DeltaSeconds * 1000.0f);
+        }
+        --SampleFramesRemaining;
+        return;
+    }
+
+    if (FrameTimesMs.Num() < 30)
+    {
+        UE_LOG(LogLineBossOneFactoryDev, Error,
+            TEXT("LINE_BOSS_DEV_PERF_CAPTURE_FAIL label=%s samples=%d"),
+            *Label, FrameTimesMs.Num());
+        Destroy();
+        return;
+    }
+
+    FrameTimesMs.Sort();
+    double SumMs = 0.0;
+    for (const float FrameMs : FrameTimesMs)
+    {
+        SumMs += FrameMs;
+    }
+    const int32 P50Index = FMath::Clamp(
+        FMath::FloorToInt((FrameTimesMs.Num() - 1) * 0.50f), 0,
+        FrameTimesMs.Num() - 1);
+    const int32 P95Index = FMath::Clamp(
+        FMath::CeilToInt((FrameTimesMs.Num() - 1) * 0.95f), 0,
+        FrameTimesMs.Num() - 1);
+
+    int32 StaticMeshComponents = 0;
+    int32 MeshesWithLods = 0;
+    int32 TotalAvailableLods = 0;
+    int32 ForcedLodComponents = 0;
+    for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
+    {
+        UStaticMeshComponent* Component = *It;
+        if (!IsValid(Component) || Component->GetWorld() != GetWorld() ||
+            !Component->IsRegistered())
+        {
+            continue;
+        }
+        ++StaticMeshComponents;
+        if (UStaticMesh* Mesh = Component->GetStaticMesh())
+        {
+            const int32 LodCount = Mesh->GetNumLODs();
+            TotalAvailableLods += LodCount;
+            MeshesWithLods += LodCount > 1 ? 1 : 0;
+        }
+        ForcedLodComponents += Component->ForcedLodModel > 0 ? 1 : 0;
+    }
+
+    FIntPoint ViewportSize = FIntPoint::ZeroValue;
+    if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
+    {
+        ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
+    }
+    UE_LOG(LogLineBossOneFactoryDev, Display,
+        TEXT("LINE_BOSS_DEV_PERF_CAPTURE_PASS label=%s samples=%d "
+             "avg_ms=%.2f p50_ms=%.2f p95_ms=%.2f viewport=%dx%d "
+             "static_mesh_components=%d meshes_with_lods=%d total_lods=%d "
+             "forced_lod_components=%d"),
+        *Label, FrameTimesMs.Num(), SumMs / FrameTimesMs.Num(),
+        FrameTimesMs[P50Index], FrameTimesMs[P95Index], ViewportSize.X,
+        ViewportSize.Y, StaticMeshComponents, MeshesWithLods,
+        TotalAvailableLods, ForcedLodComponents);
+    if (bQuitAfterCapture && GetWorld())
+    {
+        // Used only by unattended packaged validation.  Quitting here, after
+        // the last measured frame, prevents a test harness from leaving a hot
+        // full factory running after it has its evidence.
+        GetWorld()->Exec(GetWorld(), TEXT("quit"));
+    }
+    Destroy();
+}
+
+// ---------------------------------------------------------------------------
 // Console surface.
 //
 // Registered as plain console commands rather than exec functions so they work
@@ -1510,6 +2786,48 @@ static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryStatus(
             ULBOneFactoryDevFactory::BuildFactoryStatusReport(World, Report);
             UE_LOG(LogLineBossOneFactoryDev, Display,
                 TEXT("LINE_BOSS_DEV_STATUS\n%s"), *Report);
+        }));
+
+static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryPerformanceCapture(
+    TEXT("LB.OneFactory.PerfCapture"),
+    TEXT("Usage: LB.OneFactory.PerfCapture [settleFrames=120] "
+         "[sampleFrames=300] [label=WholeFactory] [quitAfter=0]. Captures "
+         "packaged runtime frame-time percentiles and live static-mesh/LOD "
+         "population."),
+    FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+        [](const TArray<FString>& Args, UWorld* World)
+        {
+            if (!World)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Error,
+                    TEXT("LINE_BOSS_DEV_PERF_CAPTURE_FAIL no world"));
+                return;
+            }
+            const int32 SettleFrames = Args.Num() > 0
+                ? FMath::Max(1, FCString::Atoi(*Args[0])) : 120;
+            const int32 SampleFrames = Args.Num() > 1
+                ? FMath::Max(30, FCString::Atoi(*Args[1])) : 300;
+            const FString Label = Args.Num() > 2 ? Args[2] : TEXT("WholeFactory");
+            const bool bQuitAfter = Args.Num() > 3 &&
+                FCString::Atoi(*Args[3]) != 0;
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride =
+                ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            ALBOneFactoryDevPerformanceCaptureActor* Capture =
+                World->SpawnActor<ALBOneFactoryDevPerformanceCaptureActor>(
+                    ALBOneFactoryDevPerformanceCaptureActor::StaticClass(),
+                    FVector::ZeroVector, FRotator::ZeroRotator, Params);
+            if (!Capture)
+            {
+                UE_LOG(LogLineBossOneFactoryDev, Error,
+                    TEXT("LINE_BOSS_DEV_PERF_CAPTURE_FAIL could not spawn"));
+                return;
+            }
+            Capture->BeginCapture(SettleFrames, SampleFrames, Label,
+                bQuitAfter);
+            UE_LOG(LogLineBossOneFactoryDev, Display,
+                TEXT("LINE_BOSS_DEV_PERF_CAPTURE_STARTED label=%s settle=%d samples=%d"),
+                *Label, SettleFrames, SampleFrames);
         }));
 
 static FAutoConsoleCommandWithWorldAndArgs GLBOneFactoryLight(

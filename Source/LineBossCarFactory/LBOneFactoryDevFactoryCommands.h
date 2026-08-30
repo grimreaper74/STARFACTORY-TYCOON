@@ -47,6 +47,34 @@ private:
 };
 
 /**
+ * A deliberately small, one-shot packaged-runtime measurement.  Unlike an
+ * editor mesh count, this waits for the actual management view to render and
+ * reports frame-time percentiles plus the static-mesh LOD population that was
+ * live in that world.  It is developer-only, owns no factory state and exits
+ * as soon as the requested sample has been written to the log.
+ */
+UCLASS()
+class LINEBOSSCARFACTORY_API ALBOneFactoryDevPerformanceCaptureActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ALBOneFactoryDevPerformanceCaptureActor();
+
+    virtual void Tick(float DeltaSeconds) override;
+
+    void BeginCapture(int32 InSettleFrames, int32 InSampleFrames,
+        const FString& InLabel, bool bInQuitAfterCapture);
+
+private:
+    int32 SettleFramesRemaining = 120;
+    int32 SampleFramesRemaining = 300;
+    FString Label;
+    TArray<float> FrameTimesMs;
+    bool bQuitAfterCapture = false;
+};
+
+/**
  * Developer-only orchestration that drives the shipped OneFactory player
  * builder and runtime coordinator through a whole working factory in one step.
  *
@@ -117,9 +145,10 @@ public:
         FString& OutReport);
 
     /**
-     * Spawns a movable directional light and sky light sized for the whole
-     * site. The shipped map carries a single RectLight at the origin, so a
-     * player standing at the Management start 280 m away sees almost nothing.
+     * Ensures runtime lighting for the active presentation. The generic
+     * fallback uses a broad site rig; a configured Press art-direction actor
+     * instead selects the approved B_stylized calibration (six 1200-lumen
+     * fixtures, sun 0.30, sky 0.20, exposure -0.50) and ignores Intensity.
      * Runtime-only and never saved, so the protected map is untouched.
      */
     UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
@@ -148,6 +177,40 @@ public:
     static bool FrameProductionLine(UObject* WorldContextObject,
         const FString& Department, FString& OutReason,
         bool bDriveViewTarget = true);
+
+    /**
+     * Transient high-quality capture framing with an explicitly authored eye
+     * and look target.  Intended for runtime tours and screenshots only: the
+     * camera is tagged, is never saved into a map, and is reclaimed with PIE.
+     * Unlike the department solver this does not infer a viewing side from a
+     * route, which is essential for enclosed production cells.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool FrameTransientPhotoCamera(UObject* WorldContextObject,
+        FVector EyeWorldLocation, FVector TargetWorldLocation,
+        float FieldOfViewDegrees, float ExposureBias, FString& OutReason);
+
+    /**
+     * Hides only the two audited legacy wall panels and five proven shell
+     * column instances that intersect the transient Press Shop photo lane.
+     * The live shell and map data stay untouched; passing false restores
+     * precisely the geometry this helper hid in the current PIE world.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool SetPressPhotoStructuralCutaway(UObject* WorldContextObject,
+        bool bHidden, FString& OutReason);
+
+    /**
+     * Hides the exact legacy foreground post set only while capturing a Press
+     * Shop beauty shot. It is separate from the structural cutaway so the
+     * photo-only aesthetic decision remains explicit and reversible.
+     */
+    UFUNCTION(BlueprintCallable, Category="Line Boss|OneFactory|Developer",
+        meta=(WorldContext="WorldContextObject"))
+    static bool SetPressPhotoForegroundCutaway(UObject* WorldContextObject,
+        bool bHidden, FString& OutReason);
 
     /**
      * Binds a brand material to every semantic material slot in the world.
