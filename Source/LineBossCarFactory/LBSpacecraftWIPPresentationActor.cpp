@@ -428,6 +428,51 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				FString::Printf(TEXT("%s/%s.%s"), StationMeshRoot,
 					Dress.Value, Dress.Value))));
 	}
+	// CONCEPT-DRIVEN BATCH (owner-approved concepts, 2026-08-31): the
+	// TRELLIS pipeline's first production run. These re-Adds win over
+	// the registrations above (TMap::Add replaces). Real-size imports,
+	// size-verified at import (Saved/Audits/Spacecraft/
+	// trellis_batch_import_v001.json); min-fit scaling still applies.
+	// The portal-frame LINE STATION dresses all eight line marks - it
+	// stands ON the owner's marked floor square, not instead of it.
+	{
+		const TPair<const TCHAR*, const TCHAR*> ConceptDress[] = {
+			{ TEXT("MaterialProcessor"), TEXT("line_station_v001") },
+			{ TEXT("MaterialProcessorMk2"), TEXT("line_station_v001") },
+			{ TEXT("HullFabricator"), TEXT("line_station_v001") },
+			{ TEXT("HullFabricatorMk2"), TEXT("line_station_v001") },
+			{ TEXT("ComponentFabricator"), TEXT("line_station_v001") },
+			{ TEXT("ComponentFabricatorMk2"), TEXT("line_station_v001") },
+			{ TEXT("AssemblyRobot"), TEXT("line_station_v001") },
+			{ TEXT("AssemblyRobotMk2"), TEXT("line_station_v001") },
+			{ TEXT("Drone.CargoLift.Body"), TEXT("cargo_drone_v001") },
+			{ TEXT("Drone.Assembly.Body"), TEXT("assembly_drone_v001") },
+			{ TEXT("Drone.GroundLifter.Body"), TEXT("lifter_drone_v001") },
+			// Batch 2 (2026-09-01): the site-furniture and crafting
+			// stations. One approved fabricator-cell model dresses the
+			// whole sub-assembly family until each earns its own - the
+			// same shared-dress convention as the crafting stand-ins
+			// above, but with owner-approved concept art.
+			{ TEXT("DeliveryDock"), TEXT("delivery_dock_v001") },
+			{ TEXT("PowerStation"), TEXT("power_station_v001") },
+			{ TEXT("Dock.Charging"), TEXT("charging_dock_v002") },
+			{ TEXT("StructureFab"), TEXT("fabricator_cell_v003") },
+			{ TEXT("FitOutFab"), TEXT("fabricator_cell_v003") },
+			{ TEXT("CircuitFab"), TEXT("fabricator_cell_v003") },
+			{ TEXT("PowerCellPlant"), TEXT("fabricator_cell_v003") },
+			{ TEXT("PropulsionStation"), TEXT("fabricator_cell_v003") },
+			{ TEXT("ElectronicsStation"), TEXT("fabricator_cell_v003") },
+			{ TEXT("SubAssemblyRobot"), TEXT("fabricator_cell_v003") },
+			{ TEXT("Smelter"), TEXT("fabricator_cell_v003") } };
+		for (const auto& Dress : ConceptDress)
+		{
+			StationMeshes.Add(FName(Dress.Key),
+				TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
+					FString::Printf(
+						TEXT("/Game/Spacecraft/Props/%s/%s.%s"),
+						Dress.Value, Dress.Value, Dress.Value))));
+		}
+	}
 	// Runway site furniture: the hover-test pad (owner's evening drop
 	// 2026-08-26, from the LaunchRunway_v001 blockout).
 	StationMeshes.Add(FName(TEXT("Site.HoverPad")),
@@ -684,6 +729,23 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId == FName(TEXT("Drone.GroundAssembly.Body"))
 		|| DefinitionId == FName(TEXT("Drone.GroundSprayer.Body"))
 		|| DefinitionId == FName(TEXT("Dock.Charging"))
+		// CONCEPT-DRIVEN BATCH (2026-08-31): owner-approved concepts
+		// through the TRELLIS pipeline, size-verified at import - the
+		// promoted-source bar these keys had to clear is met.
+		|| DefinitionId.ToString().StartsWith(TEXT("MaterialProcessor"))
+		|| DefinitionId.ToString().StartsWith(TEXT("HullFabricator"))
+		|| DefinitionId.ToString().StartsWith(TEXT("ComponentFabricator"))
+		|| DefinitionId.ToString().StartsWith(TEXT("AssemblyRobot"))
+		|| DefinitionId == FName(TEXT("DeliveryDock"))
+		|| DefinitionId == FName(TEXT("PowerStation"))
+		|| DefinitionId == FName(TEXT("StructureFab"))
+		|| DefinitionId == FName(TEXT("FitOutFab"))
+		|| DefinitionId == FName(TEXT("CircuitFab"))
+		|| DefinitionId == FName(TEXT("PowerCellPlant"))
+		|| DefinitionId == FName(TEXT("PropulsionStation"))
+		|| DefinitionId == FName(TEXT("ElectronicsStation"))
+		|| DefinitionId == FName(TEXT("SubAssemblyRobot"))
+		|| DefinitionId == FName(TEXT("Smelter"))
 		|| DefinitionId.ToString().StartsWith(TEXT("Carrier."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
 		// PALLETLOADS_v001 (2026-08-30): added at registration time,
@@ -2359,6 +2421,19 @@ void ALBSpacecraftWIPPresentationActor::GetDronePartsManifest(FName Crew,
 	TArray<FLBSpacecraftDronePartSpec>& OutParts)
 {
 	OutParts.Reset();
+	// CONCEPT-DRIVEN BATCH (2026-08-31): CargoLift, Assembly and
+	// GroundLifter now wear single JOINED meshes from the TRELLIS
+	// pipeline (rotors and arms welded into the body). Their old
+	// DroneBatch part manifests must return EMPTY or the spinners and
+	// arms would be attached a second time over the welded copies. The
+	// cost is rotor spin on these three crews until articulated
+	// versions exist; the other four crews keep their moving parts.
+	if (Crew == FName(TEXT("CargoLift"))
+		|| Crew == FName(TEXT("Assembly"))
+		|| Crew == FName(TEXT("GroundLifter")))
+	{
+		return;
+	}
 	FString Stem;
 	if (Crew == FName(TEXT("CargoLift"))) { Stem = TEXT("cargolift_v001"); }
 	else if (Crew == FName(TEXT("Assembly"))) { Stem = TEXT("assembly_v001"); }
@@ -4071,8 +4146,40 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 			// the workforce and the craft is the thing you watch. The
 			// bay meshes stay in the project - they are wanted for the
 			// SUB-ASSEMBLY buildings off the line, which are machines.
-			Component->SetVisibility(false);
+			//
+			// CONCEPT PORTAL (owner-approved 2026-08-31): the
+			// portal-frame station model now stands ON that marked
+			// square - an open arch the craft passes through, tool
+			// arms on the inner frame. The square keeps the ground
+			// identity; the portal gives the station a body. Min-fit
+			// into the footprint like every dressed station.
 			RefreshLineStationFrame(Record, *Definition);
+			if (UStaticMesh* PortalMesh =
+				TryGetStationMesh(Record.DefinitionId))
+			{
+				if (Component->GetStaticMesh() != PortalMesh)
+				{
+					Component->SetStaticMesh(PortalMesh);
+					Component->EmptyOverrideMaterials();
+				}
+				const FVector PortalSize =
+					PortalMesh->GetBounds().BoxExtent * 2.0;
+				float PortalFit = 1.f;
+				if (PortalSize.X > 1.f && PortalSize.Y > 1.f)
+				{
+					PortalFit = FMath::Min(
+						Definition->FootprintCm.X / PortalSize.X,
+						Definition->FootprintCm.Y / PortalSize.Y);
+				}
+				FTransform PortalTransform = Record.WorldTransform;
+				PortalTransform.SetScale3D(FVector(PortalFit));
+				Component->SetWorldTransform(PortalTransform);
+				Component->SetVisibility(true);
+			}
+			else
+			{
+				Component->SetVisibility(false);
+			}
 			continue;
 		}
 		if (UStaticMesh* RealMesh = TryGetStationMesh(Record.DefinitionId))
