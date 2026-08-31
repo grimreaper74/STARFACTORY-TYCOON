@@ -308,8 +308,23 @@ FAgentZetActionResult FAgentZetAssetGenerationActions::ExecuteCheckJob(const TSh
 	FString JobText;
 	if (!FFileHelper::LoadFileToString(JobText, *JobJsonPath))
 	{
+		// NO JOB RECORD IS NOT THE SAME AS NO ASSET. Generation also runs
+		// outside the agent (Scripts/trellis_generate_v002.ps1 is the
+		// faster route: polling costs an inference turn, and inference
+		// starves the generator on a shared GPU). Those assets have a
+		// manifest but no job.json, and telling the model to "generate
+		// first" would send it to redo finished work - it did exactly
+		// that on 2026-08-31 and stalled. Report the asset as ready.
+		if (FPaths::FileExists(ManifestPath))
+		{
+			Result.bSuccess = true;
+			Result.ResultMessage = FString::Printf(
+				TEXT("Asset '%s' is already generated and ready (produced outside this session, manifest: %s). There is nothing to wait for - go straight to import_generated_asset."),
+				*AssetName, *ManifestPath);
+			return Result;
+		}
 		Result.Errors.Add(FString::Printf(
-			TEXT("No generation job exists for '%s'. Call generate_3d_asset first."), *AssetName));
+			TEXT("No generation job and no generated asset exist for '%s'. Call generate_3d_asset first."), *AssetName));
 		return Result;
 	}
 	TSharedPtr<FJsonObject> Job;
