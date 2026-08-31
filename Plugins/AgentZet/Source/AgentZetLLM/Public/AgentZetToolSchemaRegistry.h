@@ -129,6 +129,24 @@ public:
 	FString ListToolsInCategoryString(const FString& Category) const;
 
 	/**
+	 * The enabled tool names in a given category, resolved by the SAME
+	 * pattern map ListToolsInCategoryString renders from (2026-08-31).
+	 * Callers that auto-load a category MUST use this rather than any
+	 * substring heuristic: the old ChatSession fallback substring-matched
+	 * ToolName.Contains(Category), which loaded a DIFFERENT set than the
+	 * listing showed (category "level" listed spawn_actor/place_light/
+	 * modify_world_settings but loaded only create_level_sequence), then
+	 * claimed everything was loaded - and the model's calls to the
+	 * listed-but-unloaded names presented exactly like hallucinations.
+	 * One map, both views, no drift.
+	 *
+	 * @param Category  Category name as accepted by ListToolsInCategoryString
+	 * @return Enabled tool names in that category; empty if the category
+	 *         is unknown (matching the listing's "not recognized" branch)
+	 */
+	TArray<FString> GetToolNamesInCategory(const FString& Category) const;
+
+	/**
 	 * Get the set of tool categories allowed in a given mode.
 	 * Used to pre-filter tool execution in the ActionRouter.
 	 */

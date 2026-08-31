@@ -148,6 +148,20 @@ private:
 	bool bStreamingEnabled;
 	bool bUseResponsesAPI = false;  // Set per-request: true for OpenAI native (Responses API)
 
+	/** Set per-request: true when talking to Ollama, which then uses the
+	 *  NATIVE /api/chat endpoint instead of the OpenAI-compatible
+	 *  /v1/chat/completions (2026-08-31). The native endpoint is the only
+	 *  one that honours options.num_ctx - measured on this machine, the
+	 *  /v1 endpoint silently ran qwen3-coder:30b at the ~2k default and
+	 *  truncated a 30k-token request to 2,050 processed tokens, which is
+	 *  the root mechanism behind the model inventing tool names (it could
+	 *  no longer see the real tool list). Wire differences handled when
+	 *  this is true: URL, temperature moved into options, replayed
+	 *  assistant tool_calls carry arguments as an OBJECT (not a JSON
+	 *  string), and the response is parsed from top-level "message"
+	 *  rather than choices[0]. */
+	bool bUseOllamaNativeApi = false;
+
 	/** Ollama num_ctx context size. When > 0, injected into the request body. */
 	int32 OllamaNumCtx = 0;
 

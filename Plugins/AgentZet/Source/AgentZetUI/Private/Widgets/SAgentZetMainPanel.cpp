@@ -2008,23 +2008,59 @@ FString SAgentZetMainPanel::BuildSystemPrompt() const
         {
             FString Prompt = TEXT(
                 "You are AgentZet, an AI assistant for Unreal Engine 5. "
-                "You have tools to create Blueprints, write C++ files, spawn actors, read/write files, search assets, and build entire game systems.\n\n"
+                "You have tools to create Blueprints, write C++ files, spawn actors, read files, search assets, and build entire game systems.\n\n"
                 "CRITICAL RULES:\n"
                 "- TOOL NAMES ARE STRICT: call ONLY tools present in the tools/functions supplied with the current request. NEVER invent, guess, alias, or infer a tool name.\n"
-                "- For project inspection use supplied read-only tools such as list_directory, search_assets, and read_file_snippet when available. Do NOT invent get_project_info, list_levels, list_content_folders, or get_active_plugins.\n"
+                "- For project inspection use supplied read-only tools such as list_directory, search_assets, and read_file_snippet when available. Do NOT invent get_project_info, list_levels, list_assets, list_content_folders, or get_active_plugins.\n"
                 "- If no supplied tool can perform an operation, explain which capability is missing instead of fabricating a tool call.\n"
                 "- Do not output hidden reasoning, <analysis>, <summary>, system-operation text, or internal chain-of-thought. Return only user-facing results and real tool calls.\n"
                 "- You MUST use tools to complete tasks. NEVER say 'I cannot' or 'I don't have access' when a suitable supplied tool exists.\n"
                 "- ALWAYS CREATE assets BEFORE trying to read/modify them. If asked to create a Blueprint, use create_blueprint_actor FIRST.\n"
-                "- You CAN: create Blueprints (create_blueprint_actor), add components (add_blueprint_component), "
-                "add variables (add_blueprint_variable), add events (add_blueprint_event), "
-                "inject Blueprint logic (inject_blueprint_nodes_t3d), compile (compile_blueprint), "
-                "spawn actors (spawn_actor), create C++ classes (create_cpp_class), "
-                "modify C++ files (modify_cpp_file), read files (read_file_snippet), "
-                "list directories (list_directory), search assets (search_assets), search file contents (search_files).\n"
+            );
+
+            // AVAILABLE TOOLS — GENERATED from the exact schema set this
+            // request will carry (2026-08-31). The previous hand-written
+            // capability list drifted from GetEssentialSchemas(): it
+            // advertised search_files, a tool that exists in no schema
+            // file, so the prompt itself taught the model to call names
+            // outside the supplied tools array — while the strict-names
+            // rule four lines above forbade exactly that. Generating the
+            // list from the registry makes the prompt and the tools array
+            // share one source of truth and keeps them in lockstep with
+            // any future essential-set change.
+            if (ToolSchemaRegistry.IsValid())
+            {
+                Prompt += TEXT("\nAVAILABLE TOOLS in this request (the ONLY callable names):\n");
+                TArray<TSharedPtr<FJsonObject>> EssentialSchemas =
+                    ToolSchemaRegistry->GetEssentialSchemas();
+                for (const TSharedPtr<FJsonObject>& Schema : EssentialSchemas)
+                {
+                    if (!Schema.IsValid()) continue;
+                    FString ToolName, ToolDesc;
+                    Schema->TryGetStringField(TEXT("name"), ToolName);
+                    Schema->TryGetStringField(TEXT("description"), ToolDesc);
+                    if (ToolName.IsEmpty()) continue;
+                    // First sentence only: the full (already truncated)
+                    // description travels in the schema itself; the prompt
+                    // line is a cheap index, not a second copy.
+                    int32 DotIdx;
+                    if (ToolDesc.FindChar(TEXT('.'), DotIdx) && DotIdx < 90)
+                    {
+                        ToolDesc = ToolDesc.Left(DotIdx + 1);
+                    }
+                    else if (ToolDesc.Len() > 90)
+                    {
+                        ToolDesc = ToolDesc.Left(90);
+                    }
+                    Prompt += FString::Printf(TEXT("- %s: %s\n"), *ToolName, *ToolDesc);
+                }
+            }
+
+            Prompt += TEXT(
+                "\n"
                 "- Use one tool per response. Wait for results before next step.\n"
                 "- When done, call attempt_completion with a summary.\n"
-                "- If you need a tool not in your current set, call list_tools_in_category or get_tool_info to discover it.\n"
+                "- If you need a capability not in the list above, call list_tools_in_category or get_tool_info to discover and load more tools.\n"
                 "- Follow UE5 naming: BP_ for Blueprints, M_ for Materials, WBP_ for Widgets.\n\n"
                 "WORKFLOW ORDER (Blueprint tasks):\n"
                 "1. create_blueprint_actor (creates the asset)\n"

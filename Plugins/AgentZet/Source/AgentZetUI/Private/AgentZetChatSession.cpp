@@ -57,13 +57,36 @@ void FAgentZetChatSession::Initialize(TSharedPtr<IAgentZetLLMClient> InLLMClient
 
 void FAgentZetChatSession::ProcessToolCallQueue()
 {
-	// Roo Code approach: NO hard iteration limit.
-	// The loop continues until:
+	// HARD ITERATION CAP (2026-08-31). The previous "Roo Code approach"
+	// of NO limit relied on the auto-approval cost gate as its safety
+	// net - which is inert for a free local model ($0 per request), so a
+	// looping qwen3-coder session was bounded by nothing but the user's
+	// patience. 60 tool batches is far beyond any legitimate task this
+	// plugin runs today; hitting it means the loop is stuck, and an
+	// honest stop with the count beats burning the GPU all night.
+	static constexpr int32 MaxAgenticIterations = 60;
+	if (AgenticLoopCount >= MaxAgenticIterations)
+	{
+		UE_LOG(LogAgentZet, Warning,
+			TEXT("ChatSession: agentic loop hit the %d-iteration cap - stopping."),
+			MaxAgenticIterations);
+		ToolCallQueue.Empty();
+		bInAgenticLoop = false;
+		AgenticLoopCount = 0;
+		SetState(EConversationState::Idle);
+		FAgentZetMessage CapMsg(EAgentZetMessageRole::System,
+			FString::Printf(TEXT("⏹ Task stopped: reached the %d-iteration safety cap without completing. Review the transcript and re-prompt with a narrower instruction."),
+				MaxAgenticIterations));
+		OnMessageAdded.Broadcast(CapMsg);
+		OnAgentFinished.Broadcast(TEXT("Stopped at iteration cap."));
+		return;
+	}
+
+	// The loop otherwise continues until:
 	//   1. Claude responds with text only (no tool_use) — task is done
 	//   2. Auto-approval limits (cost + request count) are exceeded — asks user
 	//   3. User clicks Stop
 	//   4. Context window fills up (handled by context management)
-	// The only safety net is the auto-approval handler which pauses to ask.
 
 	// Reset consecutive no-tool counter since we have tool calls
 	ConsecutiveNoToolCount = 0;
@@ -455,6 +478,23 @@ FString FAgentZetChatSession::ExecuteToolCall(const FAgentZetToolCall& ToolCall,
 	bOutIsError = false;
 	FDateTime StartTime = FDateTime::UtcNow();
 
+	// ---- MALFORMED-ARGUMENTS SHORT-CIRCUIT (2026-08-31) ----
+	// The client used to coerce unparseable argument JSON to an empty
+	// object silently, so the tool executed with no arguments and the
+	// model was never told its own JSON was the problem - it then blamed
+	// the tool and retried something else. Nothing runs on bad
+	// arguments; the model gets the exact text back and a request to
+	// re-emit valid JSON for the same tool.
+	if (!ToolCall.ArgsParseError.IsEmpty())
+	{
+		bOutIsError = true;
+		return FString::Printf(
+			TEXT("INVALID ARGUMENTS for '%s' - the tool was NOT executed because your arguments were not valid JSON.\n")
+			TEXT("Your raw arguments were: %s\n")
+			TEXT("Call '%s' again with arguments as a single valid JSON object."),
+			*ToolCall.ToolName, *ToolCall.ArgsParseError, *ToolCall.ToolName);
+	}
+
 	// Meta tools are temporarily executed locally without UI components hooks
 	// or through the ActionRouter directly. Since we don't have the widget ptrs anymore,
 	// they should be implemented inside FAgentZetChatSession or registered to ActionRouter
@@ -578,8 +618,23 @@ FString FAgentZetChatSession::ExecuteToolCall(const FAgentZetToolCall& ToolCall,
 			}
 
 			FString Result = ToolSchemaRegistry->GetToolInfoString(RequestedTool);
-			Result += TEXT("\n\n✅ This tool has been loaded and is now available for you to call directly on your next response. "
-				"Do NOT call get_tool_info again for this tool — just call it directly.");
+			// BANNER GATED ON REAL REGISTRATION (2026-08-31). This success
+			// line used to be appended UNCONDITIONALLY - so asking about a
+			// hallucinated name returned "Tool 'X' not found..." followed
+			// immediately by "This tool has been loaded and is now
+			// available", actively confirming the invented name to the
+			// model. Only a genuinely registered+enabled tool earns it.
+			if (ToolSchemaRegistry->IsToolRegistered(RequestedTool)
+				&& ToolSchemaRegistry->IsToolEnabled(RequestedTool))
+			{
+				Result += TEXT("\n\n✅ This tool has been loaded and is now available for you to call directly on your next response. "
+					"Do NOT call get_tool_info again for this tool — just call it directly.");
+			}
+			else
+			{
+				Result += TEXT("\n\nThat tool was NOT loaded (it does not exist under that name). "
+					"Use list_tools_in_category to see real tool names, or call one of the tools already in your list.");
+			}
 			return Result;
 		}
 		return TEXT("Error: ToolSchemaRegistry not available.");
@@ -599,47 +654,155 @@ FString FAgentZetChatSession::ExecuteToolCall(const FAgentZetToolCall& ToolCall,
 
 			FString Result = ToolSchemaRegistry->ListToolsInCategoryString(Category);
 
-			// Auto-load all tools in the listed category for dynamic injection
-			// This prevents the model from needing to call get_tool_info for each one
-			TArray<TSharedPtr<FJsonObject>> CategorySchemas = ToolSchemaRegistry->GetSchemasByCategory(Category);
+			// LOAD EXACTLY WHAT WAS LISTED (2026-08-31). The old code
+			// tried GetSchemasByCategory (filters a "category" JSON field
+			// zero schemas define - always empty) and then fell back to a
+			// bare ToolName.Contains(Category) substring match, which
+			// loaded a DIFFERENT set than the listing above rendered:
+			// category "level" listed spawn_actor / place_light /
+			// modify_world_settings but substring-loaded only
+			// create_level_sequence - then told the model everything was
+			// loaded. The model's calls to the listed-but-unloaded names
+			// then failed exactly like invented ones. Listing and loading
+			// now share one pattern map in the registry.
+			TArray<FString> CategoryToolNames =
+				ToolSchemaRegistry->GetToolNamesInCategory(Category);
 			int32 LoadedCount = 0;
-			for (const TSharedPtr<FJsonObject>& Schema : CategorySchemas)
+			FString LoadedNames;
+			for (const FString& CategoryToolName : CategoryToolNames)
 			{
-				FString ToolName;
-				if (Schema->TryGetStringField(TEXT("name"), ToolName) && ToolSchemaRegistry->IsToolEnabled(ToolName))
-				{
-					DynamicallyLoadedTools.Add(ToolName);
-					LoadedCount++;
-				}
-			}
-
-			// Also try pattern-based loading since GetSchemasByCategory uses the "category"
-			// field which may not be set on all schemas. Fall back to pattern matching.
-			if (LoadedCount == 0)
-			{
-				// Use the same pattern matching as ListToolsInCategoryString
-				for (const FString& ToolName : ToolSchemaRegistry->GetAllToolNames())
-				{
-					if (!ToolSchemaRegistry->IsToolEnabled(ToolName)) continue;
-					if (ToolName.Contains(Category, ESearchCase::IgnoreCase))
-					{
-						DynamicallyLoadedTools.Add(ToolName);
-						LoadedCount++;
-					}
-				}
+				if (!ToolSchemaRegistry->IsToolEnabled(CategoryToolName)) continue;
+				DynamicallyLoadedTools.Add(CategoryToolName);
+				LoadedNames += (LoadedNames.IsEmpty() ? TEXT("") : TEXT(", "))
+					+ CategoryToolName;
+				LoadedCount++;
 			}
 
 			if (LoadedCount > 0)
 			{
 				UE_LOG(LogAgentZet, Log, TEXT("ChatSession: Auto-loaded %d tools from category '%s'. (%d dynamic tools total)"),
 					LoadedCount, *Category, DynamicallyLoadedTools.Num());
-				Result += FString::Printf(TEXT("\n\n✅ All %d tools in this category have been loaded and are available for you to call directly on your next response. "
-					"Do NOT call get_tool_info — just call the tools directly."), LoadedCount);
+				// HONEST load report: name exactly what became callable,
+				// never "all tools" - if the listing and this line ever
+				// disagree again, the message shows it instead of hiding it.
+				Result += FString::Printf(TEXT("\n\n✅ Loaded %d tools, callable from your next response: %s. "
+					"Do NOT call get_tool_info for these — just call them directly."), LoadedCount, *LoadedNames);
 			}
 
 			return Result;
 		}
 		return TEXT("Error: ToolSchemaRegistry not available.");
+	}
+
+	// ---- UNKNOWN-TOOL GUARD (2026-08-31) ----
+	// Every meta-tool above returned early, so any name reaching this
+	// point must be backed by a real executor or a registered schema.
+	// Before this guard, an invented name (list_assets, get_project_info,
+	// list_levels - qwen3-coder fills toolset gaps with generic
+	// Unreal-MCP names from its training priors) fell through to
+	// RouteToolCall and came back as a bare "No executor registered for
+	// tool: X" - no valid-name list, no suggestion, nothing a 30B local
+	// model can self-correct from. Worse, the failed call was then
+	// replayed in history as a legitimate tool_call, reinforcing the
+	// invented name. The corrective feedback below names the real
+	// toolset, the nearest matches, and the legitimate no-tool exits.
+	{
+		const bool bHasExecutor =
+			ActionRouter.IsValid()
+			&& ActionRouter->FindExecutorForTool(ToolCall.ToolName).IsValid();
+		const bool bRegisteredSchema =
+			ToolSchemaRegistry.IsValid()
+			&& ToolSchemaRegistry->IsToolRegistered(ToolCall.ToolName);
+		if (!bHasExecutor && !bRegisteredSchema)
+		{
+			bOutIsError = true;
+			// Nearest real names by shared underscore-separated words:
+			// substring matching (the registry's own fuzzy path) finds
+			// nothing for "list_assets", but word overlap surfaces
+			// search_assets and list_directory - exactly the correction
+			// the model needs.
+			TArray<FString> CallWords;
+			ToolCall.ToolName.ToLower().ParseIntoArray(CallWords, TEXT("_"));
+			TArray<TPair<int32, FString>> Scored;
+			if (ToolSchemaRegistry.IsValid())
+			{
+				for (const FString& Candidate :
+					ToolSchemaRegistry->GetAllToolNames())
+				{
+					TArray<FString> CandWords;
+					Candidate.ToLower().ParseIntoArray(CandWords, TEXT("_"));
+					int32 Shared = 0;
+					for (const FString& W : CallWords)
+					{
+						if (CandWords.Contains(W)) ++Shared;
+					}
+					if (Shared > 0)
+					{
+						Scored.Add(TPair<int32, FString>(Shared, Candidate));
+					}
+				}
+			}
+			Scored.Sort([](const TPair<int32, FString>& A,
+				const TPair<int32, FString>& B)
+				{ return A.Key > B.Key; });
+			FString Nearest;
+			for (int32 Idx = 0; Idx < Scored.Num() && Idx < 3; ++Idx)
+			{
+				Nearest += (Nearest.IsEmpty() ? TEXT("") : TEXT(", "))
+					+ Scored[Idx].Value;
+			}
+			// The names genuinely callable in this conversation: the
+			// essential set plus anything discovery has loaded.
+			FString CallableNow;
+			if (ToolSchemaRegistry.IsValid())
+			{
+				for (const TSharedPtr<FJsonObject>& Schema :
+					ToolSchemaRegistry->GetEssentialSchemas())
+				{
+					FString SchemaName;
+					if (Schema.IsValid()
+						&& Schema->TryGetStringField(TEXT("name"), SchemaName))
+					{
+						CallableNow += (CallableNow.IsEmpty()
+							? TEXT("") : TEXT(", ")) + SchemaName;
+					}
+				}
+			}
+			for (const FString& DynName : DynamicallyLoadedTools)
+			{
+				CallableNow += (CallableNow.IsEmpty()
+					? TEXT("") : TEXT(", ")) + DynName;
+			}
+			FString Guidance = FString::Printf(
+				TEXT("UNKNOWN TOOL '%s' - this tool does not exist and was NOT executed.\n"),
+				*ToolCall.ToolName);
+			if (!Nearest.IsEmpty())
+			{
+				Guidance += FString::Printf(
+					TEXT("Closest real tools: %s.\n"), *Nearest);
+			}
+			Guidance += FString::Printf(
+				TEXT("Tools you can call right now: %s.\n")
+				TEXT("To find more tools: list_tools_in_category({\"category\": \"...\"}) or get_tool_info({\"tool_name\": \"...\"}).\n")
+				TEXT("If no tool fits, reply in plain text or call ask_followup_question or attempt_completion. Never invent tool names."),
+				*CallableNow);
+			UE_LOG(LogAgentZet, Warning,
+				TEXT("ChatSession: rejected unknown tool '%s' (nearest: %s)"),
+				*ToolCall.ToolName, *Nearest);
+			return Guidance;
+		}
+		// A REAL tool called by name while its schema is not in the sent
+		// set (the broken-discovery case: the category listing showed it,
+		// the substring loader failed to load it). Execute it normally -
+		// the executor exists and the model's intent is plain - and pin
+		// its schema into the dynamic set so every subsequent request
+		// carries the real definition instead of leaving the model to
+		// work from the one-line listing.
+		if (bHasExecutor && bRegisteredSchema
+			&& !DynamicallyLoadedTools.Contains(ToolCall.ToolName))
+		{
+			DynamicallyLoadedTools.Add(ToolCall.ToolName);
+		}
 	}
 
 	// Check security mode

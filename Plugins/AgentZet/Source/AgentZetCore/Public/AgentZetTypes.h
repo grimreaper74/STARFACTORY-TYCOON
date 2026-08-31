@@ -489,6 +489,15 @@ struct AGENTZETCORE_API FAgentZetToolCall
 	UPROPERTY(BlueprintReadOnly, Category = "AgentZet")
 	EAgentZetActionCategory Category = EAgentZetActionCategory::General;
 
+	/** Non-empty when the model's argument JSON failed to parse
+	 *  (2026-08-31). Clients used to coerce unparseable arguments to an
+	 *  empty object SILENTLY, so the tool ran with no arguments and the
+	 *  model was never told its JSON was bad - it then blamed the tool,
+	 *  not its output. The session checks this before dispatch and
+	 *  returns corrective feedback instead of executing. Holds the raw
+	 *  argument text (truncated) so the feedback can quote it. */
+	FString ArgsParseError;
+
 	FAgentZetToolCall() = default;
 };
 

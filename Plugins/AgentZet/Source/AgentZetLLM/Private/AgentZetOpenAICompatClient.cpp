@@ -10,6 +10,10 @@
 #include "Misc/SecureHash.h"
 #include "Async/Async.h"
 
+/** Forward declaration - defined above FinalizeResponse(); used by the
+ *  non-streaming parse sites earlier in the file too. */
+static void AgentZetStripThinkTags(FString& Content);
+
 // ==========================================================================
 // Call ID sanitization for OpenAI Responses API
 // Ported from Roo Code utils/tool-id.ts sanitizeOpenAiCallId()
@@ -203,6 +207,9 @@ void FAgentZetOpenAICompatClient::SendMessage(
 	                               Provider == EAgentZetProvider::LMStudio ||
 	                               Provider == EAgentZetProvider::Custom);
 	bUseResponsesAPI = (Provider == EAgentZetProvider::OpenAI) && !bIsAzureRequest && !bIsLocalProvider;
+	// Ollama gets its NATIVE endpoint - see the member comment for why
+	// (options.num_ctx is ignored on /v1, silently truncating requests).
+	bUseOllamaNativeApi = (Provider == EAgentZetProvider::Ollama);
 
 	TSharedPtr<FJsonObject> Body = BuildRequestBody(ConversationHistory, SystemPrompt, ToolSchemas);
 	FString BodyString;
@@ -241,6 +248,21 @@ void FAgentZetOpenAICompatClient::SendMessage(
 		Url += FString::Printf(TEXT("?api-version=%s"), *ApiVersion);
 
 		UE_LOG(LogAgentZet, Log, TEXT("OpenAICompatClient: Azure request URL: %s"), *Url);
+	}
+	else if (bUseOllamaNativeApi)
+	{
+		// Native Ollama endpoint. Settings force-appends "/v1" to the
+		// configured base URL for the OpenAI-compat path; strip it back
+		// off and use /api/chat, where options.num_ctx is honoured.
+		FString NativeBase = BaseUrl;
+		while (NativeBase.EndsWith(TEXT("/"))) NativeBase.RemoveAt(NativeBase.Len() - 1);
+		if (NativeBase.EndsWith(TEXT("/v1")))
+		{
+			NativeBase = NativeBase.LeftChop(3);
+			while (NativeBase.EndsWith(TEXT("/"))) NativeBase.RemoveAt(NativeBase.Len() - 1);
+		}
+		Url = NativeBase + TEXT("/api/chat");
+		UE_LOG(LogAgentZet, Log, TEXT("OpenAICompatClient: Ollama NATIVE endpoint: %s"), *Url);
 	}
 	else
 	{
@@ -1098,8 +1120,10 @@ TSharedPtr<FJsonObject> FAgentZetOpenAICompatClient::BuildChatCompletionsBody(
 
 	// Temperature: o-series models don't support temperature.
 	// DeepSeek recommended default is 0.3 (DEEP_SEEK_DEFAULT_TEMPERATURE).
+	// Ollama-native: temperature belongs inside "options" (set below with
+	// num_ctx); a root-level temperature is ignored on /api/chat.
 	bool bIsReasoningModel = (ReasoningEffort != EAgentZetReasoningEffort::Disabled);
-	if (!bIsReasoningModel)
+	if (!bIsReasoningModel && !bUseOllamaNativeApi)
 	{
 		Body->SetNumberField(TEXT("temperature"), bIsDeepSeek ? 0.3 : 0.0);
 	}
@@ -1181,12 +1205,28 @@ TSharedPtr<FJsonObject> FAgentZetOpenAICompatClient::BuildChatCompletionsBody(
 	// Other OpenAI-compatible servers (vLLM, LocalAI, oobabooga) also
 	// reject or ignore this Ollama-specific extension.
 	// =========================================================================
-	if (OllamaNumCtx > 0 && Provider == EAgentZetProvider::Ollama)
+	if (Provider == EAgentZetProvider::Ollama)
 	{
+		// On the NATIVE /api/chat endpoint these options are honoured;
+		// on /v1/chat/completions they were silently ignored (measured:
+		// a 30k-token request ran at the ~2k default and truncated).
+		// num_ctx defaults to the configured value; temperature moves in
+		// here from the root for the native path.
 		TSharedPtr<FJsonObject> OllamaOptions = MakeShared<FJsonObject>();
-		OllamaOptions->SetNumberField(TEXT("num_ctx"), (double)OllamaNumCtx);
-		Body->SetObjectField(TEXT("options"), OllamaOptions);
-		UE_LOG(LogAgentZet, Log, TEXT("OpenAICompatClient: Ollama num_ctx set to %d."), OllamaNumCtx);
+		if (OllamaNumCtx > 0)
+		{
+			OllamaOptions->SetNumberField(TEXT("num_ctx"), (double)OllamaNumCtx);
+		}
+		if (bUseOllamaNativeApi && !bIsReasoningModel)
+		{
+			OllamaOptions->SetNumberField(TEXT("temperature"), 0.0);
+		}
+		if (OllamaOptions->Values.Num() > 0)
+		{
+			Body->SetObjectField(TEXT("options"), OllamaOptions);
+			UE_LOG(LogAgentZet, Log, TEXT("OpenAICompatClient: Ollama options set (num_ctx=%d, native=%d)."),
+				OllamaNumCtx, bUseOllamaNativeApi ? 1 : 0);
+		}
 	}
 
 	// Messages array (system + history)
@@ -1287,7 +1327,19 @@ TArray<TSharedPtr<FJsonValue>> FAgentZetOpenAICompatClient::ConvertMessagesToJso
 							TC->SetStringField(TEXT("type"), TEXT("function"));
 							TSharedPtr<FJsonObject> Func = MakeShared<FJsonObject>();
 							Func->SetStringField(TEXT("name"), TUName);
-							Func->SetStringField(TEXT("arguments"), InputStr);
+							if (bUseOllamaNativeApi)
+							{
+								// Native /api/chat unmarshals arguments as
+								// a JSON OBJECT (Go map) - a string here
+								// fails the whole request with a 400.
+								Func->SetObjectField(TEXT("arguments"),
+									(InputObj != nullptr && InputObj->IsValid())
+										? *InputObj : MakeShared<FJsonObject>());
+							}
+							else
+							{
+								Func->SetStringField(TEXT("arguments"), InputStr);
+							}
 							TC->SetObjectField(TEXT("function"), Func);
 
 							// Gemini proxy (GitHub Copilot / OpenRouter) requires past function calls to provide a thought_signature.
@@ -1751,6 +1803,93 @@ void FAgentZetOpenAICompatClient::HandleRequestComplete(
 		TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(FullBody);
 		if (FJsonSerializer::Deserialize(JsonReader, ResponseObj) && ResponseObj.IsValid())
 		{
+			// =================================================================
+			// NATIVE OLLAMA RESPONSE (2026-08-31): /api/chat returns a
+			// top-level "message" (no choices array), tool_calls whose
+			// function.arguments is a JSON OBJECT (not a string), and
+			// token counts as prompt_eval_count / eval_count. The
+			// prompt_eval_count is also the TRUNCATION TRIPWIRE this
+			// migration exists for: if it presses against num_ctx, the
+			// context was too small and Ollama shifted content out
+			// silently - exactly the failure that taught qwen3-coder to
+			// invent tool names. Warn loudly instead of letting it pass.
+			// =================================================================
+			if (bUseOllamaNativeApi)
+			{
+				int32 PromptEval = 0, Eval = 0;
+				ResponseObj->TryGetNumberField(TEXT("prompt_eval_count"), PromptEval);
+				ResponseObj->TryGetNumberField(TEXT("eval_count"), Eval);
+				UE_LOG(LogAgentZet, Log,
+					TEXT("OpenAICompatClient: Ollama native usage: prompt_eval=%d eval=%d (num_ctx=%d)"),
+					PromptEval, Eval, OllamaNumCtx);
+				if (OllamaNumCtx > 0 && PromptEval > 0
+					&& PromptEval >= OllamaNumCtx - FMath::Max(256, OllamaNumCtx / 20))
+				{
+					UE_LOG(LogAgentZet, Warning,
+						TEXT("OpenAICompatClient: prompt_eval_count %d is at/near num_ctx %d - the request likely OVERFLOWED and Ollama truncated it silently. Raise OllamaContextSize or shrink the prompt/toolset."),
+						PromptEval, OllamaNumCtx);
+				}
+
+				const TSharedPtr<FJsonObject>* NativeMsg = nullptr;
+				if (ResponseObj->TryGetObjectField(TEXT("message"), NativeMsg))
+				{
+					FString Content;
+					if ((*NativeMsg)->TryGetStringField(TEXT("content"), Content) && !Content.IsEmpty())
+					{
+						AgentZetStripThinkTags(Content);
+						CurrentAssistantContent = Content;
+						if (!Content.IsEmpty())
+						{
+							StreamingTextDelegate.Broadcast(CurrentMessageId, Content);
+						}
+					}
+					const TArray<TSharedPtr<FJsonValue>>* NativeToolCalls = nullptr;
+					if ((*NativeMsg)->TryGetArrayField(TEXT("tool_calls"), NativeToolCalls))
+					{
+						for (const TSharedPtr<FJsonValue>& TCVal : *NativeToolCalls)
+						{
+							const TSharedPtr<FJsonObject>* TCObj = nullptr;
+							if (!TCVal->TryGetObject(TCObj)) continue;
+							FPendingToolCallState State;
+							(*TCObj)->TryGetStringField(TEXT("id"), State.ToolUseId);
+							State.Index = PendingToolCallStates.Num();
+							const TSharedPtr<FJsonObject>* FuncObj = nullptr;
+							if ((*TCObj)->TryGetObjectField(TEXT("function"), FuncObj))
+							{
+								(*FuncObj)->TryGetStringField(TEXT("name"), State.ToolName);
+								// arguments arrives as an OBJECT here;
+								// serialize to a string so the shared
+								// FinalizeResponse parse path (which also
+								// produces the malformed-args feedback)
+								// stays the single downstream consumer.
+								const TSharedPtr<FJsonObject>* NativeArgs = nullptr;
+								if ((*FuncObj)->TryGetObjectField(TEXT("arguments"), NativeArgs))
+								{
+									TSharedRef<TJsonWriter<>> ArgsWriter =
+										TJsonWriterFactory<>::Create(&State.ArgumentsAccumulated);
+									FJsonSerializer::Serialize(NativeArgs->ToSharedRef(), ArgsWriter);
+								}
+								else
+								{
+									// Tolerate a string form too (older
+									// servers/models vary).
+									(*FuncObj)->TryGetStringField(TEXT("arguments"), State.ArgumentsAccumulated);
+								}
+							}
+							PendingToolCallStates.Add(State);
+						}
+					}
+				}
+				else
+				{
+					UE_LOG(LogAgentZet, Error,
+						TEXT("OpenAICompatClient: Ollama native response had no 'message' object. Body head: %s"),
+						*FullBody.Left(300));
+				}
+				FinalizeResponse();
+				return;
+			}
+
 			// Extract usage
 			const TSharedPtr<FJsonObject>* UsageObj = nullptr;
 			if (ResponseObj->TryGetObjectField(TEXT("usage"), UsageObj))
@@ -1768,12 +1907,17 @@ void FAgentZetOpenAICompatClient::HandleRequestComplete(
 					const TSharedPtr<FJsonObject>* MessageObj = nullptr;
 					if ((*ChoiceObj)->TryGetObjectField(TEXT("message"), MessageObj))
 					{
-						// Text content
+						// Text content (thinking stripped before the UI
+						// sees it - see AgentZetStripThinkTags)
 						FString Content;
 						if ((*MessageObj)->TryGetStringField(TEXT("content"), Content) && !Content.IsEmpty())
 						{
+							AgentZetStripThinkTags(Content);
 							CurrentAssistantContent = Content;
-							StreamingTextDelegate.Broadcast(CurrentMessageId, Content);
+							if (!Content.IsEmpty())
+							{
+								StreamingTextDelegate.Broadcast(CurrentMessageId, Content);
+							}
 						}
 
 						// Tool calls
@@ -1986,9 +2130,42 @@ void FAgentZetOpenAICompatClient::ExtractTokenUsage(const TSharedPtr<FJsonObject
 	TokenUsageUpdatedDelegate.Broadcast(LastTokenUsage);
 }
 
+/** Strip <think>...</think> spans from assistant content (2026-08-31).
+ *  Qwen3-family models can emit inline thinking blocks; the plugin had
+ *  no handling at all, so the raw chain-of-thought streamed into the
+ *  chat UI AND was stored and replayed in history - both against the
+ *  owner's explicit requirement that hidden reasoning never surface.
+ *  An unterminated tag (mid-thought cutoff) drops everything after it:
+ *  half a thought is still a thought. File-local by intent - content
+ *  should be scrubbed at this single choke point before storage. */
+static void AgentZetStripThinkTags(FString& Content)
+{
+	int32 OpenIdx = Content.Find(TEXT("<think>"), ESearchCase::IgnoreCase);
+	while (OpenIdx != INDEX_NONE)
+	{
+		const int32 CloseIdx = Content.Find(TEXT("</think>"),
+			ESearchCase::IgnoreCase, ESearchDir::FromStart, OpenIdx);
+		if (CloseIdx != INDEX_NONE)
+		{
+			Content.RemoveAt(OpenIdx, (CloseIdx + 8) - OpenIdx);
+		}
+		else
+		{
+			Content.LeftInline(OpenIdx);
+			break;
+		}
+		OpenIdx = Content.Find(TEXT("<think>"), ESearchCase::IgnoreCase);
+	}
+	Content.TrimStartAndEndInline();
+}
+
 void FAgentZetOpenAICompatClient::FinalizeResponse()
 {
 	if (bRequestCancelled) return;
+
+	// Scrub model thinking before it is stored, replayed, or counted as
+	// content (see AgentZetStripThinkTags above).
+	AgentZetStripThinkTags(CurrentAssistantContent);
 
 	// CRITICAL FIX (ported from Roo Code's convertToOpenAiMessages pattern):
 	// Build ContentBlocksJson in Anthropic format (text + tool_use blocks) so that:
@@ -2017,10 +2194,23 @@ void FAgentZetOpenAICompatClient::FinalizeResponse()
 
 		// Parse arguments JSON
 		TSharedPtr<FJsonObject> ArgsObj;
+		FString ArgsParseError;
 		if (!State.ArgumentsAccumulated.IsEmpty())
 		{
 			TSharedRef<TJsonReader<>> ArgReader = TJsonReaderFactory<>::Create(State.ArgumentsAccumulated);
 			FJsonSerializer::Deserialize(ArgReader, ArgsObj);
+			// FLAG the failure instead of coercing silently (2026-08-31):
+			// unparseable arguments used to become an empty object, so
+			// the tool ran with no arguments and the model was never told
+			// its JSON was malformed. The session now short-circuits on
+			// this field with corrective feedback quoting the bad text.
+			if (!ArgsObj.IsValid())
+			{
+				ArgsParseError = State.ArgumentsAccumulated.Left(400);
+				UE_LOG(LogAgentZet, Warning,
+					TEXT("OpenAICompatClient: arguments for '%s' failed to parse as JSON: %s"),
+					*State.ToolName, *ArgsParseError);
+			}
 		}
 		if (!ArgsObj.IsValid()) ArgsObj = MakeShared<FJsonObject>();
 
@@ -2058,6 +2248,7 @@ void FAgentZetOpenAICompatClient::FinalizeResponse()
 		ToolCall.ToolUseId = ToolUseId;
 		ToolCall.ToolName = State.ToolName;
 		ToolCall.InputParams = DispatchArgs;
+		ToolCall.ArgsParseError = ArgsParseError;
 
 		UE_LOG(LogAgentZet, Log, TEXT("OpenAICompatClient: Tool call: %s (id=%s)"),
 			*State.ToolName, *ToolCall.ToolUseId);

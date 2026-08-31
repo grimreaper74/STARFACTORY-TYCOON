@@ -133,16 +133,23 @@ bool FAgentZetToolSchemaRegistry::LoadSchemaFile(const FString& FilePath)
 
 /** Maximum characters for a tool's top-level description in schemas sent to the LLM.
  *  Long descriptions waste tokens without improving tool selection.
- *  ~200 chars = ~50 tokens per tool. At 93 tools = ~4,650 tokens for descriptions.
- *  Without truncation: ~35,000 tokens. Savings: ~86%. */
-static constexpr int32 MaxDescriptionChars = 200;
+ *
+ *  RAISED 200 -> 600 (2026-08-31): the old budget was sized for sending
+ *  ~93 tools at once, which no request path does any more - local
+ *  providers carry the ~22-tool essential set and cloud carries Tier 1.
+ *  At ~22 tools, 600-char descriptions cost ~3,300 tokens total, well
+ *  inside budget, and a 30B local model needs the extra grounding: the
+ *  audit found 200/80-char truncation stripped exactly the usage
+ *  guidance that distinguishes similar tools. */
+static constexpr int32 MaxDescriptionChars = 600;
 
 /** Maximum characters for individual property descriptions within input_schema.
- *  Property descriptions like "Component class name (without U prefix): StaticMeshComponent,
- *  SkeletalMeshComponent, BoxComponent, SphereComponent, CapsuleComponent, ..." are verbose.
- *  The AI has seen these patterns during training — it doesn't need full enumerations.
- *  ~80 chars = ~20 tokens per property. Typical tool has 3-8 properties. */
-static constexpr int32 MaxPropertyDescriptionChars = 80;
+ *  RAISED 80 -> 200 (2026-08-31), same reasoning as MaxDescriptionChars:
+ *  enumerated valid values in property descriptions (component class
+ *  names, category lists) are precisely what keeps a local model from
+ *  guessing arguments; with ~22 tools per request the token cost of
+ *  keeping them is small. */
+static constexpr int32 MaxPropertyDescriptionChars = 200;
 
 /** Truncate a description string to fit within the given character budget */
 static FString TruncateDescriptionAt(const FString& Desc, int32 MaxChars)
@@ -734,7 +741,13 @@ TArray<TSharedPtr<FJsonObject>> FAgentZetToolSchemaRegistry::GetEssentialSchemas
 		TEXT("read_file_snippet"),
 		TEXT("list_directory"),
 		TEXT("search_assets"),
-		TEXT("search_files"),
+		// search_files REMOVED (2026-08-31): no such tool exists in any
+		// Resources/ToolSchemas/*.json — exactly the mismatch the CRITICAL
+		// comment above warns about. The set intersection silently dropped
+		// it here, but the local system prompt still advertised it, which
+		// taught the model that calling names outside the supplied tools
+		// array is normal. Its real counterpart for file-content search
+		// does not exist yet; add the schema first if one is built.
 
 		// C++ file operations (actual names from cpp_tools.json)
 		TEXT("create_cpp_class"),
@@ -924,9 +937,14 @@ FString FAgentZetToolSchemaRegistry::GetToolInfoString(const FString& ToolName) 
 	return Result;
 }
 
-FString FAgentZetToolSchemaRegistry::ListToolsInCategoryString(const FString& Category) const
+/** THE category pattern map - the single source of truth shared by the
+ *  human-readable listing (ListToolsInCategoryString) and the machine
+ *  loader (GetToolNamesInCategory). Factored out 2026-08-31: when these
+ *  two views used different matching, the model was shown one set of
+ *  names and given another, and its calls to the difference read as
+ *  hallucinations. Keep any category edit here and nowhere else. */
+static const TMap<FString, TArray<FString>>& GetCategoryPatternMap()
 {
-	// Map user-friendly category names to tool name patterns
 	static const TMap<FString, TArray<FString>> CategoryPatterns = {
 		{ TEXT("blueprint"),   { TEXT("blueprint"), TEXT("inject"), TEXT("connect_blueprint"), TEXT("compile_blueprint") } },
 		{ TEXT("cpp"),         { TEXT("cpp"), TEXT("create_cpp"), TEXT("modify_cpp"), TEXT("trigger_compile"), TEXT("regenerate") } },
@@ -940,7 +958,10 @@ FString FAgentZetToolSchemaRegistry::ListToolsInCategoryString(const FString& Ca
 		{ TEXT("level"),       { TEXT("spawn"), TEXT("place_light"), TEXT("modify_world") } },
 		{ TEXT("build"),       { TEXT("build_lighting"), TEXT("package_project") } },
 		{ TEXT("settings"),    { TEXT("config"), TEXT("read_config"), TEXT("write_config") } },
-		{ TEXT("context"),     { TEXT("list_directory"), TEXT("search_assets"), TEXT("read_file"), TEXT("search_files") } },
+		// search_files removed 2026-08-31: no such tool exists; the
+		// pattern could never match and kept the phantom name alive in
+		// source.
+		{ TEXT("context"),     { TEXT("list_directory"), TEXT("search_assets"), TEXT("read_file") } },
 		{ TEXT("source_control"), { TEXT("source_control") } },
 		{ TEXT("sequencer"),   { TEXT("sequencer"), TEXT("level_sequence") } },
 		{ TEXT("gas"),         { TEXT("gas_") } },
@@ -952,15 +973,44 @@ FString FAgentZetToolSchemaRegistry::ListToolsInCategoryString(const FString& Ca
 		{ TEXT("python"),      { TEXT("python") } },
 		{ TEXT("viewport"),    { TEXT("viewport"), TEXT("capture") } },
 	};
+	return CategoryPatterns;
+}
 
+TArray<FString> FAgentZetToolSchemaRegistry::GetToolNamesInCategory(
+	const FString& Category) const
+{
+	TArray<FString> Result;
+	const TArray<FString>* Patterns =
+		GetCategoryPatternMap().Find(Category.ToLower());
+	if (!Patterns)
+	{
+		return Result;
+	}
+	for (const auto& Pair : ToolSchemas)
+	{
+		if (DisabledTools.Contains(Pair.Key)) continue;
+		for (const FString& Pattern : *Patterns)
+		{
+			if (Pair.Key.Contains(Pattern, ESearchCase::IgnoreCase))
+			{
+				Result.Add(Pair.Key);
+				break;
+			}
+		}
+	}
+	return Result;
+}
+
+FString FAgentZetToolSchemaRegistry::ListToolsInCategoryString(const FString& Category) const
+{
 	FString CategoryLower = Category.ToLower();
-	const TArray<FString>* Patterns = CategoryPatterns.Find(CategoryLower);
+	const TArray<FString>* Patterns = GetCategoryPatternMap().Find(CategoryLower);
 
 	if (!Patterns)
 	{
 		// List all available categories
 		FString CatList;
-		for (const auto& Pair : CategoryPatterns)
+		for (const auto& Pair : GetCategoryPatternMap())
 		{
 			CatList += TEXT("  - ") + Pair.Key + TEXT("\n");
 		}

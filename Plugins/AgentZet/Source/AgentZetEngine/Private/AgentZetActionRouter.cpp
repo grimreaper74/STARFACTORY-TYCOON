@@ -102,7 +102,18 @@ FAgentZetActionResult FAgentZetActionRouter::RouteToolCall(const FAgentZetToolCa
 	{
 		FAgentZetActionResult Result;
 		Result.bSuccess = false;
-		Result.Errors.Add(FString::Printf(TEXT("No executor registered for tool: %s"), *ToolCall.ToolName));
+		// Defense in depth (2026-08-31): the ChatSession guard should
+		// have rejected unknown names with full corrective feedback
+		// before routing, so reaching this line normally means a REAL
+		// registered tool whose executor is absent (module gated out or
+		// disabled). Either way the model needs a next move, not just a
+		// verdict - the old bare message gave a 30B local model nothing
+		// to self-correct from.
+		Result.Errors.Add(FString::Printf(
+			TEXT("No executor registered for tool: %s. This name is not callable in this session. ")
+			TEXT("Call only tools from the supplied tools list; use list_tools_in_category to discover real tools, ")
+			TEXT("or ask_followup_question / attempt_completion if no tool fits."),
+			*ToolCall.ToolName));
 		return Result;
 	}
 
