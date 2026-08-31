@@ -154,12 +154,44 @@ void FAgentZetChatSession::ProcessToolCallQueue()
 			break;
 		}
 
-		// Phase 1: Check for tool repetition (identical consecutive calls)
-		if (ToolRepetitionDetector.IsValid())
+		// Phase 1: Check for tool repetition (identical consecutive calls).
+		// POLLING TOOLS ARE EXEMPT: asking "is the job done yet?" with the
+		// same arguments is the correct way to use them, not a loop. Only
+		// tools that are supposed to change something can repeat wrongly.
+		static const TSet<FString> PollingTools = { TEXT("check_asset_job") };
+		if (ToolRepetitionDetector.IsValid() && !PollingTools.Contains(ToolCall.ToolName))
 		{
 			FAgentZetToolRepetitionCheck RepCheck = ToolRepetitionDetector->Check(ToolCall);
 			if (!RepCheck.bAllowExecution)
 			{
+				// UNATTENDED SAFETY (2026-08-31): FMessageDialog::Open is
+				// MODAL and blocks the game thread until a human clicks.
+				// With no human there it never returns: the editor stops
+				// ticking entirely and the run is dead, not slow. Evals
+				// step8b and step8c both froze here after three identical
+				// (and perfectly legitimate) check_asset_job polls while
+				// waiting on a 60 s generation - the detector cannot tell
+				// a poll from a loop. Unattended, refuse the call and tell
+				// the MODEL, which is information it can act on; the modal
+				// stays for interactive use where someone can answer it.
+				const bool bUnattended = FApp::IsUnattended()
+					|| IsRunningCommandlet()
+					|| FParse::Param(FCommandLine::Get(), TEXT("AgentZetEvalBridge"));
+				if (bUnattended)
+				{
+					UE_LOG(LogAgentZet, Warning,
+						TEXT("ChatSession: repetition detected on '%s' while unattended - refusing the call instead of opening a modal."),
+						*ToolCall.ToolName);
+					const FString RefusalText = FString::Printf(
+						TEXT("REPEATED CALL REFUSED: you have called '%s' with identical arguments several times in a row. %s\n")
+						TEXT("If you are waiting for a background job, that is expected - but change something: wait for the next result, or if this has gone on too long, report the situation with attempt_completion instead of calling again."),
+						*ToolCall.ToolName, *RepCheck.WarningMessage);
+					ConversationManager->AddToolResultMessage(
+						ToolCall.ToolUseId, RefusalText, true);
+					OnToolResultRecorded.Broadcast(ToolCall.ToolName, RefusalText, true);
+					continue;
+				}
+
 				// Block this tool call — show warning dialog
 				const FText Title = FText::FromString(TEXT("AgentZet — Repetition Loop Detected"));
 				const FText Msg = FText::FromString(RepCheck.WarningMessage);
