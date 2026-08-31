@@ -128,8 +128,40 @@ namespace
     }
 }
 
+TWeakPtr<SAgentZetMainPanel> SAgentZetMainPanel::LiveInstanceForEval;
+
+TSharedPtr<SAgentZetMainPanel> SAgentZetMainPanel::GetLiveInstanceForEval()
+{
+    return LiveInstanceForEval.Pin();
+}
+
+void SAgentZetMainPanel::SubmitPromptForEval(const FString& PromptText)
+{
+    OnPromptSubmitted(PromptText);
+}
+
+void SAgentZetMainPanel::BeginFreshTabForEval(const FString& Title)
+{
+    CreateNewTab(Title, /*bMakeActive=*/true);
+}
+
+TSharedPtr<FAgentZetChatSession> SAgentZetMainPanel::GetActiveChatSessionForEval() const
+{
+    // NOT the ActiveChatSession member - that declaration is assigned
+    // nowhere in this file (dead state); the live session belongs to
+    // the active conversation tab. First eval run hung on exactly this:
+    // the bridge saw a null session forever and never picked up.
+    const FAgentZetConversationTabState* TabState = GetActiveTabState();
+    return TabState ? TabState->ChatSession : nullptr;
+}
+
 void SAgentZetMainPanel::Construct(const FArguments& InArgs)
 {
+    // Registered before backend init so the eval bridge can find the
+    // panel as soon as it exists; SNew has already taken shared
+    // ownership by the time Construct runs, so AsShared() is safe here.
+    LiveInstanceForEval = SharedThis(this);
+
     InitializeBackend();
 
     ChildSlot
@@ -345,6 +377,12 @@ void SAgentZetMainPanel::Construct(const FArguments& InArgs)
 
 SAgentZetMainPanel::~SAgentZetMainPanel()
 {
+    // Eval bridge must not resolve a dying panel.
+    if (LiveInstanceForEval.HasSameObject(this))
+    {
+        LiveInstanceForEval.Reset();
+    }
+
     // v4.0: Mark any active (non-completed) tasks as Interrupted before saving
     // v4.1: Also stamp LastActivityAt so we can calculate time-aware resumption prompts
     for (FAgentZetConversationTabState& Tab : ConversationTabs)

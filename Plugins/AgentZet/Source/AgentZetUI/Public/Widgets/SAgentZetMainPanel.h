@@ -82,7 +82,30 @@ public:
     void Construct(const FArguments& InArgs);
     virtual ~SAgentZetMainPanel();
 
+    // ---- Eval bridge access (2026-08-31) ----
+    // The scripted eval harness (FAgentZetEvalBridge, active only with
+    // -AgentZetEvalBridge) drives the panel through these three narrow
+    // openings so its runs exercise the exact same code path as a human
+    // typing into the box - anything else would validate a parallel
+    // path, not the product.
+
+    /** The live panel, if one exists (last constructed wins). */
+    static TSharedPtr<SAgentZetMainPanel> GetLiveInstanceForEval();
+
+    /** Submit a prompt exactly as the input box does. */
+    void SubmitPromptForEval(const FString& PromptText);
+
+    /** Open a clean conversation tab (made active) so an eval never
+     *  inherits a restored task's history. */
+    void BeginFreshTabForEval(const FString& Title);
+
+    /** The active tab's chat session (may be null before backend init). */
+    TSharedPtr<class FAgentZetChatSession> GetActiveChatSessionForEval() const;
+
 private:
+    /** Backing storage for GetLiveInstanceForEval. */
+    static TWeakPtr<SAgentZetMainPanel> LiveInstanceForEval;
+
     /** Per-tab state for multi-conversation sessions.
      *  v4.0: Added TaskStatus, CreatedAt, DynamicallyLoadedTools for per-task persistence.
      *  v4.1: Added LastActivityAt for time-aware task resumption. */

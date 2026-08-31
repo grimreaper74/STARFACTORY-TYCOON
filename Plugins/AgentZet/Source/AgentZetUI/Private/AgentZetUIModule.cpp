@@ -2,6 +2,7 @@
 
 #include "AgentZetUIModule.h"
 #include "AgentZetCoreModule.h"
+#include "AgentZetEvalBridge.h"
 #include "AgentZetStyle.h"
 #include "AgentZetCommands.h"
 #include "Widgets/SAgentZetMainPanel.h"
@@ -22,11 +23,24 @@ void FAgentZetUIModule::StartupModule()
 	RegisterTabSpawner();
 	RegisterMenuExtensions();
 
+	// Scripted evals: opt-in via -AgentZetEvalBridge on the command line.
+	if (FAgentZetEvalBridge::IsEnabledOnCommandLine())
+	{
+		EvalBridge = MakeShared<FAgentZetEvalBridge>();
+		EvalBridge->Start();
+	}
+
 	UE_LOG(LogAgentZet, Log, TEXT("AgentZetUI module started."));
 }
 
 void FAgentZetUIModule::ShutdownModule()
 {
+	if (EvalBridge.IsValid())
+	{
+		EvalBridge->Stop();
+		EvalBridge.Reset();
+	}
+
 	UnregisterTabSpawner();
 
 	FAgentZetCommands::Unregister();

@@ -29,4 +29,8 @@ private:
 
 	/** The tab identifier for the main panel */
 	static const FName AgentZetTabName;
+
+	/** Scripted eval harness (2026-08-31). Created only when the editor
+	 *  is launched with -AgentZetEvalBridge; see AgentZetEvalBridge.h. */
+	TSharedPtr<class FAgentZetEvalBridge> EvalBridge;
 };

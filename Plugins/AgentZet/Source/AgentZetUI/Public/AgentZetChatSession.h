@@ -26,6 +26,13 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnToolRequiresApproval, const FAgentZetActi
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAgentFinished, const FString& /*Reason*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTokenUsageUpdated, const FAgentZetTokenUsage& /*Usage*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMessageAdded, const FAgentZetMessage& /*Message*/);
+/** Fired after a tool result is recorded into the conversation
+ *  (2026-08-31). OnMessageAdded deliberately does not carry tool
+ *  results - the chat view renders them by mutating the collapsible
+ *  "Executing" bubble instead - so transcript consumers (the eval
+ *  bridge) need this dedicated channel to see what tools returned. */
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnToolResultRecorded,
+	const FString& /*ToolName*/, const FString& /*ResultContent*/, bool /*bIsError*/);
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnMessageUpdated, const FGuid& /*MessageId*/, const FString& /*DeltaText*/, EAgentZetMessageRole /*Role*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatusUpdated, const FString& /*StatusText*/); // For progress overlay
 DECLARE_MULTICAST_DELEGATE(FOnSessionCompletedContextManagement); // Trigger to resume after context condense
@@ -93,6 +100,8 @@ public:
     FOnToolRequiresApproval& GetOnToolRequiresApproval() { return OnToolRequiresApproval; }
     FOnTokenUsageUpdated& GetOnTokenUsageUpdated() { return OnTokenUsageUpdated; }
     FOnMessageAdded& GetOnMessageAdded() { return OnMessageAdded; }
+
+    FOnToolResultRecorded& GetOnToolResultRecorded() { return OnToolResultRecorded; }
     FOnMessageUpdated& GetOnMessageUpdated() { return OnMessageUpdated; }
     FOnStatusUpdated& GetOnStatusUpdated() { return OnStatusUpdated; }
     FOnSessionCompletedContextManagement& GetOnSessionCompletedContextManagement() { return OnSessionCompletedContextManagement; }
@@ -199,6 +208,7 @@ private:
     FOnToolRequiresApproval OnToolRequiresApproval;
     FOnTokenUsageUpdated OnTokenUsageUpdated;
     FOnMessageAdded OnMessageAdded;
+    FOnToolResultRecorded OnToolResultRecorded;
     FOnMessageUpdated OnMessageUpdated;
     FOnStatusUpdated OnStatusUpdated;
     FOnSessionCompletedContextManagement OnSessionCompletedContextManagement;

@@ -65,9 +65,23 @@ void FAgentZetContextManager::ManageContext(
 		return;
 	}
 
-	// Compute current token usage
+	// Compute current token usage.
+	// LOCAL-MODEL WINDOW TRUTH (2026-08-31): for Ollama the real window
+	// is OllamaContextSize (what the server actually enforces via
+	// num_ctx), NOT the Claude-sized ContextWindow enum. With the enum's
+	// 200k basis, every percentage here was ~12x too small for a 16k
+	// local window - so truncation would never have protected the real
+	// limit, while (with a broken 0% threshold in config) condensation
+	// fired on every turn. Measured live: a fresh 6.5k-token
+	// conversation was condensed at "14% full" and truncated at "23%",
+	// destroying the tool result the model had just fetched.
 	const bool bIsExtendedWindow = (Settings->ContextWindow == EAgentZetContextWindow::Extended_1M);
-	const int32 ContextWindowTokens = FAgentZetTokenCounter::GetContextWindowTokens(bIsExtendedWindow);
+	int32 ContextWindowTokens = FAgentZetTokenCounter::GetContextWindowTokens(bIsExtendedWindow);
+	if (Settings->ActiveProvider == EAgentZetProvider::Ollama
+		&& Settings->OllamaContextSize > 0)
+	{
+		ContextWindowTokens = Settings->OllamaContextSize;
+	}
 	const int32 MaxResponseTokens = Settings->MaxResponseTokens;
 
 	// Total tokens = last API response input + output tokens
@@ -92,9 +106,18 @@ void FAgentZetContextManager::ManageContext(
 		AllowedTokens, Settings->bAutoCondenseContext ? TEXT("true") : TEXT("false"),
 		Settings->AutoCondenseThresholdPercent);
 
-	// Check if we need to manage context
+	// Check if we need to manage context.
+	// CLAMPED IN CODE (2026-08-31): the property metadata claims
+	// ClampMin=5, but values loaded from ini bypass Slate clamps - this
+	// machine's config held AutoCondenseThresholdPercent=0, which made
+	// "condense" fire on EVERY turn and summarize away fresh tool
+	// results (the condenser also drops tool results wholesale on
+	// OpenAI-compatible providers). A threshold below 5% can never be
+	// a real intention; refuse it here where it actually matters.
+	const int32 EffectiveCondenseThreshold =
+		FMath::Clamp(Settings->AutoCondenseThresholdPercent, 5, 100);
 	const bool bNeedsCondense = Settings->bAutoCondenseContext
-		&& ContextPercent >= static_cast<float>(Settings->AutoCondenseThresholdPercent);
+		&& ContextPercent >= static_cast<float>(EffectiveCondenseThreshold);
 	const bool bNeedsTruncate = PrevContextTokens > AllowedTokens;
 
 	if (!bNeedsCondense && !bNeedsTruncate)

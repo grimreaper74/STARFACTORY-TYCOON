@@ -137,10 +137,10 @@ Principles (each backed by a probe above):
 |---|---|---|
 | 1 | Audit AgentZet | **Done** — six-reader workflow + adversarial verify |
 | 2 | Diagnose tool-call failure | **Done** — reproduced live, root chain above |
-| 3 | Repair tool discovery/execution | In progress — repair set below |
-| 4 | Prove reliable project inspection | Pending (harness + eval script) |
-| 5 | Prove small reversible change | Pending |
-| 6 | Prove compile/test + failure detection | Pending |
+| 3 | Repair tool discovery/execution | **Done first pass** — repair set below, proven by step-4 eval |
+| 4 | Prove reliable project inspection | **PROVEN** (eval `step4e`, 2026-08-31, 57 s, 3 turns): `list_directory` + `read_file_snippet` executed with real results; `attempt_completion` named three files (all verified present) and the declared class `ALBSpacecraftGameMode : AGameModeBase` (verified at the header's line 30). No invented tools, no invented facts. Transcript `Saved/AgentZetEval/outbox/step4e.jsonl` + summary in the tab's `api_history.json`. |
+| 5 | Prove small reversible change | **PROVEN** (eval `step5a`, 2026-08-31, 14 s): `create_blueprint_actor` + `compile_blueprint` both executed; `Content/AgentZetEval/BP_EvalProbe.uasset` (23,801 bytes) verified on disk; summary accurate and relayed the EventTick warning honestly. Probe asset deleted after the session (reversibility). |
+| 6 | Prove compile/test + failure detection | **PROVEN** (eval `step6a`, 2026-08-31, 67 s): `compile_blueprint` on a nonexistent asset returned "EXECUTION FAILED: Blueprint not found"; the model's completion stated the failure and its cause verbatim — no fabricated success. Known roughness: the transcript's `is_error` flag stays false for EXECUTION FAILED results (the router returns them as plain content), so graders must read result text, not the flag. |
 | 7 | TRELLIS integration | **CLI validated end-to-end** (52.8 s @512 → 139k-tri textured GLB, verified in Blender; unit-scale confirmed → explicit scale baking required, existing Blender lane covers it). Agent-facing tools pending. |
 | 8 | Prove image→asset→Unreal automatically | Pending |
 | 9 | Persistent project memory | Pending (design: files under `Plugins/AgentZet/Resources/ProjectMemory/` + injection budget) |
@@ -197,6 +197,67 @@ repetition feedback to the model rather than only a user modal, and a
 
 Evidence: build log `%TEMP%\build_azfix3.log` (Succeeded), game suite
 `Saved/Automation/AgentZetRepairs_2026-08-31` (130 pass / 2 expected).
+
+## Eval harness (built 2026-08-31)
+
+Scripted, repeatable proof for Phase-1 steps 4-6 — evidence instead of
+hand-testing:
+
+- **In-editor**: `FAgentZetEvalBridge` (AgentZetUI), active only when the
+  editor is launched with `-AgentZetEvalBridge`. File protocol under
+  `Saved/AgentZetEval/`: drop `inbox/<id>.prompt.txt`, the bridge summons
+  the AgentZet tab, submits through `SAgentZetMainPanel::OnPromptSubmitted`
+  (the EXACT path a human takes), captures every message to
+  `outbox/<id>.jsonl`, auto-approves tool batches (recorded in the
+  transcript), and writes `outbox/<id>.done` when the agent finishes.
+  Mirrors the game's `-LineBossAutomationBridge` safety pattern: opt-in
+  flag, project-Saved files only, no sockets.
+- **Driver**: `Scripts/run_agentzet_eval.ps1 -EvalId X -Prompt "..."` -
+  atomic prompt drop, waits on the done marker, prints transcript.
+- **TRELLIS lane**: `Scripts/trellis_generate_v001.ps1 -Image ref.png
+  -Name part_name [-Res 512|1024]` - deterministic CLI generation with a
+  sha256 manifest, refusing silent overwrite, per repo lane conventions.
+
+First-run findings (all fixed the same day):
+- The panel's `ActiveChatSession` member is declared but never assigned
+  anywhere - dead state; the live session belongs to the active
+  conversation tab (`GetActiveTabState()->ChatSession`). The bridge's
+  session accessor now routes through the tab state.
+- The panel restores prior task tabs at startup, so the first eval
+  inherited a 35-message stale history - both a prefill tax and
+  behavioral contamination from pre-repair conversations. The bridge
+  now opens a FRESH tab per eval.
+- The HTTP client's timeout does not fire OnAgentFinished, so a dead
+  request left no `.done` marker. The bridge now has its own 660 s
+  eval timeout finishing as `bridge_timeout`.
+- UE's default JSON writer pretty-prints; transcripts are now condensed
+  one-object-per-line as the .jsonl name promises.
+
+Second-run finding - the greedy-decoding runaway (fixed 2026-08-31):
+two consecutive evals died at the client's 600 s timeout with zero
+messages. Ollama's server log showed both requests prefilled instantly
+(prompt cache hit) and then GENERATED for 9m59s until the client hung
+up. Cause was compound: upstream AgentZet forces `temperature 0.0`, and
+the Qwen team explicitly warns that greedy decoding puts Qwen3 into
+endless repetition loops; with no `num_predict` cap and llama.cpp
+context shifting, such a loop never terminates (old tokens are shifted
+out, so it never even hits the context wall). Measured generation speed
+was healthy (43.5 tok/s at 49 % CPU offload — qwen3-coder is MoE, ~3B
+active), ruling out starvation. Fix: the native path no longer sends a
+temperature at all — the modelfile already carries the Qwen-recommended
+sampling (temp 0.7, top_p 0.8, top_k 20, repeat_penalty 1.05) — and
+sends `num_predict 2048`, so a runaway now returns a truncated,
+readable response with `done_reason="length"` (logged as a warning)
+instead of hanging silently. Tool-call determinism was never real
+anyway: temp 0 traded imaginary determinism for real deadlocks.
+
+Operational note - VRAM contention: with the editor resident, only
+~10.4 GB of the model fits on the 12 GB card (and a 32k KV cache adds
+~3.6 GB to the model's footprint), leaving heavy CPU offload and
+multi-minute first turns. `OllamaContextSize` is set to 16384 for this
+machine - roughly half the KV memory back as GPU weight layers; the
+essential-toolset requests run ~4-6k tokens, and the prompt_eval
+tripwire warns if anything ever approaches the window.
 
 ## Evidence ledger
 

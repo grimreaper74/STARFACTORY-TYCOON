@@ -1210,16 +1210,27 @@ TSharedPtr<FJsonObject> FAgentZetOpenAICompatClient::BuildChatCompletionsBody(
 		// On the NATIVE /api/chat endpoint these options are honoured;
 		// on /v1/chat/completions they were silently ignored (measured:
 		// a 30k-token request ran at the ~2k default and truncated).
-		// num_ctx defaults to the configured value; temperature moves in
-		// here from the root for the native path.
+		//
+		// Temperature is deliberately NOT sent: the Qwen team warns that
+		// greedy decoding (temp 0) puts Qwen3 into endless repetition
+		// loops, and two evals (2026-08-31) hung for 9m59s generating
+		// until the client timeout for exactly this reason. The modelfile
+		// already carries the recommended sampling (temp 0.7, top_p 0.8,
+		// top_k 20, repeat_penalty 1.05); omitting the field lets it apply.
+		//
+		// num_predict bounds a single response: with llama.cpp context
+		// shifting a degenerate generation otherwise runs FOREVER (it
+		// never hits the context wall). 2048 tokens ≈ 50s at measured
+		// 43 tok/s; a capped response returns with done_reason="length"
+		// and becomes readable evidence instead of a silent hang.
 		TSharedPtr<FJsonObject> OllamaOptions = MakeShared<FJsonObject>();
 		if (OllamaNumCtx > 0)
 		{
 			OllamaOptions->SetNumberField(TEXT("num_ctx"), (double)OllamaNumCtx);
 		}
-		if (bUseOllamaNativeApi && !bIsReasoningModel)
+		if (bUseOllamaNativeApi)
 		{
-			OllamaOptions->SetNumberField(TEXT("temperature"), 0.0);
+			OllamaOptions->SetNumberField(TEXT("num_predict"), 2048.0);
 		}
 		if (OllamaOptions->Values.Num() > 0)
 		{
@@ -1828,6 +1839,18 @@ void FAgentZetOpenAICompatClient::HandleRequestComplete(
 					UE_LOG(LogAgentZet, Warning,
 						TEXT("OpenAICompatClient: prompt_eval_count %d is at/near num_ctx %d - the request likely OVERFLOWED and Ollama truncated it silently. Raise OllamaContextSize or shrink the prompt/toolset."),
 						PromptEval, OllamaNumCtx);
+				}
+
+				// done_reason "length" means the num_predict cap fired -
+				// the model was in (or near) a runaway generation and the
+				// response below is the truncated evidence of it.
+				FString DoneReason;
+				if (ResponseObj->TryGetStringField(TEXT("done_reason"), DoneReason)
+					&& DoneReason == TEXT("length"))
+				{
+					UE_LOG(LogAgentZet, Warning,
+						TEXT("OpenAICompatClient: generation hit the num_predict cap (done_reason=length, eval=%d). The model likely entered a repetition loop; the truncated output is in the response."),
+						Eval);
 				}
 
 				const TSharedPtr<FJsonObject>* NativeMsg = nullptr;

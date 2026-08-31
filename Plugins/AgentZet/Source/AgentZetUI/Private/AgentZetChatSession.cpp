@@ -207,6 +207,7 @@ void FAgentZetChatSession::ProcessToolCallQueue()
 
 		FAgentZetMessage& ToolResultMsg = ConversationManager->AddToolResultMessage(
 			ToolCall.ToolUseId, ResultContent, bIsError);
+		OnToolResultRecorded.Broadcast(ToolCall.ToolName, ResultContent, bIsError);
 
 		if (bIsError)
 		{
@@ -512,6 +513,24 @@ FString FAgentZetChatSession::ExecuteToolCall(const FAgentZetToolCall& ToolCall,
 	if (ToolCall.ToolName == TEXT("attempt_completion"))
 	{
 		bInAgenticLoop = false; // Stop the loop
+
+		// Record the completion summary through the tool-result channel
+		// BEFORE broadcasting the finish - the eval bridge unbinds its
+		// delegates on OnAgentFinished, and the panel-side display
+		// delegate below never raises OnMessageAdded, so without this
+		// the model's final summary reaches no transcript at all
+		// (step4e, 2026-08-31: graded from the saved api_history.json
+		// instead - workable, but the transcript should be complete).
+		if (OnToolResultRecorded.IsBound())
+		{
+			FString CompletionResult;
+			if (ToolCall.InputParams.IsValid())
+			{
+				ToolCall.InputParams->TryGetStringField(TEXT("result"), CompletionResult);
+			}
+			OnToolResultRecorded.Broadcast(TEXT("attempt_completion"), CompletionResult, false);
+		}
+
 		OnAgentFinished.Broadcast(TEXT("Task completed."));
 
 		if (OnHandleAttemptCompletion.IsBound())
