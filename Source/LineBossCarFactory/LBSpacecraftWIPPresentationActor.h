@@ -403,6 +403,73 @@ public:
 	static void GetDronePartsManifest(FName Crew,
 		TArray<FLBSpacecraftDronePartSpec>& OutParts);
 
+	/** The PalletLoads_v001 "Pallet.<stem>" keys that count as this BOM
+	 *  component's kit content, in a fixed order. Hull and Propulsion
+	 *  have more than one real ship section available (the hull is cut
+	 *  into four, propulsion into three), so a station with several
+	 *  Hull/Propulsion bays reads as carrying VARIETY rather than four
+	 *  copies of one crate; components with a single pallet just return
+	 *  that one. Empty for a component this batch does not cover. Pure
+	 *  aside from string construction. */
+	static void GetKitPalletCandidates(FName ComponentId,
+		TArray<FName>& OutPalletKeys);
+
+	/** Deterministic pick from a non-empty candidate list, keyed by
+	 *  StationId and BayIndex so the same bay always shows the same
+	 *  pallet (stable across ticks and saves) while different bays -
+	 *  and different stations fitting the same component - are not all
+	 *  forced onto the same one. Pure. */
+	static int32 ComputeKitPalletCandidateIndex(FName StationId,
+		int32 BayIndex, int32 CandidateCount);
+
+	/** True when a component's kit candidates are SECTIONS of one
+	 *  assembly (Hull: nose->fwd->mid->aft) that must all be spawned
+	 *  together, in GetKitPalletCandidates' order, rather than one
+	 *  being picked to stand in for the rest (owner, 2026-08-30: "the
+	 *  hull parts need to be put together"). Pure. */
+	static bool ShouldAssembleKitPalletsTogether(FName ComponentId);
+
+	/** Local-Y centres for N pieces of the given lengths, laid end to
+	 *  end and centred as a whole on 0 - shared by the kit dolly's
+	 *  assembled-together bay and the stripped-hull-on-the-ship visual
+	 *  (owner, 2026-08-30: "the hull ship needs to be striped down and
+	 *  built live" - the loose sections ride the unit itself before
+	 *  Hull is fitted, using the same real-length layout the dolly
+	 *  bay uses). Pure. */
+	static void ComputeSequentialLayoutCentresCm(
+		const TArray<float>& LengthsCm, TArray<float>& OutCentresCm);
+
+	/** ONE NAMED ATTACHMENT POINT on a ship recipe: where a part with
+	 *  this NodeId sits, relative to the unit's own primary component
+	 *  (owner, 2026-08-30: "make the ship into a node system where the
+	 *  parts snap on"). A code-side table rather than mesh-authored
+	 *  Unreal sockets - the parts in hand (the six-assembly Scout, the
+	 *  PalletLoads_v001 cuts) are already modelled pre-aligned in a
+	 *  shared coordinate space, so every current node is Identity; the
+	 *  table exists so that stops being an assumption baked into each
+	 *  attach call site and becomes one lookup a future part with its
+	 *  own, non-aligned geometry can override without touching the
+	 *  attach code at all. */
+	struct FLBSpacecraftShipNode
+	{
+		FName NodeId;
+		FTransform RelativeTransform = FTransform::Identity;
+	};
+
+	/** All named nodes for one ship recipe, in no particular order.
+	 *  Empty for a recipe this table does not cover (callers fall back
+	 *  to Identity, matching the pre-node-system behaviour exactly -
+	 *  see FindShipNodeTransform). Pure aside from string construction. */
+	static void GetShipNodes(FName RecipeId,
+		TArray<FLBSpacecraftShipNode>& OutNodes);
+
+	/** One node's transform by name. Returns false (OutTransform left
+	 *  at Identity) for an unknown recipe or node - an honest miss, not
+	 *  a silent wrong answer, though Identity is also the correct
+	 *  fallback for every node this table currently defines. Pure. */
+	static bool FindShipNodeTransform(FName RecipeId, FName NodeId,
+		FTransform& OutTransform);
+
 	/** Fan-pod tilt from horizontal velocity: pods lean into the motion
 	 *  (pitch forward for +X, roll for +Y), clamped to MaxTiltDeg at
 	 *  600 cm/s and above. Zero velocity means level pods. Pure. */
@@ -606,6 +673,28 @@ private:
 	 *  than destroying them, the trap the landing gear legs and the
 	 *  rotor voices already taught this file twice. */
 	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> ScoutV2Parts;
+
+	/** Which of the five non-Hull assemblies a Scout unit has actually
+	 *  had FITTED so far (owner, 2026-08-30: "the hull parts need to be
+	 *  put together" - the craft's own build-form ladder was gated on
+	 *  Unit->Stage against thresholds authored for an 8-stage pipeline
+	 *  the simplified 6-station route no longer reaches until very
+	 *  late, so it sat as a bare crate almost the whole build regardless
+	 *  of what was actually fitted. Reading Unit->ProducedComponents -
+	 *  the real per-component ground truth - instead of Stage means a
+	 *  part appears the moment it is genuinely fitted, and this set is
+	 *  what stops it being re-attached every tick once it has. */
+	TMap<FName, TSet<ELBSpacecraftComponent>> ScoutV2AttachedComponents;
+
+	/** The four real hull-section pallets (nose/fwd/mid/aft), riding
+	 *  loose on a Scout unit BEFORE Hull is fitted - "stripped down and
+	 *  built live" (owner, 2026-08-30): the ship reads as its own real
+	 *  parts not yet joined, rather than a featureless crate, and
+	 *  disappears the instant Hull completes and the real assembled
+	 *  mesh takes over. Attached as children of the unit's primary
+	 *  visual component, so they ride every crane-carry/slide for free;
+	 *  destroyed (never just detached) wherever the primary is. */
+	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> StrippedHullSections;
 
 
 	/** THE INSPECTION SWEEP (owner 2026-08-27). A bar of light that

@@ -14,8 +14,14 @@
 namespace LBSpacecraftVisualCountPrivate
 {
 	/** Stations that get a MACHINE VISUAL: everything except the site
-	 *  buildings, which the shell layer draws (owner 2026-08-28). */
-	inline int32 SpacecraftMachineStationCount(
+	 *  buildings, which the shell layer draws (owner 2026-08-28).
+	 *  Qualified by file (2026-08-30): an identical helper of the same
+	 *  name exists in LBSpacecraftGameModeTests.cpp's copy of this same
+	 *  namespace - harmless across separate translation units, but
+	 *  unity build can merge both into one, where a second definition
+	 *  of the same name is a hard redefinition error regardless of the
+	 *  bodies matching. */
+	inline int32 SpacecraftMachineStationCountPhase2(
 		const ALBSpacecraftBuildAuthority& InBuild)
 	{
 		int32 Count = 0;
@@ -1102,7 +1108,7 @@ bool FLBSpacecraftPhase2TickedCraftingTest::RunTest(const FString& Parameters)
 	Presenter->Tick(0.1f);
 	TestEqual(TEXT("one visual per placed station, crafting included"),
 		Presenter->GetStationVisualCount(),
-		LBSpacecraftVisualCountPrivate::SpacecraftMachineStationCount(
+		LBSpacecraftVisualCountPrivate::SpacecraftMachineStationCountPhase2(
 			*Rig.Build));
 
 	Rig.World->DestroyWorld(false);

@@ -16,8 +16,17 @@
 
 # Generated solution/project files
 *.sln
+*.slnx
 *.xcodeproj
 *.xcworkspace
+UpgradeLog*.htm
+
+# Plugin build output - the root /Binaries/ and /Intermediate/ rules above
+# are root-anchored and do not reach a plugin's own Binaries/Intermediate
+# (e.g. Plugins/AgentZet/Binaries, 338 MB - caught this one by hand while
+# staging a commit rather than by pattern, hence adding the pattern now).
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
 
 # --- Large binary trees: deliberately NOT in git ----------------------------
 # Content is ~7 GB of .uasset and SourceAssets is ~50 GB of DCC source.

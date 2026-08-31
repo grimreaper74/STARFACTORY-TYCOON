@@ -600,6 +600,38 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("LB_Carrier_%s.LB_Carrier_%s"),
 				Carrier, Carrier, Carrier))));
 	}
+	// PALLETLOADS_v001 (2026-08-30): fourteen real ship assemblies cut
+	// from the Scout model itself, stowed on factory pallets - the
+	// per-COMPONENT kit dolly content the Meshy-era generic crate block
+	// was always a stand-in for. Registered under "Pallet.<stem>" so
+	// GetKitPalletCandidates() (below) can build each component's
+	// variety pool by name rather than repeating the path here.
+	const TCHAR* Pallets[] = {
+		TEXT("pallet-hull_nose"), TEXT("pallet-hull_fwd"),
+		TEXT("pallet-hull_mid"), TEXT("pallet-hull_aft"),
+		TEXT("pallet-wing"), TEXT("pallet-wing_port"),
+		TEXT("pallet-canopy"), TEXT("pallet-booster"),
+		TEXT("pallet-booster_port"), TEXT("pallet-mainengine"),
+		TEXT("pallet-cellbank"), TEXT("pallet-avionics"),
+		TEXT("pallet-sensor"), TEXT("pallet-interior") };
+	for (const TCHAR* Pallet : Pallets)
+	{
+		// The destination folder was written with underscores (Python
+		// cannot use a hyphen in some path contexts this pipeline
+		// touches), but Interchange named the single-object import
+		// after the SOURCE FILE verbatim, hyphen included - the same
+		// asset-naming quirk charging_dock_v001 hit. The two must not
+		// be conflated: FolderStem for the two directory levels,
+		// Pallet (unmodified) for the asset name.
+		const FString FolderStem =
+			FString(Pallet).Replace(TEXT("-"), TEXT("_"));
+		StationMeshes.Add(
+			FName(*FString::Printf(TEXT("Pallet.%s"), Pallet)),
+			TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
+				TEXT("/Game/LineBoss/Candidates/Spacecraft/")
+				TEXT("PalletLoads_v001/%s/%s/StaticMeshes/%s.%s"),
+				*FolderStem, Pallet, Pallet, Pallet))));
+	}
 }
 
 UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
@@ -653,7 +685,10 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId == FName(TEXT("Drone.GroundSprayer.Body"))
 		|| DefinitionId == FName(TEXT("Dock.Charging"))
 		|| DefinitionId.ToString().StartsWith(TEXT("Carrier."))
-		|| DefinitionId.ToString().StartsWith(TEXT("Track."));
+		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
+		// PALLETLOADS_v001 (2026-08-30): added at registration time,
+		// not discovered as a second silent-block bug later.
+		|| DefinitionId.ToString().StartsWith(TEXT("Pallet."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -2435,6 +2470,131 @@ void ALBSpacecraftWIPPresentationActor::GetDronePartsManifest(FName Crew,
 		AddNumbered(TEXT("work_mast_mesh"), 1, EKind::Static);
 		AddNumbered(TEXT("wrist_joint_mesh"), 1, EKind::Static);
 	}
+}
+
+void ALBSpacecraftWIPPresentationActor::GetKitPalletCandidates(
+	FName ComponentId, TArray<FName>& OutPalletKeys)
+{
+	OutPalletKeys.Reset();
+	// The hull is cut into four real sections and Propulsion into
+	// three - both get a variety pool. Everything else PalletLoads_v001
+	// covers has exactly one pallet. Hull's four are the actual fuselage
+	// SECTIONS (nose->fwd->mid->aft) - owner, 2026-08-30: "the hull
+	// parts need to be put together", so ShouldAssembleKitPalletsTogether
+	// (below) has these spawn as one nose-to-aft sequence rather than
+	// standing in for each other. Wing/wing_port/canopy are deliberately
+	// NOT in this list: they are separate ship parts, not sections of
+	// the same fuselage run, and forcing them into the sequence would
+	// misrepresent "put together" as "everything hull-adjacent".
+	if (ComponentId == FName(TEXT("Component.Hull")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-hull_nose")),
+			FName(TEXT("Pallet.pallet-hull_fwd")),
+			FName(TEXT("Pallet.pallet-hull_mid")),
+			FName(TEXT("Pallet.pallet-hull_aft")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Propulsion")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-booster")),
+			FName(TEXT("Pallet.pallet-booster_port")),
+			FName(TEXT("Pallet.pallet-mainengine")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Power")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-cellbank")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Electronics")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-avionics")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Navigation")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-sensor")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Interior")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-interior")) };
+	}
+}
+
+int32 ALBSpacecraftWIPPresentationActor::ComputeKitPalletCandidateIndex(
+	FName StationId, int32 BayIndex, int32 CandidateCount)
+{
+	if (CandidateCount <= 0)
+	{
+		return INDEX_NONE;
+	}
+	// GetTypeHash rather than a running counter: stable regardless of
+	// build/load order, and two different stations fitting the same
+	// component do not land on the same pallet just because they were
+	// built in the same sequence.
+	const uint32 Hash = HashCombine(GetTypeHash(StationId),
+		GetTypeHash(BayIndex));
+	return static_cast<int32>(Hash % static_cast<uint32>(CandidateCount));
+}
+
+bool ALBSpacecraftWIPPresentationActor::ShouldAssembleKitPalletsTogether(
+	FName ComponentId)
+{
+	return ComponentId == FName(TEXT("Component.Hull"));
+}
+
+void ALBSpacecraftWIPPresentationActor::ComputeSequentialLayoutCentresCm(
+	const TArray<float>& LengthsCm, TArray<float>& OutCentresCm)
+{
+	OutCentresCm.Reset();
+	float TotalLengthCm = 0.f;
+	for (const float LengthCm : LengthsCm)
+	{
+		TotalLengthCm += LengthCm;
+	}
+	float CursorY = -TotalLengthCm * 0.5f;
+	for (const float LengthCm : LengthsCm)
+	{
+		OutCentresCm.Add(CursorY + LengthCm * 0.5f);
+		CursorY += LengthCm;
+	}
+}
+
+void ALBSpacecraftWIPPresentationActor::GetShipNodes(FName RecipeId,
+	TArray<FLBSpacecraftShipNode>& OutNodes)
+{
+	OutNodes.Reset();
+	// SCOUT-01: the six-assembly model's own modelling brief already
+	// pre-aligns every part in one shared coordinate space (Hull is the
+	// primary; the other five slot in at Identity), so every node here
+	// is Identity too - this table does not change what gets rendered
+	// today, it names the assumption so a future part that is NOT
+	// pre-aligned can define a real offset without any attach call site
+	// needing to change.
+	if (RecipeId == LBSpacecraftWIPPresentationPrivate::SpacecraftScoutRecipeId)
+	{
+		OutNodes.Add({ FName(TEXT("Node.Hull")), FTransform::Identity });
+		OutNodes.Add({ FName(TEXT("Node.Propulsion")), FTransform::Identity });
+		OutNodes.Add({ FName(TEXT("Node.Power")), FTransform::Identity });
+		OutNodes.Add({ FName(TEXT("Node.Electronics")),
+			FTransform::Identity });
+		OutNodes.Add({ FName(TEXT("Node.Navigation")),
+			FTransform::Identity });
+		OutNodes.Add({ FName(TEXT("Node.Interior")), FTransform::Identity });
+	}
+}
+
+bool ALBSpacecraftWIPPresentationActor::FindShipNodeTransform(
+	FName RecipeId, FName NodeId, FTransform& OutTransform)
+{
+	OutTransform = FTransform::Identity;
+	TArray<FLBSpacecraftShipNode> Nodes;
+	GetShipNodes(RecipeId, Nodes);
+	for (const FLBSpacecraftShipNode& Node : Nodes)
+	{
+		if (Node.NodeId == NodeId)
+		{
+			OutTransform = Node.RelativeTransform;
+			return true;
+		}
+	}
+	return false;
 }
 
 void ALBSpacecraftWIPPresentationActor::DestroyDroneVisual(
@@ -4305,6 +4465,94 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 		Frame.Parts.Add(Block);
 	};
 
+	// PALLETLOADS_v001 (2026-08-30): the real per-component pallet(s)
+	// for one kit bay, at LocalCentre (station-local, matching AddBlock's
+	// convention). Single-candidate and pick-one-of-several components
+	// spawn one mesh at LocalCentre; ShouldAssembleKitPalletsTogether
+	// components (Hull) instead lay every candidate out nose-to-aft
+	// along local Y, each touching the last, centred as a WHOLE on
+	// LocalCentre - "the hull parts need to be put together" (owner).
+	// Real per-part lengths, not a guessed spacing constant: a generic
+	// spacing either overlaps the biggest section or leaves a gap after
+	// the smallest.
+	auto AddKitPallets = [&](FName ComponentId, int32 Bay,
+		const FVector& LocalCentre)
+	{
+		TArray<FName> Candidates;
+		GetKitPalletCandidates(ComponentId, Candidates);
+		if (Candidates.Num() == 0)
+		{
+			return false;
+		}
+		if (!ShouldAssembleKitPalletsTogether(ComponentId))
+		{
+			const int32 PickIndex = ComputeKitPalletCandidateIndex(
+				Record.StationId, Bay, Candidates.Num());
+			UStaticMesh* PalletMesh =
+				TryGetStationMesh(Candidates[PickIndex]);
+			if (PalletMesh == nullptr)
+			{
+				return true;
+			}
+			const FName PalletKey(*FString::Printf(
+				TEXT("%s_Pallet%d"), *Record.StationId.ToString(), Bay));
+			UStaticMeshComponent* PalletComp =
+				NewObject<UStaticMeshComponent>(this,
+					UStaticMeshComponent::StaticClass(), PalletKey);
+			PalletComp->SetStaticMesh(PalletMesh);
+			PalletComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			PalletComp->SetCastShadow(true);
+			PalletComp->SetupAttachment(RootComponent);
+			PalletComp->RegisterComponent();
+			FTransform T = Where;
+			T.AddToTranslation(Where.GetRotation().RotateVector(
+				LocalCentre));
+			PalletComp->SetWorldTransform(T);
+			Frame.Parts.Add(PalletComp);
+			return true;
+		}
+		// ASSEMBLE TOGETHER: resolve every mesh first (need each one's
+		// own length before any position can be placed), then lay them
+		// end to end along local Y, centred on LocalCentre.
+		TArray<UStaticMesh*> Meshes;
+		TArray<float> LengthsCm;
+		for (const FName& Key : Candidates)
+		{
+			UStaticMesh* Mesh = TryGetStationMesh(Key);
+			Meshes.Add(Mesh);
+			const float LengthCm = Mesh != nullptr
+				? Mesh->GetBounds().BoxExtent.Y * 2.f : 0.f;
+			LengthsCm.Add(LengthCm);
+		}
+		TArray<float> CentresCm;
+		ComputeSequentialLayoutCentresCm(LengthsCm, CentresCm);
+		for (int32 Index = 0; Index < Meshes.Num(); ++Index)
+		{
+			if (Meshes[Index] == nullptr)
+			{
+				continue;
+			}
+			const float PieceCentreY = CentresCm[Index];
+			const FName PalletKey(*FString::Printf(
+				TEXT("%s_Pallet%d_%d"), *Record.StationId.ToString(), Bay,
+				Index));
+			UStaticMeshComponent* PalletComp =
+				NewObject<UStaticMeshComponent>(this,
+					UStaticMeshComponent::StaticClass(), PalletKey);
+			PalletComp->SetStaticMesh(Meshes[Index]);
+			PalletComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			PalletComp->SetCastShadow(true);
+			PalletComp->SetupAttachment(RootComponent);
+			PalletComp->RegisterComponent();
+			FTransform T = Where;
+			T.AddToTranslation(Where.GetRotation().RotateVector(
+				LocalCentre + FVector(0.f, PieceCentreY, 0.f)));
+			PalletComp->SetWorldTransform(T);
+			Frame.Parts.Add(PalletComp);
+		}
+		return true;
+	};
+
 	// Lifted from 0.42: against the warm mid-grey floor and the warmer
 	// sun the old pad read as a black hole rather than a marked bay.
 	// THE BAY'S COLOUR (owner 2026-08-28: "we need some color on it").
@@ -4627,6 +4875,19 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 				T.SetScale3D(FVector(1.f));
 				Skid->SetWorldTransform(T);
 				Frame.Parts.Add(Skid);
+				// PALLETLOADS_v001 (2026-08-30): the skid mesh's OWN
+				// baked crates are generic (the same lumps regardless
+				// of what the bay actually holds) - this is what "the
+				// signal is lost until the crates are split out of the
+				// model or driven by per-instance data" (below) was
+				// waiting on. A real per-component pallet rides on top
+				// when this bay's component has one; the skid still
+				// supplies the platform/hardpoints either way.
+				if (HasKitComponent(Record.StationId, Kit[Bay]))
+				{
+					AddKitPallets(Kit[Bay], Bay,
+						FVector(SkidX, AlongY, 55.f));
+				}
 			}
 			// The mesh carries its own crates, so the data-driven crate
 			// blocks below are skipped rather than stacked on top of
@@ -4677,6 +4938,28 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 					+ BayLenY * static_cast<float>(Bay);
 				const bool bHeld =
 					HasKitComponent(Record.StationId, Kit[Bay]);
+				// PALLETLOADS_v001 (2026-08-30): a real ship-cut pallet
+				// when this component has one, replacing the whole
+				// generic crate-cradle grid below for this bay rather
+				// than nesting inside it - the grid's slots (~1 m,
+				// four per bay) were sized for a generic placeholder
+				// crate and are too small for a wing panel or a hull
+				// section (up to 3.19 m). One pallet reads as the
+				// component; the crate grid's job (loaded vs empty)
+				// is carried instead by whether the pallet is drawn.
+				TArray<FName> PalletCandidates;
+				GetKitPalletCandidates(Kit[Bay], PalletCandidates);
+				if (PalletCandidates.Num() > 0)
+				{
+					// else (bHeld false): no pallet drawn is the
+					// shortage, same language the empty cradle spoke.
+					if (bHeld)
+					{
+						AddKitPallets(Kit[Bay], Bay,
+							FVector(DollyX, BayY, 55.f));
+					}
+					continue;
+				}
 				const int32 Crates = KitCrateCount(Kit[Bay]);
 				for (int32 Crate = 0; Crate < Crates; ++Crate)
 				{
@@ -4964,8 +5247,17 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		}
 		Live.Add(Assignment.UnitId);
 
-		const bool bCraftForm =
-			Unit->Stage >= ELBSpacecraftStage::Assembly;
+		// SCOUT: gated on the real, per-component ground truth (owner,
+		// 2026-08-30 - see ScoutV2AttachedComponents' header comment for
+		// why Stage was wrong here) rather than the stage-threshold
+		// ladder every other recipe still uses. Cargo is untouched:
+		// no evidence yet that its single-mesh ladder has the same
+		// fault, and this fix is scoped to the bug actually reported.
+		const bool bScoutSixPart = Unit->RecipeId
+			== LBSpacecraftWIPPresentationPrivate::SpacecraftScoutRecipeId
+			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
+		const bool bCraftForm = bScoutSixPart
+			|| Unit->Stage >= ELBSpacecraftStage::Assembly;
 		UStaticMesh* Craft = nullptr;
 		if (bCraftForm)
 		{
@@ -5044,6 +5336,85 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		{
 			Component->SetVisibility(false);
 		}
+		// STRIPPED HULL, BUILT LIVE (owner, 2026-08-30: "the hull ship
+		// needs to be striped down and built live"). Before Hull is
+		// fitted, a Scout unit shows its own real hull SECTIONS - loose,
+		// not yet joined - instead of a featureless crate, reusing the
+		// PalletLoads_v001 sections already imported for the kit dolly
+		// (ShouldAssembleKitPalletsTogether's ordering, so this reads as
+		// the same nose-to-aft sequence a station's dolly shows). The
+		// primary Component stays the transform anchor - crane-carry,
+		// slide, everything already keys off it - but is hidden (not
+		// destroyed: SetVisibility does not propagate to children by
+		// default, so the sections attached to it keep rendering) while
+		// the sections stand in for it. They are destroyed and Component
+		// made visible again the instant bScoutSixPart turns true, at
+		// which point the Form ladder below takes over with the real
+		// assembled Hull.
+		if (Unit->RecipeId == SpacecraftScoutRecipeId)
+		{
+			if (!bScoutSixPart)
+			{
+				if (!StrippedHullSections.Contains(Assignment.UnitId))
+				{
+					TArray<FName> HullSectionKeys;
+					GetKitPalletCandidates(FName(TEXT("Component.Hull")),
+						HullSectionKeys);
+					TArray<UStaticMesh*> SectionMeshes;
+					TArray<float> SectionLengthsCm;
+					for (const FName& Key : HullSectionKeys)
+					{
+						UStaticMesh* Mesh = TryGetStationMesh(Key);
+						SectionMeshes.Add(Mesh);
+						SectionLengthsCm.Add(Mesh != nullptr
+							? Mesh->GetBounds().BoxExtent.Y * 2.f : 0.f);
+					}
+					TArray<float> SectionCentresCm;
+					ComputeSequentialLayoutCentresCm(SectionLengthsCm,
+						SectionCentresCm);
+					TArray<TObjectPtr<UStaticMeshComponent>> Sections;
+					for (int32 Index = 0; Index < SectionMeshes.Num();
+						++Index)
+					{
+						if (SectionMeshes[Index] == nullptr)
+						{
+							continue;
+						}
+						const FName SectionKey(*FString::Printf(
+							TEXT("%s_HullSection%d"),
+							*Assignment.UnitId.ToString(), Index));
+						UStaticMeshComponent* Section =
+							NewObject<UStaticMeshComponent>(this,
+								UStaticMeshComponent::StaticClass(),
+								SectionKey);
+						Section->SetStaticMesh(SectionMeshes[Index]);
+						Section->SetCollisionEnabled(
+							ECollisionEnabled::NoCollision);
+						Section->SetCastShadow(true);
+						Section->AttachToComponent(Component,
+							FAttachmentTransformRules::
+								KeepRelativeTransform);
+						Section->SetRelativeLocation(FVector(0.f,
+							SectionCentresCm[Index], 0.f));
+						Section->RegisterComponent();
+						Sections.Add(Section);
+					}
+					StrippedHullSections.Add(Assignment.UnitId,
+						MoveTemp(Sections));
+				}
+				Component->SetVisibility(false);
+			}
+			else if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+				StrippedHullSections.Find(Assignment.UnitId))
+			{
+				for (UStaticMeshComponent* Section : *Sections)
+				{
+					if (Section != nullptr) { Section->DestroyComponent(); }
+				}
+				StrippedHullSections.Remove(Assignment.UnitId);
+				Component->SetVisibility(true);
+			}
+		}
 		if (!bCraftForm && BuildForm != nullptr)
 		{
 			RefreshUnitFittings(Assignment.UnitId, Component,
@@ -5073,8 +5444,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		// space (loading only Hull gives a bare airframe; loading all
 		// six gives the finished craft, per the modelling brief).
 		if (bCraftForm
-			&& Unit->RecipeId == SpacecraftScoutRecipeId
-			&& !ScoutV2Parts.Contains(Assignment.UnitId))
+			&& Unit->RecipeId == SpacecraftScoutRecipeId)
 		{
 			UStaticMesh* V2Hull = nullptr;
 			UStaticMesh* V2Propulsion = nullptr;
@@ -5085,15 +5455,42 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			if (ResolveScoutV2Parts(V2Hull, V2Propulsion, V2Power,
 				V2Electronics, V2Navigation, V2Interior))
 			{
-				TArray<TObjectPtr<UStaticMeshComponent>> Parts;
-				auto Attach = [this, Component](UStaticMesh* Mesh,
-					const TCHAR* Key, bool bDisallowNanite) ->
-					UStaticMeshComponent*
+				// INCREMENTAL, not created-once-and-left (owner,
+				// 2026-08-30): each part now attaches the moment
+				// Unit->ProducedComponents actually contains it, tracked
+				// per-component in ScoutV2AttachedComponents so a part
+				// already attached is never re-created - the craft
+				// visibly gains its propulsion, power, etc. as the line
+				// actually fits them, not all five at once whenever
+				// bCraftForm first turns true.
+				TSet<ELBSpacecraftComponent>& Attached =
+					ScoutV2AttachedComponents.FindOrAdd(Assignment.UnitId);
+				TArray<TObjectPtr<UStaticMeshComponent>>& Parts =
+					ScoutV2Parts.FindOrAdd(Assignment.UnitId);
+				// Unique key per UNIT, not just per part-name: with
+				// attachment now gated on real per-component fitting
+				// rather than the rare late Stage>=Assembly threshold,
+				// several units can hold a Propulsion part concurrently,
+				// and NewObject requires unique names under one Outer.
+				// NODE SYSTEM (owner, 2026-08-30: "make the ship into a
+				// node system where the parts snap on"): each part now
+				// asks FindShipNodeTransform for its named point rather
+				// than assuming Identity outright. Today that lookup
+				// still resolves to Identity for every Scout part - the
+				// six-assembly model IS pre-aligned - so this is a
+				// mechanism change with no visible effect yet, not a
+				// repositioning; a future part with different geometry
+				// overrides GetShipNodes and every attach call site here
+				// picks the new offset up for free.
+				auto Attach = [this, Component, &Assignment, Unit](
+					UStaticMesh* Mesh, FName NodeId,
+					bool bDisallowNanite) -> UStaticMeshComponent*
 				{
+					const FName PartKey(*FString::Printf(TEXT("%s_%s"),
+						*Assignment.UnitId.ToString(), *NodeId.ToString()));
 					UStaticMeshComponent* Part =
 						NewObject<UStaticMeshComponent>(this,
-							UStaticMeshComponent::StaticClass(),
-							FName(Key));
+							UStaticMeshComponent::StaticClass(), PartKey);
 					Part->SetStaticMesh(Mesh);
 					Part->SetCollisionEnabled(
 						ECollisionEnabled::NoCollision);
@@ -5106,20 +5503,34 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					Part->bDisallowNanite = bDisallowNanite;
 					Part->AttachToComponent(Component,
 						FAttachmentTransformRules::KeepRelativeTransform);
-					Part->SetRelativeTransform(FTransform::Identity);
+					FTransform NodeTransform;
+					FindShipNodeTransform(Unit->RecipeId, NodeId,
+						NodeTransform);
+					Part->SetRelativeTransform(NodeTransform);
 					Part->RegisterComponent();
 					return Part;
 				};
-				Parts.Add(Attach(V2Propulsion, TEXT("ScoutPropulsion"),
-					false));
-				Parts.Add(Attach(V2Power, TEXT("ScoutPower"), false));
-				Parts.Add(Attach(V2Electronics, TEXT("ScoutElectronics"),
-					false));
-				Parts.Add(Attach(V2Navigation, TEXT("ScoutNavigation"),
-					true));
-				Parts.Add(Attach(V2Interior, TEXT("ScoutInterior"),
-					false));
-				ScoutV2Parts.Add(Assignment.UnitId, MoveTemp(Parts));
+				auto AttachIfFitted = [&](ELBSpacecraftComponent Comp,
+					UStaticMesh* Mesh, FName NodeId, bool bDisallowNanite)
+				{
+					if (Attached.Contains(Comp)
+						|| !Unit->ProducedComponents.Contains(Comp))
+					{
+						return;
+					}
+					Parts.Add(Attach(Mesh, NodeId, bDisallowNanite));
+					Attached.Add(Comp);
+				};
+				AttachIfFitted(ELBSpacecraftComponent::Propulsion,
+					V2Propulsion, FName(TEXT("Node.Propulsion")), false);
+				AttachIfFitted(ELBSpacecraftComponent::Power, V2Power,
+					FName(TEXT("Node.Power")), false);
+				AttachIfFitted(ELBSpacecraftComponent::Electronics,
+					V2Electronics, FName(TEXT("Node.Electronics")), false);
+				AttachIfFitted(ELBSpacecraftComponent::Navigation,
+					V2Navigation, FName(TEXT("Node.Navigation")), true);
+				AttachIfFitted(ELBSpacecraftComponent::Interior,
+					V2Interior, FName(TEXT("Node.Interior")), false);
 			}
 		}
 		else if (BuildForm != nullptr
@@ -5611,6 +6022,20 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			{
 				Departure.ScoutParts = *V2Parts;
 				ScoutV2Parts.Remove(It.Key());
+				ScoutV2AttachedComponents.Remove(It.Key());
+			}
+			// Should not normally exist at departure - Hull is always
+			// fitted long before Testing/Dispatched - but destroyed
+			// defensively rather than left to leak if a unit somehow
+			// reaches here first.
+			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+				StrippedHullSections.Find(It.Key()))
+			{
+				for (UStaticMeshComponent* Section : *Sections)
+				{
+					if (Section != nullptr) { Section->DestroyComponent(); }
+				}
+				StrippedHullSections.Remove(It.Key());
 			}
 			Departing.Add(Departure);
 		}
@@ -5643,6 +6068,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					if (Part != nullptr) { Part->DestroyComponent(); }
 				}
 				ScoutV2Parts.Remove(It.Key());
+				ScoutV2AttachedComponents.Remove(It.Key());
+			}
+			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+				StrippedHullSections.Find(It.Key()))
+			{
+				// Same trap, same fix: the loose hull sections hang off
+				// Component too.
+				for (UStaticMeshComponent* Section : *Sections)
+				{
+					if (Section != nullptr) { Section->DestroyComponent(); }
+				}
+				StrippedHullSections.Remove(It.Key());
 			}
 			Component->DestroyComponent();
 		}
