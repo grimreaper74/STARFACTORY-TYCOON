@@ -449,6 +449,10 @@ void ALBSpacecraftGameMode::BeginPlay()
 	}
 	// The HUD is a read-only projection; it exists only where a player
 	// viewport does (headless -NullRHI journeys run without it).
+	UE_LOG(LogLBSpacecraft, Display,
+		TEXT("SPACECRAFT UI GATE: GameViewport=%d FirstPlayerController=%d"),
+		World->GetGameViewport() != nullptr ? 1 : 0,
+		World->GetFirstPlayerController() != nullptr ? 1 : 0);
 	if (World->GetGameViewport() != nullptr)
 	{
 		if (APlayerController* PlayerController =
@@ -523,6 +527,11 @@ void ALBSpacecraftGameMode::BeginPlay()
 				Objectives->BindGame(this);
 				Objectives->AddToViewport(85);
 			}
+			UE_LOG(LogLBSpacecraft, Display,
+				TEXT("SPACECRAFT UI WIDGETS: TopBar=%d CommandPanel=%d SiteHub=%d Objectives=%d ViewportSize=%s"),
+				TopBar != nullptr ? 1 : 0, CommandPanel != nullptr ? 1 : 0,
+				SiteHub != nullptr ? 1 : 0, Objectives != nullptr ? 1 : 0,
+				*World->GetGameViewport()->Viewport->GetSizeXY().ToString());
 			// UI clicks and world clicks coexist: capture stays with the
 			// game so the pawn keeps its camera and placement input.
 			FInputModeGameAndUI InputMode;

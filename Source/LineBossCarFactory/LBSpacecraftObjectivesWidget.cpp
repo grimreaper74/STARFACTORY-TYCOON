@@ -8,6 +8,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftProgressionAuthority.h"
@@ -121,11 +122,25 @@ void ULBSpacecraftObjectivesWidget::NativeTick(
 			Progress->GetCreditedDeliveries(),
 			Progress->GetOwnedBayCount());
 	}
+	bool bHasAcceptedContract = false;
 	if (ALBSpacecraftProductionAuthority* Ledger =
 		GameMode->GetProductionAuthority())
 	{
-		Revision += FString::Printf(TEXT(";%d"),
-			Ledger->GetContracts().Num());
+		for (const FLBSpacecraftContract& Contract : Ledger->GetContracts())
+		{
+			if (Contract.State == ELBSpacecraftContractState::Accepted)
+			{
+				bHasAcceptedContract = true;
+				break;
+			}
+		}
+		Revision += FString::Printf(TEXT(";%d;%d"),
+			Ledger->GetContracts().Num(), bHasAcceptedContract ? 1 : 0);
+	}
+	if (ALBSpacecraftBuildAuthority* Build = GameMode->GetBuildAuthority())
+	{
+		Revision += FString::Printf(TEXT(";%d;%d"),
+			Build->GetStations().Num(), Build->IsCommissioned() ? 1 : 0);
 	}
 	if (Revision == LastRevision)
 	{
@@ -146,6 +161,45 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		return;
 	}
 	const int32 Delivered = Progress->GetCreditedDeliveries();
+
+	// FIRST STEPS (2026-08-31, research doc: "no modal tutorial - a
+	// rewarded objectives panel... retires permanently after contract
+	// 1"). The unlock ladder below assumes the player already knows
+	// what a station or a delivery IS; nothing told a brand-new player
+	// what to click first. This block names the four concrete actions
+	// that get a stranger to their first delivered ship, then vanishes
+	// for good the moment that ship lands - it never reappears even if
+	// the player later has zero stations or contracts again.
+	if (Delivered <= 0)
+	{
+		const bool bHasStation = GameMode->GetBuildAuthority() != nullptr
+			&& GameMode->GetBuildAuthority()->GetStations().Num() > 0;
+		const bool bCommissioned = GameMode->GetBuildAuthority() != nullptr
+			&& GameMode->GetBuildAuthority()->IsCommissioned();
+		bool bHasAcceptedContract = false;
+		if (ALBSpacecraftProductionAuthority* Ledger =
+			GameMode->GetProductionAuthority())
+		{
+			for (const FLBSpacecraftContract& Contract :
+				Ledger->GetContracts())
+			{
+				if (Contract.State == ELBSpacecraftContractState::Accepted)
+				{
+					bHasAcceptedContract = true;
+					break;
+				}
+			}
+		}
+		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
+		AddLine(LOCTEXT("StepStation", "Build a station").ToString(),
+			bHasStation);
+		AddLine(LOCTEXT("StepCommission", "Commission the factory")
+			.ToString(), bCommissioned);
+		AddLine(LOCTEXT("StepContract", "Accept a contract").ToString(),
+			bHasAcceptedContract);
+		AddLine(LOCTEXT("StepDeliver", "Deliver your first ship")
+			.ToString(), false);
+	}
 	struct FLBSpacecraftObjectiveRow
 	{
 		int32 Needed;
