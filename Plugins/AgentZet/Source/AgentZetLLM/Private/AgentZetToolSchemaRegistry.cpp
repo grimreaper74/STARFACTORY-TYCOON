@@ -782,16 +782,35 @@ TArray<TSharedPtr<FJsonObject>> FAgentZetToolSchemaRegistry::GetEssentialSchemas
 		// Discovery meta-tools (allow local models to find specialized tools)
 		TEXT("get_tool_info"),
 		TEXT("list_tools_in_category"),
+
+		// TRELLIS asset pipeline (2026-08-31): image -> GLB -> /Game with
+		// evidence. Names must match asset_generation_tools.json and
+		// FAgentZetAssetGenerationActions::GetSupportedToolNames exactly.
+		TEXT("generate_3d_asset"),
+		TEXT("check_asset_job"),
+		TEXT("import_generated_asset"),
 	};
 
-	TArray<TSharedPtr<FJsonObject>> Result;
-	for (const auto& Pair : ToolSchemas)
-	{
-		if (DisabledTools.Contains(Pair.Key)) continue;
+	// DETERMINISTIC ORDER (2026-08-31, prompt-cache discipline). This used
+	// to iterate ToolSchemas (a TMap) and filter by membership, so the
+	// wire order was really the schema-file discovery order: adding,
+	// renaming or reordering ANY json under Resources/ToolSchemas, or the
+	// OS enumerating that directory differently, silently reshuffled the
+	// tools array. The tools block sits near the TOP of every request, so
+	// a reshuffle invalidates the local model's KV cache for every turn of
+	// every session afterwards - an expensive, completely invisible
+	// regression. Sorting the names pins the order to something that only
+	// changes when the essential SET changes, which is a deliberate act.
+	TArray<FString> OrderedNames = EssentialToolNames.Array();
+	OrderedNames.Sort();
 
-		if (EssentialToolNames.Contains(Pair.Key))
+	TArray<TSharedPtr<FJsonObject>> Result;
+	for (const FString& Name : OrderedNames)
+	{
+		if (DisabledTools.Contains(Name)) continue;
+		if (const TSharedPtr<FJsonObject>* Schema = ToolSchemas.Find(Name))
 		{
-			Result.Add(MakeTruncatedSchema(Pair.Value));
+			Result.Add(MakeTruncatedSchema(*Schema));
 		}
 	}
 
@@ -950,6 +969,7 @@ static const TMap<FString, TArray<FString>>& GetCategoryPatternMap()
 		{ TEXT("cpp"),         { TEXT("cpp"), TEXT("create_cpp"), TEXT("modify_cpp"), TEXT("trigger_compile"), TEXT("regenerate") } },
 		{ TEXT("material"),    { TEXT("material") } },
 		{ TEXT("mesh"),        { TEXT("mesh"), TEXT("import_mesh"), TEXT("import_assets"), TEXT("configure_static") } },
+		{ TEXT("asset_generation"), { TEXT("generate_3d"), TEXT("asset_job"), TEXT("import_generated") } },
 		{ TEXT("animation"),   { TEXT("anim") } },
 		{ TEXT("widget"),      { TEXT("widget") } },
 		{ TEXT("pcg"),         { TEXT("pcg") } },

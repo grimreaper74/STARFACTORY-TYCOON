@@ -1,0 +1,69 @@
+{
+  "schema_version": "2.0.0",
+  "domain": "asset_generation_tools",
+  "min_plugin_version": "1.0.0",
+  "tools": [
+    {
+      "name": "generate_3d_asset",
+      "description": "Start generating a 3D model from a reference image (runs in background).\n\nUses the local TRELLIS generator. Returns IMMEDIATELY with a job handle - the generation itself takes ~60s at resolution 512 or ~5 minutes at 1024.\n\nWorkflow:\n  1. generate_3d_asset (this tool) - starts the job\n  2. check_asset_job - call repeatedly until it reports DONE\n  3. import_generated_asset - brings the result into /Game at real size\n\nRules:\n  - asset_name must be NEW - regeneration under an existing name is refused\n  - Only one generation runs at a time (the GPU is shared)\n  - Never claim the asset exists until check_asset_job reports DONE",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "image_path": {
+            "type": "string",
+            "description": "Absolute path to the reference image on disk, e.g. C:/Refs/drone_iso.png"
+          },
+          "asset_name": {
+            "type": "string",
+            "description": "New unique name, letters/digits/underscores only, e.g. cargo_drone_v2"
+          },
+          "resolution": {
+            "type": "integer",
+            "description": "512 (fast preview, ~60s, default) or 1024 (final quality, ~5 min)"
+          }
+        },
+        "required": ["image_path", "asset_name"]
+      }
+    },
+    {
+      "name": "check_asset_job",
+      "description": "Check whether a 3D asset generation job has finished.\n\nReturns immediately with one of:\n  - DONE: the GLB path, size and sha256, ready for import_generated_asset\n  - STILL RUNNING: elapsed time so far; call check_asset_job again to keep waiting\n  - FAILED: the error log tail - report this honestly, do not retry blindly\n\nGeneration takes about 60s at resolution 512, so expect to call this several times before it reports DONE. That is normal and correct.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "asset_name": {
+            "type": "string",
+            "description": "The asset_name that was passed to generate_3d_asset"
+          }
+        },
+        "required": ["asset_name"]
+      }
+    },
+    {
+      "name": "import_generated_asset",
+      "description": "Import a generated 3D asset into /Game at its real-world size, verified.\n\nOnly works after check_asset_job reports DONE for that asset_name. Runs the Blender scale-bake (generated models are unit-scale and MUST be scaled), imports as a single StaticMesh with Nanite, measures the result against target_size_cm (3% tolerance) and writes an audit receipt.\n\nOn success the result names the created asset path and its measured size. A size-verification failure means the asset exists but must not be used - report it.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "asset_name": {
+            "type": "string",
+            "description": "The asset_name of a generation that check_asset_job reported DONE"
+          },
+          "target_size_cm": {
+            "type": "number",
+            "description": "Real-world size in cm on the defining axis, e.g. 220 for a 2.2m drone"
+          },
+          "destination_path": {
+            "type": "string",
+            "description": "Content path starting with /Game/, default /Game/Spacecraft/Props"
+          },
+          "defining_axis": {
+            "type": "string",
+            "description": "Which axis target_size_cm refers to: x, y, z or longest (default)"
+          }
+        },
+        "required": ["asset_name", "target_size_cm"]
+      }
+    }
+  ]
+}

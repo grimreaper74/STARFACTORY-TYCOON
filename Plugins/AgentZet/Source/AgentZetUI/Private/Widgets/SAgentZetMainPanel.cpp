@@ -37,6 +37,7 @@
 
 // Phase 3: Power Features
 #include "AgentZetCheckpointManager.h"
+#include "Interfaces/IPluginManager.h" // project-memory file lookup
 #include "AgentZetReferenceParser.h"
 #include "AgentZetTaskDelegation.h"
 
@@ -61,6 +62,7 @@
 #include "Material/AgentZetMaterialActions.h"
 #include "Cpp/AgentZetCppActions.h"
 #include "Mesh/AgentZetMeshActions.h"
+#include "AssetGeneration/AgentZetAssetGenerationActions.h"
 #include "Level/AgentZetLevelActions.h"
 #include "Settings/AgentZetSettingsActions.h"
 #ifdef WITH_AgentZet_PRO
@@ -1577,6 +1579,9 @@ void SAgentZetMainPanel::RegisterExecutors()
         ActionRouter->RegisterExecutor(MakeShared<FAgentZetCppActions>());
     if (Settings && Settings->bEnableImportTools)
         ActionRouter->RegisterExecutor(MakeShared<FAgentZetMeshActions>());
+    // TRELLIS pipeline shares the import gate: both put meshes in /Game.
+    if (Settings && Settings->bEnableImportTools)
+        ActionRouter->RegisterExecutor(MakeShared<FAgentZetAssetGenerationActions>());
     if (Settings && Settings->bEnableLevelTools)
         ActionRouter->RegisterExecutor(MakeShared<FAgentZetLevelActions>());
     if (Settings && Settings->bEnableSettingsTools)
@@ -2113,28 +2118,45 @@ FString SAgentZetMainPanel::BuildSystemPrompt() const
                 "Example: attempt_completion({\"result\": \"Done: created BP_MyActor with health system\"})"
             );
 
-            // Minimal project context: just project name and engine version
+            // Minimal project context: name, engine version, root. These
+            // are STABLE for the life of the machine, which matters more
+            // than it looks - see the cache note below.
             if (ContextGatherer.IsValid())
             {
                 FAgentZetProjectContext Ctx = ContextGatherer->BuildProjectContext();
                 Prompt += FString::Printf(TEXT("\n\nPROJECT: %s (UE %s)\nRoot: %s"),
                     *Ctx.ProjectName, *Ctx.EngineVersion, *Ctx.ProjectRootPath);
 
-                // Add asset summary counts (single line) — much cheaper than full listings
-                if (Ctx.AssetCountsByClass.Num() > 0)
+                // PROMPT-CACHE DISCIPLINE (2026-08-31): the live asset-class
+                // counts and source-file count used to be appended here.
+                // Ollama/llama.cpp reuse the KV cache only up to the FIRST
+                // CHANGED BYTE, so a number that ticks whenever the agent
+                // creates an asset or writes a .cpp invalidated the entire
+                // system prompt AND every message after it - a full
+                // multi-thousand-token re-prefill on the turn immediately
+                // following any successful work, which is exactly the turn
+                // that most needs to be fast. The counts were also of
+                // little use: the agent has search_assets and
+                // list_directory to ask precisely, and a bare tally taught
+                // it nothing it could act on. Nothing volatile may be added
+                // to this prompt; per-turn state belongs in environment
+                // details, which is appended to the LAST message where it
+                // costs only its own tokens.
+            }
+
+            // PROJECT MEMORY: durable, curated facts about THIS game, so a
+            // fresh session does not rediscover the project every time.
+            // Deliberately a file: the owner can edit it without a rebuild.
+            // Byte-stable between edits, so it is cache-safe here.
+            {
+                const FString MemoryPath = FPaths::Combine(
+                    IPluginManager::Get().FindPlugin(TEXT("AgentZet"))->GetBaseDir(),
+                    TEXT("Resources/ProjectMemory/PROJECT_MEMORY.md"));
+                FString MemoryText;
+                if (FFileHelper::LoadFileToString(MemoryText, *MemoryPath))
                 {
-                    Prompt += TEXT("\nAssets: ");
-                    bool bFirst = true;
-                    for (const auto& Pair : Ctx.AssetCountsByClass)
-                    {
-                        if (!bFirst) Prompt += TEXT(", ");
-                        Prompt += FString::Printf(TEXT("%s:%d"), *Pair.Key, Pair.Value);
-                        bFirst = false;
-                    }
-                }
-                if (Ctx.SourceTree.Num() > 0)
-                {
-                    Prompt += FString::Printf(TEXT("\nSource files: %d"), Ctx.SourceTree.Num());
+                    Prompt += TEXT("\n\n=== PROJECT MEMORY (durable facts, trust these) ===\n");
+                    Prompt += MemoryText;
                 }
             }
 

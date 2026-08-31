@@ -407,8 +407,17 @@ void FAgentZetChatSession::ContinueAgenticLoop()
 				}
 			}
 
+			// Sorted for the same prompt-cache reason as GetEssentialSchemas:
+			// DynamicallyLoadedTools is a TSet, and set-iteration order can
+			// shift as entries are added, restored from disk or removed.
+			// These schemas are appended AFTER the essential block, so an
+			// unstable order here invalidates the cache from the first
+			// dynamic tool onward - which is every message in the history.
+			TArray<FString> OrderedDynNames = DynamicallyLoadedTools.Array();
+			OrderedDynNames.Sort();
+
 			int32 InjectedCount = 0;
-			for (const FString& DynToolName : DynamicallyLoadedTools)
+			for (const FString& DynToolName : OrderedDynNames)
 			{
 				if (!IncludedNames.Contains(DynToolName))
 				{
