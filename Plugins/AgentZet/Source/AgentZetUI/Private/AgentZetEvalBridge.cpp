@@ -17,6 +17,8 @@
 #include "Policies/CondensedJsonPrintPolicy.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
+#include "ShaderCompiler.h" // GShaderCompilingManager - quiescence gate
+#include "AssetRegistry/IAssetRegistry.h" // registry scan state - quiescence gate
 
 namespace AgentZetEvalBridgePrivate
 {
@@ -101,8 +103,11 @@ bool FAgentZetEvalBridge::Tick(float)
 		// nothing - discovered on the very first live eval, where a
 		// VRAM-contended prefill outran the client budget. Slightly
 		// longer than the client's timeout so a real response always
-		// wins the race when one is coming.
-		constexpr double MaxEvalSeconds = 660.0;
+		// wins the race when one is coming. The client's local-provider
+		// minimum is 1200s (AgentZetOpenAICompatClient), so this must
+		// sit above THAT - at 660s the bridge undercut the client and
+		// abandoned eval step4g while its request was still live.
+		constexpr double MaxEvalSeconds = 1260.0;
 		if (FPlatformTime::Seconds() - EvalStartSeconds > MaxEvalSeconds)
 		{
 			UE_LOG(LogAgentZet, Warning,
@@ -124,6 +129,48 @@ void FAgentZetEvalBridge::TryPickupPrompt()
 		return;
 	}
 	PromptFiles.Sort(); // deterministic pickup order
+
+	// EDITOR QUIESCENCE GATE (2026-08-31). The Ollama model is half
+	// CPU-offloaded on this machine; during editor boot the shader
+	// workers and asset-registry scan starve inference to ~3 tok/s
+	// (measured idle: 43 tok/s), and eval step4f timed out at 600 s on
+	// a request that runs in 57 s on a quiet editor. Hold prompts until
+	// the boot storm is over rather than launching evals into it.
+	const bool bShadersBusy =
+		GShaderCompilingManager && GShaderCompilingManager->IsCompiling();
+	const bool bRegistryBusy =
+		IAssetRegistry::Get() && IAssetRegistry::Get()->IsLoadingAssets();
+	if (bShadersBusy || bRegistryBusy)
+	{
+		QuiescentSinceSeconds = 0.0;
+		const double Now = FPlatformTime::Seconds();
+		if (Now - LastQuiescenceLogSeconds > 15.0)
+		{
+			LastQuiescenceLogSeconds = Now;
+			UE_LOG(LogAgentZet, Log,
+				TEXT("EvalBridge: prompt waiting - editor busy (shaders=%d, registry scan=%d)."),
+				bShadersBusy ? GShaderCompilingManager->GetNumRemainingJobs() : 0,
+				bRegistryBusy ? 1 : 0);
+		}
+		return;
+	}
+	{
+		// Require sustained quiet - shader batches arrive in waves, and
+		// a momentary empty queue between waves is not quiescence. 30 s
+		// because the shader/registry signals do not cover everything
+		// the boot storm does (DDC churn, map load, first-frame stalls):
+		// eval step4g cleared both signals 8 s after editor start and
+		// still starved the CPU-offloaded model.
+		const double Now = FPlatformTime::Seconds();
+		if (QuiescentSinceSeconds <= 0.0)
+		{
+			QuiescentSinceSeconds = Now;
+		}
+		if (Now - QuiescentSinceSeconds < 30.0)
+		{
+			return;
+		}
+	}
 
 	// A live panel is required - it owns the prompt path (system prompt,
 	// toolset selection, session). Summon the tab if none exists yet,

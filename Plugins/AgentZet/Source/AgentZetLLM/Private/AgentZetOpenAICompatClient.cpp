@@ -350,10 +350,15 @@ void FAgentZetOpenAICompatClient::SendMessage(
 		float TimeoutSec = (float)(Settings ? Settings->RequestTimeoutSeconds : 120);
 		if (bIsLocalProvider)
 		{
-			// Enforce minimum 600s for local providers — inference can be very slow
-			if (TimeoutSec < 600.0f)
+			// Enforce minimum 1200s for local providers. 600s proved too
+			// tight on this machine (2026-08-31): during editor boot the
+			// shader/asset-scan storm starves the CPU-offloaded half of
+			// the model to ~3 tok/s, and even a num_predict-capped 2048-
+			// token response needs ~10 minutes. A slow response that
+			// RETURNS is evidence; one the client aborts is a mystery.
+			if (TimeoutSec < 1200.0f)
 			{
-				TimeoutSec = 600.0f;
+				TimeoutSec = 1200.0f;
 			}
 		}
 		CurrentRequest->SetTimeout(TimeoutSec);
@@ -1665,7 +1670,10 @@ void FAgentZetOpenAICompatClient::HandleRequestComplete(
 		float ConfiguredTimeout = (float)(TimeoutSettings ? TimeoutSettings->RequestTimeoutSeconds : 120);
 		const bool bIsLocal = (Provider == EAgentZetProvider::Ollama ||
 		                       Provider == EAgentZetProvider::LMStudio);
-		if (bIsLocal && ConfiguredTimeout < 600.0f) ConfiguredTimeout = 600.0f;
+		// Mirror the send-side minimum (1200s for local providers) so the
+		// timeout-vs-connection-failure heuristic stays aligned with the
+		// timeout actually set on the request.
+		if (bIsLocal && ConfiguredTimeout < 1200.0f) ConfiguredTimeout = 1200.0f;
 
 		const bool bLikelyTimeout = (ElapsedSec > ConfiguredTimeout * 0.85f);
 		const FString ProviderName = GetProviderDisplayName(Provider);

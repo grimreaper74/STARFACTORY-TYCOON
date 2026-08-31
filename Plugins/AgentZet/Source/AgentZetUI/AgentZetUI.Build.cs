@@ -34,6 +34,9 @@ public class AgentZetUI : ModuleRules
 			"AgentZetActions",
 			// For SAgentZetFileChangesPanel: open files in IDE
 			"SourceCodeAccess",
+			// For FAgentZetEvalBridge: editor-quiescence gate reads the
+			// asset registry's scan state before releasing eval prompts
+			"AssetRegistry",
 		});
 	}
 }

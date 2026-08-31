@@ -79,6 +79,10 @@ private:
 	/** Throttle for tab-invoke attempts while no panel exists yet. */
 	double LastTabInvokeSeconds = 0.0;
 
+	/** Quiescence gate: when the shader queue last went (and stayed) empty. */
+	double QuiescentSinceSeconds = 0.0;
+	double LastQuiescenceLogSeconds = 0.0;
+
 	TWeakPtr<FAgentZetChatSession> BoundSession;
 	FDelegateHandle MessageAddedHandle;
 	FDelegateHandle AgentFinishedHandle;

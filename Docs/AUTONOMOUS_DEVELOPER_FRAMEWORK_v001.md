@@ -251,6 +251,32 @@ readable response with `done_reason="length"` (logged as a warning)
 instead of hanging silently. Tool-call determinism was never real
 anyway: temp 0 traded imaginary determinism for real deadlocks.
 
+Third-run finding - the boot-storm starvation (fixed 2026-08-31): a
+first eval launched seconds after editor start ran the same request
+that takes 20-57 s on a settled editor for 600+ s and died at the
+client timeout, twice. The editor's startup burst (asset-registry
+scan, DDC churn, map load - not only shaders; one failing run had an
+empty shader queue throughout) starves the CPU-offloaded model half.
+Fixes, verified together by eval `step4g`: the bridge holds prompts
+until quiescence (shader queue empty AND asset registry idle AND 30 s
+sustained quiet), the client's local-provider timeout floor rose to
+1200 s, and the bridge's own eval timeout to 1260 s so it always
+outlasts the client. step4g: prompt dropped the instant bridge.ready
+appeared (worst case), held 34 s by the gate, then ran clean in
+20.6 s. attempt_completion summaries are also recorded into the
+transcript now (before the finish broadcast unbinds the bridge), so
+transcripts grade without the api_history workaround.
+
+Measured performance envelope (2026-08-31, this machine): generation
+50.8 tok/s with the editor closed, 43.5 tok/s with it open and idle -
+the 49/51 CPU/GPU split does NOT change when the editor frees VRAM
+(the 20 GB model simply exceeds the 12 GB card), so ~50 tok/s is the
+hardware ceiling for this model. Warm-cache turn startup 0.3 s;
+contention pushes prefill to 16 s+ and boot storms collapse
+generation ~12x. Speed strategy is therefore: protect the prompt
+cache, never run during storms, and cut turn counts with high-level
+tools - not chase tokens/sec.
+
 Operational note - VRAM contention: with the editor resident, only
 ~10.4 GB of the model fits on the 12 GB card (and a 32k KV cache adds
 ~3.6 GB to the model's footprint), leaving heavy CPU offload and
