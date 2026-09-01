@@ -418,6 +418,12 @@ private:
 	UPROPERTY()
 	TObjectPtr<ALBSpacecraftProductionAuthority> ProductionAuthority;
 
+	/** Accepted contracts whose expiry has already been announced -
+	 *  each deadline lapse alerts exactly once (2026-09-01: expiry
+	 *  used to be silent and the first stranger ship vanished into
+	 *  stock with no trace on screen). */
+	TSet<FName> ExpiredContractsAnnounced;
+
 	UPROPERTY()
 	TObjectPtr<ALBSpacecraftRuntimeCoordinator> Coordinator;
 

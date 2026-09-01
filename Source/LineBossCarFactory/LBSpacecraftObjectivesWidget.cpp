@@ -1,6 +1,7 @@
 #include "LBSpacecraftObjectivesWidget.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/Border.h"
 #include "Components/BorderSlot.h"
 #include "Components/CanvasPanel.h"
@@ -47,9 +48,9 @@ FString ULBSpacecraftObjectivesWidget::BuildObjectiveLine(
 {
 	if (Delivered >= Needed)
 	{
-		return FString::Printf(TEXT("[DONE] %s"), *UnlockName);
+		return FString::Printf(TEXT("✓ %s"), *UnlockName);
 	}
-	return FString::Printf(TEXT("[%d/%d] %s"),
+	return FString::Printf(TEXT("%d/%d · %s"),
 		FMath::Clamp(Delivered, 0, Needed), Needed, *UnlockName);
 }
 
@@ -70,7 +71,7 @@ void ULBSpacecraftObjectivesWidget::NativeOnInitialized()
 
 	UBorder* Panel = WidgetTree->ConstructWidget<UBorder>(
 		UBorder::StaticClass(), TEXT("ObjectivesRoot"));
-	Panel->SetBrushColor(SpacecraftObjectivesBackground);
+	Panel->SetBrush(FSlateRoundedBoxBrush(SpacecraftObjectivesBackground, 6.f));
 	if (UCanvasPanelSlot* PanelSlot = Canvas->AddChildToCanvas(Panel))
 	{
 		PanelSlot->SetAnchors(FAnchors(1.f, 0.f, 1.f, 0.f));
@@ -84,7 +85,7 @@ void ULBSpacecraftObjectivesWidget::NativeOnInitialized()
 	Panel->SetContent(LadderBox);
 	if (UBorderSlot* PadSlot = Cast<UBorderSlot>(LadderBox->Slot))
 	{
-		PadSlot->SetPadding(FMargin(14.f, 10.f));
+		PadSlot->SetPadding(FMargin(16.f, 12.f));
 	}
 }
 
@@ -201,10 +202,30 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		// have the track autamaticly connect between stations?"). The
 		// track step is gone because the track is no longer a player
 		// action - the relayer routes it on every placement.
+		// HIRE DRONES IS A TAUGHT STEP (overnight stranger run,
+		// 2026-09-01): nothing told a new player that uncrewed
+		// stations build dirty, and their first ship paid for it with
+		// a nine-minute rework hold at the end of the line.
+		bool bHasAnyDrone = false;
+		if (GameMode->GetBuildAuthority() != nullptr)
+		{
+			for (const FLBSpacecraftStationRecord& Record :
+				GameMode->GetBuildAuthority()->GetStations())
+			{
+				if (Record.InstalledDroneTypes.Num() > 0)
+				{
+					bHasAnyDrone = true;
+					break;
+				}
+			}
+		}
 		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
 		AddLine(LOCTEXT("StepStation",
 			"Place assembly stations - the track connects them")
 			.ToString(), bHasStation);
+		AddLine(LOCTEXT("StepCrew",
+			"Hire drones at each station - uncrewed work is dirty")
+			.ToString(), bHasAnyDrone);
 		AddLine(LOCTEXT("StepCommission", "Commission the factory")
 			.ToString(), bCommissioned);
 		AddLine(LOCTEXT("StepContract", "Accept a contract").ToString(),
@@ -219,20 +240,20 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 	};
 	const FLBSpacecraftObjectiveRow Rows[] = {
 		{ Progress->DeliveriesForBelts,
-			LOCTEXT("UnlockBelts", "CONVEYOR BELTS") },
+			LOCTEXT("UnlockBelts", "Conveyor belts") },
 		{ Progress->DeliveriesForFabrication,
-			LOCTEXT("UnlockFab", "ON-SITE FABRICATION") },
+			LOCTEXT("UnlockFab", "On-site fabrication") },
 		{ Progress->DeliveriesForQuality,
-			LOCTEXT("UnlockQA", "QUALITY CONTROL") } };
+			LOCTEXT("UnlockQA", "Quality control") } };
 	for (const FLBSpacecraftObjectiveRow& Row : Rows)
 	{
 		AddLine(BuildObjectiveLine(Delivered, Row.Needed,
 			Row.Name.ToString()), Delivered >= Row.Needed);
 	}
-	AddLine(FText::Format(LOCTEXT("Land", "LAND: {0} BAYS"),
+	AddLine(FText::Format(LOCTEXT("Land", "Land: {0} bays"),
 		FText::AsNumber(Progress->GetOwnedBayCount()))
 			.ToString(), false);
-	AddLine(FText::Format(LOCTEXT("Delivered", "SHIPS DELIVERED: {0}"),
+	AddLine(FText::Format(LOCTEXT("Delivered", "Ships delivered: {0}"),
 		FText::AsNumber(Delivered)).ToString(), Delivered > 0);
 }
 

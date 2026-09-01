@@ -255,6 +255,20 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 				? FText::Format(LOCTEXT("LineRunning",
 						"LINE RUNNING - {0} CRAFT"), InFlight).ToString()
 				: LOCTEXT("LineIdle", "LINE IDLE").ToString();
+			// A SHIP IN STOCK IS NEVER INVISIBLE (overnight stranger
+			// run, 2026-09-01: the first ship finished after its
+			// contract expired, sold to nobody, and simply vanished
+			// from every readout - the player's whole output looked
+			// lost). Stock self-sells the moment a matching contract
+			// is accepted, and this line is what says so.
+			if (InProduction != nullptr
+				&& InProduction->GetStockedCraftCount() > 0)
+			{
+				Snapshot.LineStatusText += FText::Format(LOCTEXT(
+					"StockedCraft",
+					" - {0} IN STOCK (accept a contract to sell)"),
+					InProduction->GetStockedCraftCount()).ToString();
+			}
 		}
 	}
 	return Snapshot;

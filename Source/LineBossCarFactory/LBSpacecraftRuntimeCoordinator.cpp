@@ -392,8 +392,14 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 		// It retests when the work is paid for, not before.
 		if (Unit->ReworkSecondsRemaining > 0.f)
 		{
+			// SAY WHY AND WHAT TO DO (owner 2026-09-01: easy UI). The
+			// overnight stranger run sat on a bare countdown for nine
+			// game-minutes with no hint that uncrewed stations caused
+			// it - a first-session wall with no door.
 			OutHoldReason = FString::Printf(
-				TEXT("HOLDING: REWORKING %s - %.0f s REMAINING"),
+				TEXT("HOLDING: REWORKING %s - %.0f s LEFT. DEFECTS COME ")
+				TEXT("FROM UNCREWED STATIONS - HIRE DRONES TO BUILD ")
+				TEXT("CLEAN"),
 				*Assignment.UnitId.ToString(),
 				Unit->ReworkSecondsRemaining);
 			return false;

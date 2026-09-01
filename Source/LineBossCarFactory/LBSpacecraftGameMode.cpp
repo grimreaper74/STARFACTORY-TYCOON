@@ -255,6 +255,29 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 			RaiseSimAlert(Coordinator->GetLastStartRefusal());
 		}
 	}
+	// AN ACCEPTED CONTRACT EXPIRING IS AN EVENT, NOT A STATE (overnight
+	// stranger run, 2026-09-01: the deadline lapsed mid-rework and the
+	// only trace was the top bar quietly reading NO CONTRACT). Each
+	// expiry announces itself once; the ship it strands sells from
+	// stock automatically when the next contract lands, and the alert
+	// says so.
+	if (ProductionAuthority != nullptr)
+	{
+		for (const FLBSpacecraftContract& Contract :
+			ProductionAuthority->GetContracts())
+		{
+			if (Contract.State == ELBSpacecraftContractState::Expired
+				&& !ExpiredContractsAnnounced.Contains(Contract.ContractId))
+			{
+				ExpiredContractsAnnounced.Add(Contract.ContractId);
+				RaiseSimAlert(FString::Printf(
+					TEXT("CONTRACT %s EXPIRED - the deadline passed. ")
+					TEXT("Finished ships wait in stock and sell when you ")
+					TEXT("accept a new contract"),
+					*Contract.ContractId.ToString()));
+			}
+		}
+	}
 	if (BuildAuthority != nullptr && CraftingAuthority != nullptr
 		&& InventoryAuthority != nullptr)
 	{

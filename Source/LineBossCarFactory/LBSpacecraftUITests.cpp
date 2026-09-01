@@ -159,15 +159,15 @@ bool FLBSpacecraftObjectiveLineTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("open objective counts progress"),
 		ULBSpacecraftObjectivesWidget::BuildObjectiveLine(1, 3,
 			TEXT("QUALITY CONTROL")),
-		FString(TEXT("[1/3] QUALITY CONTROL")));
-	TestEqual(TEXT("met objective reads DONE"),
+		FString(TEXT("1/3 · QUALITY CONTROL")));
+	TestEqual(TEXT("met objective shows the check glyph"),
 		ULBSpacecraftObjectivesWidget::BuildObjectiveLine(3, 3,
 			TEXT("QUALITY CONTROL")),
-		FString(TEXT("[DONE] QUALITY CONTROL")));
-	TestEqual(TEXT("overdelivery still reads DONE"),
+		FString(TEXT("✓ QUALITY CONTROL")));
+	TestEqual(TEXT("overdelivery still shows the check glyph"),
 		ULBSpacecraftObjectivesWidget::BuildObjectiveLine(9, 1,
 			TEXT("CONVEYOR BELTS")),
-		FString(TEXT("[DONE] CONVEYOR BELTS")));
+		FString(TEXT("✓ CONVEYOR BELTS")));
 	return true;
 }
 
