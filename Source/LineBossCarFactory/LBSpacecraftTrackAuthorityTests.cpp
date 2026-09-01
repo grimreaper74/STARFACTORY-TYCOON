@@ -169,6 +169,79 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftAutoTrackRelayTest,
+	"LineBoss.Spacecraft.Track.RelayConnectsStationsAutomatically",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftAutoTrackRelayTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
+		FName(TEXT("LBSpacecraftAutoTrackWorld")));
+	ALBSpacecraftTrackAuthority* Track =
+		World->SpawnActor<ALBSpacecraftTrackAuthority>();
+	ALBSpacecraftBuildAuthority* Build =
+		World->SpawnActor<ALBSpacecraftBuildAuthority>();
+	{
+		FName HallId;
+		FString HallReason;
+		Build->PlaceStarterHall(HallId, HallReason);
+	}
+	FString Reason;
+
+	// Three stations dropped on the 400 cm lattice, deliberately NOT
+	// in a straight line - the relayer must route the bends itself.
+	const FVector Spots[] = {
+		FVector(0.f, -6000.f, 0.f),
+		FVector(0.f, -2000.f, 0.f),
+		FVector(2800.f, 0.f, 0.f) };
+	TArray<FName> Placed;
+	for (const FVector& Spot : Spots)
+	{
+		FName StationId;
+		TestTrue(TEXT("a line station places"),
+			Build->PlaceStation(FName(TEXT("AssemblyRobot")),
+				FTransform(FRotator(0.f, 90.f, 0.f), Spot), StationId,
+				Reason));
+		Placed.Add(StationId);
+	}
+	TestTrue(TEXT("the relay routes the whole chain"),
+		ALBSpacecraftGameMode::RelayTrackThroughStations(*Build, *Track,
+			nullptr, nullptr, Reason));
+	TestTrue(TEXT("the relayed line is complete (start and cap)"),
+		Track->IsComplete());
+	const TArray<FName> InOrder = Track->GetNodeStationsInOrder();
+	TestEqual(TEXT("every station attached"), InOrder.Num(), 3);
+	for (int32 Index = 0;
+		Index < FMath::Min(InOrder.Num(), Placed.Num()); ++Index)
+	{
+		TestEqual(TEXT("track order is placement order"),
+			InOrder[Index], Placed[Index]);
+	}
+
+	// Removing the middle station re-routes around the gap.
+	TestTrue(TEXT("the middle station removes"),
+		Build->RemoveStation(Placed[1], Reason));
+	TestTrue(TEXT("the relay re-routes after removal"),
+		ALBSpacecraftGameMode::RelayTrackThroughStations(*Build, *Track,
+			nullptr, nullptr, Reason));
+	TestTrue(TEXT("the re-routed line is complete"), Track->IsComplete());
+	TestEqual(TEXT("two stations remain attached"),
+		Track->GetNodeStationsInOrder().Num(), 2);
+
+	// Zero stations clears the floor.
+	TestTrue(TEXT("the last stations remove"),
+		Build->RemoveStation(Placed[0], Reason)
+		&& Build->RemoveStation(Placed[2], Reason));
+	TestTrue(TEXT("an empty line relays to nothing"),
+		ALBSpacecraftGameMode::RelayTrackThroughStations(*Build, *Track,
+			nullptr, nullptr, Reason));
+	TestEqual(TEXT("no track remains"), Track->GetPieces().Num(), 0);
+
+	World->DestroyWorld(false);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftTrackChainTest,
 	"LineBoss.Spacecraft.Track.ChainLaysFailClosedAndRoutes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

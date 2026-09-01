@@ -42,15 +42,6 @@ public:
 	void SetPlacementDefinition(FName DefinitionId);
 	FName GetPlacementDefinition() const { return PlacementDefinitionId; }
 
-	/** CLICK-TO-DRAW track mode's sentinel definition id (owner
-	 *  2026-09-01). Not a station definition: while this is armed,
-	 *  every floor click routes the line's open end to the clicked
-	 *  cell through the game mode, and the mode STAYS armed so the
-	 *  player draws the whole line click by click. */
-	static FName TrackLayPlacementId()
-	{
-		return FName(TEXT("Track.Lay"));
-	}
 
 	/** The station record under the cursor, if any (pure footprint test
 	 *  against the build authority's records - no collision needed). */
@@ -161,11 +152,6 @@ private:
 	 *  build grid around the ghost; visible only while placing. */
 	TArray<TObjectPtr<UStaticMeshComponent>> PlacementGridLines;
 
-	/** TRACK PATH PREVIEW (owner 2026-09-01 "only seems to go up" -
-	 *  the single landing tile hid the route, so every refusal read as
-	 *  a dead click). One flat tile per planned cell, tip to cursor,
-	 *  the way the benchmark rail planners ghost the whole path. */
-	TArray<TObjectPtr<UStaticMeshComponent>> TrackPathGhosts;
 
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float ZoomMinCm = 2500.f;
@@ -242,14 +228,6 @@ private:
 	/** Cursor ray intersected with the Z=0 floor plane. */
 	bool CursorToFloor(FVector& OutFloorPoint) const;
 
-	/** LINE-STATION SNAP (owner 2026-09-01): the straight, free,
-	 *  envelope-legal track piece NEAREST the cursor. Shared by the
-	 *  ghost and the click so the preview IS the promise - v2 placed
-	 *  by track order and refused about stations the player was not
-	 *  even pointing at. */
-	bool FindTrackSnapForStation(const FVector& FloorPoint,
-		FName DefinitionId, FTransform& OutTransform, FName& OutPieceId,
-		FString& OutWhyNot) const;
 	ALBSpacecraftGameMode* GetSpacecraftGameMode() const;
 	void UpdateGhost();
 };

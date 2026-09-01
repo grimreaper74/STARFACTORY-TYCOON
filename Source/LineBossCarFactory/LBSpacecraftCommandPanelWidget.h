@@ -290,7 +290,6 @@ private:
 	/** Dismisses the drone in a slot, refunding half. */
 	void HandleDismissDrone(FName SlotTag);
 	void HandleToggleAllocation(FName ComponentItemId);
-	void HandleLayTrack(FName Action);
 
 	/** SAVE GAME - writes layout, ledger and runtime to slot 1.
 	 *
@@ -305,5 +304,4 @@ private:
 	 *  a corrupt or stale save is refused with a reason rather than
 	 *  half-applied over a working factory. */
 	void HandleQuickLoad();
-	void HandleAttachNode(FName StationId);
 };

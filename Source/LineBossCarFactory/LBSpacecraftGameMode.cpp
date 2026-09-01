@@ -1199,6 +1199,201 @@ bool ALBSpacecraftGameMode::LayTrackToPoint(const FVector& FloorPoint,
 	return Laid > 0;
 }
 
+bool ALBSpacecraftGameMode::RelayTrackThroughStations(
+	ALBSpacecraftBuildAuthority& InBuild,
+	ALBSpacecraftTrackAuthority& InTrack,
+	ALBSpacecraftRuntimeCoordinator* InCoordinator,
+	ALBSpacecraftProductionAuthority* InLedger, FString& OutReason)
+{
+	const float CellCm = ALBSpacecraftTrackAuthority::GetPieceLengthCm();
+	// Line stations in PLACEMENT order - the route order law: the
+	// track visits the stations in the order the player built them.
+	TArray<const FLBSpacecraftStationRecord*> Line;
+	for (const FLBSpacecraftStationRecord& Record : InBuild.GetStations())
+	{
+		const FLBSpacecraftStationDefinition* Definition =
+			ALBSpacecraftBuildAuthority::FindDefinition(Record.DefinitionId);
+		if (Definition != nullptr
+			&& Definition->StageClassId == FName(TEXT("LineStation")))
+		{
+			Line.Add(&Record);
+		}
+	}
+	const auto TearDown = [&InTrack]()
+	{
+		FString Ignored;
+		for (const FName& Attached : InTrack.GetNodeStationsInOrder())
+		{
+			InTrack.DetachStationNode(Attached, Ignored);
+		}
+		while (InTrack.GetPieces().Num() > 0)
+		{
+			if (!InTrack.RemoveOpenEnd(Ignored))
+			{
+				break;
+			}
+		}
+	};
+	if (Line.Num() == 0)
+	{
+		TearDown();
+		OutReason.Reset();
+		return true;
+	}
+
+	// ---- PLAN, PURE. Nothing existing is touched until every leg
+	// routes; a scatter of stations the router cannot serve refuses
+	// whole with the first unreachable station named. ----
+	const auto CellOf = [CellCm](const FVector& At)
+	{
+		return FVector(FMath::GridSnap(At.X, CellCm),
+			FMath::GridSnap(At.Y, CellCm), 0.f);
+	};
+	TArray<FVector> StationCells;
+	for (const FLBSpacecraftStationRecord* Record : Line)
+	{
+		StationCells.Add(CellOf(Record->WorldTransform.GetLocation()));
+	}
+	// The line enters station 1 heading toward station 2; a lone
+	// station is entered along its own axis.
+	FVector EntryDir(0.f, 1.f, 0.f);
+	if (Line.Num() > 1)
+	{
+		const FVector Delta = StationCells[1] - StationCells[0];
+		if (FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y)
+			&& !FMath::IsNearlyZero(Delta.X))
+		{
+			EntryDir = FVector(FMath::Sign(Delta.X), 0.f, 0.f);
+		}
+		else if (!FMath::IsNearlyZero(Delta.Y))
+		{
+			EntryDir = FVector(0.f, FMath::Sign(Delta.Y), 0.f);
+		}
+	}
+	else
+	{
+		const float Yaw = Line[0]->WorldTransform.Rotator().Yaw;
+		const bool bAlongY = FMath::Abs(FMath::Fmod(
+			FMath::Abs(Yaw), 180.f) - 90.f) < 45.f;
+		EntryDir = bAlongY ? FVector(0.f, 1.f, 0.f)
+			: FVector(1.f, 0.f, 0.f);
+	}
+	const FVector StartCell = StationCells[0] - EntryDir * CellCm;
+	const FRotator StartRot(0.f,
+		FMath::RadiansToDegrees(FMath::Atan2(EntryDir.Y, EntryDir.X)),
+		0.f);
+
+	TArray<ELBSpacecraftTrackPiece> AllPieces;
+	TArray<int32> StationPieceIndex;
+	TArray<bool> StationAxisAlongY;
+	TArray<FVector> LaidCells;
+	LaidCells.Add(StartCell);
+	FTransform OpenExit = ALBSpacecraftTrackAuthority::ComputePieceExit(
+		FTransform(StartRot, StartCell), ELBSpacecraftTrackPiece::Start);
+	for (int32 Leg = 0; Leg < Line.Num(); ++Leg)
+	{
+		// Cells already laid block the route; so do the cells every
+		// LATER station stands on - a leg may not commandeer them.
+		TArray<FVector> Blocked = LaidCells;
+		for (int32 Later = Leg + 1; Later < Line.Num(); ++Later)
+		{
+			Blocked.Add(StationCells[Later]);
+		}
+		TArray<ELBSpacecraftTrackPiece> LegPieces;
+		FString LegReason;
+		if (!ALBSpacecraftTrackAuthority::PlanRouteToPoint(OpenExit,
+			StationCells[Leg], Blocked, LegPieces, LegReason))
+		{
+			OutReason = FString::Printf(
+				TEXT("THE LINE CANNOT REACH %s - %s"),
+				*Line[Leg]->StationId.ToString(), *LegReason);
+			return false;
+		}
+		for (const ELBSpacecraftTrackPiece Piece : LegPieces)
+		{
+			LaidCells.Add(OpenExit.GetLocation());
+			OpenExit = ALBSpacecraftTrackAuthority::ComputePieceExit(
+				OpenExit, Piece);
+			AllPieces.Add(Piece);
+		}
+		// The leg's last piece is always a straight ON the station
+		// cell; the station faces across the exit heading.
+		StationPieceIndex.Add(AllPieces.Num() - 1);
+		const float ExitYaw = OpenExit.Rotator().Yaw;
+		StationAxisAlongY.Add(FMath::Abs(FMath::Fmod(
+			FMath::Abs(ExitYaw), 180.f) - 90.f) < 45.f);
+	}
+	// The End cap needs a free cell past the last station.
+	for (const FVector& Cell : LaidCells)
+	{
+		if (Cell.Equals(OpenExit.GetLocation(), 1.f))
+		{
+			OutReason = TEXT("NO ROOM TO CAP THE LINE PAST THE LAST "
+				"STATION");
+			return false;
+		}
+	}
+
+	// ---- EXECUTE. The plan is proven; failures past here are
+	// authority-level (floor bounds, node cap) and report honestly. ----
+	TearDown();
+	FName PieceId;
+	FString Reason;
+	if (!InTrack.StartLine(FTransform(StartRot, StartCell), PieceId,
+		Reason))
+	{
+		OutReason = FString::Printf(TEXT("RELAY START REFUSED: %s"),
+			*Reason);
+		return false;
+	}
+	TArray<FName> PieceIds;
+	for (const ELBSpacecraftTrackPiece Piece : AllPieces)
+	{
+		if (!InTrack.ExtendLine(Piece, PieceId, Reason))
+		{
+			OutReason = FString::Printf(TEXT("RELAY STOPPED: %s"),
+				*Reason);
+			return false;
+		}
+		PieceIds.Add(PieceId);
+	}
+	if (!InTrack.ExtendLine(ELBSpacecraftTrackPiece::End, PieceId,
+		Reason))
+	{
+		OutReason = FString::Printf(TEXT("RELAY CAP REFUSED: %s"),
+			*Reason);
+		return false;
+	}
+	for (int32 Index = 0; Index < Line.Num(); ++Index)
+	{
+		if (!InTrack.AttachStationNode(Line[Index]->StationId,
+			PieceIds[StationPieceIndex[Index]], &InBuild, Reason))
+		{
+			OutReason = FString::Printf(TEXT("RELAY ATTACH REFUSED: %s"),
+				*Reason);
+			return false;
+		}
+		// Facing across the leg is presentation-correctness, not
+		// route-correctness: an envelope refusal here keeps the
+		// player's yaw rather than failing the whole relay. Same
+		// convention as the old cursor snap: a Y-running leg wears
+		// yaw 90.
+		FString AlignIgnored;
+		InBuild.AlignStationAxis(Line[Index]->StationId,
+			StationAxisAlongY[Index], AlignIgnored);
+	}
+	// A commissioned factory re-routes immediately so the coordinator
+	// never ticks a route the track no longer matches.
+	if (InCoordinator != nullptr && InBuild.IsCommissioned())
+	{
+		FString ConfigureReason;
+		InCoordinator->ConfigureFromAuthorities(&InBuild, InLedger,
+			ConfigureReason, &InTrack);
+	}
+	OutReason.Reset();
+	return true;
+}
+
 bool ALBSpacecraftGameMode::LayLineTrack(FString& TrackReason)
 {
 	if (TrackAuthority == nullptr || Coordinator == nullptr)

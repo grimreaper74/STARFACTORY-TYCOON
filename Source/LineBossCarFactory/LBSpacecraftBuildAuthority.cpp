@@ -593,6 +593,32 @@ bool ALBSpacecraftBuildAuthority::IsStationEnvelopeLegal(
 		GetStations(), OutReason);
 }
 
+bool ALBSpacecraftBuildAuthority::AlignStationAxis(FName StationId,
+	bool bAxisAlongY, FString& OutReason)
+{
+	for (FLBSpacecraftStationRecord& Record : Layout.Stations)
+	{
+		if (Record.StationId != StationId)
+		{
+			continue;
+		}
+		FTransform Wanted = Record.WorldTransform;
+		Wanted.SetRotation(
+			FRotator(0.f, bAxisAlongY ? 90.f : 0.f, 0.f).Quaternion());
+		if (!EnvelopeIsLegal(Record.DefinitionId, Wanted, StationId,
+			Layout.Stations, OutReason))
+		{
+			return false;
+		}
+		Record.WorldTransform = Wanted;
+		OutReason.Reset();
+		return true;
+	}
+	OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+		*StationId.ToString());
+	return false;
+}
+
 FName ALBSpacecraftBuildAuthority::FindSlotHostClassFor(
 	FName UnitDefinitionId)
 {

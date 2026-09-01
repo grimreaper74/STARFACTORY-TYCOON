@@ -197,22 +197,14 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 				}
 			}
 		}
-		// TRACK FIRST (owner's live session, 2026-09-01): the list
-		// said "Build a station" before any track existed, teaching
-		// the wrong order - stations STAND ON the track. The steps now
-		// follow the real build order.
-		bool bHasTrack = false;
-		if (ALBSpacecraftTrackAuthority* TrackAuthority =
-			GameMode->GetTrackAuthority())
-		{
-			bHasTrack = TrackAuthority->GetPieces().Num() > 0;
-		}
+		// STATIONS ARE THE ONLY STEP (owner 2026-09-01: "cant we just
+		// have the track autamaticly connect between stations?"). The
+		// track step is gone because the track is no longer a player
+		// action - the relayer routes it on every placement.
 		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
-		AddLine(LOCTEXT("StepTrack", "Lay the line track (BUILD tab)")
-			.ToString(), bHasTrack);
 		AddLine(LOCTEXT("StepStation",
-			"Add stations - they snap to the track").ToString(),
-			bHasStation);
+			"Place assembly stations - the track connects them")
+			.ToString(), bHasStation);
 		AddLine(LOCTEXT("StepCommission", "Commission the factory")
 			.ToString(), bCommissioned);
 		AddLine(LOCTEXT("StepContract", "Accept a contract").ToString(),

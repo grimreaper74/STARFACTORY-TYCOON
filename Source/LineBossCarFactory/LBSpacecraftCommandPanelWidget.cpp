@@ -937,20 +937,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						}
 					}
 				}
-				if (const FLBSpacecraftStationDefinition* NodeDef =
-					ALBSpacecraftBuildAuthority::FindDefinition(
-						Record.DefinitionId))
-				{
-					if (!NodeDef->StageClassId.IsNone()
-						&& GameMode->GetTrackAuthority() != nullptr)
-					{
-						AddTaggedButton(LOCTEXT("AttachNode",
-								"ATTACH TO THE LINE").ToString(),
-							Selected,
-							[this](FName InTag)
-							{ HandleAttachNode(InTag); });
-					}
-				}
+				// ATTACH TO THE LINE is gone with the manual track
+				// (owner 2026-09-01): the relayer attaches every
+				// station on placement and removal.
 				AddTaggedButton(
 					LOCTEXT("RemoveStation", "REMOVE STATION").ToString(),
 					Selected,
@@ -1371,49 +1360,19 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			}
 		}
 
-		// INSIDE ONLY, for the same reason as the fixing split above:
-		// track is laid through a factory floor, not across a 600 m
-		// plot, and offering EXTEND STRAIGHT / TURN LEFT on the world
-		// map invites the player to spend on something they cannot see.
+		// THE TRACK HAS NO BUTTONS ANY MORE (owner 2026-09-01: "cant
+		// we just have the track autamaticly connect between
+		// stations?"). Stations are the decision; the relayer routes
+		// the line through them on every placement and removal. The
+		// section survives only as a status line while incomplete.
 		if (ALBSpacecraftTrackAuthority* TrackAuthority =
 			SectionBelongsInView(EBuildSection::Track, bOnSiteMap)
 				? GameMode->GetTrackAuthority() : nullptr)
 		{
-			AddSectionLabel(FText::Format(
-				LOCTEXT("SectionTrack", "LINE TRACK - {0} PIECES"),
-				TrackAuthority->GetPieces().Num()).ToString());
 			const FString Problem = TrackAuthority->DescribeProblem();
-			if (!Problem.IsEmpty())
+			if (!Problem.IsEmpty() && TrackAuthority->GetPieces().Num() > 0)
 			{
 				AddSectionLabel(Problem);
-			}
-			const FString PieceCost =
-				ULBSpacecraftTopBarWidget::FormatCurrency(
-					TrackAuthority->PieceCostPence);
-			// CLICK-TO-DRAW (owner 2026-09-01: "you just click on the
-			// track and nothing happens with turn left etc, is there a
-			// better way from resurch?"). One button arms the mode;
-			// every floor click then routes the open end to the click
-			// - straights, auto-turns - the way every benchmark lays
-			// paths. The piece buttons this replaces asked the player
-			// to think in track vocabulary instead of destinations.
-			AddTaggedButton(
-				LOCTEXT("TrackDraw", "LAY TRACK - CLICK TO DRAW")
-					.ToString(),
-				FName(TEXT("Draw")),
-				[this](FName InTag) { HandleLayTrack(InTag); },
-				FString::Printf(TEXT("%s / PIECE"), *PieceCost));
-			if (TrackAuthority->GetPieces().Num() > 0)
-			{
-				AddTaggedButton(LOCTEXT("TrackEnd",
-						"CAP THE END").ToString(),
-					FName(TEXT("End")),
-					[this](FName InTag) { HandleLayTrack(InTag); },
-					PieceCost);
-				AddTaggedButton(LOCTEXT("TrackRemove",
-						"REMOVE LAST PIECE").ToString(),
-					FName(TEXT("Remove")),
-					[this](FName InTag) { HandleLayTrack(InTag); });
 			}
 		}
 
@@ -2218,6 +2177,20 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 		{
 			Pawn->ClearSelectedStation();
 		}
+		// The line re-routes around the gap (owner 2026-09-01: the
+		// track connects itself). A relay refusal is reported but the
+		// removal stands - the station is already gone.
+		if (GameMode->GetTrackAuthority() != nullptr)
+		{
+			FString RelayReason;
+			if (!ALBSpacecraftGameMode::RelayTrackThroughStations(
+				*GameMode->GetBuildAuthority(),
+				*GameMode->GetTrackAuthority(), GameMode->GetCoordinator(),
+				GameMode->GetProductionAuthority(), RelayReason))
+			{
+				PanelActionText = RelayReason;
+			}
+		}
 	}
 	else
 	{
@@ -2354,90 +2327,8 @@ void ULBSpacecraftCommandPanelWidget::HandleOrder(FName ItemId)
 	PanelActionText = Reason;
 }
 
-void ULBSpacecraftCommandPanelWidget::HandleLayTrack(FName Action)
-{
-	if (GameMode == nullptr || GameMode->GetTrackAuthority() == nullptr)
-	{
-		return;
-	}
-	ALBSpacecraftTrackAuthority* TrackAuthority =
-		GameMode->GetTrackAuthority();
-	FString Reason;
-	if (Action == FName(TEXT("Remove")))
-	{
-		TrackAuthority->RemoveOpenEnd(Reason);
-		PanelActionText = Reason.IsEmpty()
-			? LOCTEXT("TrackRemoved", "PIECE REMOVED").ToString()
-			: Reason;
-		return;
-	}
-	// CLICK-TO-DRAW: the button only ARMS the mode; the pawn's floor
-	// clicks do the laying through the game mode's paid router.
-	if (Action == FName(TEXT("Draw")))
-	{
-		if (Pawn != nullptr)
-		{
-			Pawn->SetPlacementDefinition(
-				ALBSpacecraftPlayerPawn::TrackLayPlacementId());
-			PanelActionText = Pawn->GetLastActionText();
-		}
-		return;
-	}
-	// CAP THE END - the one piece still laid from the panel, because
-	// capping is a decision about the line, not a place on the floor.
-	// Paid fail-closed; a refused lay refunds whole.
-	ALBSpacecraftProductionAuthority* Ledger =
-		GameMode->GetProductionAuthority();
-	if (Ledger != nullptr
-		&& !Ledger->SpendPence(TrackAuthority->PieceCostPence, Reason))
-	{
-		PanelActionText = Reason;
-		return;
-	}
-	FName PieceId;
-	const bool bLaid = TrackAuthority->ExtendLine(
-		ELBSpacecraftTrackPiece::End, PieceId, Reason);
-	if (!bLaid && Ledger != nullptr)
-	{
-		FString Ignored;
-		Ledger->EarnPence(TrackAuthority->PieceCostPence, Ignored);
-	}
-	PanelActionText = bLaid
-		? FText::Format(LOCTEXT("TrackLaid", "LAID {0}"),
-			FText::FromName(PieceId)).ToString()
-		: Reason;
-}
-
-void ULBSpacecraftCommandPanelWidget::HandleAttachNode(FName StationId)
-{
-	if (GameMode == nullptr || GameMode->GetTrackAuthority() == nullptr
-		|| GameMode->GetBuildAuthority() == nullptr)
-	{
-		return;
-	}
-	ALBSpacecraftTrackAuthority* TrackAuthority =
-		GameMode->GetTrackAuthority();
-	// The first free straight piece takes the node (piece picking by
-	// cursor arrives with the ghost pass).
-	FString Reason = TEXT("NO FREE STRAIGHT PIECE ON THE LINE");
-	for (const FLBSpacecraftTrackPieceRecord& Piece :
-		TrackAuthority->GetPieces())
-	{
-		if (Piece.PieceType == ELBSpacecraftTrackPiece::Straight
-			&& Piece.NodeStationId.IsNone())
-		{
-			if (TrackAuthority->AttachStationNode(StationId,
-				Piece.PieceId, GameMode->GetBuildAuthority(), Reason))
-			{
-				Reason = FText::Format(LOCTEXT("NodeAttached",
-					"{0} ATTACHED TO THE LINE"),
-					FText::FromName(StationId)).ToString();
-			}
-			break;
-		}
-	}
-	PanelActionText = Reason;
-}
+// HandleLayTrack and HandleAttachNode are gone with the manual track
+// (owner 2026-09-01): RelayTrackThroughStations lays and attaches.
 
 void ULBSpacecraftCommandPanelWidget::HandleInstallDrone(FName StationId)
 {

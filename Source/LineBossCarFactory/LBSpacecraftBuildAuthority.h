@@ -416,6 +416,14 @@ public:
 	bool IsStationEnvelopeLegal(FName DefinitionId,
 		const FTransform& Transform, FString& OutReason) const;
 
+	/** Turns a placed station to face ACROSS a track axis (yaw 0 for
+	 *  an X-running leg, 90 for Y) - the auto-connect relayer's tool
+	 *  for stations the route approaches from a direction the player
+	 *  did not anticipate. Envelope-validated against every OTHER
+	 *  station; position never changes. */
+	bool AlignStationAxis(FName StationId, bool bAxisAlongY,
+		FString& OutReason);
+
 	// ---- production-line drone slots (owner 2026-08-26) ----
 	/** PROVISIONAL: one drone with its dock, bought into a slot. */
 	UPROPERTY(EditAnywhere, Category = "LineBoss")

@@ -86,9 +86,26 @@ public:
 	 *  time - each piece spends before it lays and refunds whole on a
 	 *  refusal, so a blocked or unaffordable route stops mid-way with
 	 *  an honest "LAID k OF n" rather than rolling anything back the
-	 *  player already saw. */
+	 *  player already saw. Dev-command lane now; the player path is
+	 *  RelayTrackThroughStations. */
 	bool LayTrackToPoint(const FVector& FloorPoint, float GhostYawDeg,
 		FString& OutToast);
+
+	/** AUTO-CONNECT (owner 2026-09-01: "cant we just have the track
+	 *  autamaticly connect between stations?" - which is also the
+	 *  benchmark model: stations are the decision, the conveyor is
+	 *  just there). Plans the whole chain FIRST, pure and fail-closed
+	 *  - Start ahead of the first station, an A* leg to each next
+	 *  station in placement order, End cap - and only when every leg
+	 *  routes does it tear the old track down, lay the new one, attach
+	 *  every station to its straight and turn each to face across its
+	 *  leg. Free of charge: the track is infrastructure, the stations
+	 *  are the spend. With zero line stations it just clears. */
+	static bool RelayTrackThroughStations(
+		ALBSpacecraftBuildAuthority& InBuild,
+		class ALBSpacecraftTrackAuthority& InTrack,
+		class ALBSpacecraftRuntimeCoordinator* InCoordinator,
+		ALBSpacecraftProductionAuthority* InLedger, FString& OutReason);
 
 	/** The WIP presenter, for dev commands that need to read what is
 	 *  actually being DRAWN rather than what the authorities hold. */
