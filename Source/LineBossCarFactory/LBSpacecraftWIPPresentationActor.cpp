@@ -3217,6 +3217,28 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 				DroneFleetAuthority->FindDrone(Record.StationId, 0);
 			bWorking = Drone0 != nullptr && Drone0->bFlying;
 		}
+		// FITTING IS WORK (owner 2026-09-01: "its building hull but
+		// theres no activity"). Fleet sorties exist only for crafting
+		// recipes, so a line crew sat docked through the very cycle
+		// this game is about watching. The coordinator's assignment is
+		// the truth of "this crew is working": while the station holds
+		// a craft, the docked fleet state stands aside below and the
+		// orbit-and-work choreography runs - crates, belly rovers,
+		// weld rig and all.
+		bool bStationFitting = false;
+		if (Coordinator != nullptr)
+		{
+			for (const FLBSpacecraftRuntimeAssignment& Assignment :
+				Coordinator->GetAssignments())
+			{
+				if (Assignment.StationId == Record.StationId)
+				{
+					bStationFitting = true;
+					break;
+				}
+			}
+		}
+		bWorking = bWorking || bStationFitting;
 		const float Rate = DroneTransitSeconds > 0.f
 			? 1.f / DroneTransitSeconds : 100.f;
 		Visual->WorkAlpha = FMath::Clamp(
@@ -3307,7 +3329,19 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 							Alpha);
 						break;
 					default:
-						NewSpot = DockSpot;
+						// While the station FITS, docked means "no
+						// sortie running", not "stay parked": the
+						// work-orbit lerp already in NewSpot owns the
+						// drone, and the work rig lights at full
+						// alpha, matching the fleetless idiom.
+						if (bStationFitting)
+						{
+							bFitting = Eased > 0.9f;
+						}
+						else
+						{
+							NewSpot = DockSpot;
+						}
 						break;
 					}
 				}

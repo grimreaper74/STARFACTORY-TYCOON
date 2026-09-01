@@ -88,6 +88,32 @@ namespace LBSpacecraftCommandPanelPrivate
 		FString Key = InTag.ToString();
 		Key.ReplaceInline(TEXT("."), TEXT("_"));
 		Key.ReplaceInline(TEXT("-"), TEXT("_"));
+		// STATION INSTANCES SHARE THEIR CLASS ICON: AssemblyRobot_002
+		// draws with the AssemblyRobot artwork. Without this strip,
+		// every PLACED station tried a per-instance texture and logged
+		// a failed load on every panel rebuild (owner's log flooded,
+		// 2026-09-01).
+		int32 DigitsEnd = Key.Len();
+		while (DigitsEnd > 0 && FChar::IsDigit(Key[DigitsEnd - 1]))
+		{
+			--DigitsEnd;
+		}
+		if (DigitsEnd < Key.Len() && DigitsEnd > 0
+			&& Key[DigitsEnd - 1] == TEXT('_'))
+		{
+			Key = Key.Left(DigitsEnd - 1);
+		}
+		if (Key.IsEmpty())
+		{
+			return nullptr;
+		}
+		// A missing icon costs ONE warning per session, not one per
+		// rebuild: misses are remembered and never re-tried.
+		static TSet<FString> SpacecraftPanelIconMisses;
+		if (SpacecraftPanelIconMisses.Contains(Key))
+		{
+			return nullptr;
+		}
 		auto LoadIcon = [](const FString& ForKey) -> UTexture2D*
 		{
 			return LoadObject<UTexture2D>(nullptr, *FString::Printf(
