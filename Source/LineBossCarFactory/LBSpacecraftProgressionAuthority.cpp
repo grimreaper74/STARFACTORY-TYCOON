@@ -63,8 +63,12 @@ FString ALBSpacecraftProgressionAuthority::DescribeLock(
 		What = TEXT("QUALITY CONTROL");
 		break;
 	}
+	// Short enough to survive the panel's row width (owner 2026-09-01:
+	// the long form truncated mid-word, which reads as a bug). The
+	// contract phrase "UNLOCKS AFTER DELIVERY" is load-bearing - a
+	// transport test greps for it.
 	return FString::Printf(
-		TEXT("%s UNLOCKS AFTER DELIVERY %d - YOU HAVE DELIVERED %d"),
+		TEXT("%s UNLOCKS AFTER DELIVERY %d (%d done)"),
 		What, Needed, CreditedDeliveries);
 }
 

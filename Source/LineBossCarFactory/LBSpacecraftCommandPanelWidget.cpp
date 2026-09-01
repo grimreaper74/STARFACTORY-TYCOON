@@ -147,6 +147,50 @@ namespace LBSpacecraftCommandPanelPrivate
 		return nullptr;
 	}
 
+	/** THE PLAYER NEVER READS AN INTERNAL ID (owner 2026-09-01: "the
+	 *  ui has got to be really easy to use"). Any station id inside a
+	 *  player-facing string becomes its display name plus number -
+	 *  "AssemblyRobot-002" reads as "Assembly station Mk1 2". Applied
+	 *  at the display chokepoints, so every authority keeps precise
+	 *  ids internally and refusal strings stay grep-able in logs. */
+	FString SpacecraftPrettifyStationIds(const FString& In,
+		const ALBSpacecraftBuildAuthority* Build)
+	{
+		if (Build == nullptr || In.IsEmpty())
+		{
+			return In;
+		}
+		FString Out = In;
+		for (const FLBSpacecraftStationRecord& Record :
+			Build->GetStations())
+		{
+			const FString Id = Record.StationId.ToString();
+			if (!Out.Contains(Id))
+			{
+				continue;
+			}
+			const FLBSpacecraftStationDefinition* Definition =
+				ALBSpacecraftBuildAuthority::FindDefinition(
+					Record.DefinitionId);
+			FString Friendly = Definition != nullptr
+				? Definition->DisplayName
+				: Record.DefinitionId.ToString();
+			int32 DashAt = INDEX_NONE;
+			if (Id.FindLastChar(TEXT('-'), DashAt)
+				&& DashAt + 1 < Id.Len())
+			{
+				const int32 AsNumber = FCString::Atoi(*Id.Mid(DashAt + 1));
+				if (AsNumber > 0)
+				{
+					Friendly = FString::Printf(TEXT("%s %d"), *Friendly,
+						AsNumber);
+				}
+			}
+			Out.ReplaceInline(*Id, *Friendly);
+		}
+		return Out;
+	}
+
 	/** Graphite rounded button; the armed variant carries the blue
 	 *  working-indicator fill (selected tab, armed placement). */
 	FButtonStyle SpacecraftPanelButtonStyle(bool bArmed)
@@ -714,9 +758,11 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		if (!Selected.IsNone()
 			&& GameMode->GetBuildAuthority() != nullptr)
 		{
-			AddSectionLabel(FText::Format(
-				LOCTEXT("SectionStation", "STATION {0}"),
-				FText::FromName(Selected)).ToString());
+			// The friendly name already says what it is - "Assembly
+			// station Mk1 2" needs no STATION prefix shouting over it.
+			AddSectionLabel(SpacecraftPrettifyStationIds(
+				Selected.ToString(),
+				GameMode->GetBuildAuthority()).ToUpper());
 			for (const FLBSpacecraftStationRecord& Record :
 				GameMode->GetBuildAuthority()->GetStations())
 			{
@@ -1274,14 +1320,17 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						}, Parts);
 					if (Index < SplitStations.Num() - 1)
 					{
+						// Real glyphs, sentence case (owner 2026-09-01:
+						// "the ui has got to be really easy to use" -
+						// caret characters read as a debug overlay).
 						AddTaggedButton(LOCTEXT("SplitTake",
-							"   ^ TAKE ONE FROM THE NEXT STATION")
+							"   ▲ Take one from the next station")
 							.ToString(),
 							SplitStations[Index],
 							[this](FName InTag)
 							{ HandleSplitTake(InTag); });
 						AddTaggedButton(LOCTEXT("SplitGive",
-							"   v GIVE ONE TO THE NEXT STATION")
+							"   ▼ Give one to the next station")
 							.ToString(),
 							SplitStations[Index],
 							[this](FName InTag)
@@ -2557,7 +2606,10 @@ void ULBSpacecraftCommandPanelWidget::NativeTick(const FGeometry& MyGeometry,
 		{
 			Combined = SimAlert;
 		}
-		ToastBlock->SetText(FText::FromString(Combined));
+		ToastBlock->SetText(FText::FromString(
+			SpacecraftPrettifyStationIds(Combined,
+				GameMode != nullptr ? GameMode->GetBuildAuthority()
+					: nullptr)));
 		if (ToastBorder != nullptr)
 		{
 			ToastBorder->SetVisibility(Combined.IsEmpty()
