@@ -9,5 +9,6 @@ public class LineBossCarFactoryEditorTarget : TargetRules
         DefaultBuildSettings = BuildSettingsVersion.Latest;
         IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
         ExtraModuleNames.Add("LineBossCarFactory");
+        ExtraModuleNames.Add("LineBossCarFactoryEditor");
     }
 }

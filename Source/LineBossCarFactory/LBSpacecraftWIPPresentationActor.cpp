@@ -8844,17 +8844,16 @@ void ALBSpacecraftWIPPresentationActor::RefreshSiteScenery()
 	// fence where its present-day industrial look reads as background.
 	auto LoadOurs = [](const TCHAR* Name) -> UStaticMesh*
 	{
-		// Despite the name, this IS Meshy content - the owner's own
-		// brief for it was "make your own stuff with the meshy api
-		// please". Blocked out with the rest (2026-08-30); LoadKit
-		// just below stays untouched, since it is a bought background
-		// kit under /Game/Meshes/, a different and legitimate source
-		// this file already keeps deliberately apart from the site's
-		// own art.
-		if (LBSpacecraftWIPPresentationPrivate::bBlockoutMeshyContent)
-		{
-			return nullptr;
-		}
+		// This IS Meshy content - the owner's own brief for it was
+		// "make your own stuff with the meshy api please" (2026-08-28).
+		// The 2026-08-30 blanket blockout swept it up, and because the
+		// whole outdoor build gates on Container below, the first
+		// screen of every session lost its fence, gate, yard and
+		// masts. UNBLOCKED 2026-09-01: the owner explicitly re-opened
+		// the Meshy lane that evening ("don't forget you have meshy
+		// api"), and this set is his own commissioned site dressing,
+		// not unreviewed intake. The blockout still stands for the
+		// station bodies it was aimed at.
 		return LoadObject<UStaticMesh>(nullptr,
 			*FString::Printf(TEXT("/Game/LineBoss/Candidates/Spacecraft/")
 				TEXT("SiteScenery_v001/%s.%s"), Name, Name));
