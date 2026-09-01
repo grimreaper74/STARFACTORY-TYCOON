@@ -8,6 +8,7 @@
 #include "LBSpacecraftPlayerPawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/AudioComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Sound/SoundBase.h"
 #include "LBSpacecraftTransportAuthority.h"
 #include "LBSpacecraftTrackAuthority.h"
@@ -4154,6 +4155,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 			// identity; the portal gives the station a body. Min-fit
 			// into the footprint like every dressed station.
 			RefreshLineStationFrame(Record, *Definition);
+			RefreshStationBadge(Record, *Definition);
+			RefreshStationStockpile(Record, *Definition);
+			// The SPRAY BOOTH is a line station by stage class but has
+			// its own bespoke presentation (booth mesh + glass panes,
+			// built elsewhere). Dressing it with the portal on top of
+			// that produced the owner's "this bit's a mess" frame
+			// (2026-09-01): two presentations occupying one station.
+			if (Record.DefinitionId == FName(TEXT("SprayBooth")))
+			{
+				Component->SetVisibility(false);
+				continue;
+			}
 			if (UStaticMesh* PortalMesh =
 				TryGetStationMesh(Record.DefinitionId))
 			{
@@ -4167,12 +4180,25 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 				float PortalFit = 1.f;
 				if (PortalSize.X > 1.f && PortalSize.Y > 1.f)
 				{
-					PortalFit = FMath::Min(
+					// NEVER ENLARGE (owner's live frame, 2026-09-01):
+					// the portal is imported at its true 8 m; min-fit
+					// blew it up 1.7x into a tower that dwarfed the
+					// 17 m gantry ("need to make the cranes bigger" -
+					// the cranes were fine, the stations were bloated).
+					// Concept meshes carry real size; fit only shrinks.
+					PortalFit = FMath::Min(1.f, FMath::Min(
 						Definition->FootprintCm.X / PortalSize.X,
-						Definition->FootprintCm.Y / PortalSize.Y);
+						Definition->FootprintCm.Y / PortalSize.Y));
 				}
 				FTransform PortalTransform = Record.WorldTransform;
 				PortalTransform.SetScale3D(FVector(PortalFit));
+				// +90 yaw (owner, 2026-09-01, from the live frame): the
+				// portal's ARCH must open along the track so the craft
+				// passes through it; unrotated it stood side-on.
+				PortalTransform.SetRotation(
+					PortalTransform.GetRotation()
+					* FQuat(FVector::UpVector,
+						FMath::DegreesToRadians(90.f)));
 				Component->SetWorldTransform(PortalTransform);
 				Component->SetVisibility(true);
 			}
@@ -4275,6 +4301,159 @@ void ALBSpacecraftWIPPresentationActor::DestroyLineStationFrame(
 		}
 	}
 	Frame.Lights.Reset();
+}
+
+void ALBSpacecraftWIPPresentationActor::RefreshStationBadge(
+	const FLBSpacecraftStationRecord& Record,
+	const FLBSpacecraftStationDefinition& Definition)
+{
+	// RATE BADGE - every fact on it is read, never invented: the split
+	// from GetFixingSplit, the live state from the coordinator's real
+	// assignments. Palette indicator colours: working #BFE4FF, idle
+	// #6E7C86 (the interface carries no hue; indicators are the one
+	// sanctioned exception, and they are desaturated blues).
+	TObjectPtr<UTextRenderComponent>& Badge =
+		StationBadges.FindOrAdd(Record.StationId);
+	if (Badge == nullptr)
+	{
+		Badge = NewObject<UTextRenderComponent>(this,
+			UTextRenderComponent::StaticClass());
+		Badge->SetupAttachment(RootComponent);
+		Badge->SetHorizontalAlignment(EHTA_Center);
+		Badge->SetWorldSize(64.f);
+		Badge->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Badge->RegisterComponent();
+	}
+	FString Line1;
+	if (BuildAuthority != nullptr && ProductionAuthority != nullptr)
+	{
+		FName RecipeId = NAME_None;
+		for (const FLBSpacecraftUnitState& Unit :
+			ProductionAuthority->GetUnits())
+		{
+			if (Unit.Stage != ELBSpacecraftStage::Dispatched)
+			{
+				RecipeId = Unit.RecipeId;
+				break;
+			}
+		}
+		TArray<FName> SplitStations;
+		TArray<int32> SplitCounts;
+		FString SplitReason;
+		if (!RecipeId.IsNone() && BuildAuthority->GetFixingSplit(
+			RecipeId, SplitStations, SplitCounts, SplitReason))
+		{
+			const int32 Index = SplitStations.Find(Record.StationId);
+			if (Index != INDEX_NONE && SplitCounts.IsValidIndex(Index))
+			{
+				Line1 = FString::Printf(TEXT("%d · FITS %d"),
+					Index + 1, SplitCounts[Index]);
+			}
+		}
+	}
+	bool bWorking = false;
+	FString Line2 = TEXT("READY");
+	if (Coordinator != nullptr)
+	{
+		for (const FLBSpacecraftRuntimeAssignment& Assignment :
+			Coordinator->GetAssignments())
+		{
+			if (Assignment.StationId != Record.StationId)
+			{
+				continue;
+			}
+			bWorking = true;
+			float Progress01 = 0.f;
+			if (Coordinator->GetUnitCycleProgress(
+				Assignment.UnitId, Progress01))
+			{
+				Line2 = FString::Printf(TEXT("FITTING %d%%"),
+					FMath::RoundToInt(Progress01 * 100.f));
+			}
+			else
+			{
+				Line2 = TEXT("FITTING");
+			}
+			break;
+		}
+	}
+	const FString Text = Line1.IsEmpty()
+		? Line2 : FString::Printf(TEXT("%s\n%s"), *Line1, *Line2);
+	Badge->SetText(FText::FromString(Text));
+	Badge->SetTextRenderColor(bWorking
+		? FColor(0xBF, 0xE4, 0xFF) : FColor(0x6E, 0x7C, 0x86));
+	const float BadgeZ = 60.f + FMath::Max(
+		820.f, Definition.FootprintCm.Y * 0.55f);
+	Badge->SetWorldLocation(
+		Record.WorldTransform.GetLocation() + FVector(0.f, 0.f, BadgeZ));
+	// The management camera holds a fixed azimuth; face the text at it.
+	Badge->SetWorldRotation(FRotator(0.f, 180.f, 0.f));
+}
+
+void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
+	const FLBSpacecraftStationRecord& Record,
+	const FLBSpacecraftStationDefinition& Definition)
+{
+	// VISIBLE STOCKPILE - the benchmark machines show their contents;
+	// ours shows the station store's REAL fill as pallet stacks. Zero
+	// pallets when the store is empty is the honest look, not a bug.
+	TArray<TObjectPtr<UStaticMeshComponent>>& Stacks =
+		StationStockStacks.FindOrAdd(Record.StationId);
+	int32 Wanted = 0;
+	if (InventoryAuthority != nullptr)
+	{
+		const FName StoreId(*FString::Printf(TEXT("Store.%s"),
+			*Record.StationId.ToString()));
+		const int32 Used = InventoryAuthority->GetUsedUnits(StoreId);
+		const int32 Cap = InventoryAuthority->GetCapacityUnits(StoreId);
+		if (Used > 0 && Cap > 0)
+		{
+			Wanted = FMath::Clamp(
+				FMath::RoundToInt(4.f * Used / (float)Cap), 1, 4);
+		}
+	}
+	TArray<FName> PalletKeys;
+	GetKitPalletCandidates(FName(TEXT("Component.Hull")), PalletKeys);
+	while (Stacks.Num() > Wanted)
+	{
+		if (Stacks.Last() != nullptr)
+		{
+			Stacks.Last()->DestroyComponent();
+		}
+		Stacks.Pop();
+	}
+	for (int32 Index = 0; Index < Wanted; ++Index)
+	{
+		UStaticMesh* PalletMesh = PalletKeys.Num() > 0
+			? TryGetStationMesh(PalletKeys[Index % PalletKeys.Num()])
+			: nullptr;
+		if (PalletMesh == nullptr)
+		{
+			return;
+		}
+		if (!Stacks.IsValidIndex(Index))
+		{
+			UStaticMeshComponent* Stack =
+				NewObject<UStaticMeshComponent>(this,
+					UStaticMeshComponent::StaticClass());
+			Stack->SetupAttachment(RootComponent);
+			Stack->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Stack->RegisterComponent();
+			Stacks.Add(Stack);
+		}
+		UStaticMeshComponent* Stack = Stacks[Index];
+		if (Stack->GetStaticMesh() != PalletMesh)
+		{
+			Stack->SetStaticMesh(PalletMesh);
+			Stack->EmptyOverrideMaterials();
+		}
+		const FVector Base = Record.WorldTransform.GetLocation();
+		const float SideX = -(Definition.FootprintCm.X * 0.5f - 200.f);
+		const float RowY = (Index - (Wanted - 1) * 0.5f) * 240.f;
+		Stack->SetWorldLocationAndRotation(
+			Base + FVector(SideX, RowY, 0.f),
+			FRotator(0.f, 90.f, 0.f));
+	}
 }
 
 int32 ALBSpacecraftWIPPresentationActor::GetBayPaintDecalCount() const
@@ -7446,6 +7625,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	// Trusses cross the line rather than tiling the whole 180 m roof:
 	// structure over the part of the floor the camera actually holds,
 	// and none over the empty acreage nobody looks at.
+	// DOLLHOUSE (owner + research, 2026-09-01): the benchmarks are
+	// roofless - the camera looks straight into a lit interior, and the
+	// truss/purlin lattice read as pure clutter over the line from the
+	// management angle (owner's live frame confirmed it). The roof
+	// structure is cut, not hidden: sun and sky light the floor. Walls
+	// stay - they draw the room's boundary without blocking the view.
+	Trusses = nullptr;
+	Lights = nullptr;
 	if (Trusses != nullptr && LineStations.Num() > 0)
 	{
 		constexpr float TrussHeightCm = 1240.f;

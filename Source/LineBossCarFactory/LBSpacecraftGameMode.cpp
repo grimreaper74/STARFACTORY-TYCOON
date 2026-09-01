@@ -1483,12 +1483,73 @@ bool ALBSpacecraftGameMode::SetupEconomy(ALBSpacecraftBuildAuthority& InBuild,
 		// ground it is allowed to stand on.
 		const FVector2D Inset = Definition != nullptr
 			? Definition->FootprintCm * 0.5f : FVector2D::ZeroVector;
+		// ZONES (owner 2026-09-01: "build the ship yard and also build
+		// the parts factory" - the corner scan had drifted from that
+		// idea). Each family gets a PREFERRED BAND scanned first; the
+		// full-area scan below stays as the fallback so nothing that
+		// used to place can now fail. The SHIPYARD keeps its floor for
+		// the line; the PARTS FACTORY stands beside it; storage sits on
+		// the seam between the two; the dock takes the delivery edge.
+		FVector BandCentre = Centre;
+		FVector2D BandSpan = FVector2D::ZeroVector;
+		if (DefinitionId == FName(TEXT("SubAssemblyHall")))
+		{
+			const FVector2D Foot = Definition != nullptr
+				? Definition->FootprintCm : FVector2D(6000.f, 6000.f);
+			BandCentre = HallCentre + FVector(
+				-(HallFloor.X * 0.5f + Foot.X * 0.5f + 1600.f), 0.f, 0.f);
+			BandSpan = FVector2D(Foot.X * 2.5f,
+				FMath::Max(HallFloor.Y, Foot.Y * 2.5f));
+		}
+		else if (DefinitionId == FName(TEXT("StorageRack")))
+		{
+			BandCentre = HallCentre
+				+ FVector(-HallFloor.X * 0.36f, 0.f, 0.f);
+			BandSpan = FVector2D(HallFloor.X * 0.22f, HallFloor.Y);
+		}
+		else if (DefinitionId == FName(TEXT("DeliveryDock")))
+		{
+			BandCentre = HallCentre
+				+ FVector(0.f, -HallFloor.Y * 0.38f, 0.f);
+			BandSpan = FVector2D(HallFloor.X, HallFloor.Y * 0.2f);
+		}
+		else if (DefinitionId == FName(TEXT("PowerStation"))
+			|| DefinitionId == FName(TEXT("PowerPlant")))
+		{
+			BandCentre = HallCentre
+				+ FVector(0.f, HallFloor.Y * 0.38f, 0.f);
+			BandSpan = FVector2D(HallFloor.X, HallFloor.Y * 0.2f);
+		}
+		if (!BandSpan.IsNearlyZero())
+		{
+			for (float X = BandCentre.X - BandSpan.X * 0.5f + Inset.X;
+				X <= BandCentre.X + BandSpan.X * 0.5f - Inset.X;
+				X += StepCm)
+			{
+				for (float Y =
+					BandCentre.Y - BandSpan.Y * 0.5f + Inset.Y;
+					Y <= BandCentre.Y + BandSpan.Y * 0.5f - Inset.Y;
+					Y += StepCm)
+				{
+					if (PlaceStationPowered(InBuild, InPower,
+						InInventory, DefinitionId,
+						FTransform(FRotator::ZeroRotator,
+							FVector(X, Y, 0.f)),
+						OutStationId, LastRefusal, nullptr,
+						InProgression))
+					{
+						return true;
+					}
+					++RefusalTally.FindOrAdd(LastRefusal.Left(18));
+				}
+			}
+		}
 		for (float X = Centre.X - Span.X * 0.5f + Inset.X;
 			X <= Centre.X + Span.X * 0.5f - Inset.X; X += StepCm)
 		{
 			for (float Y = Centre.Y - Span.Y * 0.5f + Inset.Y;
 				Y <= Centre.Y + Span.Y * 0.5f - Inset.Y; Y += StepCm)
-			{
+		{
 				if (PlaceStationPowered(InBuild, InPower, InInventory,
 					DefinitionId,
 					FTransform(FRotator::ZeroRotator, FVector(X, Y, 0.f)),

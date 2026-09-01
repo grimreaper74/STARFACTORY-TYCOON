@@ -1211,6 +1211,25 @@ private:
 		const struct FLBSpacecraftStationDefinition& Definition);
 	void DestroyLineStationFrame(FLBSpacecraftLineStationFrame& Frame);
 
+	/** RATE BADGE (research: every benchmark floats throughput over the
+	 *  machine): a TextRender above each line station - its split index,
+	 *  fit count and live state, all from GetFixingSplit and the
+	 *  coordinator, never invented. */
+	void RefreshStationBadge(
+		const struct FLBSpacecraftStationRecord& Record,
+		const struct FLBSpacecraftStationDefinition& Definition);
+
+	/** VISIBLE STOCKPILE (research: benchmark machines show their
+	 *  contents; ours shows real inventory): pallet stacks beside each
+	 *  line station scaled to the station store's actual fill. */
+	void RefreshStationStockpile(
+		const struct FLBSpacecraftStationRecord& Record,
+		const struct FLBSpacecraftStationDefinition& Definition);
+
+	TMap<FName, TObjectPtr<class UTextRenderComponent>> StationBadges;
+	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>>
+		StationStockStacks;
+
 	/** A registered no-collision mesh component for a laid track piece. */
 	class UStaticMeshComponent* MakeTrackPieceComponent(FName Key,
 		class UStaticMesh* Mesh);
