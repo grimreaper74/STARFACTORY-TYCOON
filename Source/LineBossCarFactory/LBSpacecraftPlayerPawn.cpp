@@ -574,30 +574,28 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 				== FName(TEXT("LineStation"))
 			&& GameMode->GetTrackAuthority() != nullptr)
 		{
-			float BestDistSq = FMath::Square(3000.f);
+			// NEXT FREE PIECE IN TRACK ORDER, not nearest-to-cursor
+			// (v1 required the click within 30 m of the track and the
+			// owner's first test read as "not snapping"). The route IS
+			// the stations in track order, so the click only says
+			// "another station" and the line says where: the first
+			// free straight piece down the track.
 			const FLBSpacecraftTrackPieceRecord* BestPiece = nullptr;
 			for (const FLBSpacecraftTrackPieceRecord& Piece :
 				GameMode->GetTrackAuthority()->GetPieces())
 			{
-				if (Piece.PieceType != ELBSpacecraftTrackPiece::Straight
-					|| !Piece.NodeStationId.IsNone())
+				if (Piece.PieceType == ELBSpacecraftTrackPiece::Straight
+					&& Piece.NodeStationId.IsNone())
 				{
-					continue;
-				}
-				const float DistSq = FVector::DistSquared2D(
-					Piece.WorldTransform.GetLocation(), Snapped);
-				if (DistSq < BestDistSq)
-				{
-					BestDistSq = DistSq;
 					BestPiece = &Piece;
+					break;
 				}
 			}
 			if (BestPiece == nullptr)
 			{
 				LastActionText = LOCTEXT("NeedTrack",
-					"LINE STATIONS STAND ON THE TRACK - lay track, "
-					"then click beside a free straight piece")
-					.ToString();
+					"LINE STATIONS STAND ON THE TRACK - lay more "
+					"straight track first").ToString();
 				return;
 			}
 			PlaceTransform = FTransform(
@@ -984,12 +982,12 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 			if (bAlongX)
 			{
 				Location.Y += Offset * GridCm;
-				Scale = FVector(GridSpanCm / 100.f, 0.03f, 0.01f);
+				Scale = FVector(GridSpanCm / 100.f, 0.12f, 0.02f);
 			}
 			else
 			{
 				Location.X += Offset * GridCm;
-				Scale = FVector(0.03f, GridSpanCm / 100.f, 0.01f);
+				Scale = FVector(0.12f, GridSpanCm / 100.f, 0.02f);
 			}
 			Location.Z = 2.f;
 			Line->SetWorldTransform(FTransform(

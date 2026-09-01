@@ -12,6 +12,7 @@
 #include "LBSpacecraftGameMode.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftProgressionAuthority.h"
+#include "LBSpacecraftTrackAuthority.h"
 
 #define LOCTEXT_NAMESPACE "LBSpacecraftObjectives"
 
@@ -142,6 +143,12 @@ void ULBSpacecraftObjectivesWidget::NativeTick(
 		Revision += FString::Printf(TEXT(";%d;%d"),
 			Build->GetStations().Num(), Build->IsCommissioned() ? 1 : 0);
 	}
+	if (ALBSpacecraftTrackAuthority* TrackAuthority =
+		GameMode->GetTrackAuthority())
+	{
+		Revision += FString::Printf(TEXT(";t%d"),
+			TrackAuthority->GetPieces().Num());
+	}
 	if (Revision == LastRevision)
 	{
 		return;
@@ -190,8 +197,21 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 				}
 			}
 		}
+		// TRACK FIRST (owner's live session, 2026-09-01): the list
+		// said "Build a station" before any track existed, teaching
+		// the wrong order - stations STAND ON the track. The steps now
+		// follow the real build order.
+		bool bHasTrack = false;
+		if (ALBSpacecraftTrackAuthority* TrackAuthority =
+			GameMode->GetTrackAuthority())
+		{
+			bHasTrack = TrackAuthority->GetPieces().Num() > 0;
+		}
 		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
-		AddLine(LOCTEXT("StepStation", "Build a station").ToString(),
+		AddLine(LOCTEXT("StepTrack", "Lay the line track (BUILD tab)")
+			.ToString(), bHasTrack);
+		AddLine(LOCTEXT("StepStation",
+			"Add stations - they snap to the track").ToString(),
 			bHasStation);
 		AddLine(LOCTEXT("StepCommission", "Commission the factory")
 			.ToString(), bCommissioned);
