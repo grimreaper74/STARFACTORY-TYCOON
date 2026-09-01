@@ -5994,6 +5994,9 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		FTransform UnitTransform(FRotator(0.f, UnitYaw, 0.f), Location);
 		if ((bCraftForm && Craft != nullptr) || BuildForm != nullptr)
 		{
+			// The pre-Hull sections branch may have hidden this
+			// component's own mesh; a real form always shows.
+			Component->SetVisibility(true, false);
 
 			// THE STATION LIFTS THE SHIP (owner 2026-08-28: "the
 			// station will have to lift the ship up ... to be worked
@@ -6293,11 +6296,103 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		}
 		else
 		{
-			UnitTransform.SetScale3D(FVector(4.f, 3.f, 2.f)); // crate metres
-			UnitTransform.AddToTranslation(FVector(0.f, 0.f,
-				SpacecraftStationBlockHeightCm + SpacecraftCrateHalfHeightCm));
+			// STRIPPED SECTIONS ARE REAL-SIZE CHILDREN (audit
+			// 2026-09-01): scaling the parent to crate metres
+			// stretched every section 4x3x2 and tripled their nose-
+			// to-aft spread for the whole pre-Hull run. With sections
+			// shown, the parent keeps unit scale and hides its own
+			// crate box; the honest crate stands in only when there
+			// are no sections to show.
+			if (StrippedHullSections.Contains(Assignment.UnitId))
+			{
+				UnitTransform.AddToTranslation(FVector(0.f, 0.f,
+					SpacecraftStationBlockHeightCm));
+				Component->SetVisibility(false, false);
+			}
+			else
+			{
+				UnitTransform.SetScale3D(
+					FVector(4.f, 3.f, 2.f)); // crate metres
+				UnitTransform.AddToTranslation(FVector(0.f, 0.f,
+					SpacecraftStationBlockHeightCm
+						+ SpacecraftCrateHalfHeightCm));
+				Component->SetVisibility(true, false);
+			}
 		}
 		Component->SetWorldTransform(UnitTransform);
+
+		// A PART LANDING IS A MOMENT (owner 2026-09-01: "its not
+		// actualy fitting them"). Half the Scout's components are
+		// interior assemblies that attach out of sight inside the
+		// closed hull, so every fit after the first now blooms a
+		// working-blue ring under the craft and lets it fade - the
+		// eye is told even when the geometry cannot show it.
+		{
+			const float FlashDelta = GetWorld() != nullptr
+				? GetWorld()->GetDeltaSeconds() : 0.016f;
+			const int32 FittedNow = Unit->ProducedComponents.Num();
+			int32& Seen = UnitFittedSeen.FindOrAdd(Assignment.UnitId);
+			if (FittedNow > Seen && Seen > 0)
+			{
+				UnitFitFlash.Add(Assignment.UnitId, 1.f);
+			}
+			Seen = FittedNow;
+			if (float* Flash = UnitFitFlash.Find(Assignment.UnitId))
+			{
+				*Flash -= FlashDelta / 1.2f;
+				if (*Flash <= 0.f)
+				{
+					if (TObjectPtr<UStaticMeshComponent>* Done =
+						UnitFitFlashComps.Find(Assignment.UnitId))
+					{
+						if (*Done != nullptr)
+						{
+							(*Done)->DestroyComponent();
+						}
+					}
+					UnitFitFlashComps.Remove(Assignment.UnitId);
+					UnitFitFlash.Remove(Assignment.UnitId);
+				}
+				else
+				{
+					TObjectPtr<UStaticMeshComponent>& FlashComp =
+						UnitFitFlashComps.FindOrAdd(Assignment.UnitId);
+					if (FlashComp == nullptr)
+					{
+						FlashComp = MakeBlockComponent(
+							FName(*FString::Printf(TEXT("%s_FitFlash"),
+								*Assignment.UnitId.ToString())),
+							LBSpacecraftPalette::IndicatorWorking);
+						if (FlashComp != nullptr)
+						{
+							FlashComp->SetCastShadow(false);
+						}
+					}
+					if (FlashComp != nullptr)
+					{
+						// The basic shape material is opaque, so the
+						// fade is a colour lerp toward the floor tone
+						// while the ring blooms outward.
+						const float Bloom = 1.f - *Flash;
+						const float RingM = 8.f + 12.f * Bloom;
+						FlashComp->SetWorldTransform(FTransform(
+							FRotator::ZeroRotator,
+							Location + FVector(0.f, 0.f, 34.f),
+							FVector(RingM, RingM, 0.02f)));
+						if (UMaterialInstanceDynamic* FlashMID =
+							Cast<UMaterialInstanceDynamic>(
+								FlashComp->GetMaterial(0)))
+						{
+							FlashMID->SetVectorParameterValue(
+								TEXT("Color"), FMath::Lerp(
+									FLinearColor(0.59f, 0.565f, 0.52f),
+									LBSpacecraftPalette::IndicatorWorking,
+									*Flash));
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// Units that left the line: dispatched craft FLY OUT of the building;

@@ -1243,6 +1243,14 @@ private:
 	/** Swaps the cap's orange accent slot for the Start-anchor blue. */
 	void TintTrackCapForStart(class UStaticMeshComponent* CapComponent);
 
+	/** FIT-MOMENT FEEDBACK (owner 2026-09-01 "its not actualy fitting
+	 *  them"): per-unit fitted-count watermark, flash timer, and the
+	 *  blooming ring component that announces an interior part
+	 *  landing where the closed hull cannot show it. */
+	TMap<FName, int32> UnitFittedSeen;
+	TMap<FName, float> UnitFitFlash;
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> UnitFitFlashComps;
+
 	/** THE BELT IS ONE OBJECT (owner 2026-09-01 "make better track"):
 	 *  the whole chain renders as a single smooth spline with sleeper
 	 *  rhythm and authored end caps, rebuilt only when the piece set
