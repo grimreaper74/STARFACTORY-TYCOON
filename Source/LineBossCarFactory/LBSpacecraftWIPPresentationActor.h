@@ -1019,7 +1019,12 @@ private:
 	TArray<TWeakObjectPtr<UStaticMeshComponent>> HallCranes;
 
 	/** Idle post of each crane in HallCranes, index for index. */
-	TArray<float> HallCraneParkYsCm;
+	/** Per-crane park position and travel axis: cranes ride the rails
+	 *  of the track LEG they serve (owner 2026-09-01: "if i place a
+	 *  station at the top the crane isnt over it" - the old rig was a
+	 *  single hall-centre column that ignored where the line ran). */
+	TArray<FVector> HallCraneParkCm;
+	TArray<bool> HallCraneAxisAlongY;
 
 	/** The crane TickHallCrane is currently driving - the one nearest
 	 *  the craft being carried. The hoist rig hangs off this one. */
@@ -1034,7 +1039,8 @@ private:
 	 *  would drift off the thing it is supposed to be holding. */
 	FVector CarriedCraftAtCm = FVector::ZeroVector;
 	bool bCraftIsCarried = false;
-	float HallCraneParkYCm = 0.f;
+	FVector HallCraneParkAtCm = FVector::ZeroVector;
+	bool bHallCraneAxisAlongY = true;
 
 	/** Moves the gantry along the line and hangs its hoist on whatever
 	 *  craft is in transit. */

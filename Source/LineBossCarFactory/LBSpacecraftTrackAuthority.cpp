@@ -34,7 +34,9 @@ namespace LBSpacecraftTrackAuthorityPrivate
 			OutReason = TEXT("TRACK RUNS IN 90 DEGREE STEPS ONLY");
 			return false;
 		}
-		if (FMath::Abs(Location.X) > 11000.f
+		// Sized past the 260 x 180 m hall (owner 2026-09-01: longer
+		// left-to-right) with a lattice cell of margin each side.
+		if (FMath::Abs(Location.X) > 15000.f
 			|| FMath::Abs(Location.Y) > 11000.f)
 		{
 			OutReason = TEXT("TRACK LEAVES THE BUILDABLE FLOOR");

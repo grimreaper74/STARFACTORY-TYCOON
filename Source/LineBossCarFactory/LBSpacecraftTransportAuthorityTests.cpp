@@ -57,7 +57,7 @@ namespace LBSpacecraftTransportTestsPrivate
 		FName PlantId;
 		FName PowerHallId;
 		Test.TestTrue(TEXT("power hall places"),
-			ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason));
+			ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason));
 		// The generator lives INSIDE its hall (owner
 		// 2026-08-26): free placement is refused now.
 		Test.TestTrue(TEXT("plant installs in the hall"),

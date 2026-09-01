@@ -7970,133 +7970,186 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	// outside the guard so TickHallCrane never drives a component the
 	// skipped rebuild destroyed.
 	HallCranes.Reset();
-	HallCraneParkYsCm.Reset();
+	HallCraneParkCm.Reset();
+	HallCraneAxisAlongY.Reset();
 	HallCrane = nullptr;
-	if (LineStations.Num() > 0)
+	// RAILS FOLLOW THE LINE (owner 2026-09-01: "if i place a station at
+	// the top the crane isnt over it" - the old rig was one hall-centre
+	// column, correct only for the fixed starter line). The laid track
+	// is grouped into maximal straight LEGS; every leg that carries a
+	// station gets its own tiled rail run and its own portal(s), yawed
+	// to the leg's axis. No track or no stations means no cranes.
+	if (LineStations.Num() > 0 && TrackAuthority != nullptr)
 	{
-		TArray<float> StationYs;
-		for (const FLBSpacecraftStationRecord* Station : LineStations)
+		struct FLBHallCraneLeg
 		{
-			StationYs.Add(static_cast<float>(
-				Station->WorldTransform.GetLocation().Y));
-		}
-		StationYs.Sort();
-		float MeanY = 0.f;
-		for (const float StationY : StationYs)
+			bool bAlongY = true;
+			float CrossCm = 0.f;
+			float MinAlongCm = 0.f;
+			float MaxAlongCm = 0.f;
+			TArray<float> StationAlongCm;
+		};
+		TArray<FLBHallCraneLeg> Legs;
 		{
-			MeanY += StationY;
-		}
-		MeanY /= FMath::Max(StationYs.Num(), 1);
-
-		// A QUARTER TURN ON EVERY GANTRY PIECE. The v002 set is
-		// modelled with its run on X and its gauge on Y - measured on
-		// import as a 3.20 x 31.50 m portal - while this line runs down
-		// +Y. Unrotated the portal would straddle nothing and the rails
-		// would cross the line instead of following it.
-		constexpr float GantryYaw = 90.f;
-
-		// THE TRACK RUNS THE FULL LENGTH, and it is TILED rather than
-		// stretched. One rail piece is 60 m; six stations plus the
-		// booth's extra clearance span 84 m, so a single piece would
-		// leave the first station and the booth standing off the end of
-		// their own track. Scaling one piece to fit would stretch its
-		// sleepers and fixing clips visibly.
-		const float FirstY = StationYs.Num() > 0 ? StationYs[0] : MeanY;
-		const float LastY = StationYs.Num() > 0 ? StationYs.Last() : MeanY;
-		const float TrackCentreY = (FirstY + LastY) * 0.5f;
-		{
-			constexpr float RailPieceCm = 6000.f;
-			// Run past the last station at each end so a crane has
-			// somewhere to stand clear while the next one works.
-			constexpr float RailMarginCm = 1600.f;
-			const float NeededCm =
-				(LastY - FirstY) + RailMarginCm * 2.f;
-			const int32 Pieces = FMath::Max(1,
-				FMath::CeilToInt(NeededCm / RailPieceCm));
-			const float FirstPieceY = TrackCentreY
-				- (Pieces - 1) * RailPieceCm * 0.5f;
-			for (int32 Piece = 0; Piece < Pieces; ++Piece)
+			FLBHallCraneLeg Current;
+			bool bOpen = false;
+			const auto CloseLeg = [&Legs, &Current, &bOpen]()
 			{
-				Place(CraneRails, FName(*FString::Printf(
-					TEXT("HallCraneRails_%d"), Piece)),
-					FVector(HallAt.X,
-						FirstPieceY + Piece * RailPieceCm, 0.f),
-					GantryYaw);
+				if (bOpen && Current.StationAlongCm.Num() > 0)
+				{
+					Legs.Add(Current);
+				}
+				bOpen = false;
+			};
+			for (const FLBSpacecraftTrackPieceRecord& Piece :
+				TrackAuthority->GetPieces())
+			{
+				const bool bStraightKind = Piece.PieceType
+						== ELBSpacecraftTrackPiece::Straight
+					|| Piece.PieceType == ELBSpacecraftTrackPiece::Start
+					|| Piece.PieceType == ELBSpacecraftTrackPiece::End;
+				if (!bStraightKind)
+				{
+					// A corner ends its leg; collinear legs on either
+					// side of a U stay separate runs, as their rails do.
+					CloseLeg();
+					continue;
+				}
+				const FVector At = Piece.WorldTransform.GetLocation();
+				const float Yaw = Piece.WorldTransform.Rotator().Yaw;
+				const bool bAlongY = FMath::Abs(FMath::Fmod(
+					FMath::Abs(Yaw), 180.f) - 90.f) < 45.f;
+				const float Cross = bAlongY ? At.X : At.Y;
+				const float Along = bAlongY ? At.Y : At.X;
+				if (!bOpen || Current.bAlongY != bAlongY
+					|| !FMath::IsNearlyEqual(Current.CrossCm, Cross, 1.f))
+				{
+					CloseLeg();
+					Current = FLBHallCraneLeg();
+					Current.bAlongY = bAlongY;
+					Current.CrossCm = Cross;
+					Current.MinAlongCm = Along;
+					Current.MaxAlongCm = Along;
+					bOpen = true;
+				}
+				Current.MinAlongCm = FMath::Min(Current.MinAlongCm, Along);
+				Current.MaxAlongCm = FMath::Max(Current.MaxAlongCm, Along);
+				if (!Piece.NodeStationId.IsNone())
+				{
+					Current.StationAlongCm.Add(Along);
+				}
 			}
+			CloseLeg();
 		}
-
-		// One crane per GAP, or one for the whole line.
-		TArray<float> CraneYs;
 		static const auto* CranePerGapVar =
 			IConsoleManager::Get().FindConsoleVariable(
 				TEXT("LB.Spacecraft.CranePerGap"));
 		const bool bCranePerGap = CranePerGapVar == nullptr
 			|| CranePerGapVar->GetInt() != 0;
-		if (bCranePerGap && StationYs.Num() > 1)
+		int32 CraneIndex = 0;
+		for (int32 LegIndex = 0; LegIndex < Legs.Num(); ++LegIndex)
 		{
-			for (int32 Gap = 0; Gap + 1 < StationYs.Num(); ++Gap)
+			const FLBHallCraneLeg& Leg = Legs[LegIndex];
+			// The v002 gantry set is modelled with its run on X and its
+			// gauge on Y, so a Y-running leg wears the quarter turn.
+			const float LegYaw = Leg.bAlongY ? 90.f : 0.f;
+			const auto LegPoint = [&Leg](float Along, float Z)
 			{
-				CraneYs.Add((StationYs[Gap] + StationYs[Gap + 1]) * 0.5f);
+				return Leg.bAlongY
+					? FVector(Leg.CrossCm, Along, Z)
+					: FVector(Along, Leg.CrossCm, Z);
+			};
+			// Rails TILED over the leg with clearance past each end so
+			// a crane can stand clear while the next one works.
+			{
+				constexpr float RailPieceCm = 6000.f;
+				constexpr float RailMarginCm = 1600.f;
+				const float NeededCm =
+					(Leg.MaxAlongCm - Leg.MinAlongCm) + RailMarginCm * 2.f;
+				const float CentreAlong =
+					(Leg.MinAlongCm + Leg.MaxAlongCm) * 0.5f;
+				const int32 Pieces = FMath::Max(1,
+					FMath::CeilToInt(NeededCm / RailPieceCm));
+				const float FirstAlong = CentreAlong
+					- (Pieces - 1) * RailPieceCm * 0.5f;
+				for (int32 Piece = 0; Piece < Pieces; ++Piece)
+				{
+					Place(CraneRails, FName(*FString::Printf(
+						TEXT("HallCraneRails_%d_%d"), LegIndex, Piece)),
+						LegPoint(FirstAlong + Piece * RailPieceCm, 0.f),
+						LegYaw);
+				}
 			}
-		}
-		else
-		{
-			CraneYs.Add(MeanY);
-		}
-
-		HallCranes.Reset();
-		HallCraneParkYsCm.Reset();
-		for (int32 Index = 0; Index < CraneYs.Num(); ++Index)
-		{
-			const float CraneY = CraneYs[Index];
-			// COUNTED BEFORE AND AFTER, not "take the last piece".
-			// Place is a no-op on a missing mesh, so grabbing the last
-			// entry blind would hand TickHallCrane whatever went down
-			// previously - the rails - and slide the track down the
-			// hall while the gantry stood still.
-			const int32 BeforeCrane = HallInteriorPieces.Num();
-			Place(Crane, FName(*FString::Printf(TEXT("HallCrane_%d"),
-				Index)), FVector(HallAt.X, CraneY, 0.f), GantryYaw);
-			if (HallInteriorPieces.Num() <= BeforeCrane)
+			// One crane per GAP within the leg, or one for the leg.
+			TArray<float> Parks;
+			TArray<float> Stations = Leg.StationAlongCm;
+			Stations.Sort();
+			if (bCranePerGap && Stations.Num() > 1)
 			{
-				continue;
+				for (int32 Gap = 0; Gap + 1 < Stations.Num(); ++Gap)
+				{
+					Parks.Add((Stations[Gap] + Stations[Gap + 1]) * 0.5f);
+				}
 			}
-			UStaticMeshComponent* Portal = HallInteriorPieces.Last();
-			HallCranes.Add(Portal);
-			HallCraneParkYsCm.Add(CraneY);
-			if (Index == 0)
+			else
 			{
-				// The first is the one TickHallCrane drives until a
-				// craft picks a nearer one.
-				HallCrane = Portal;
-				HallCraneParkYCm = CraneY;
+				float Mean = 0.f;
+				for (const float Along : Stations)
+				{
+					Mean += Along;
+				}
+				Parks.Add(Mean / FMath::Max(Stations.Num(), 1));
 			}
-			// THE TROLLEY AND HOIST RIDE THE PORTAL, so they are
-			// ATTACHED rather than placed loose. Anything merely
-			// standing at the same coordinate is left behind the moment
-			// the crane travels - the same mistake as modelling the
-			// rails into the crane.
-			const int32 BeforeRig = HallInteriorPieces.Num();
-			Place(CraneTrolley, FName(*FString::Printf(
-				TEXT("HallCraneTrolley_%d"), Index)),
-				FVector(HallAt.X, CraneY, 0.f), GantryYaw);
-			// IDLE POSITION IS RAISED (owner, 2026-09-01: "the crane has
-			// something hanging from it that's always there"). The
-			// hoist mesh models its cables and cradle at full drop and
-			// nothing animates it yet, so placed at floor anchor the
-			// cradle dangled mid-air forever. Tucked up by most of its
-			// own height it reads as a stowed hoist; the drop becomes
-			// part of the carry animation when that lands.
-			const float HoistRaiseCm = CraneHoist != nullptr
-				? CraneHoist->GetBounds().BoxExtent.Z * 2.f * 0.7f : 0.f;
-			Place(CraneHoist, FName(*FString::Printf(
-				TEXT("HallCraneHoist_%d"), Index)),
-				FVector(HallAt.X, CraneY, HoistRaiseCm), GantryYaw);
-			for (int32 Rig = BeforeRig;
-				Rig < HallInteriorPieces.Num(); ++Rig)
+			for (const float Park : Parks)
 			{
-				HallInteriorPieces[Rig]->AttachToComponent(Portal,
-					FAttachmentTransformRules::KeepWorldTransform);
+				// COUNTED BEFORE AND AFTER, not "take the last piece".
+				// Place is a no-op on a missing mesh, so grabbing the
+				// last entry blind would hand TickHallCrane whatever
+				// went down previously - the rails.
+				const int32 BeforeCrane = HallInteriorPieces.Num();
+				Place(Crane, FName(*FString::Printf(TEXT("HallCrane_%d"),
+					CraneIndex)), LegPoint(Park, 0.f), LegYaw);
+				if (HallInteriorPieces.Num() <= BeforeCrane)
+				{
+					continue;
+				}
+				UStaticMeshComponent* Portal = HallInteriorPieces.Last();
+				HallCranes.Add(Portal);
+				HallCraneParkCm.Add(LegPoint(Park, 0.f));
+				HallCraneAxisAlongY.Add(Leg.bAlongY);
+				if (HallCranes.Num() == 1)
+				{
+					// The first is the one TickHallCrane drives until a
+					// craft picks a nearer one.
+					HallCrane = Portal;
+					HallCraneParkAtCm = LegPoint(Park, 0.f);
+					bHallCraneAxisAlongY = Leg.bAlongY;
+				}
+				// THE TROLLEY AND HOIST RIDE THE PORTAL, so they are
+				// ATTACHED rather than placed loose - anything merely
+				// standing at the same coordinate is left behind the
+				// moment the crane travels.
+				const int32 BeforeRig = HallInteriorPieces.Num();
+				Place(CraneTrolley, FName(*FString::Printf(
+					TEXT("HallCraneTrolley_%d"), CraneIndex)),
+					LegPoint(Park, 0.f), LegYaw);
+				// IDLE POSITION IS RAISED (owner, 2026-09-01: "the
+				// crane has something hanging from it that's always
+				// there"): stowed hoist, dropped only when the carry
+				// animation lands.
+				const float HoistRaiseCm = CraneHoist != nullptr
+					? CraneHoist->GetBounds().BoxExtent.Z * 2.f * 0.7f
+					: 0.f;
+				Place(CraneHoist, FName(*FString::Printf(
+					TEXT("HallCraneHoist_%d"), CraneIndex)),
+					LegPoint(Park, HoistRaiseCm), LegYaw);
+				for (int32 Rig = BeforeRig;
+					Rig < HallInteriorPieces.Num(); ++Rig)
+				{
+					HallInteriorPieces[Rig]->AttachToComponent(Portal,
+						FAttachmentTransformRules::KeepWorldTransform);
+				}
+				++CraneIndex;
 			}
 		}
 	}
@@ -8156,8 +8209,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		// at 0.74 against a floor of almost exactly that value; markings
 		// that cannot be seen are worse than none, because they cost
 		// draw calls and buy nothing.
-		const FLinearColor WalkwayPaint(0.46f, 0.47f, 0.48f);
-		const FLinearColor WalkwayEdge = LBSpacecraftPalette::Hazard; // walkway edging
 		const FLinearColor KeepClear = LBSpacecraftPalette::Hazard; // keep-clear hatching
 
 		auto Paint = [this](const TCHAR* Part, int32 Index,
@@ -8191,63 +8242,15 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			}
 		};
 
-		// WALKWAY LANES down both flanks, inboard of the columns so the
-		// two do not fight. In every reference photograph of an assembly
-		// hall the painted walkway is the strongest line on the floor
-		// after the line itself.
-		constexpr float WalkWidthCm = 420.f;
-		constexpr float EdgeWidthCm = 70.f;
-		// BESIDE THE LINE, not against the walls. The first pass put
-		// these at Floor.X*0.5 - 2000, which is 7000 cm out - and the
-		// camera follows the LINE, so they filled floor the player never
-		// looks at. Filling the far corners of a hall buys nothing when
-		// the view is always centred on the work.
-		//
-		// A real plant runs its walkway alongside the line anyway,
-		// because that is where people need to get to. 2600 clears the
-		// 1800-wide station bay (+/-900), the dolly at +690 and the
-		// stockpile rack at -1150, and lands where it can be seen.
-		const float WalkX = 2600.f;
-		const float WalkLen = Floor.Y - 1600.f;
-		for (int32 Side = 0; Side < 2; ++Side)
-		{
-			const float SideSign = Side == 0 ? -1.f : 1.f;
-			const FVector At(HallAt.X + SideSign * WalkX, HallAt.Y, 0.f);
-			Paint(TEXT("Walk"), Side, WalkwayPaint, At,
-				FVector2D(WalkWidthCm, WalkLen), 3.f);
-			// Edged both sides - an unedged band reads as a stain.
-			for (int32 Edge = 0; Edge < 2; ++Edge)
-			{
-				const float Off = (Edge == 0 ? -1.f : 1.f)
-					* (WalkWidthCm * 0.5f - EdgeWidthCm * 0.5f);
-				Paint(TEXT("WalkEdge"), Side * 2 + Edge, WalkwayEdge,
-					At + FVector(Off, 0.f, 0.f),
-					FVector2D(EdgeWidthCm, WalkLen), 4.f);
-			}
-		}
-
-		// CROSS AISLES, so the flanks connect and the eye gets a rhythm
-		// ACROSS the hall as well as along it. Four of them, spaced from
-		// the hall's own length so they follow if it ever changes.
-		constexpr int32 AisleCount = 4;
-		for (int32 Aisle = 0; Aisle < AisleCount; ++Aisle)
-		{
-			const float T = (static_cast<float>(Aisle) + 0.5f)
-				/ static_cast<float>(AisleCount);
-			const float Y = HallAt.Y - Floor.Y * 0.5f + Floor.Y * T;
-			Paint(TEXT("Aisle"), Aisle, WalkwayPaint,
-				FVector(HallAt.X, Y, 0.f),
-				FVector2D(WalkX * 2.f, 340.f), 3.f);
-			// Yellow edging on the aisles too - an unedged grey band on
-			// a grey floor is the same invisible mistake as before.
-			for (int32 Edge = 0; Edge < 2; ++Edge)
-			{
-				const float Off = (Edge == 0 ? -1.f : 1.f) * 155.f;
-				Paint(TEXT("AisleEdge"), Aisle * 2 + Edge, WalkwayEdge,
-					FVector(HallAt.X, Y + Off, 0.f),
-					FVector2D(WalkX * 2.f, 50.f), 4.f);
-			}
-		}
+		// WALKWAYS AND CROSS AISLES ARE GONE (owner 2026-09-01: "do we
+		// need the walkways?" - no. NOTHING on this floor is handled
+		// by people, so painted pedestrian lanes contradict the
+		// fiction, and they were drawn for the old fixed line anyway:
+		// with the free-form auto-connected track they crossed under
+		// whatever the player built, which was the floor-clutter
+		// complaint of the whole session. Paint survives only where it
+		// states a machine rule: station pads, the dock apron, and the
+		// dispatch keep-clear below.)
 
 		// KEEP-CLEAR HATCHING at the dispatch door - the one patch of
 		// floor a real plant always marks, because it is where something
@@ -8278,17 +8281,17 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 	{
 		int32 Nearest = INDEX_NONE;
 		float Best = TNumericLimits<float>::Max();
-		const float LookAtY = bCraftIsCarried
-			? CarriedCraftAtCm.Y : HallCraneParkYCm;
+		const FVector LookAt = bCraftIsCarried
+			? CarriedCraftAtCm : HallCraneParkAtCm;
 		for (int32 Index = 0; Index < HallCranes.Num(); ++Index)
 		{
 			if (!HallCranes[Index].IsValid()
-				|| !HallCraneParkYsCm.IsValidIndex(Index))
+				|| !HallCraneParkCm.IsValidIndex(Index))
 			{
 				continue;
 			}
-			const float Distance =
-				FMath::Abs(HallCraneParkYsCm[Index] - LookAtY);
+			const float Distance = FVector::DistSquared2D(
+				HallCraneParkCm[Index], LookAt);
 			if (Distance < Best)
 			{
 				Best = Distance;
@@ -8298,25 +8301,37 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 		if (Nearest != INDEX_NONE)
 		{
 			HallCrane = HallCranes[Nearest];
-			HallCraneParkYCm = HallCraneParkYsCm[Nearest];
+			HallCraneParkAtCm = HallCraneParkCm[Nearest];
+			bHallCraneAxisAlongY = HallCraneAxisAlongY.IsValidIndex(Nearest)
+				? HallCraneAxisAlongY[Nearest] : true;
 		}
-		// Everyone else goes home. Without this an idle crane keeps
-		// whatever position it held when it last had the craft, and the
-		// line ends up with its portals bunched.
+		// Everyone else goes home, each along its OWN leg's axis.
 		for (int32 Index = 0; Index < HallCranes.Num(); ++Index)
 		{
 			if (Index == Nearest || !HallCranes[Index].IsValid()
-				|| !HallCraneParkYsCm.IsValidIndex(Index))
+				|| !HallCraneParkCm.IsValidIndex(Index))
 			{
 				continue;
 			}
 			UStaticMeshComponent* Idle = HallCranes[Index].Get();
 			const FVector IdleAt = Idle->GetComponentLocation();
-			Idle->SetWorldLocation(FVector(IdleAt.X,
-				FMath::FInterpConstantTo(IdleAt.Y,
-					HallCraneParkYsCm[Index], DeltaSeconds,
-					FMath::Max(CraneTravelSpeedCmS, 1.f)),
-				IdleAt.Z));
+			const bool bIdleAlongY =
+				HallCraneAxisAlongY.IsValidIndex(Index)
+					? HallCraneAxisAlongY[Index] : true;
+			FVector Home = IdleAt;
+			if (bIdleAlongY)
+			{
+				Home.Y = FMath::FInterpConstantTo(IdleAt.Y,
+					HallCraneParkCm[Index].Y, DeltaSeconds,
+					FMath::Max(CraneTravelSpeedCmS, 1.f));
+			}
+			else
+			{
+				Home.X = FMath::FInterpConstantTo(IdleAt.X,
+					HallCraneParkCm[Index].X, DeltaSeconds,
+					FMath::Max(CraneTravelSpeedCmS, 1.f));
+			}
+			Idle->SetWorldLocation(Home);
 		}
 	}
 	UStaticMeshComponent* Crane = HallCrane.Get();
@@ -8324,18 +8339,26 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 	{
 		return;
 	}
-	// A GANTRY RUNS ON RAILS, so only the along-line axis moves. The
-	// line is laid down +Y, which makes Y the travel axis and X the
-	// span the crane bridges - moving it in X would have it walking
-	// sideways off its own rails.
+	// A GANTRY RUNS ON RAILS, so only the along-leg axis moves -
+	// which axis that is belongs to the LEG the crane serves (owner
+	// 2026-09-01: the line is free-form now, not a +Y column).
 	const FVector At = Crane->GetComponentLocation();
-	const float TargetY =
-		bCraftIsCarried ? CarriedCraftAtCm.Y : HallCraneParkYCm;
+	const FVector Target =
+		bCraftIsCarried ? CarriedCraftAtCm : HallCraneParkAtCm;
 	// Constant speed, not an ease: a gantry accelerates hard and then
 	// runs flat, and an eased interp reads as floating.
-	const float NewY = FMath::FInterpConstantTo(At.Y, TargetY,
-		DeltaSeconds, FMath::Max(CraneTravelSpeedCmS, 1.f));
-	Crane->SetWorldLocation(FVector(At.X, NewY, At.Z));
+	FVector NewAt = At;
+	if (bHallCraneAxisAlongY)
+	{
+		NewAt.Y = FMath::FInterpConstantTo(At.Y, Target.Y,
+			DeltaSeconds, FMath::Max(CraneTravelSpeedCmS, 1.f));
+	}
+	else
+	{
+		NewAt.X = FMath::FInterpConstantTo(At.X, Target.X,
+			DeltaSeconds, FMath::Max(CraneTravelSpeedCmS, 1.f));
+	}
+	Crane->SetWorldLocation(NewAt);
 
 	// The hoist: a block riding the beam with two cables down to the
 	// load. Made once and repositioned - rebuilding components per tick
@@ -8376,9 +8399,18 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 	// hoist hanging in mid-air.
 	const float BeamZ = Crane->Bounds.Origin.Z
 		+ Crane->Bounds.BoxExtent.Z * 0.62f;
-	const FVector Hook = bCraftIsCarried
-		? FVector(CarriedCraftAtCm.X, NewY, CarriedCraftAtCm.Z + 210.f)
-		: FVector(At.X, NewY, BeamZ - 220.f);
+	// The trolley slides ACROSS the beam toward the load, so the hook's
+	// cross-axis coordinate is the craft's; the along-axis one is the
+	// crane's own travel.
+	FVector Hook(NewAt.X, NewAt.Y, BeamZ - 220.f);
+	if (bCraftIsCarried)
+	{
+		Hook = bHallCraneAxisAlongY
+			? FVector(CarriedCraftAtCm.X, NewAt.Y,
+				CarriedCraftAtCm.Z + 210.f)
+			: FVector(NewAt.X, CarriedCraftAtCm.Y,
+				CarriedCraftAtCm.Z + 210.f);
+	}
 
 	HallCraneHoist[0]->SetWorldTransform(FTransform(
 		FRotator::ZeroRotator, Hook, FVector(1.6f, 1.2f, 0.5f)));

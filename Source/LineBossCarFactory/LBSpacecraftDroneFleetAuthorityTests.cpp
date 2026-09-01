@@ -51,7 +51,9 @@ namespace LBSpacecraftDroneFleetTestsPrivate
 		FString Reason;
 		FName PlantId;
 		Test.TestTrue(TEXT("power hall places"),
-			ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), Rig.PowerHallId, Reason));
+			// -22000: clear of the 260 m hall (X half 13000, owner
+		// 2026-09-01) with the plant's own half-extent to spare.
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), Rig.PowerHallId, Reason));
 		// The generator lives INSIDE its hall (owner
 		// 2026-08-26): free placement is refused now.
 		Test.TestTrue(TEXT("plant installs in the hall"),
@@ -68,7 +70,7 @@ namespace LBSpacecraftDroneFleetTestsPrivate
 		Test.TestTrue(TEXT("sub-assembly hall places"),
 			Rig.Build->PlaceStation(FName(TEXT("SubAssemblyHall")),
 				FTransform(FRotator::ZeroRotator,
-					FVector(16000.f, 0.f, 0.f)), HallId, Reason));
+					FVector(22000.f, 0.f, 0.f)), HallId, Reason));
 		Test.TestTrue(TEXT("mill installs in the hall"),
 			Rig.Build->InstallInSlot(HallId, FName(TEXT("RollingMill")),
 				Rig.MillId, Reason));
@@ -302,6 +304,13 @@ bool FLBSpacecraftDroneAutonomyTest::RunTest(const FString& Parameters)
 	const FLBSpacecraftDroneState* Drone =
 		Rig.Fleet->FindDrone(Rig.MillId, 0);
 	TestNotNull(TEXT("drone exists"), Drone);
+	if (Drone == nullptr)
+	{
+		// TestNotNull does not stop the test; dereferencing anyway
+		// crashed the whole automation run and cost its report.
+		Rig.World->DestroyWorld(false);
+		return false;
+	}
 	TestEqual(TEXT("idle stations keep drones docked"),
 		Drone->Mission, ELBSpacecraftDroneMission::Docked);
 

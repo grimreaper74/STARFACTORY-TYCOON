@@ -695,7 +695,7 @@ bool FLBSpacecraftPhase2GateTest::RunTest(const FString& Parameters)
 		// factory, not on the spot a machine would take inside it.
 		Rig.Build->PlaceStation(FName(TEXT("SubAssemblyHall")),
 			FTransform(FRotator::ZeroRotator,
-				FVector(16000.f, 0.f, 0.f)),
+				FVector(22000.f, 0.f, 0.f)),
 			FamilyHallId, Reason));
 	TestTrue(TEXT("the researched family now installs"),
 		Rig.Build->InstallInSlot(FamilyHallId, FName(TEXT("RollingMill")),
@@ -871,7 +871,7 @@ bool FLBSpacecraftPhase2InfraTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a sub-assembly hall places"),
 		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power,
 			*Rig.Inventory, FName(TEXT("SubAssemblyHall")),
-			FTransform(FRotator::ZeroRotator, FVector(16000.f, 0.f, 0.f)),
+			FTransform(FRotator::ZeroRotator, FVector(22000.f, 0.f, 0.f)),
 			MainsHallId, Reason));
 	TestTrue(TEXT("a mill runs on the mains feed"),
 		ALBSpacecraftGameMode::InstallInSlotPowered(*Rig.Build, *Rig.Power,
@@ -904,7 +904,7 @@ bool FLBSpacecraftPhase2InfraTest::RunTest(const FString& Parameters)
 	// A PowerPlant registers its supply under its station id.
 	FName PowerHallId;
 	TestTrue(TEXT("power hall places"),
-		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason));
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason));
 	// The generator lives INSIDE its hall (owner
 	// 2026-08-26): free placement is refused now.
 	TestTrue(TEXT("plant installs in the hall"),
@@ -1000,7 +1000,7 @@ bool FLBSpacecraftPhase2TickedCraftingTest::RunTest(const FString& Parameters)
 	// Power, research, then a processor (free family) and a mill.
 	FName PowerHallId;
 	TestTrue(TEXT("power hall places"),
-		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason));
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason));
 	// The generator lives INSIDE its hall (owner
 	// 2026-08-26): free placement is refused now.
 	TestTrue(TEXT("plant installs in the hall"),
@@ -1020,7 +1020,7 @@ bool FLBSpacecraftPhase2TickedCraftingTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a sub-assembly hall places"),
 		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power,
 			*Rig.Inventory, FName(TEXT("SubAssemblyHall")),
-			FTransform(FRotator::ZeroRotator, FVector(16000.f, 0.f, 0.f)),
+			FTransform(FRotator::ZeroRotator, FVector(22000.f, 0.f, 0.f)),
 			MillHallId, Reason));
 	TestTrue(TEXT("the smelter installs in the hall"),
 		ALBSpacecraftGameMode::InstallInSlotPowered(*Rig.Build, *Rig.Power,
@@ -1304,7 +1304,7 @@ bool FLBSpacecraftStationAccentTest::RunTest(const FString& Parameters)
 	FName MillId;
 	FName PowerHallId;
 	TestTrue(TEXT("power hall places"),
-		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason));
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason));
 	// The generator lives INSIDE its hall (owner
 	// 2026-08-26): free placement is refused now.
 	TestTrue(TEXT("plant installs in the hall"),
@@ -1319,7 +1319,7 @@ bool FLBSpacecraftStationAccentTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a sub-assembly hall places"),
 		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power,
 			*Rig.Inventory, FName(TEXT("SubAssemblyHall")),
-			FTransform(FRotator::ZeroRotator, FVector(16000.f, 0.f, 0.f)),
+			FTransform(FRotator::ZeroRotator, FVector(22000.f, 0.f, 0.f)),
 			MillHallId, Reason));
 	TestTrue(TEXT("mill installs in the hall"),
 		ALBSpacecraftGameMode::InstallInSlotPowered(*Rig.Build, *Rig.Power,
@@ -2338,7 +2338,7 @@ bool FLBSpacecraftDroneTest::RunTest(const FString& Parameters)
 	FName MillId;
 	FName PowerHallId;
 	TestTrue(TEXT("power hall places"),
-		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason));
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason));
 	// The generator lives INSIDE its hall (owner
 	// 2026-08-26): free placement is refused now.
 	TestTrue(TEXT("plant installs in the hall"),
@@ -2353,7 +2353,7 @@ bool FLBSpacecraftDroneTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a sub-assembly hall places"),
 		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power,
 			*Rig.Inventory, FName(TEXT("SubAssemblyHall")),
-			FTransform(FRotator::ZeroRotator, FVector(16000.f, 0.f, 0.f)),
+			FTransform(FRotator::ZeroRotator, FVector(22000.f, 0.f, 0.f)),
 			MillHallId, Reason));
 	TestTrue(TEXT("mill installs in the hall"),
 		ALBSpacecraftGameMode::InstallInSlotPowered(*Rig.Build, *Rig.Power,
@@ -2462,7 +2462,7 @@ bool FLBSpacecraftMoneyLoopTest::RunTest(const FString& Parameters)
 	// A ledger-backed placement charges the catalogue price.
 	FName PowerHallId;
 	TestTrue(TEXT("power hall places"),
-		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-16000.f, 0.f, 0.f)), PowerHallId, Reason, Rig.Production));
+		ALBSpacecraftGameMode::PlaceStationPowered(*Rig.Build, *Rig.Power, *Rig.Inventory, FName(TEXT("PowerStation")), FTransform(FRotator::ZeroRotator, FVector(-22000.f, 0.f, 0.f)), PowerHallId, Reason, Rig.Production));
 	// The generator lives INSIDE its hall (owner
 	// 2026-08-26): free placement is refused now.
 	TestTrue(TEXT("plant installs in the hall"),

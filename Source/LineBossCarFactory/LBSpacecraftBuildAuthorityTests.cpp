@@ -514,7 +514,7 @@ bool FLBSpacecraftGridAndSlotsTest::RunTest(const FString& Parameters)
 	if (!TestTrue(TEXT("the power station places (gate unbound in rigs)"),
 		Build->PlaceStation(FName(TEXT("PowerStation")),
 			FTransform(FRotator::ZeroRotator,
-				FVector(-16000.f, 0.f, 0.f)), HallId, Reason)))
+				FVector(-22000.f, 0.f, 0.f)), HallId, Reason)))
 	{
 		AddError(FString::Printf(TEXT("power station refused: %s"),
 			*Reason));
@@ -850,7 +850,7 @@ bool FLBSpacecraftStationDroneSlotsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a sub-assembly hall places"),
 		Build->PlaceStation(FName(TEXT("SubAssemblyHall")),
 			FTransform(FRotator::ZeroRotator,
-				FVector(16000.f, 0.f, 0.f)), HallId, Reason));
+				FVector(22000.f, 0.f, 0.f)), HallId, Reason));
 	FName MillId;
 	TestFalse(TEXT("a loose mill is refused"),
 		Build->PlaceStation(FName(TEXT("RollingMill")),

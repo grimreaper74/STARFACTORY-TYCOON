@@ -401,7 +401,7 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			FLBSpacecraftStationDefinition ShipFactory;
 			ShipFactory.DefinitionId = FName(TEXT("ShipFactoryHall"));
 			ShipFactory.DisplayName = TEXT("Ship factory");
-			ShipFactory.DoorOffsetCm = FVector2D(-9000.f, 0.f);
+			ShipFactory.DoorOffsetCm = FVector2D(-13000.f, 0.f);
 			// ONE SITE SCALE (owner 2026-08-28): the ship factory, the
 			// parts factory and the power plant are the same size on
 			// the map, so the site reads as a place rather than one
@@ -412,7 +412,13 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			// building at the same architectural scale as the parts
 			// factory and power plant beside it (owner 2026-08-28),
 			// not a shed the size of the site.
-			ShipFactory.FootprintCm = FVector2D(18000.f, 18000.f);
+			// LONG LEFT-TO-RIGHT (owner 2026-09-01: "the haal needs to
+			// be longer if players play left to right"). With the line
+			// free-form and auto-connected, X is the axis players
+			// naturally build along on screen, so the hall carries its
+			// length there: 260 x 180 m. Y keeps the 18000 the layout
+			// budget defended (the booth needs 7300 of half-extent).
+			ShipFactory.FootprintCm = FVector2D(26000.f, 18000.f);
 			// SIZED TO WHAT STANDS IN IT. At 180 m square the whole
 			// starting line covered 3.9% of the floor, which is why the
 			// hall has always read bare. Long down the line axis so
@@ -443,7 +449,7 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			// which is a progression problem, and the answer is to fill
 			// it or to start the player somewhere smaller, never to cap
 			// what the factory can become.
-			ShipFactory.InteriorFloorCm = FVector2D(18000.f, 18000.f);
+			ShipFactory.InteriorFloorCm = FVector2D(26000.f, 18000.f);
 			ShipFactory.CostPence = 25000000;
 			// ZERO, and it must stay zero. MaxCraftEnvelopeCm means "a
 			// craft STOPS HERE" - it is the route-station capacity, and
