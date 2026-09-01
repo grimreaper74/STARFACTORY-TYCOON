@@ -47,4 +47,46 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AICallable),
 		Category = "LineBoss|Dev")
 	static FString RunSpacecraftConsoleCommand(const FString& Command);
+
+	/** Geometry of the live PIE viewport so a caller can map pixels in
+	 *  a captured frame to click coordinates: {"success", "localWidth",
+	 *  "localHeight", "dpiScale", "absoluteX", "absoluteY"}. Slate
+	 *  local units = frame pixels / dpiScale when the capture is at
+	 *  native resolution. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString GetPieViewportInfo();
+
+	/** Synthesises a mouse move + press + release inside the PIE
+	 *  viewport at viewport-LOCAL Slate coordinates (see
+	 *  GetPieViewportInfo), through FSlateApplication - the same path
+	 *  a real mouse takes, so UMG buttons, the floor click and the
+	 *  ghost placement all see it. No OS cursor is touched, so a
+	 *  person can keep using the machine. Button: "Left" (default),
+	 *  "Right", "Middle". */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString SimulatePieClick(float X, float Y,
+		const FString& Button = TEXT("Left"));
+
+	/** Moves the synthetic pointer to viewport-local coordinates
+	 *  without clicking - hover states, and the placement ghost. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString SimulatePieMouseMove(float X, float Y);
+
+	/** Presses and releases a key in the PIE viewport (FKey name, e.g.
+	 *  "W", "M", "Escape", "SpaceBar", "One"). HoldSeconds > 0 keeps it
+	 *  down that long for pan/zoom keys - held on a timer, so the call
+	 *  returns immediately and the release lands later. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString SimulatePieKey(const FString& KeyName,
+		float HoldSeconds = 0.f);
+
+	/** Mouse wheel at viewport-local coordinates; positive Delta zooms
+	 *  in on this game's camera, negative out. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString SimulatePieWheel(float X, float Y, float Delta);
 };

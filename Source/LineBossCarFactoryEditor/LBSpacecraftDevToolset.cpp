@@ -3,6 +3,14 @@
 #include "Dom/JsonObject.h"
 #include "Editor.h"
 #include "Engine/World.h"
+#include "Framework/Application/SlateApplication.h"
+#include "GenericPlatform/GenericWindow.h"
+#include "Input/Events.h"
+#include "InputCoreTypes.h"
+#include "Slate/SceneViewport.h"
+#include "TimerManager.h"
+#include "Widgets/SViewport.h"
+#include "Widgets/SWindow.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
 #include "LBSpacecraftPowerAuthority.h"
@@ -190,6 +198,225 @@ FString ULBSpacecraftDevToolset::RunSpacecraftConsoleCommand(
 	Root->SetBoolField(TEXT("success"), true);
 	Root->SetStringField(TEXT("command"), Command);
 	Root->SetBoolField(TEXT("handled"), bHandled);
+	return WriteJson(Root);
+}
+
+// ---------------------------------------------------------------------
+// Synthetic PIE input. Everything goes through FSlateApplication's
+// Process* entry points - the exact path a real mouse and keyboard take
+// once the OS has delivered them - so UMG buttons, the floor click,
+// the placement ghost and the pawn's input mappings all see it. The OS
+// cursor is never moved and no window is brought to the front, which
+// is the whole point: the first attempt at a stranger playthrough used
+// Win32 SendInput and captured the owner's browser instead.
+// ---------------------------------------------------------------------
+namespace LBSpacecraftDevToolsetPrivate
+{
+	TSharedPtr<SViewport> FindPieViewportWidget()
+	{
+		// GetPIEViewport hands back the base FViewport; a PIE viewport is
+		// always the Slate-backed FSceneViewport underneath.
+		FSceneViewport* Viewport = GEditor != nullptr
+			? static_cast<FSceneViewport*>(GEditor->GetPIEViewport())
+			: nullptr;
+		return Viewport != nullptr ? Viewport->GetViewportWidget().Pin()
+			: TSharedPtr<SViewport>();
+	}
+
+	FString NoViewportJson()
+	{
+		return FailJson(TEXT("No PIE viewport - start PIE first (the "
+			"EditorAppToolset StartPIE tool), then call again."));
+	}
+
+	FKey ButtonKey(const FString& Button)
+	{
+		if (Button.Equals(TEXT("Right"), ESearchCase::IgnoreCase))
+		{
+			return EKeys::RightMouseButton;
+		}
+		if (Button.Equals(TEXT("Middle"), ESearchCase::IgnoreCase))
+		{
+			return EKeys::MiddleMouseButton;
+		}
+		return EKeys::LeftMouseButton;
+	}
+
+	/** Viewport-local Slate units -> Slate absolute (desktop) units. */
+	FVector2D ToAbsolute(const TSharedRef<SViewport>& Widget, float X,
+		float Y)
+	{
+		return Widget->GetCachedGeometry().LocalToAbsolute(FVector2D(X, Y));
+	}
+
+	void FocusViewport(const TSharedRef<SViewport>& Widget)
+	{
+		FSlateApplication::Get().SetAllUserFocus(Widget,
+			EFocusCause::SetDirectly);
+	}
+
+	TSharedPtr<FGenericWindow> NativeWindowOf(
+		const TSharedRef<SViewport>& Widget)
+	{
+		TSharedPtr<SWindow> Window =
+			FSlateApplication::Get().FindWidgetWindow(Widget);
+		return Window.IsValid() ? Window->GetNativeWindow()
+			: TSharedPtr<FGenericWindow>();
+	}
+}
+
+FString ULBSpacecraftDevToolset::GetPieViewportInfo()
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const FGeometry& Geo = Widget->GetCachedGeometry();
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetNumberField(TEXT("localWidth"), Geo.GetLocalSize().X);
+	Root->SetNumberField(TEXT("localHeight"), Geo.GetLocalSize().Y);
+	Root->SetNumberField(TEXT("dpiScale"), Geo.Scale);
+	Root->SetNumberField(TEXT("absoluteX"), Geo.GetAbsolutePosition().X);
+	Root->SetNumberField(TEXT("absoluteY"), Geo.GetAbsolutePosition().Y);
+	return WriteJson(Root);
+}
+
+FString ULBSpacecraftDevToolset::SimulatePieMouseMove(float X, float Y)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const TSharedRef<SViewport> Ref = Widget.ToSharedRef();
+	const FVector2D Abs = ToAbsolute(Ref, X, Y);
+	FSlateApplication& Slate = FSlateApplication::Get();
+	const FPointerEvent Move(0, 0, Abs, Slate.GetCursorPos(), TSet<FKey>(),
+		EKeys::Invalid, 0.f, FModifierKeysState());
+	Slate.ProcessMouseMoveEvent(Move);
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetNumberField(TEXT("absoluteX"), Abs.X);
+	Root->SetNumberField(TEXT("absoluteY"), Abs.Y);
+	return WriteJson(Root);
+}
+
+FString ULBSpacecraftDevToolset::SimulatePieClick(float X, float Y,
+	const FString& Button)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const TSharedRef<SViewport> Ref = Widget.ToSharedRef();
+	const FVector2D Abs = ToAbsolute(Ref, X, Y);
+	const FKey Key = ButtonKey(Button);
+	FSlateApplication& Slate = FSlateApplication::Get();
+	FocusViewport(Ref);
+	// Move first so hover state and the game's cached cursor position
+	// (what GetHitResultUnderCursor reads) agree with where we press.
+	const FPointerEvent Move(0, 0, Abs, Slate.GetCursorPos(), TSet<FKey>(),
+		EKeys::Invalid, 0.f, FModifierKeysState());
+	Slate.ProcessMouseMoveEvent(Move);
+	TSet<FKey> Pressed;
+	Pressed.Add(Key);
+	const FPointerEvent Down(0, 0, Abs, Abs, Pressed, Key, 0.f,
+		FModifierKeysState());
+	Slate.ProcessMouseButtonDownEvent(NativeWindowOf(Ref), Down);
+	const FPointerEvent Up(0, 0, Abs, Abs, TSet<FKey>(), Key, 0.f,
+		FModifierKeysState());
+	Slate.ProcessMouseButtonUpEvent(Up);
+	// A game viewport captures the pointer on click; a synthetic click
+	// must not leave the REAL cursor confined to the PIE window while
+	// a person is using the machine.
+	Slate.ReleaseAllPointerCapture();
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetStringField(TEXT("button"), Key.ToString());
+	Root->SetNumberField(TEXT("absoluteX"), Abs.X);
+	Root->SetNumberField(TEXT("absoluteY"), Abs.Y);
+	return WriteJson(Root);
+}
+
+FString ULBSpacecraftDevToolset::SimulatePieWheel(float X, float Y,
+	float Delta)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const TSharedRef<SViewport> Ref = Widget.ToSharedRef();
+	const FVector2D Abs = ToAbsolute(Ref, X, Y);
+	FSlateApplication& Slate = FSlateApplication::Get();
+	const FPointerEvent Move(0, 0, Abs, Slate.GetCursorPos(), TSet<FKey>(),
+		EKeys::Invalid, 0.f, FModifierKeysState());
+	Slate.ProcessMouseMoveEvent(Move);
+	const FPointerEvent Wheel(0, 0, Abs, Abs, TSet<FKey>(),
+		EKeys::MouseWheelAxis, Delta, FModifierKeysState());
+	Slate.ProcessMouseWheelOrGestureEvent(Wheel, nullptr);
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetNumberField(TEXT("delta"), Delta);
+	return WriteJson(Root);
+}
+
+FString ULBSpacecraftDevToolset::SimulatePieKey(const FString& KeyName,
+	float HoldSeconds)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const FKey Key(*KeyName);
+	if (!Key.IsValid())
+	{
+		return FailJson(FString::Printf(
+			TEXT("Unknown key '%s' - use FKey names (W, M, Escape, "
+				"SpaceBar, One, LeftShift...)"), *KeyName));
+	}
+	FocusViewport(Widget.ToSharedRef());
+	const uint32* KeyCodePtr = nullptr;
+	const uint32* CharCodePtr = nullptr;
+	FInputKeyManager::Get().GetCodesFromKey(Key, KeyCodePtr, CharCodePtr);
+	const uint32 KeyCode = KeyCodePtr != nullptr ? *KeyCodePtr : 0;
+	const uint32 CharCode = CharCodePtr != nullptr ? *CharCodePtr : 0;
+	FSlateApplication& Slate = FSlateApplication::Get();
+	const FKeyEvent DownEvent(Key, FModifierKeysState(), 0, false,
+		CharCode, KeyCode);
+	Slate.ProcessKeyDownEvent(DownEvent);
+	auto Release = [Key, CharCode, KeyCode]()
+	{
+		if (FSlateApplication::IsInitialized())
+		{
+			const FKeyEvent UpEvent(Key, FModifierKeysState(), 0, false,
+				CharCode, KeyCode);
+			FSlateApplication::Get().ProcessKeyUpEvent(UpEvent);
+		}
+	};
+	if (HoldSeconds > 0.f && GEditor != nullptr)
+	{
+		FTimerHandle Handle;
+		GEditor->GetTimerManager()->SetTimer(Handle,
+			FTimerDelegate::CreateLambda(Release), HoldSeconds, false);
+	}
+	else
+	{
+		Release();
+	}
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetStringField(TEXT("key"), Key.ToString());
+	Root->SetNumberField(TEXT("holdSeconds"), HoldSeconds);
 	return WriteJson(Root);
 }
 

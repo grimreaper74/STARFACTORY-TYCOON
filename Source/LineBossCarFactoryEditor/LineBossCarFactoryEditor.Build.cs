@@ -25,6 +25,11 @@ public class LineBossCarFactoryEditor : ModuleRules
             "UnrealEd",
             "ToolsetRegistry",
             "LineBossCarFactory",
+            // Synthetic PIE input for the stranger playthrough lane.
+            "Slate",
+            "SlateCore",
+            "InputCore",
+            "ApplicationCore",
         });
 
         // The runtime module keeps every header flat in its root (no
