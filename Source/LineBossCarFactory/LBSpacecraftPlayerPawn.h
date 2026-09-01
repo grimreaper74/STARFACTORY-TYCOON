@@ -42,6 +42,16 @@ public:
 	void SetPlacementDefinition(FName DefinitionId);
 	FName GetPlacementDefinition() const { return PlacementDefinitionId; }
 
+	/** CLICK-TO-DRAW track mode's sentinel definition id (owner
+	 *  2026-09-01). Not a station definition: while this is armed,
+	 *  every floor click routes the line's open end to the clicked
+	 *  cell through the game mode, and the mode STAYS armed so the
+	 *  player draws the whole line click by click. */
+	static FName TrackLayPlacementId()
+	{
+		return FName(TEXT("Track.Lay"));
+	}
+
 	/** The station record under the cursor, if any (pure footprint test
 	 *  against the build authority's records - no collision needed). */
 	FName FindStationUnderCursor() const;

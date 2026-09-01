@@ -4192,13 +4192,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 				}
 				FTransform PortalTransform = Record.WorldTransform;
 				PortalTransform.SetScale3D(FVector(PortalFit));
-				// +90 yaw (owner, 2026-09-01, from the live frame): the
-				// portal's ARCH must open along the track so the craft
-				// passes through it; unrotated it stood side-on.
-				PortalTransform.SetRotation(
-					PortalTransform.GetRotation()
-					* FQuat(FVector::UpVector,
-						FMath::DegreesToRadians(90.f)));
+				// NO EXTRA YAW (owner's second live frame, 2026-09-01):
+				// with stations now taking their yaw from the track
+				// piece they stand on, the mesh's own axes already put
+				// the arch ACROSS the travel direction - the earlier
+				// +90 (added against a free-placed station) turned the
+				// arch ALONG the track so the craft would hit the
+				// columns. The station wears the piece rotation as-is.
 				Component->SetWorldTransform(PortalTransform);
 				Component->SetVisibility(true);
 			}

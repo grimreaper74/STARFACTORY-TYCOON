@@ -66,6 +66,55 @@ FTransform ALBSpacecraftTrackAuthority::ComputePieceExit(
 	return Exit;
 }
 
+bool ALBSpacecraftTrackAuthority::PlanRouteToPoint(
+	const FTransform& OpenEndExit, const FVector& TargetFloor,
+	TArray<ELBSpacecraftTrackPiece>& OutPieces, FString& OutReason)
+{
+	OutPieces.Reset();
+	// Target in the open end's frame: X forward along the build
+	// direction, Y lateral. The exit IS the cell the next piece lands
+	// on, so a piece laid at the exit sits at local (0,0).
+	const FVector Local = OpenEndExit.InverseTransformPosition(
+		FVector(TargetFloor.X, TargetFloor.Y, 0.f));
+	const int32 ForwardCells =
+		FMath::RoundToInt32(Local.X / GetPieceLengthCm());
+	const int32 LateralCells =
+		FMath::RoundToInt32(Local.Y / GetPieceLengthCm());
+	if (ForwardCells < 0)
+	{
+		OutReason = TEXT("THE LINE GROWS FORWARD - CLICK AHEAD OF THE "
+			"OPEN END (REMOVE LAST PIECE goes back)");
+		return false;
+	}
+	// Straights cover cells (0..ForwardCells-1) on the build axis.
+	for (int32 Step = 0; Step < ForwardCells; ++Step)
+	{
+		OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+	}
+	if (LateralCells != 0)
+	{
+		// A quarter turn occupies the corner cell, then straights walk
+		// the lateral leg so the last piece SITS on the clicked cell.
+		// UE yaw grows X toward Y, so a positive lateral offset is a
+		// right turn.
+		OutPieces.Add(LateralCells > 0
+			? ELBSpacecraftTrackPiece::TurnRight
+			: ELBSpacecraftTrackPiece::TurnLeft);
+		for (int32 Step = 0; Step < FMath::Abs(LateralCells); ++Step)
+		{
+			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		}
+	}
+	else
+	{
+		// Dead ahead: one more straight occupies the clicked cell
+		// itself (ForwardCells straights stop one short of it).
+		OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+	}
+	OutReason.Reset();
+	return true;
+}
+
 bool ALBSpacecraftTrackAuthority::StartLine(const FTransform& Transform,
 	FName& OutPieceId, FString& OutReason)
 {

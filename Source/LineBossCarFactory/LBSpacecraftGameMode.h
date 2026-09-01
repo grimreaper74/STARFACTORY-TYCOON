@@ -79,6 +79,17 @@ public:
 		return TrackAuthority;
 	}
 
+	/** CLICK-TO-DRAW track laying (owner 2026-09-01). First click
+	 *  anchors the line at the clicked cell facing GhostYawDeg; every
+	 *  later click routes the open end to the clicked cell through the
+	 *  authority's pure planner and lays the pieces one PAID step at a
+	 *  time - each piece spends before it lays and refunds whole on a
+	 *  refusal, so a blocked or unaffordable route stops mid-way with
+	 *  an honest "LAID k OF n" rather than rolling anything back the
+	 *  player already saw. */
+	bool LayTrackToPoint(const FVector& FloorPoint, float GhostYawDeg,
+		FString& OutToast);
+
 	/** The WIP presenter, for dev commands that need to read what is
 	 *  actually being DRAWN rather than what the authorities hold. */
 	ALBSpacecraftWIPPresentationActor* GetPresenter() const

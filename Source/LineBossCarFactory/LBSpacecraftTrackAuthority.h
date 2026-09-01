@@ -131,6 +131,19 @@ public:
 	static FTransform ComputePieceExit(const FTransform& Entry,
 		ELBSpacecraftTrackPiece PieceType);
 
+	/** CLICK-TO-DRAW routing (owner 2026-09-01: "you just click on the
+	 *  track and nothing happens with turn left etc, is there a better
+	 *  way from resurch?" - yes: every benchmark lays paths by clicking
+	 *  the destination, not by naming each piece). Pure: plans the
+	 *  piece sequence that walks the open end to the clicked floor
+	 *  point - straights forward, ONE quarter turn, straights lateral.
+	 *  The target snaps to the 400 cm cell lattice anchored at the open
+	 *  end. Clicks behind the open end refuse: the chain only grows
+	 *  forward, going back is RemoveOpenEnd's job. */
+	static bool PlanRouteToPoint(const FTransform& OpenEndExit,
+		const FVector& TargetFloor,
+		TArray<ELBSpacecraftTrackPiece>& OutPieces, FString& OutReason);
+
 private:
 	UPROPERTY(SaveGame)
 	FLBSpacecraftTrackSnapshot Track;

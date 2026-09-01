@@ -1390,31 +1390,21 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			const FString PieceCost =
 				ULBSpacecraftTopBarWidget::FormatCurrency(
 					TrackAuthority->PieceCostPence);
-			if (TrackAuthority->GetPieces().Num() == 0)
+			// CLICK-TO-DRAW (owner 2026-09-01: "you just click on the
+			// track and nothing happens with turn left etc, is there a
+			// better way from resurch?"). One button arms the mode;
+			// every floor click then routes the open end to the click
+			// - straights, auto-turns - the way every benchmark lays
+			// paths. The piece buttons this replaces asked the player
+			// to think in track vocabulary instead of destinations.
+			AddTaggedButton(
+				LOCTEXT("TrackDraw", "LAY TRACK - CLICK TO DRAW")
+					.ToString(),
+				FName(TEXT("Draw")),
+				[this](FName InTag) { HandleLayTrack(InTag); },
+				FString::Printf(TEXT("%s / PIECE"), *PieceCost));
+			if (TrackAuthority->GetPieces().Num() > 0)
 			{
-				AddTaggedButton(
-					LOCTEXT("TrackStart", "START THE LINE").ToString(),
-					FName(TEXT("Start")),
-					[this](FName InTag) { HandleLayTrack(InTag); },
-					PieceCost);
-			}
-			else
-			{
-				AddTaggedButton(LOCTEXT("TrackStraight",
-						"EXTEND STRAIGHT").ToString(),
-					FName(TEXT("Straight")),
-					[this](FName InTag) { HandleLayTrack(InTag); },
-					PieceCost);
-				AddTaggedButton(LOCTEXT("TrackLeft",
-						"TURN LEFT").ToString(),
-					FName(TEXT("TurnLeft")),
-					[this](FName InTag) { HandleLayTrack(InTag); },
-					PieceCost);
-				AddTaggedButton(LOCTEXT("TrackRight",
-						"TURN RIGHT").ToString(),
-					FName(TEXT("TurnRight")),
-					[this](FName InTag) { HandleLayTrack(InTag); },
-					PieceCost);
 				AddTaggedButton(LOCTEXT("TrackEnd",
 						"CAP THE END").ToString(),
 					FName(TEXT("End")),
@@ -2380,7 +2370,21 @@ void ULBSpacecraftCommandPanelWidget::HandleLayTrack(FName Action)
 			: Reason;
 		return;
 	}
-	// Every lay is paid fail-closed; a refused lay refunds whole.
+	// CLICK-TO-DRAW: the button only ARMS the mode; the pawn's floor
+	// clicks do the laying through the game mode's paid router.
+	if (Action == FName(TEXT("Draw")))
+	{
+		if (Pawn != nullptr)
+		{
+			Pawn->SetPlacementDefinition(
+				ALBSpacecraftPlayerPawn::TrackLayPlacementId());
+			PanelActionText = Pawn->GetLastActionText();
+		}
+		return;
+	}
+	// CAP THE END - the one piece still laid from the panel, because
+	// capping is a decision about the line, not a place on the floor.
+	// Paid fail-closed; a refused lay refunds whole.
 	ALBSpacecraftProductionAuthority* Ledger =
 		GameMode->GetProductionAuthority();
 	if (Ledger != nullptr
@@ -2390,33 +2394,8 @@ void ULBSpacecraftCommandPanelWidget::HandleLayTrack(FName Action)
 		return;
 	}
 	FName PieceId;
-	bool bLaid = false;
-	if (Action == FName(TEXT("Start")))
-	{
-		// The line anchors at the canonical head, building down +Y
-		// (free-cursor starts arrive with ghost placement later).
-		bLaid = TrackAuthority->StartLine(
-			FTransform(FRotator(0.f, 90.f, 0.f),
-				FVector(0.f, -6000.f, 0.f)), PieceId, Reason);
-	}
-	else
-	{
-		ELBSpacecraftTrackPiece PieceType =
-			ELBSpacecraftTrackPiece::Straight;
-		if (Action == FName(TEXT("TurnLeft")))
-		{
-			PieceType = ELBSpacecraftTrackPiece::TurnLeft;
-		}
-		else if (Action == FName(TEXT("TurnRight")))
-		{
-			PieceType = ELBSpacecraftTrackPiece::TurnRight;
-		}
-		else if (Action == FName(TEXT("End")))
-		{
-			PieceType = ELBSpacecraftTrackPiece::End;
-		}
-		bLaid = TrackAuthority->ExtendLine(PieceType, PieceId, Reason);
-	}
+	const bool bLaid = TrackAuthority->ExtendLine(
+		ELBSpacecraftTrackPiece::End, PieceId, Reason);
 	if (!bLaid && Ledger != nullptr)
 	{
 		FString Ignored;

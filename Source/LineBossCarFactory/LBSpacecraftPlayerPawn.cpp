@@ -524,6 +524,12 @@ void ALBSpacecraftPlayerPawn::SetPlacementDefinition(FName DefinitionId)
 		LastActionText = LOCTEXT("PlacementCancelled",
 			"PLACEMENT CANCELLED").ToString();
 	}
+	else if (DefinitionId == TrackLayPlacementId())
+	{
+		LastActionText = LOCTEXT("TrackLayHint",
+			"LAYING TRACK - click the floor to draw the line; "
+			"right-click stops").ToString();
+	}
 	else
 	{
 		LastActionText = FText::Format(LOCTEXT("PlacingHint",
@@ -542,6 +548,21 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 	ALBSpacecraftGameMode* GameMode = GetSpacecraftGameMode();
 	if (GameMode == nullptr)
 	{
+		return;
+	}
+	// TRACK MODE FIRST: the sentinel is not a station definition, and
+	// it deliberately stays armed after the click - drawing a line IS
+	// clicking several times.
+	if (PlacementDefinitionId == TrackLayPlacementId())
+	{
+		FVector FloorPoint;
+		if (!CursorToFloor(FloorPoint))
+		{
+			return;
+		}
+		FString Toast;
+		GameMode->LayTrackToPoint(FloorPoint, GhostYawDeg, Toast);
+		LastActionText = Toast;
 		return;
 	}
 	if (!PlacementDefinitionId.IsNone())
@@ -876,9 +897,10 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 		PlacementDefinitionId.IsNone() ? nullptr
 			: ALBSpacecraftBuildAuthority::FindDefinition(
 				PlacementDefinitionId);
+	const bool bTrackLay = PlacementDefinitionId == TrackLayPlacementId();
 	FVector FloorPoint;
-	const bool bShow =
-		Definition != nullptr && CursorToFloor(FloorPoint);
+	const bool bShow = (Definition != nullptr || bTrackLay)
+		&& CursorToFloor(FloorPoint);
 	if (!bShow)
 	{
 		if (PlacementGhost != nullptr)
@@ -994,6 +1016,67 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 				FRotator::ZeroRotator, Location, Scale));
 			Line->SetVisibility(true);
 		}
+	}
+	// TRACK MODE GHOST: a flat 400 x 400 tile on the cell the NEXT
+	// click would reach - the planner's own answer, so what the ghost
+	// promises is what the click lays. Blue when the route plans and
+	// the pieces are affordable, warning orange otherwise.
+	if (bTrackLay)
+	{
+		ALBSpacecraftGameMode* TrackGameMode = GetSpacecraftGameMode();
+		ALBSpacecraftTrackAuthority* TrackAuthority =
+			TrackGameMode != nullptr
+				? TrackGameMode->GetTrackAuthority() : nullptr;
+		FVector Target = Snapped;
+		int32 PieceCount = 1;
+		bool bWouldLay = TrackAuthority != nullptr;
+		if (TrackAuthority != nullptr
+			&& TrackAuthority->GetPieces().Num() > 0)
+		{
+			FTransform Exit;
+			TArray<ELBSpacecraftTrackPiece> Plan;
+			FString WhyNot;
+			if (TrackAuthority->GetPieces().Last().PieceType
+					!= ELBSpacecraftTrackPiece::End
+				&& TrackAuthority->GetOpenEndExit(Exit)
+				&& ALBSpacecraftTrackAuthority::PlanRouteToPoint(
+					Exit, FloorPoint, Plan, WhyNot))
+			{
+				// Walk the plan to the cell its last piece occupies.
+				FTransform Walk = Exit;
+				FVector Landing = Exit.GetLocation();
+				for (const ELBSpacecraftTrackPiece Piece : Plan)
+				{
+					Landing = Walk.GetLocation();
+					Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(
+						Walk, Piece);
+				}
+				Target = Landing;
+				PieceCount = Plan.Num();
+			}
+			else
+			{
+				bWouldLay = false;
+			}
+		}
+		if (bWouldLay && TrackGameMode->GetProductionAuthority() != nullptr
+			&& TrackGameMode->GetProductionAuthority()->GetCashPence()
+				< PieceCount * TrackAuthority->PieceCostPence)
+		{
+			bWouldLay = false;
+		}
+		if (UMaterialInstanceDynamic* TrackMID =
+			Cast<UMaterialInstanceDynamic>(PlacementGhost->GetMaterial(0)))
+		{
+			TrackMID->SetVectorParameterValue(TEXT("Color"), bWouldLay
+				? SpacecraftGhostColour : SpacecraftGhostRefusedColour);
+		}
+		PlacementGhost->SetWorldTransform(FTransform(
+			FRotator::ZeroRotator,
+			FVector(Target.X, Target.Y, 2.f),
+			FVector(4.f, 4.f, 0.05f)));
+		PlacementGhost->SetVisibility(true);
+		return;
 	}
 	// Polish (owner 2026-08-25): the ghost carries a verdict - blue
 	// where the placement would be accepted, warning orange where the

@@ -1098,6 +1098,92 @@ void ALBSpacecraftGameMode::SyncLedgerDerivedAuthorities(
 	RefreshOfferBoard(InContext);
 }
 
+bool ALBSpacecraftGameMode::LayTrackToPoint(const FVector& FloorPoint,
+	float GhostYawDeg, FString& OutToast)
+{
+	ALBSpacecraftProductionAuthority* Ledger = GetProductionAuthority();
+	if (TrackAuthority == nullptr || Ledger == nullptr)
+	{
+		OutToast = TEXT("THE TRACK AUTHORITY IS NOT UP YET");
+		return false;
+	}
+	const float GridCm = ALBSpacecraftBuildAuthority::GetPlacementGridCm();
+	// First click anchors the line where the player pointed, facing the
+	// ghost yaw (Z/X spins it in quarter turns like every other ghost).
+	if (TrackAuthority->GetPieces().Num() == 0)
+	{
+		const FVector Snapped(FMath::GridSnap(FloorPoint.X, GridCm),
+			FMath::GridSnap(FloorPoint.Y, GridCm), 0.f);
+		FString Reason;
+		if (!Ledger->SpendPence(TrackAuthority->PieceCostPence, Reason))
+		{
+			OutToast = Reason;
+			return false;
+		}
+		FName PieceId;
+		if (!TrackAuthority->StartLine(
+			FTransform(FRotator(0.f, GhostYawDeg, 0.f), Snapped),
+			PieceId, Reason))
+		{
+			FString Ignored;
+			Ledger->EarnPence(TrackAuthority->PieceCostPence, Ignored);
+			OutToast = Reason;
+			return false;
+		}
+		OutToast = TEXT("LINE STARTED - CLICK WHERE IT SHOULD GO NEXT");
+		return true;
+	}
+	if (TrackAuthority->GetPieces().Last().PieceType
+		== ELBSpacecraftTrackPiece::End)
+	{
+		OutToast = TEXT("THE LINE IS CAPPED - REMOVE THE END TO GROW");
+		return false;
+	}
+	FTransform Exit;
+	if (!TrackAuthority->GetOpenEndExit(Exit))
+	{
+		OutToast = TEXT("THE LINE HAS NO OPEN END");
+		return false;
+	}
+	TArray<ELBSpacecraftTrackPiece> Plan;
+	FString Reason;
+	if (!ALBSpacecraftTrackAuthority::PlanRouteToPoint(Exit, FloorPoint,
+		Plan, Reason))
+	{
+		OutToast = Reason;
+		return false;
+	}
+	// Lay one PAID piece at a time; the first refusal (funds, floor
+	// bounds, self-cross) stops the walk with the pieces already laid
+	// kept - they are real track the player can see and remove.
+	int32 Laid = 0;
+	for (const ELBSpacecraftTrackPiece Piece : Plan)
+	{
+		if (!Ledger->SpendPence(TrackAuthority->PieceCostPence, Reason))
+		{
+			break;
+		}
+		FName PieceId;
+		if (!TrackAuthority->ExtendLine(Piece, PieceId, Reason))
+		{
+			FString Ignored;
+			Ledger->EarnPence(TrackAuthority->PieceCostPence, Ignored);
+			break;
+		}
+		++Laid;
+	}
+	if (Laid == Plan.Num())
+	{
+		OutToast = FString::Printf(
+			TEXT("LAID %d TRACK PIECE%s"), Laid,
+			Laid == 1 ? TEXT("") : TEXT("S"));
+		return true;
+	}
+	OutToast = FString::Printf(TEXT("LAID %d OF %d - %s"), Laid,
+		Plan.Num(), *Reason);
+	return Laid > 0;
+}
+
 bool ALBSpacecraftGameMode::LayLineTrack(FString& TrackReason)
 {
 	if (TrackAuthority == nullptr || Coordinator == nullptr)

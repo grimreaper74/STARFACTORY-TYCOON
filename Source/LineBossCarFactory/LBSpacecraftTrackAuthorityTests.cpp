@@ -13,6 +13,93 @@
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftTrackRoutePlanTest,
+	"LineBoss.Spacecraft.Track.ClickRoutePlansToTheClickedCell",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	// The open end exits at the origin heading east (+X); every case
+	// walks the planned pieces through ComputePieceExit and asserts the
+	// LAST piece occupies the clicked cell - the planner's contract.
+	const FTransform ExitEast(FRotator::ZeroRotator, FVector::ZeroVector);
+	const auto LandingCell = [](const FTransform& Exit,
+		const TArray<ELBSpacecraftTrackPiece>& Plan)
+	{
+		FTransform Walk = Exit;
+		FVector Landing = Exit.GetLocation();
+		for (const ELBSpacecraftTrackPiece Piece : Plan)
+		{
+			Landing = Walk.GetLocation();
+			Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(
+				Walk, Piece);
+		}
+		return Landing;
+	};
+	TArray<ELBSpacecraftTrackPiece> Plan;
+	FString Reason;
+
+	// Dead ahead: three cells forward plans four straights (the last
+	// occupies the clicked cell).
+	TestTrue(TEXT("a forward click plans"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(1200.f, 0.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("forward plan is straights to the cell"),
+		Plan.Num(), 4);
+	TestTrue(TEXT("forward plan lands on the clicked cell"),
+		LandingCell(ExitEast, Plan).Equals(
+			FVector(1200.f, 0.f, 0.f), 1.f));
+
+	// An L: two cells forward, three right - straights, ONE right
+	// turn at the corner, straights down the lateral leg.
+	TestTrue(TEXT("an L click plans"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(800.f, 1200.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("L plan is 2 + turn + 3"), Plan.Num(), 6);
+	TestEqual(TEXT("the corner is a right turn"),
+		Plan[2], ELBSpacecraftTrackPiece::TurnRight);
+	TestTrue(TEXT("L plan lands on the clicked cell"),
+		LandingCell(ExitEast, Plan).Equals(
+			FVector(800.f, 1200.f, 0.f), 1.f));
+
+	// Leftward lateral picks the left turn.
+	TestTrue(TEXT("a left L plans"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(0.f, -800.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("the immediate corner is a left turn"),
+		Plan[0], ELBSpacecraftTrackPiece::TurnLeft);
+	TestTrue(TEXT("left plan lands on the clicked cell"),
+		LandingCell(ExitEast, Plan).Equals(
+			FVector(0.f, -800.f, 0.f), 1.f));
+
+	// Clicking the open end cell itself lays exactly one straight.
+	TestTrue(TEXT("clicking the exit cell plans"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(0.f, 0.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("the exit-cell plan is one straight"), Plan.Num(), 1);
+
+	// Behind the open end refuses - the chain only grows forward.
+	TestFalse(TEXT("a click behind the open end refuses"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(-800.f, 0.f, 0.f), Plan, Reason));
+	TestTrue(TEXT("the refusal teaches REMOVE"),
+		Reason.Contains(TEXT("REMOVE")));
+
+	// A rotated open end plans in ITS frame: heading south (+Y yaw 90),
+	// a click further south is dead ahead.
+	const FTransform ExitSouth(FRotator(0.f, 90.f, 0.f),
+		FVector(2000.f, 1000.f, 0.f));
+	TestTrue(TEXT("a rotated exit plans in its own frame"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitSouth,
+			FVector(2000.f, 1800.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("the rotated plan is all straights"), Plan.Num(), 3);
+	TestTrue(TEXT("rotated plan lands on the clicked cell"),
+		LandingCell(ExitSouth, Plan).Equals(
+			FVector(2000.f, 1800.f, 0.f), 1.f));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftTrackChainTest,
 	"LineBoss.Spacecraft.Track.ChainLaysFailClosedAndRoutes",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
