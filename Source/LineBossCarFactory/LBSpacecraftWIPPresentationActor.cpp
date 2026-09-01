@@ -4359,6 +4359,17 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 			It.RemoveCurrent();
 		}
 	}
+	for (auto It = StationIndicatorBars.CreateIterator(); It; ++It)
+	{
+		if (!Live.Contains(It.Key()))
+		{
+			if (It.Value() != nullptr)
+			{
+				It.Value()->DestroyComponent();
+			}
+			It.RemoveCurrent();
+		}
+	}
 	for (auto It = StationStockStacks.CreateIterator(); It; ++It)
 	{
 		if (!Live.Contains(It.Key()))
@@ -4479,8 +4490,52 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationBadge(
 		820.f, Definition.FootprintCm.Y * 0.55f);
 	Badge->SetWorldLocation(
 		Record.WorldTransform.GetLocation() + FVector(0.f, 0.f, BadgeZ));
-	// The management camera holds a fixed azimuth; face the text at it.
-	Badge->SetWorldRotation(FRotator(0.f, 180.f, 0.f));
+	// FACE THE LIVE CAMERA (audit 2026-09-01): Q/E rotates the camera
+	// azimuth, and a TextRender quad is one-sided - the fixed yaw went
+	// edge-on or backwards the moment the player turned. The pawn's
+	// yaw IS the azimuth, so the badge follows it.
+	float BadgeYaw = 180.f;
+	if (ShellViewPawn.IsValid())
+	{
+		BadgeYaw = ShellViewPawn->GetActorRotation().Yaw + 180.f;
+	}
+	Badge->SetWorldRotation(FRotator(0.f, BadgeYaw, 0.f));
+
+	// ROLE LIGHT ON THE FLOOR (audit 2026-09-01: six anonymous clones
+	// with no state readable at play zoom). A bar along the pad's
+	// aisle flank burns working-blue while the station holds a craft
+	// and idle-grey otherwise - the adopted indicator pair doing
+	// exactly the job it was chosen for.
+	TObjectPtr<UStaticMeshComponent>& IndicatorBar =
+		StationIndicatorBars.FindOrAdd(Record.StationId);
+	if (IndicatorBar == nullptr)
+	{
+		IndicatorBar = MakeBlockComponent(FName(*FString::Printf(
+			TEXT("%s_Indicator"), *Record.StationId.ToString())),
+			LBSpacecraftPalette::IndicatorIdle);
+		if (IndicatorBar != nullptr)
+		{
+			IndicatorBar->SetCastShadow(false);
+		}
+	}
+	if (IndicatorBar != nullptr)
+	{
+		const FQuat StationQuat = Record.WorldTransform.GetRotation();
+		const FVector BarAt = Record.WorldTransform.GetLocation()
+			+ StationQuat.RotateVector(FVector(0.f,
+				Definition.FootprintCm.Y * 0.5f + 60.f, 0.f));
+		IndicatorBar->SetWorldTransform(FTransform(StationQuat,
+			FVector(BarAt.X, BarAt.Y, 26.f),
+			FVector(Definition.FootprintCm.X / 100.f * 0.55f,
+				0.4f, 0.34f)));
+		if (UMaterialInstanceDynamic* BarMID =
+			Cast<UMaterialInstanceDynamic>(IndicatorBar->GetMaterial(0)))
+		{
+			BarMID->SetVectorParameterValue(TEXT("Color"), bWorking
+				? LBSpacecraftPalette::IndicatorWorking
+				: LBSpacecraftPalette::IndicatorIdle);
+		}
+	}
 }
 
 void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
@@ -4505,8 +4560,22 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
 				FMath::RoundToInt(4.f * Used / (float)Cap), 1, 4);
 		}
 	}
+	// THE STATION'S OWN COMPONENT, not always hull (audit 2026-09-01:
+	// presentation contradicted the ledger it claims to mirror - every
+	// stockpile drew hull sections even at an electronics station).
+	// The first allocated component names the pallets; hull is only
+	// the fallback for an unallocated station.
+	FName StockComponent(TEXT("Component.Hull"));
+	if (Record.AllocatedComponents.Num() > 0)
+	{
+		StockComponent = Record.AllocatedComponents[0];
+	}
 	TArray<FName> PalletKeys;
-	GetKitPalletCandidates(FName(TEXT("Component.Hull")), PalletKeys);
+	GetKitPalletCandidates(StockComponent, PalletKeys);
+	if (PalletKeys.Num() == 0)
+	{
+		GetKitPalletCandidates(FName(TEXT("Component.Hull")), PalletKeys);
+	}
 	while (Stacks.Num() > Wanted)
 	{
 		if (Stacks.Last() != nullptr)
@@ -6948,6 +7017,16 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		}
 	}
 	for (auto It = HaulerCargos.CreateIterator(); It; ++It)
+	{
+		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
+		{
+			It.Value()->SetVisibility(false);
+		}
+	}
+	// The slung crate too (audit 2026-09-01): hiding the body does not
+	// propagate, so every completed haul left a tan crate hanging in
+	// mid-air at the rack until the next haul happened to reuse it.
+	for (auto It = HaulerCrates.CreateIterator(); It; ++It)
 	{
 		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
 		{

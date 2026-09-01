@@ -1243,6 +1243,10 @@ private:
 	/** Swaps the cap's orange accent slot for the Start-anchor blue. */
 	void TintTrackCapForStart(class UStaticMeshComponent* CapComponent);
 
+	/** ROLE LIGHT (audit 2026-09-01): one floor bar per line station,
+	 *  working-blue with a craft in the bay, idle-grey without. */
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> StationIndicatorBars;
+
 	/** FIT-MOMENT FEEDBACK (owner 2026-09-01 "its not actualy fitting
 	 *  them"): per-unit fitted-count watermark, flash timer, and the
 	 *  blooming ring component that announces an interior part
