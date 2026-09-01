@@ -665,12 +665,31 @@ private:
 	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> UnitVisuals;
 
+	// UPROPERTY is load-bearing on every one of these caches: without
+	// it the pointer is invisible to GC, and the packaged soak's
+	// mid-session load purged the six Scout meshes the moment the
+	// departed ship's components died - the latch then handed
+	// RefreshUnits freed pointers and SetStaticMesh crashed the game
+	// (2026-09-01). The older caches below always had it; these were
+	// the stragglers.
 	bool bScoutV2LoadAttempted = false;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Hull;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Propulsion;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Power;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Electronics;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Navigation;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedScoutV2Interior;
 
 	/** The five non-Hull assemblies, attached as children of a Scout
@@ -774,14 +793,22 @@ private:
 	 *  ladder as the Scout; a missing cargo form falls back to the
 	 *  Scout form so the line never draws less. */
 	TSoftObjectPtr<UStaticMesh> CargoCraftMesh;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedCargoCraftMesh;
 	bool bCargoCraftLoadAttempted = false;
 	UStaticMesh* ResolveCargoCraftMesh();
 	TSoftObjectPtr<UStaticMesh> CargoChassisMesh;
 	TSoftObjectPtr<UStaticMesh> CargoAirframeMesh;
 	TSoftObjectPtr<UStaticMesh> CargoFittedMesh;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedCargoChassisMesh;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedCargoAirframeMesh;
+
+	UPROPERTY()
 	TObjectPtr<UStaticMesh> LoadedCargoFittedMesh;
 	bool bCargoChassisLoadAttempted = false;
 	bool bCargoAirframeLoadAttempted = false;
