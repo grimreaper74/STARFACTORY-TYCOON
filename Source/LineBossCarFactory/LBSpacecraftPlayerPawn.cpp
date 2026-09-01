@@ -633,6 +633,12 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 					}
 				}
 			}
+			// Pass-through stations tunnel ALONG the leg - the fitting
+			// convention inverted (the spray booth stood broadside).
+			if (PlacingDefinition->bProcessStation)
+			{
+				AxisYaw = 90.f - AxisYaw;
+			}
 			PlaceTransform = FTransform(FRotator(0.f, AxisYaw, 0.f),
 				LatticeSnapped);
 		}
@@ -1099,6 +1105,12 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 						Lattice.X = PrevCell.X;
 						AxisYaw = 90.f;
 					}
+				}
+				// Pass-through stations tunnel ALONG the leg, so the
+				// ghost previews the inverted convention too.
+				if (Definition->bProcessStation)
+				{
+					AxisYaw = 90.f - AxisYaw;
 				}
 				FString GhostWhy;
 				bWouldTake = SnapGameMode->GetBuildAuthority()

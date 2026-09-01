@@ -608,9 +608,19 @@ bool ALBSpacecraftBuildAuthority::AlignStationAxis(FName StationId,
 		{
 			continue;
 		}
+		// FITTING STATIONS ARCH ACROSS THE LEG; PASS-THROUGH STATIONS
+		// TUNNEL ALONG IT (owner 2026-09-01 "it put spray booth wrong
+		// way"). The canonical +Y line is the verified anchor: the
+		// booth stands at yaw 0 there while fitting stations wear 90,
+		// so a process station's rule is the fitting rule inverted.
+		const FLBSpacecraftStationDefinition* Definition =
+			FindDefinition(Record.DefinitionId);
+		const bool bPassThrough =
+			Definition != nullptr && Definition->bProcessStation;
 		FTransform Wanted = Record.WorldTransform;
-		Wanted.SetRotation(
-			FRotator(0.f, bAxisAlongY ? 90.f : 0.f, 0.f).Quaternion());
+		Wanted.SetRotation(FRotator(0.f,
+			(bAxisAlongY != bPassThrough) ? 90.f : 0.f, 0.f)
+				.Quaternion());
 		if (!EnvelopeIsLegal(Record.DefinitionId, Wanted, StationId,
 			Layout.Stations, OutReason))
 		{
