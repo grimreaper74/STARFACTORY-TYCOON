@@ -1503,6 +1503,17 @@ bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
 				TEXT("NOWHERE TO PAINT IT");
 			return false;
 		}
+		// AND NO FITTING, NO LINE (audit 2026-09-01): a booth-only
+		// layout slipped the check above, took no fixing split, and -
+		// because consumption is fail-open on an empty allocation -
+		// dispatched craft at full price with zero parts consumed.
+		if (!bHasFitting)
+		{
+			Layout.bCommissioned = false;
+			OutReason = TEXT("THE LINE HAS NO FITTING STATION - NOTHING ")
+				TEXT("WOULD PUT PARTS ON THE CRAFT");
+			return false;
+		}
 	}
 	Layout.bCommissioned = true;
 

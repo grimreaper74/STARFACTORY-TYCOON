@@ -164,6 +164,13 @@ private:
 	float SecondsSinceRebuild = 1.f;
 	FString PanelActionText;
 
+	/** Toast aging (audit 2026-09-01): action text that has stood
+	 *  unchanged for a few seconds yields the toast to a live sim
+	 *  alert - the strings themselves are never cleared, and the
+	 *  empty-only gate masked every stall alert for good. */
+	FString ToastLastComposed;
+	double ToastComposedAt = 0.0;
+
 	/** A small fingerprint of everything the lists render; a change
 	 *  triggers a rebuild (buttons are not thrashed every frame). */
 	FString ComputeRevision() const;

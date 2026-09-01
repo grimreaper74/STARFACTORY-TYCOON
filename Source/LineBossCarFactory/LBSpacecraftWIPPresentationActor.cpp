@@ -565,16 +565,11 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 	// register, and stations pick their crew by role - Winch under the
 	// assembly bays, CargoLift at storage and the dock, Assembly
 	// elsewhere.
-	// The drone charging dock model dresses every dock pad; the flat
-	// status pad stays underneath as the idle/charging colour channel.
-	// DRONEBATCH_v001 (2026-08-30): replaces the blockout - single
-	// static mesh, no moving parts (the "charging" cue is the pulsing
-	// material on the pad, already handled elsewhere).
-	StationMeshes.Add(FName(TEXT("Dock.Charging")),
-		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
-			TEXT("/Game/LineBoss/Candidates/Spacecraft/DroneBatch_v001/")
-			TEXT("charging_dock_v001/charging_dock_v001/StaticMeshes/")
-			TEXT("charging_dock_v001.charging_dock_v001"))));
+	// The drone charging dock registration lives in the ConceptDress
+	// block ABOVE (charging_dock_v002). A v001 re-Add used to sit here
+	// and silently won - TMap::Add replaces, and last writer wins - so
+	// every dock on the floor wore the superseded model while the
+	// approved v002 sat unused on disk (audit 2026-09-01).
 	// The placeholder rotor loop. Soft-referenced so a build without
 	// the imported wave still cooks and still runs - the rotors just
 	// turn in silence.
@@ -4342,6 +4337,34 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 			It.RemoveCurrent();
 		}
 	}
+	// Badges and stockpiles leaked past removal (audit 2026-09-01):
+	// a demolished station left its floating READY text and pallet
+	// stacks rendered at the vacated spot for the rest of the session.
+	for (auto It = StationBadges.CreateIterator(); It; ++It)
+	{
+		if (!Live.Contains(It.Key()))
+		{
+			if (It.Value() != nullptr)
+			{
+				It.Value()->DestroyComponent();
+			}
+			It.RemoveCurrent();
+		}
+	}
+	for (auto It = StationStockStacks.CreateIterator(); It; ++It)
+	{
+		if (!Live.Contains(It.Key()))
+		{
+			for (UStaticMeshComponent* Stack : It.Value())
+			{
+				if (Stack != nullptr)
+				{
+					Stack->DestroyComponent();
+				}
+			}
+			It.RemoveCurrent();
+		}
+	}
 }
 
 void ALBSpacecraftWIPPresentationActor::DestroyLineStationFrame(
@@ -4512,9 +4535,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
 		const FVector Base = Record.WorldTransform.GetLocation();
 		const float SideX = -(Definition.FootprintCm.X * 0.5f - 200.f);
 		const float RowY = (Index - (Wanted - 1) * 0.5f) * 240.f;
+		// IN THE STATION'S FRAME, not world axes (audit 2026-09-01):
+		// stations take their yaw from the track now, and a world-axis
+		// flank put the pallets ON the track for any rotated station.
+		const FQuat StationYaw = Record.WorldTransform.GetRotation();
 		Stack->SetWorldLocationAndRotation(
-			Base + FVector(SideX, RowY, 0.f),
-			FRotator(0.f, 90.f, 0.f));
+			Base + StationYaw.RotateVector(FVector(SideX, RowY, 0.f)),
+			StationYaw * FRotator(0.f, 90.f, 0.f).Quaternion());
 	}
 }
 
@@ -8738,7 +8765,16 @@ void ALBSpacecraftWIPPresentationActor::RefreshSiteDressing()
 		TryGetStationMesh(FName(TEXT("Site.WallPillar")));
 	if (TileMesh == nullptr || WallMesh == nullptr || PillarMesh == nullptr)
 	{
-		return;   // content absent: the map's own floor stands in
+		// Content absent: the map's own floor stands in - and that is
+		// FINAL for the session, because these are synchronous loads.
+		// Retrying meant three failed loads and a full relight EVERY
+		// FRAME (the 2026-09-01 boot crawl and the per-frame mobility
+		// warning storm in the log).
+		bSiteDressed = true;
+		UE_LOG(LogTemp, Warning, TEXT(
+			"SPACECRAFT PRESENTER: site dress meshes absent - the "
+			"map's own floor stands in"));
+		return;
 	}
 	bSiteDressed = true;
 	RefreshSiteScenery();

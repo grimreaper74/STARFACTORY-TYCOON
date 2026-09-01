@@ -68,6 +68,28 @@ bool FLBSpacecraftSavePipeline::SaveToSlot(
 			*OutReason);
 		return false;
 	}
+	// Runtime validates only when a route exists to validate against:
+	// ValidateRuntime refuses wholesale on an unconfigured coordinator,
+	// and a pre-commissioning session must stay saveable (the first
+	// version of this check broke exactly that).
+	if (Context.Coordinator->IsConfigured()
+		&& !Context.Coordinator->ValidateRuntime(Save->Runtime, OutReason))
+	{
+		OutReason = FString::Printf(TEXT("REFUSING TO SAVE INVALID STATE: %s"),
+			*OutReason);
+		return false;
+	}
+	// The loader's own coherence rule, enforced at WRITE time (audit
+	// 2026-09-01): runtime assignments against an uncommissioned layout
+	// saved fine and then refused to load forever - and quicksave had
+	// already overwritten slot 1 with it.
+	if (Save->Runtime.Assignments.Num() > 0
+		&& !Save->FactoryLayout.bCommissioned)
+	{
+		OutReason = TEXT("REFUSING TO SAVE: RUNTIME ASSIGNMENTS WITHOUT "
+			"A COMMISSIONED FACTORY");
+		return false;
+	}
 	if (!UGameplayStatics::SaveGameToSlot(Save, SlotName,
 		SpacecraftSaveUserIndex))
 	{

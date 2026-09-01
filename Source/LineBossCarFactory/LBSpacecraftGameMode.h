@@ -231,12 +231,21 @@ public:
 	 *  whose supply would strand live loads refuses (shed first), a rack
 	 *  still holding items refuses (empty it first), a consumer's load is
 	 *  disconnected with it. */
+	/** The coordinator/track hooks close the save-poisoning hole
+	 *  (audit 2026-09-01): removing a ROUTE station used to leave the
+	 *  coordinator ticking a stale route and the next quicksave wrote
+	 *  assignments against an uncommissioned layout - a shape the
+	 *  loader permanently refuses. With the hooks passed, removal
+	 *  fails closed while craft are on the line, and an idle route
+	 *  containing the station resets instead of going stale. */
 	static bool RemoveStationPowered(ALBSpacecraftBuildAuthority& InBuild,
 		ALBSpacecraftPowerAuthority& InPower,
 		ALBSpacecraftInventoryAuthority& InInventory,
 		ALBSpacecraftCraftingAuthority* InCrafting, FName StationId,
 		FString& OutReason,
-		ALBSpacecraftProductionAuthority* InLedger = nullptr);
+		ALBSpacecraftProductionAuthority* InLedger = nullptr,
+		class ALBSpacecraftRuntimeCoordinator* InCoordinator = nullptr,
+		class ALBSpacecraftTrackAuthority* InTrack = nullptr);
 
 	/** Selects a recipe for a PLACED station, class-derived from its
 	 *  record and research-gated like placement. */

@@ -2208,7 +2208,8 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 		*GameMode->GetBuildAuthority(), *GameMode->GetPowerAuthority(),
 		*GameMode->GetInventoryAuthority(),
 		GameMode->GetCraftingAuthority(), StationId, Reason,
-		GameMode->GetProductionAuthority()))
+		GameMode->GetProductionAuthority(), GameMode->GetCoordinator(),
+		GameMode->GetTrackAuthority()))
 	{
 		PanelActionText = FText::Format(
 			LOCTEXT("StationRemoved", "REMOVED {0}"),
@@ -2612,10 +2613,6 @@ void ULBSpacecraftCommandPanelWidget::NativeTick(const FGeometry& MyGeometry,
 		const FString SimAlert = GameMode != nullptr
 			? GameMode->GetSimAlert() : FString();
 		FString Combined = PanelActionText;
-		if (Combined.IsEmpty() && PawnText.IsEmpty())
-		{
-			Combined = SimAlert;
-		}
 		if (!PawnText.IsEmpty())
 		{
 			if (!Combined.IsEmpty())
@@ -2623,6 +2620,25 @@ void ULBSpacecraftCommandPanelWidget::NativeTick(const FGeometry& MyGeometry,
 				Combined += LINE_TERMINATOR;
 			}
 			Combined += PawnText;
+		}
+		// ACTION TEXT AGES OUT (audit 2026-09-01): neither action
+		// string is ever cleared, so after the player's first click of
+		// a session the sim's own complaints - resource stalls, start
+		// refusals - were masked for good and the factory could sit
+		// frozen in silence, defeating the channel built to prevent
+		// exactly that. A read message is a read message: once the
+		// same action text has stood for a few seconds, a live sim
+		// alert outranks it.
+		const double ToastNow = FPlatformTime::Seconds();
+		if (Combined != ToastLastComposed)
+		{
+			ToastLastComposed = Combined;
+			ToastComposedAt = ToastNow;
+		}
+		if (!SimAlert.IsEmpty()
+			&& (Combined.IsEmpty() || ToastNow - ToastComposedAt > 8.0))
+		{
+			Combined = SimAlert;
 		}
 		ToastBlock->SetText(FText::FromString(Combined));
 		if (ToastBorder != nullptr)

@@ -245,6 +245,15 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 		// computed and dropped, so the factory could sit frozen with
 		// nothing on screen to explain it.
 		RaiseSimAlert(Coordinator->GetLastHoldReason());
+		// AND A LINE THAT REFUSES TO START (audit 2026-09-01): the
+		// start refusal - a contract the route cannot service, an
+		// occupied head - went to the log only, and a stranger with an
+		// accepted contract stared at "LINE IDLE" with no explanation
+		// in any widget.
+		if (Coordinator->GetLastHoldReason().IsEmpty())
+		{
+			RaiseSimAlert(Coordinator->GetLastStartRefusal());
+		}
 	}
 	if (BuildAuthority != nullptr && CraftingAuthority != nullptr
 		&& InventoryAuthority != nullptr)
@@ -2362,8 +2371,35 @@ bool ALBSpacecraftGameMode::RemoveStationPowered(
 	ALBSpacecraftBuildAuthority& InBuild, ALBSpacecraftPowerAuthority& InPower,
 	ALBSpacecraftInventoryAuthority& InInventory,
 	ALBSpacecraftCraftingAuthority* InCrafting, FName StationId,
-	FString& OutReason, ALBSpacecraftProductionAuthority* InLedger)
+	FString& OutReason, ALBSpacecraftProductionAuthority* InLedger,
+	ALBSpacecraftRuntimeCoordinator* InCoordinator,
+	ALBSpacecraftTrackAuthority* InTrack)
 {
+	// SELLING A ROUTE STATION MID-RUN POISONED THE SAVE (audit
+	// 2026-09-01): the coordinator kept ticking the stale route, the
+	// craft ghosted through the missing station consuming nothing, and
+	// the next quicksave wrote assignments against an uncommissioned
+	// layout - a shape the loader permanently refuses, over slot 1.
+	// Fail closed while craft are on the line; an idle route that
+	// contains the station resets below instead of going stale.
+	bool bOnLiveRoute = false;
+	if (InCoordinator != nullptr && InCoordinator->IsConfigured())
+	{
+		for (const FLBSpacecraftRouteStep& Step : InCoordinator->GetRoute())
+		{
+			if (Step.StationId == StationId)
+			{
+				bOnLiveRoute = true;
+				break;
+			}
+		}
+		if (bOnLiveRoute && InCoordinator->GetAssignments().Num() > 0)
+		{
+			OutReason = TEXT("CRAFT ARE ON THE LINE - DELIVER THEM "
+				"BEFORE REBUILDING IT");
+			return false;
+		}
+	}
 	// A slot building removes its hosted units FIRST through this same
 	// powered path, so their supplies, loads and refunds unwind
 	// exactly like free-standing stations.
@@ -2444,6 +2480,19 @@ bool ALBSpacecraftGameMode::RemoveStationPowered(
 	if (!InBuild.RemoveStation(StationId, OutReason))
 	{
 		return false;
+	}
+	// The route that contained this station is void: clear it so sim,
+	// save and layout keep telling one story. The track node detaches
+	// for the same reason - a node naming a ghost station refuses to
+	// restore.
+	if (bOnLiveRoute && InCoordinator != nullptr)
+	{
+		InCoordinator->ResetConfiguration();
+	}
+	if (InTrack != nullptr)
+	{
+		FString DetachIgnored;
+		InTrack->DetachStationNode(StationId, DetachIgnored);
 	}
 	// Sell-back (PROVISIONAL 50% pending the owner's economy tuning).
 	if (InLedger != nullptr)
