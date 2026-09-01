@@ -31,15 +31,22 @@ struct FLBSpacecraftDepartingVisual
 	UPROPERTY()
 	float ElapsedSeconds = 0.f;
 
-	/** Flame cones riding this departure (belly then mains). Plain
-	 *  pointers: components are GC-referenced via the actor. */
-	TArray<UStaticMeshComponent*> BellyFlames;
-	TArray<UStaticMeshComponent*> MainFlames;
+	/** Flame cones riding this departure (belly then mains). These were
+	 *  plain pointers ("GC-referenced via the actor") - retention was
+	 *  never the risk, DANGLING was: the packaged save/load soak
+	 *  (2026-09-01) rolled the runtime back mid-session, the rebuilt
+	 *  unit reused the same UnitId, the unit-keyed caches destroyed the
+	 *  old components, and the departure's raw pointers crashed the
+	 *  game in ApplyGearRetraction. TObjectPtr UPROPERTYs read null
+	 *  once the component is gone. */
+	TArray<TWeakObjectPtr<UStaticMeshComponent>> BellyFlames;
+	TArray<TWeakObjectPtr<UStaticMeshComponent>> MainFlames;
 
 	/** The five non-Hull assemblies of a six-part Scout (v002), riding
 	 *  the departure as children of Component - they need no per-frame
 	 *  handling of their own, only explicit destruction at the end,
 	 *  same reason as the gear legs below. */
+	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> ScoutParts;
 
 	/** The three landing-gear legs, in nose/left/right order, each a
@@ -49,7 +56,7 @@ struct FLBSpacecraftDepartingVisual
 	 *  pelt (owner 2026-08-28: "needs to be on ship but disappears when
 	 *  it takes off at the end"). Their anchor Z is kept alongside so
 	 *  the retraction has somewhere to travel back from. */
-	TArray<UStaticMeshComponent*> GearLegs;
+	TArray<TWeakObjectPtr<UStaticMeshComponent>> GearLegs;
 	TArray<float> GearAnchorZCm;
 
 	/** How far a leg travels to fold away, in the CRAFT's local units.
@@ -816,8 +823,11 @@ private:
 	/** Flame cones attached to a craft: belly RCS + rear mains. */
 	struct FLBSpacecraftFlameSet
 	{
-		TArray<UStaticMeshComponent*> Belly;
-		TArray<UStaticMeshComponent*> Main;
+		// Weak: these caches outlived their components once (the
+		// packaged save/load soak, 2026-09-01) and crashed the game
+		// on dangling raw pointers. Weak pointers read invalid instead.
+		TArray<TWeakObjectPtr<UStaticMeshComponent>> Belly;
+		TArray<TWeakObjectPtr<UStaticMeshComponent>> Main;
 	};
 	TMap<FName, FLBSpacecraftFlameSet> UnitFlames;
 
@@ -825,7 +835,8 @@ private:
 	 *  each was hung at, so a retraction knows where it came from. */
 	struct FLBSpacecraftGearSet
 	{
-		TArray<UStaticMeshComponent*> Legs;
+		// Weak for the same reason as FLBSpacecraftFlameSet above.
+		TArray<TWeakObjectPtr<UStaticMeshComponent>> Legs;
 		TArray<float> AnchorZCm;
 		/** Fold travel in the craft's local units - see the departing
 		 *  visual's copy for why it is carried rather than recomputed. */
@@ -842,7 +853,7 @@ private:
 	/** Applies a retraction 0..1 to a set of legs: they climb into the
 	 *  belly and shrink away, and are hidden outright once folded. */
 	static void ApplyGearRetraction(
-		const TArray<UStaticMeshComponent*>& Legs,
+		const TArray<TWeakObjectPtr<UStaticMeshComponent>>& Legs,
 		const TArray<float>& AnchorZCm, float Retraction01,
 		float RetractTravelCm);
 
@@ -850,9 +861,20 @@ private:
 	FLBSpacecraftFlameSet MakeFlameSet(UStaticMeshComponent* CraftComponent,
 		FName KeyBase);
 	static void ApplyFlameIntensity(
-		const TArray<UStaticMeshComponent*>& Flames, float Intensity01,
-		float FlickerSeed);
+		const TArray<TWeakObjectPtr<UStaticMeshComponent>>& Flames,
+		float Intensity01, float FlickerSeed);
 	void DestroyFlameSet(FLBSpacecraftFlameSet& Flames);
+
+public:
+	/** Called after a save is restored mid-session. The rebuilt units
+	 *  reuse their UnitIds, so every per-unit visual cache and any
+	 *  in-flight departure animation refers to the OLD components -
+	 *  the packaged soak (2026-09-01) crashed on exactly that. Drops
+	 *  the departures outright; RefreshUnits rebuilds the rest from
+	 *  restored state. */
+	void OnRuntimeRestored();
+
+private:
 
 	struct FLBSpacecraftRunwayVisual
 	{

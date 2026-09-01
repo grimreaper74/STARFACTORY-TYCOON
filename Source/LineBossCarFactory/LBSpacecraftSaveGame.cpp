@@ -1,6 +1,8 @@
 #include "LBSpacecraftSaveGame.h"
 
+#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "LBSpacecraftWIPPresentationActor.h"
 
 namespace LBSpacecraftSavePipelinePrivate
 {
@@ -292,6 +294,23 @@ bool FLBSpacecraftSavePipeline::LoadFromSlot(
 		// Review fix: an uncommissioned save loaded over a running
 		// session must clear the live route and assignments too.
 		Context.Coordinator->ResetConfiguration();
+	}
+
+	// The presenter's in-flight departure animations point at the
+	// PRE-load craft components; the restored units reuse the same
+	// UnitIds and the stale animation crashed the packaged soak
+	// (2026-09-01, ApplyGearRetraction on a destroyed leg). Every load
+	// path funnels through here, so this is where they get dropped.
+	if (Context.Build != nullptr)
+	{
+		if (UWorld* World = Context.Build->GetWorld())
+		{
+			for (TActorIterator<ALBSpacecraftWIPPresentationActor>
+				It(World); It; ++It)
+			{
+				It->OnRuntimeRestored();
+			}
+		}
 	}
 
 	OutReason.Reset();

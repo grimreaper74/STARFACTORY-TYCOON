@@ -1029,15 +1029,15 @@ float ALBSpacecraftWIPPresentationActor::ComputeGearRetraction01(
 }
 
 void ALBSpacecraftWIPPresentationActor::ApplyGearRetraction(
-	const TArray<UStaticMeshComponent*>& Legs,
+	const TArray<TWeakObjectPtr<UStaticMeshComponent>>& Legs,
 	const TArray<float>& AnchorZCm, float Retraction01,
 	float RetractTravelCm)
 {
 	const float Folded = FMath::Clamp(Retraction01, 0.f, 1.f);
 	for (int32 Index = 0; Index < Legs.Num(); ++Index)
 	{
-		UStaticMeshComponent* Leg = Legs[Index];
-		if (Leg == nullptr)
+		UStaticMeshComponent* Leg = Legs[Index].Get();
+		if (!IsValid(Leg))
 		{
 			continue;
 		}
@@ -1247,13 +1247,13 @@ ALBSpacecraftWIPPresentationActor::MakeGearSet(
 }
 
 void ALBSpacecraftWIPPresentationActor::ApplyFlameIntensity(
-	const TArray<UStaticMeshComponent*>& Flames, float Intensity01,
-	float FlickerSeed)
+	const TArray<TWeakObjectPtr<UStaticMeshComponent>>& Flames,
+	float Intensity01, float FlickerSeed)
 {
 	for (int32 Index = 0; Index < Flames.Num(); ++Index)
 	{
-		UStaticMeshComponent* Flame = Flames[Index];
-		if (Flame == nullptr)
+		UStaticMeshComponent* Flame = Flames[Index].Get();
+		if (!IsValid(Flame))
 		{
 			continue;
 		}
@@ -1275,18 +1275,18 @@ void ALBSpacecraftWIPPresentationActor::ApplyFlameIntensity(
 void ALBSpacecraftWIPPresentationActor::DestroyFlameSet(
 	FLBSpacecraftFlameSet& Flames)
 {
-	for (UStaticMeshComponent* Flame : Flames.Belly)
+	for (const TWeakObjectPtr<UStaticMeshComponent>& Flame : Flames.Belly)
 	{
-		if (Flame != nullptr)
+		if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
 		{
-			Flame->DestroyComponent();
+			Live->DestroyComponent();
 		}
 	}
-	for (UStaticMeshComponent* Flame : Flames.Main)
+	for (const TWeakObjectPtr<UStaticMeshComponent>& Flame : Flames.Main)
 	{
-		if (Flame != nullptr)
+		if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
 		{
-			Flame->DestroyComponent();
+			Live->DestroyComponent();
 		}
 	}
 	Flames.Belly.Reset();
@@ -2810,8 +2810,8 @@ void ALBSpacecraftWIPPresentationActor::LogDroneCrew() const
 	{
 		for (int32 Leg = 0; Leg < Pair.Value.Legs.Num(); ++Leg)
 		{
-			const UStaticMeshComponent* Strut = Pair.Value.Legs[Leg];
-			if (Strut == nullptr) { continue; }
+			const UStaticMeshComponent* Strut = Pair.Value.Legs[Leg].Get();
+			if (!IsValid(Strut)) { continue; }
 			const FVector Local = Strut->GetRelativeLocation();
 			UE_LOG(LogLBSpacecraftPresenter, Display,
 				TEXT("GEAR %s leg%d local=(%.0f,%.0f,%.0f) anchorZ=%.0f ")
@@ -2826,8 +2826,8 @@ void ALBSpacecraftWIPPresentationActor::LogDroneCrew() const
 	{
 		for (int32 Leg = 0; Leg < Departure.GearLegs.Num(); ++Leg)
 		{
-			const UStaticMeshComponent* Strut = Departure.GearLegs[Leg];
-			if (Strut == nullptr) { continue; }
+			const UStaticMeshComponent* Strut = Departure.GearLegs[Leg].Get();
+			if (!IsValid(Strut)) { continue; }
 			UE_LOG(LogLBSpacecraftPresenter, Display,
 				TEXT("GEAR-INFLIGHT leg%d t=%.2f localZ=%.0f ")
 				TEXT("anchorZ=%.0f visible=%d"),
@@ -6275,7 +6275,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					for (int32 Corner = 0;
 						Corner < Flames->Belly.Num(); ++Corner)
 					{
-						TArray<UStaticMeshComponent*> Single;
+						TArray<TWeakObjectPtr<UStaticMeshComponent>> Single;
 						Single.Add(Flames->Belly[Corner]);
 						ApplyFlameIntensity(Single,
 							ComputeRCSCorrection01(WobblePitch,
@@ -6672,9 +6672,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// component, and destroying a parent DETACHES its
 				// children rather than destroying them - the same trap
 				// the rotor voices taught.
-				for (UStaticMeshComponent* Leg : Gear->Legs)
+				for (const TWeakObjectPtr<UStaticMeshComponent>& Leg :
+					Gear->Legs)
 				{
-					if (Leg != nullptr) { Leg->DestroyComponent(); }
+					if (UStaticMeshComponent* LiveLeg = Leg.Get();
+						IsValid(LiveLeg))
+					{
+						LiveLeg->DestroyComponent();
+					}
 				}
 				UnitGear.Remove(It.Key());
 			}
@@ -6747,7 +6752,7 @@ void ALBSpacecraftWIPPresentationActor::TickDepartures(float DeltaSeconds)
 	for (int32 Index = Departing.Num() - 1; Index >= 0; --Index)
 	{
 		FLBSpacecraftDepartingVisual& Departure = Departing[Index];
-		if (Departure.Component == nullptr)
+		if (!IsValid(Departure.Component))
 		{
 			Departing.RemoveAt(Index);
 			continue;
@@ -6800,30 +6805,33 @@ void ALBSpacecraftWIPPresentationActor::TickDepartures(float DeltaSeconds)
 			Departure.GearRetractTravelCm);
 		if (Departure.ElapsedSeconds >= Total)
 		{
-			for (UStaticMeshComponent* Flame : Departure.BellyFlames)
+			for (const TWeakObjectPtr<UStaticMeshComponent>& Flame :
+				Departure.BellyFlames)
 			{
-				if (Flame != nullptr)
+				if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
 				{
-					Flame->DestroyComponent();
+					Live->DestroyComponent();
 				}
 			}
-			for (UStaticMeshComponent* Flame : Departure.MainFlames)
+			for (const TWeakObjectPtr<UStaticMeshComponent>& Flame :
+				Departure.MainFlames)
 			{
-				if (Flame != nullptr)
+				if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
 				{
-					Flame->DestroyComponent();
+					Live->DestroyComponent();
 				}
 			}
-			for (UStaticMeshComponent* Leg : Departure.GearLegs)
+			for (const TWeakObjectPtr<UStaticMeshComponent>& Leg :
+				Departure.GearLegs)
 			{
-				if (Leg != nullptr)
+				if (UStaticMeshComponent* Live = Leg.Get(); IsValid(Live))
 				{
-					Leg->DestroyComponent();
+					Live->DestroyComponent();
 				}
 			}
 			for (UStaticMeshComponent* Part : Departure.ScoutParts)
 			{
-				if (Part != nullptr)
+				if (IsValid(Part))
 				{
 					Part->DestroyComponent();
 				}
@@ -6832,6 +6840,53 @@ void ALBSpacecraftWIPPresentationActor::TickDepartures(float DeltaSeconds)
 			Departing.RemoveAt(Index);
 		}
 	}
+}
+
+void ALBSpacecraftWIPPresentationActor::OnRuntimeRestored()
+{
+	// A restore rebuilds units under their ORIGINAL UnitIds, so an
+	// in-flight departure animation belongs to a craft that no longer
+	// exists. Destroy whatever of it still lives and drop the lot -
+	// RefreshUnits reconstructs parked craft from the restored state.
+	for (FLBSpacecraftDepartingVisual& Departure : Departing)
+	{
+		for (const TWeakObjectPtr<UStaticMeshComponent>& Flame :
+			Departure.BellyFlames)
+		{
+			if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
+			{
+				Live->DestroyComponent();
+			}
+		}
+		for (const TWeakObjectPtr<UStaticMeshComponent>& Flame :
+			Departure.MainFlames)
+		{
+			if (UStaticMeshComponent* Live = Flame.Get(); IsValid(Live))
+			{
+				Live->DestroyComponent();
+			}
+		}
+		for (const TWeakObjectPtr<UStaticMeshComponent>& Leg :
+			Departure.GearLegs)
+		{
+			if (UStaticMeshComponent* Live = Leg.Get(); IsValid(Live))
+			{
+				Live->DestroyComponent();
+			}
+		}
+		for (UStaticMeshComponent* Part : Departure.ScoutParts)
+		{
+			if (IsValid(Part))
+			{
+				Part->DestroyComponent();
+			}
+		}
+		if (IsValid(Departure.Component))
+		{
+			Departure.Component->DestroyComponent();
+		}
+	}
+	Departing.Reset();
 }
 
 bool ALBSpacecraftWIPPresentationActor::GetUnitVisualLocation(FName UnitId,
