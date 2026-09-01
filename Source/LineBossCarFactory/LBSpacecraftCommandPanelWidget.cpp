@@ -249,7 +249,7 @@ FString ULBSpacecraftCommandPanelWidget::FormatTimeRemaining(
 {
 	if (SecondsRemaining <= 0.0)
 	{
-		return LOCTEXT("ContractLate", "LATE").ToString();
+		return LOCTEXT("ContractLate", "Late").ToString();
 	}
 	const int32 Whole = FMath::FloorToInt(SecondsRemaining);
 	const int32 Hours = Whole / 3600;
@@ -266,10 +266,10 @@ FString ULBSpacecraftCommandPanelWidget::BuildHeldContractLine(
 {
 	const FText State =
 		Contract.State == ELBSpacecraftContractState::Expired
-			? LOCTEXT("HeldExpired", "LATE")
+			? LOCTEXT("HeldExpired", "Late")
 			: (Contract.State == ELBSpacecraftContractState::Offered
-				? LOCTEXT("HeldOffered", "OFFERED")
-				: LOCTEXT("HeldBuilding", "BUILDING"));
+				? LOCTEXT("HeldOffered", "Offered")
+				: LOCTEXT("HeldBuilding", "Building"));
 	// The clock, when there is one to show.
 	FString Clock;
 	if (Contract.DeadlineSimSeconds > 0.0
@@ -300,7 +300,7 @@ FString ULBSpacecraftCommandPanelWidget::BuildFinishedStockLine(
 		return FString();
 	}
 	return FText::Format(
-		LOCTEXT("FinishedStockLine", "{0}  x{1}  BUILT, READY TO SELL"),
+		LOCTEXT("FinishedStockLine", "{0}  x{1}  built, ready to sell"),
 		FText::FromName(RecipeId), Count).ToString();
 }
 
@@ -348,7 +348,7 @@ FString ULBSpacecraftCommandPanelWidget::BuildResearchButtonLabel(
 	}
 	// Catalogue display names localize in a later string-table pass.
 	return bUnlocked
-		? FText::Format(LOCTEXT("ResearchUnlocked", "{0}  UNLOCKED"),
+		? FText::Format(LOCTEXT("ResearchUnlocked", "{0}  unlocked"),
 			FText::FromString(Node->DisplayName)).ToString()
 		: FText::Format(LOCTEXT("ResearchCost", "{0}  ({1} pts)"),
 			FText::FromString(Node->DisplayName),
@@ -781,7 +781,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					if (Remaining > 0)
 					{
 						AddSectionLabel(FText::Format(
-							LOCTEXT("OpenOrder", "OPEN ORDER: {0} TO GO"),
+							LOCTEXT("OpenOrder", "Open order: {0} to go"),
 							Remaining).ToString());
 					}
 				}
@@ -807,7 +807,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						->GetSelectedRecipe(Selected) != nullptr)
 				{
 					AddTaggedButton(
-						LOCTEXT("OrderFive", "ORDER 5 CYCLES").ToString(),
+						LOCTEXT("OrderFive", "Order 5 cycles").ToString(),
 						Selected,
 						[this](FName InTag) { HandleOrderParts(InTag); });
 				}
@@ -838,7 +838,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 										FVector(-9900.f, 0.f, 0.f)));
 						AddTaggedButton(FText::Format(
 							LOCTEXT("ConnectBelt",
-								"CONNECT SUPPLY BELT  ({0})"),
+								"Connect supply belt  ({0})"),
 							FText::FromString(
 								ULBSpacecraftTopBarWidget::FormatCurrency(
 									BeltCost))).ToString(),
@@ -849,7 +849,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					{
 						AddTaggedButton(FText::Format(
 							LOCTEXT("RemoveBelt",
-								"REMOVE BELT {0}"),
+								"Remove belt {0}"),
 							FText::FromName(Route->RouteId)).ToString(),
 							Route->RouteId,
 							[this](FName InTag) { HandleRemoveBelt(InTag); });
@@ -884,7 +884,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 								continue;
 							}
 							AddTaggedButton(FText::Format(
-								LOCTEXT("InstallUnit", "INSTALL {0}"),
+								LOCTEXT("InstallUnit", "Install {0}"),
 								FText::FromString(Unit.DisplayName))
 									.ToString(),
 								Unit.DefinitionId,
@@ -930,15 +930,15 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 							AddTaggedButton(
 								Free > 0
 									? FText::Format(
-										LOCTEXT("HireDrone", "HIRE {0}"),
+										LOCTEXT("HireDrone", "Hire {0}"),
 										FText::FromString(
-											Kind.DisplayName.ToUpper()))
+											Kind.DisplayName))
 										.ToString()
 									: FText::Format(
 										LOCTEXT("SlotsFull",
-											"{0} - SLOTS FULL"),
+											"{0} - slots full"),
 										FText::FromString(
-											Kind.DisplayName.ToUpper()))
+											Kind.DisplayName))
 										.ToString(),
 								Kind.KindId,
 								[this](FName InTag)
@@ -967,11 +967,11 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 								AddTaggedButton(
 									FText::Format(
 										LOCTEXT("DismissDrone",
-											"{0}. {1}  -  DISMISS"),
+											"{0}. {1}  -  dismiss"),
 										FText::AsNumber(CrewSlot + 1),
 										FText::FromString(Kind != nullptr
-											? Kind->DisplayName.ToUpper()
-											: TEXT("DRONE")))
+											? Kind->DisplayName
+											: TEXT("Drone")))
 										.ToString(),
 									FName(*FString::FromInt(CrewSlot)),
 									[this](FName InTag)
@@ -1001,9 +1001,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 								ItemId,
 								[this](FName InTag)
 								{ HandleToggleAllocation(InTag); },
-								bOn ? LOCTEXT("Fitted", "FITTED")
+								bOn ? LOCTEXT("Fitted", "Fitted")
 										.ToString()
-									: LOCTEXT("NotFitted", "OFF")
+									: LOCTEXT("NotFitted", "Off")
 										.ToString(),
 								false, bOn);
 						}
@@ -1013,7 +1013,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				// (owner 2026-09-01): the relayer attaches every
 				// station on placement and removal.
 				AddTaggedButton(
-					LOCTEXT("RemoveStation", "REMOVE STATION").ToString(),
+					LOCTEXT("RemoveStation", "Remove station").ToString(),
 					Selected,
 					[this](FName InTag) { HandleRemoveStation(InTag); });
 			}
@@ -1223,7 +1223,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					if (Parts.IsEmpty())
 					{
 						Parts = LOCTEXT("SplitPassThrough",
-							"PASS-THROUGH").ToString();
+							"Pass-through").ToString();
 					}
 					const float StopSeconds = bRecipe
 						? FLBSpacecraftProductionCatalog::
@@ -1261,7 +1261,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 								if (Live.IsEmpty())
 								{
 									Live = LOCTEXT("SplitDeparting",
-										"DEPARTING").ToString();
+										"Departing").ToString();
 								}
 							}
 							else
@@ -1286,7 +1286,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 									TEXT(" Component"));
 								Live = FText::Format(
 									LOCTEXT("SplitFitting",
-										"FITTING {0}  {1}%"),
+										"Fitting {0}  {1}%"),
 									FText::FromString(LiveName),
 									FText::AsNumber(FMath::RoundToInt(
 										Progress * 100.f)))
@@ -1298,14 +1298,14 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					AddTaggedButton((Live.IsEmpty()
 						? FText::Format(
 							LOCTEXT("SplitRow",
-								"{0}. FITS {1}  (~{2} s STOP)"),
+								"{0}. Fits {1}  (~{2} s stop)"),
 							FText::AsNumber(Index + 1),
 							FText::AsNumber(SplitCounts[Index]),
 							FText::AsNumber(FMath::RoundToInt(
 								StopSeconds)))
 						: FText::Format(
 							LOCTEXT("SplitRowLive",
-								"{0}. FITS {1}  -  {2}"),
+								"{0}. Fits {1}  -  {2}"),
 							FText::AsNumber(Index + 1),
 							FText::AsNumber(SplitCounts[Index]),
 							FText::FromString(Live))).ToString(),
@@ -1353,7 +1353,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				LOCTEXT("SectionLand", "LAND - {0} BAYS OWNED"),
 				FText::AsNumber(Land->GetOwnedBayCount())).ToString());
 			AddTaggedButton(FText::Format(
-				LOCTEXT("BuyBay", "BUY ADJACENT BAY  ({0})"),
+				LOCTEXT("BuyBay", "Buy adjacent bay  ({0})"),
 				FText::FromString(
 					ULBSpacecraftTopBarWidget::FormatCurrency(
 						Land->BayCostPence))).ToString(),
@@ -1396,7 +1396,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					continue;
 				}
 				AddSectionLabel(FString::Printf(
-					TEXT("%s - %d DEFECT POINTS, %.0f s REWORK OWED"),
+					TEXT("%s - %d defect points, %.0f s rework owed"),
 					*UnitId.ToString(), Unit->DefectPoints,
 					Unit->ReworkSecondsRemaining));
 
@@ -1411,7 +1411,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				{
 					AddTaggedButton(FText::Format(
 						LOCTEXT("Concede",
-							"   SHIP ON CONCESSION  (-{0}% , -{1} REP)"),
+							"   Ship on concession  (-{0}% , -{1} rep)"),
 						FText::AsNumber(FLBSpacecraftProductionCatalog
 							::ConcessionDeductionPercent(
 								Unit->DefectPoints)),
@@ -1427,10 +1427,10 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					// nothing; the named reason is how the player
 					// learns the ceiling exists at all.
 					AddSectionLabel(FString::Printf(
-						TEXT("   NO CONCESSION: %s"), *WhyNot));
+						TEXT("   No concession: %s"), *WhyNot));
 				}
 				AddTaggedButton(LOCTEXT("Scrap",
-					"   SCRAP THE CRAFT").ToString(), UnitId,
+					"   Scrap the craft").ToString(), UnitId,
 					[this](FName InTag) { HandleScrap(InTag); });
 			}
 		}
@@ -1460,11 +1460,11 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			AddSectionLabel(
 				LOCTEXT("SectionSession", "SESSION").ToString());
 			AddTaggedButton(
-				LOCTEXT("SaveGame", "SAVE GAME").ToString(),
+				LOCTEXT("SaveGame", "Save game").ToString(),
 				FName(TEXT("Session.Save")),
 				[this](FName) { HandleQuickSave(); });
 			AddTaggedButton(
-				LOCTEXT("LoadGame", "LOAD GAME").ToString(),
+				LOCTEXT("LoadGame", "Load game").ToString(),
 				FName(TEXT("Session.Load")),
 				[this](FName) { HandleQuickLoad(); });
 		}
@@ -1475,7 +1475,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 	{
 		AddSectionLabel(LOCTEXT("SectionLine", "LINE").ToString());
 		AddTaggedButton(LOCTEXT("CommissionLine",
-				"COMMISSION THE LINE").ToString(), NAME_None,
+				"Commission the line").ToString(), NAME_None,
 			[this](FName InTag) { HandleCommission(InTag); });
 		AddSectionLabel(
 			LOCTEXT("SectionSupply", "SUPPLY - BUY RAW MATERIALS")
@@ -1484,7 +1484,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		// this, so stocking up for a long production run does not mean
 		// twenty clicks per item.
 		AddTaggedButton(FText::Format(
-			LOCTEXT("BuyMultiplier", "BUY QUANTITY  x{0}"),
+			LOCTEXT("BuyMultiplier", "Buy quantity  x{0}"),
 			FText::AsNumber(BuyMultiplier)).ToString(), NAME_None,
 			[this](FName InTag) { HandleCycleBuyMultiplier(InTag); },
 			LOCTEXT("BuyMultiplierHint",
@@ -1644,7 +1644,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					bAnyRefit = true;
 				}
 				AddTaggedButton(FText::Format(
-					LOCTEXT("StartRefit", "BRING {0} IN  ({1})"),
+					LOCTEXT("StartRefit", "Bring {0} in  ({1})"),
 					FText::FromName(Refit.RefitOriginUnitId),
 					FText::FromString(
 						ULBSpacecraftTopBarWidget::FormatCurrency(
@@ -1707,7 +1707,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				// one is worth less and is refused outright once it
 				// re-fits nothing at all.
 				AddTaggedButton(FText::Format(
-					LOCTEXT("OfferRefit", "OFFER A REFIT ON {0}"),
+					LOCTEXT("OfferRefit", "Offer a refit on {0}"),
 					FText::FromName(Unit.UnitId)).ToString(),
 					Unit.UnitId,
 					[this](FName InTag) { HandleOfferRefit(InTag); },
@@ -1743,7 +1743,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			if (!bAnyOffer)
 			{
 				AddSectionLabel(LOCTEXT("NoOffers",
-					"NO OFFERS ON THE BOARD").ToString());
+					"No offers on the board").ToString());
 			}
 		}
 		break;
@@ -1763,7 +1763,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			const bool bUnlocked = Research != nullptr
 				&& Research->IsNodeUnlocked(Node.NodeId);
 			const FString Sub = bUnlocked
-				? LOCTEXT("ResearchDone", "UNLOCKED").ToString()
+				? LOCTEXT("ResearchDone", "Unlocked").ToString()
 				: FText::Format(LOCTEXT("ResearchPts", "{0} pts"),
 					Node.CostPoints).ToString();
 			ULBSpacecraftTaggedButton* Button = AddTaggedButton(
@@ -1855,7 +1855,7 @@ void ULBSpacecraftCommandPanelWidget::HandleSelectRecipe(FName RecipeId)
 		RecipeId, Reason))
 	{
 		PanelActionText = FText::Format(
-			LOCTEXT("RecipeSelected", "RECIPE {0} SELECTED"),
+			LOCTEXT("RecipeSelected", "Recipe {0} selected"),
 			FText::FromName(RecipeId)).ToString();
 	}
 	else
@@ -1944,7 +1944,7 @@ void ULBSpacecraftCommandPanelWidget::HandleSplitTake(FName StationId)
 	if (Adjusted.Num() == 0)
 	{
 		PanelActionText = LOCTEXT("SplitTakeRefused",
-			"THE NEXT STATION HAS NOTHING TO GIVE").ToString();
+			"The next station has nothing to give").ToString();
 		return;
 	}
 	// WRITES to the craft on the line, not to the Scout. Taking a
@@ -1979,7 +1979,7 @@ void ULBSpacecraftCommandPanelWidget::HandleSplitGive(FName StationId)
 	if (Adjusted.Num() == 0)
 	{
 		PanelActionText = LOCTEXT("SplitGiveRefused",
-			"THIS STATION HAS NOTHING TO GIVE").ToString();
+			"This station has nothing to give").ToString();
 		return;
 	}
 	// WRITES to the craft on the line, not to the Scout. Taking a
@@ -2044,7 +2044,7 @@ void ULBSpacecraftCommandPanelWidget::HandleOfferRefit(FName UnitId)
 		ELBSpacecraftStage::HullFabrication, 0.0, ContractId, Reason))
 	{
 		Reason = FString::Printf(
-			TEXT("%s IS OFFERED A REFIT - TAKE IT ON THE BOARD"),
+			TEXT("%s is offered a refit - take it on the board"),
 			*UnitId.ToString());
 	}
 	PanelActionText = Reason;
@@ -2062,7 +2062,7 @@ void ULBSpacecraftCommandPanelWidget::HandleStartRefit(FName ContractId)
 	if (GameMode->GetProductionAuthority()->CreateRefitUnit(
 		ContractId, UnitId, Reason))
 	{
-		Reason = FString::Printf(TEXT("%s IS BACK ON THE LINE"),
+		Reason = FString::Printf(TEXT("%s is back on the line"),
 			*UnitId.ToString());
 	}
 	PanelActionText = Reason;
@@ -2082,7 +2082,7 @@ void ULBSpacecraftCommandPanelWidget::HandleConcede(FName UnitId)
 		// concession is the player signing for a deviation, and the
 		// confirmation should read like a record of it.
 		Reason = FString::Printf(
-			TEXT("%s SHIPS ON A RECORDED CONCESSION"), *UnitId.ToString());
+			TEXT("%s ships on a recorded concession"), *UnitId.ToString());
 	}
 	PanelActionText = Reason;
 }
@@ -2097,7 +2097,7 @@ void ULBSpacecraftCommandPanelWidget::HandleScrap(FName UnitId)
 	FString Reason;
 	if (GameMode->GetProductionAuthority()->ScrapUnit(UnitId, Reason))
 	{
-		Reason = FString::Printf(TEXT("%s SCRAPPED - THE PAD IS CLEAR"),
+		Reason = FString::Printf(TEXT("%s scrapped - the pad is clear"),
 			*UnitId.ToString());
 	}
 	PanelActionText = Reason;
@@ -2115,7 +2115,7 @@ void ULBSpacecraftCommandPanelWidget::HandleBuyBay(FName Unused)
 	static const FIntPoint Sides[] = {
 		FIntPoint(1, 0), FIntPoint(0, 1),
 		FIntPoint(0, -1), FIntPoint(-1, 0) };
-	FString Reason = TEXT("NO LEGAL ADJACENT BAY");
+	FString Reason = TEXT("No legal adjacent bay");
 	const TArray<FIntPoint> Owned = Land->CaptureSnapshot().OwnedBays;
 	bool bBought = false;
 	for (int32 Bay = 0; Bay < Owned.Num() && !bBought; ++Bay)
@@ -2246,7 +2246,7 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 		GameMode->GetTrackAuthority()))
 	{
 		PanelActionText = FText::Format(
-			LOCTEXT("StationRemoved", "REMOVED {0}"),
+			LOCTEXT("StationRemoved", "Removed {0}"),
 			FText::FromName(StationId)).ToString();
 		if (Pawn != nullptr)
 		{
@@ -2289,7 +2289,7 @@ void ULBSpacecraftCommandPanelWidget::HandleCommission(FName Unused)
 			GameMode->GetTrackAuthority()))
 	{
 		PanelActionText = LOCTEXT("LineCommissioned",
-			"LINE COMMISSIONED AND CONFIGURED").ToString();
+			"Line commissioned and configured").ToString();
 	}
 	else
 	{
@@ -2334,7 +2334,7 @@ void ULBSpacecraftCommandPanelWidget::HandleAcceptOffer(FName ContractId)
 		Reason))
 	{
 		PanelActionText = FText::Format(
-			LOCTEXT("OfferAccepted", "CONTRACT ACCEPTED: {0}"),
+			LOCTEXT("OfferAccepted", "Contract accepted: {0}"),
 			FText::FromName(ContractId)).ToString();
 	}
 	else
@@ -2356,7 +2356,7 @@ void ULBSpacecraftCommandPanelWidget::HandleContract(FName RecipeId)
 		GameMode->GetReputation()))
 	{
 		PanelActionText = FText::Format(
-			LOCTEXT("ContractAccepted", "CONTRACT ACCEPTED: {0} x1"),
+			LOCTEXT("ContractAccepted", "Contract accepted: {0} x1"),
 			FText::FromName(RecipeId)).ToString();
 	}
 	else
@@ -2519,7 +2519,7 @@ void ULBSpacecraftCommandPanelWidget::HandleInstallUnit(
 		GameMode->GetInventoryAuthority()))
 	{
 		PanelActionText = FText::Format(
-			LOCTEXT("UnitInstalled", "INSTALLED {0}"),
+			LOCTEXT("UnitInstalled", "Installed {0}"),
 			FText::FromName(UnitId)).ToString();
 	}
 	else

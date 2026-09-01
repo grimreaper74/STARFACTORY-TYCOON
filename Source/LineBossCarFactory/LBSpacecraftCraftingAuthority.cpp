@@ -637,7 +637,7 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 	const TArray<FLBSpacecraftItemRecipe>& Table = GetRecipeTable();
 	if (Table.Num() == 0)
 	{
-		OutReason = TEXT("RECIPE TABLE IS EMPTY");
+		OutReason = TEXT("Recipe table is empty");
 		return false;
 	}
 	TSet<FName> SeenIds;
@@ -647,12 +647,12 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 		if (Recipe.RecipeId.IsNone() || Recipe.DisplayName.IsEmpty()
 			|| Recipe.StationClassId.IsNone())
 		{
-			OutReason = TEXT("RECIPE ROW IS MALFORMED");
+			OutReason = TEXT("Recipe row is malformed");
 			return false;
 		}
 		if (SeenIds.Contains(Recipe.RecipeId))
 		{
-			OutReason = FString::Printf(TEXT("DUPLICATE RECIPE ID %s"),
+			OutReason = FString::Printf(TEXT("Duplicate recipe ID %s"),
 				*Recipe.RecipeId.ToString());
 			return false;
 		}
@@ -660,14 +660,14 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 		if (Recipe.CycleSeconds <= 0.0)
 		{
 			OutReason = FString::Printf(
-				TEXT("RECIPE %s HAS A NON-POSITIVE CYCLE"),
+				TEXT("Recipe %s has a non-positive cycle"),
 				*Recipe.RecipeId.ToString());
 			return false;
 		}
 		if (Recipe.Inputs.Num() == 0 || Recipe.Outputs.Num() == 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("RECIPE %s MUST CONSUME AND PRODUCE"),
+				TEXT("Recipe %s must consume and produce"),
 				*Recipe.RecipeId.ToString());
 			return false;
 		}
@@ -678,7 +678,7 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 				|| Input.Count <= 0)
 			{
 				OutReason = FString::Printf(
-					TEXT("RECIPE %s HAS AN INVALID INPUT"),
+					TEXT("Recipe %s has an invalid input"),
 					*Recipe.RecipeId.ToString());
 				return false;
 			}
@@ -691,21 +691,21 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 			if (Item == nullptr || Output.Count <= 0)
 			{
 				OutReason = FString::Printf(
-					TEXT("RECIPE %s HAS AN INVALID OUTPUT"),
+					TEXT("Recipe %s has an invalid output"),
 					*Recipe.RecipeId.ToString());
 				return false;
 			}
 			if (Item->Category == ELBSpacecraftItemCategory::Raw)
 			{
 				OutReason = FString::Printf(
-					TEXT("RECIPE %s CRAFTS A RAW ITEM - RAW ARRIVES BY INTAKE"),
+					TEXT("Recipe %s crafts a raw item - raw arrives by intake"),
 					*Recipe.RecipeId.ToString());
 				return false;
 			}
 			if (InputIds.Contains(Output.ItemId))
 			{
 				OutReason = FString::Printf(
-					TEXT("RECIPE %s USES AN ITEM AS INPUT AND OUTPUT"),
+					TEXT("Recipe %s uses an item as input and output"),
 					*Recipe.RecipeId.ToString());
 				return false;
 			}
@@ -720,12 +720,12 @@ bool FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(FString& OutReason)
 			&& !ProducedItems.Contains(Item.ItemId))
 		{
 			OutReason = FString::Printf(
-				TEXT("ITEM %s HAS NO PRODUCING RECIPE - CHAIN IS BROKEN"),
+				TEXT("Item %s has no producing recipe - chain is broken"),
 				*Item.ItemId.ToString());
 			return false;
 		}
 	}
-	OutReason = TEXT("RECIPE TABLE VALID");
+	OutReason = TEXT("Recipe table valid");
 	return true;
 }
 
@@ -776,8 +776,8 @@ bool FLBSpacecraftRecipeCatalogue::PlanBuild(
 			if (Maker == nullptr)
 			{
 				OutReason = FString::Printf(
-					TEXT("NOTHING MAKES %s AND IT IS NOT RAW - ")
-					TEXT("THE CHAIN IS OPEN"), *Want.Key.ToString());
+					TEXT("Nothing makes %s and it is not raw - ")
+					TEXT("the chain is open"), *Want.Key.ToString());
 				return false;
 			}
 			FLBSpacecraftPlannedRun Run;
@@ -796,8 +796,8 @@ bool FLBSpacecraftRecipeCatalogue::PlanBuild(
 	}
 	if (Guard >= 2000)
 	{
-		OutReason = TEXT("BUILD PLAN DID NOT TERMINATE - THE RECIPE ")
-			TEXT("CHAIN IS CYCLIC OR ABSURDLY DEEP");
+		OutReason = TEXT("Build plan did not terminate - the recipe ")
+			TEXT("chain is cyclic or absurdly deep");
 		return false;
 	}
 	for (const TPair<FName, int32>& Want : Need)
@@ -811,7 +811,7 @@ bool FLBSpacecraftRecipeCatalogue::PlanBuild(
 			OutRawNeeds.Add(Want.Key, Want.Value);
 		}
 	}
-	OutReason = FString::Printf(TEXT("PLANNED %d RUNS, %d RAW KINDS"),
+	OutReason = FString::Printf(TEXT("Planned %d runs, %d raw kinds"),
 		OutRuns.Num(), OutRawNeeds.Num());
 	return true;
 }
@@ -852,21 +852,21 @@ bool ALBSpacecraftCraftingAuthority::SelectRecipe(FName StationId,
 {
 	if (StationId.IsNone())
 	{
-		OutReason = TEXT("RECIPE SELECTION REQUIRES A STATION ID");
+		OutReason = TEXT("Recipe selection requires a station ID");
 		return false;
 	}
 	const FLBSpacecraftItemRecipe* Recipe =
 		FLBSpacecraftRecipeCatalogue::FindRecipe(RecipeId);
 	if (Recipe == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN RECIPE %s"),
+		OutReason = FString::Printf(TEXT("Unknown recipe %s"),
 			*RecipeId.ToString());
 		return false;
 	}
 	if (Recipe->StationClassId != StationClassId)
 	{
 		OutReason = FString::Printf(
-			TEXT("RECIPE %s BELONGS TO %s, NOT %s - SELECTION REFUSED"),
+			TEXT("Recipe %s belongs to %s, not %s - selection refused"),
 			*RecipeId.ToString(), *Recipe->StationClassId.ToString(),
 			*StationClassId.ToString());
 		return false;
@@ -879,7 +879,7 @@ bool ALBSpacecraftCraftingAuthority::SelectRecipe(FName StationId,
 			Selection.RecipeId = RecipeId;
 			// A different recipe starts from zero - no smuggled progress.
 			Selection.CycleElapsedSeconds = 0.0;
-			OutReason = TEXT("RECIPE RESELECTED");
+			OutReason = TEXT("Recipe reselected");
 			return true;
 		}
 	}
@@ -888,7 +888,7 @@ bool ALBSpacecraftCraftingAuthority::SelectRecipe(FName StationId,
 	Selection.StationClassId = StationClassId;
 	Selection.RecipeId = RecipeId;
 	Selections.Add(Selection);
-	OutReason = TEXT("RECIPE SELECTED");
+	OutReason = TEXT("Recipe selected");
 	return true;
 }
 
@@ -900,11 +900,11 @@ bool ALBSpacecraftCraftingAuthority::ClearSelection(FName StationId,
 		if (Selections[Index].StationId == StationId)
 		{
 			Selections.RemoveAt(Index);
-			OutReason = TEXT("SELECTION CLEARED");
+			OutReason = TEXT("Selection cleared");
 			return true;
 		}
 	}
-	OutReason = FString::Printf(TEXT("STATION %s HAS NO SELECTION"),
+	OutReason = FString::Printf(TEXT("Station %s has no selection"),
 		*StationId.ToString());
 	return false;
 }
@@ -927,7 +927,7 @@ bool ALBSpacecraftCraftingAuthority::ExecuteCraftCycle(FName StationId,
 	if (Recipe == nullptr)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s HAS NO ACTIVE RECIPE"), *StationId.ToString());
+			TEXT("Station %s has no active recipe"), *StationId.ToString());
 		return false;
 	}
 	// Sub-assembly rule (owner 2026-08-26): outputs land in the
@@ -940,7 +940,7 @@ bool ALBSpacecraftCraftingAuthority::ExecuteCraftCycle(FName StationId,
 	if (Selection->OrderRemaining <= 0)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s HAS NO OPEN ORDER - PLACE AN ORDER"),
+			TEXT("Station %s has no open order - place an order"),
 			*StationId.ToString());
 		return false;
 	}
@@ -952,8 +952,8 @@ bool ALBSpacecraftCraftingAuthority::ExecuteCraftCycle(FName StationId,
 	if (Selection->BufferItems.Num() + OutputCount > BufferCapacity)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s OUTPUT BUFFER FULL (%d/%d) - AWAITING ")
-			TEXT("DRONE PICKUP - CRAFT REFUSED WHOLE"),
+			TEXT("Station %s output buffer full (%d/%d) - awaiting ")
+			TEXT("drone pickup - craft refused whole"),
 			*StationId.ToString(), Selection->BufferItems.Num(),
 			BufferCapacity);
 		return false;
@@ -991,7 +991,7 @@ bool ALBSpacecraftCraftingAuthority::ExchangeWouldValidate(
 	if (!Inventory.HasStore(InputStoreId)
 		|| (!bOutputsToBuffer && !Inventory.HasStore(OutputStoreId)))
 	{
-		OutReason = TEXT("CRAFT CYCLE NEEDS REGISTERED STORES");
+		OutReason = TEXT("Craft cycle needs registered stores");
 		return false;
 	}
 	// Validate the WHOLE exchange before anything moves.
@@ -1001,7 +1001,7 @@ bool ALBSpacecraftCraftingAuthority::ExchangeWouldValidate(
 		if (Inventory.GetQuantity(InputStoreId, Input.ItemId) < Input.Count)
 		{
 			OutReason = FString::Printf(
-				TEXT("STORE %s LACKS %d x %s - CRAFT REFUSED WHOLE"),
+				TEXT("Store %s lacks %d x %s - craft refused whole"),
 				*InputStoreId.ToString(), Input.Count,
 				*Input.ItemId.ToString());
 			return false;
@@ -1029,8 +1029,8 @@ bool ALBSpacecraftCraftingAuthority::ExchangeWouldValidate(
 		if (NeededUnits > AvailableUnits)
 		{
 			OutReason = FString::Printf(
-				TEXT("STORE %s CANNOT HOLD THE OUTPUTS - ")
-				TEXT("CRAFT REFUSED WHOLE"),
+				TEXT("Store %s cannot hold the outputs - ")
+				TEXT("craft refused whole"),
 				*OutputStoreId.ToString());
 			return false;
 		}
@@ -1047,7 +1047,7 @@ bool ALBSpacecraftCraftingAuthority::TickCrafting(FName StationId,
 	OutCompletedCycles = 0;
 	if (DeltaSeconds <= 0.0)
 	{
-		OutReason = TEXT("TICK NEEDS POSITIVE SIM TIME");
+		OutReason = TEXT("Tick needs positive sim time");
 		return false;
 	}
 	FLBSpacecraftStationRecipeSelection* Selection =
@@ -1059,13 +1059,13 @@ bool ALBSpacecraftCraftingAuthority::TickCrafting(FName StationId,
 	if (Selection == nullptr || Recipe == nullptr)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s HAS NO ACTIVE RECIPE"), *StationId.ToString());
+			TEXT("Station %s has no active recipe"), *StationId.ToString());
 		return false;
 	}
 	if (!Inventory.HasStore(InputStoreId)
 		|| !Inventory.HasStore(OutputStoreId))
 	{
-		OutReason = TEXT("CRAFT CYCLE NEEDS REGISTERED STORES");
+		OutReason = TEXT("Craft cycle needs registered stores");
 		return false;
 	}
 	// Made to order (owner 2026-08-26): no open order, no accrual -
@@ -1073,7 +1073,7 @@ bool ALBSpacecraftCraftingAuthority::TickCrafting(FName StationId,
 	if (Selection->OrderRemaining <= 0)
 	{
 		OutReason = FString::Printf(
-			TEXT("IDLE: STATION %s HAS NO OPEN ORDER"),
+			TEXT("Idle: station %s has no open order"),
 			*StationId.ToString());
 		return true;
 	}
@@ -1083,7 +1083,7 @@ bool ALBSpacecraftCraftingAuthority::TickCrafting(FName StationId,
 	if (!ExchangeWouldValidate(*Recipe, Inventory, InputStoreId,
 		OutputStoreId, StallReason, /*bOutputsToBuffer=*/true))
 	{
-		OutReason = FString::Printf(TEXT("STALLED: %s"), *StallReason);
+		OutReason = FString::Printf(TEXT("Stalled: %s"), *StallReason);
 		return true;
 	}
 	Selection->CycleElapsedSeconds += DeltaSeconds;
@@ -1095,15 +1095,15 @@ bool ALBSpacecraftCraftingAuthority::TickCrafting(FName StationId,
 		{
 			// The next cycle cannot pay: hold at the boundary and stall.
 			Selection->CycleElapsedSeconds = Recipe->CycleSeconds;
-			OutReason = FString::Printf(TEXT("STALLED: %s"), *CraftReason);
+			OutReason = FString::Printf(TEXT("Stalled: %s"), *CraftReason);
 			return true;
 		}
 		Selection->CycleElapsedSeconds -= Recipe->CycleSeconds;
 		++OutCompletedCycles;
 	}
 	OutReason = OutCompletedCycles > 0
-		? FString::Printf(TEXT("COMPLETED %d CYCLES"), OutCompletedCycles)
-		: TEXT("IN CYCLE");
+		? FString::Printf(TEXT("Completed %d cycles"), OutCompletedCycles)
+		: TEXT("In cycle");
 	return true;
 }
 
@@ -1128,7 +1128,7 @@ bool ALBSpacecraftCraftingAuthority::AddOrder(FName StationId,
 {
 	if (Count <= 0)
 	{
-		OutReason = TEXT("ORDER COUNT MUST BE POSITIVE");
+		OutReason = TEXT("Order count must be positive");
 		return false;
 	}
 	FLBSpacecraftStationRecipeSelection* Selection =
@@ -1136,12 +1136,12 @@ bool ALBSpacecraftCraftingAuthority::AddOrder(FName StationId,
 	if (Selection == nullptr)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s HAS NO ACTIVE RECIPE - PICK ONE FIRST"),
+			TEXT("Station %s has no active recipe - pick one first"),
 			*StationId.ToString());
 		return false;
 	}
 	Selection->OrderRemaining += Count;
-	OutReason = FString::Printf(TEXT("ORDER OPEN: %d CYCLES"),
+	OutReason = FString::Printf(TEXT("Order open: %d cycles"),
 		Selection->OrderRemaining);
 	return true;
 }
@@ -1221,13 +1221,13 @@ bool ALBSpacecraftCraftingAuthority::TransferBufferToStore(FName StationId,
 	if (Selection == nullptr)
 	{
 		OutReason = FString::Printf(
-			TEXT("STATION %s HAS NO SUB-ASSEMBLY BUFFER"),
+			TEXT("Station %s has no sub-assembly buffer"),
 			*StationId.ToString());
 		return false;
 	}
 	if (!Inventory.HasStore(StoreId))
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN STORE %s"),
+		OutReason = FString::Printf(TEXT("Unknown store %s"),
 			*StoreId.ToString());
 		return false;
 	}
@@ -1240,14 +1240,14 @@ bool ALBSpacecraftCraftingAuthority::TransferBufferToStore(FName StationId,
 			Inner))
 		{
 			OutReason = FString::Printf(
-				TEXT("STORE %s FULL - %d HAULED, BUFFER KEEPS THE REST"),
+				TEXT("Store %s full - %d hauled, buffer keeps the rest"),
 				*StoreId.ToString(), OutMoved);
 			return OutMoved > 0;
 		}
 		Selection->BufferItems.RemoveAt(0);
 		++OutMoved;
 	}
-	OutReason = FString::Printf(TEXT("HAULED %d FROM %s"), OutMoved,
+	OutReason = FString::Printf(TEXT("Hauled %d from %s"), OutMoved,
 		*StationId.ToString());
 	return true;
 }
@@ -1261,13 +1261,13 @@ bool ALBSpacecraftCraftingAuthority::ValidateSnapshot(
 	{
 		if (Selection.StationId.IsNone())
 		{
-			OutReason = TEXT("SNAPSHOT SELECTION HAS NO STATION");
+			OutReason = TEXT("Snapshot selection has no station");
 			return false;
 		}
 		if (SeenStations.Contains(Selection.StationId))
 		{
 			OutReason = FString::Printf(
-				TEXT("SNAPSHOT DUPLICATES STATION %s"),
+				TEXT("Snapshot duplicates station %s"),
 				*Selection.StationId.ToString());
 			return false;
 		}
@@ -1278,7 +1278,7 @@ bool ALBSpacecraftCraftingAuthority::ValidateSnapshot(
 			|| Recipe->StationClassId != Selection.StationClassId)
 		{
 			OutReason = FString::Printf(
-				TEXT("SNAPSHOT SELECTION %s NAMES AN INVALID RECIPE"),
+				TEXT("Snapshot selection %s names an invalid recipe"),
 				*Selection.StationId.ToString());
 			return false;
 		}
@@ -1286,14 +1286,14 @@ bool ALBSpacecraftCraftingAuthority::ValidateSnapshot(
 			|| Selection.CycleElapsedSeconds > Recipe->CycleSeconds)
 		{
 			OutReason = FString::Printf(
-				TEXT("SNAPSHOT SELECTION %s HAS AN IMPOSSIBLE CYCLE CLOCK"),
+				TEXT("Snapshot selection %s has an impossible cycle clock"),
 				*Selection.StationId.ToString());
 			return false;
 		}
 		if (Selection.OrderRemaining < 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("SNAPSHOT ORDER AT %s IS NEGATIVE"),
+				TEXT("Snapshot order at %s is negative"),
 				*Selection.StationId.ToString());
 			return false;
 		}
@@ -1302,14 +1302,14 @@ bool ALBSpacecraftCraftingAuthority::ValidateSnapshot(
 			if (FLBSpacecraftItemCatalogue::FindItem(Buffered) == nullptr)
 			{
 				OutReason = FString::Printf(
-					TEXT("SNAPSHOT BUFFER AT %s HOLDS UNKNOWN ITEM %s"),
+					TEXT("Snapshot buffer at %s holds unknown item %s"),
 					*Selection.StationId.ToString(),
 					*Buffered.ToString());
 				return false;
 			}
 		}
 	}
-	OutReason = TEXT("SNAPSHOT VALID");
+	OutReason = TEXT("Snapshot valid");
 	return true;
 }
 
@@ -1322,6 +1322,6 @@ bool ALBSpacecraftCraftingAuthority::RestoreSnapshot(
 		return false;
 	}
 	Selections = Snapshot.Selections;
-	OutReason = TEXT("CRAFTING RESTORED");
+	OutReason = TEXT("Crafting restored");
 	return true;
 }

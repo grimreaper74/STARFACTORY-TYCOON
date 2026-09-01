@@ -97,22 +97,22 @@ void ULBSpacecraftPauseMenuWidget::NativeOnInitialized()
 		TitleSlot->SetHorizontalAlignment(HAlign_Center);
 	}
 
-	AddMenuButton(LOCTEXT("Resume", "RESUME"), FName(TEXT("Resume")));
+	AddMenuButton(LOCTEXT("Resume", "Resume"), FName(TEXT("Resume")));
 	// SAVE AND LOAD BELONG HERE, above the destructive pair. This menu
 	// offered RESTART FACTORY and QUIT TO DESKTOP and no way to save -
 	// the two buttons that throw a factory away sat where a player
 	// looks when they want to stop, with nothing beside them to keep
 	// it. The save pipeline was written and tested long ago; it simply
 	// had no button anywhere.
-	AddMenuButton(LOCTEXT("SaveGame", "SAVE GAME"),
+	AddMenuButton(LOCTEXT("SaveGame", "Save game"),
 		FName(TEXT("Save")));
-	AddMenuButton(LOCTEXT("LoadGame", "LOAD GAME"),
+	AddMenuButton(LOCTEXT("LoadGame", "Load game"),
 		FName(TEXT("Load")));
-	AddMenuButton(LOCTEXT("Settings", "SETTINGS"),
+	AddMenuButton(LOCTEXT("Settings", "Settings"),
 		FName(TEXT("Settings")));
-	AddMenuButton(LOCTEXT("Restart", "RESTART FACTORY"),
+	AddMenuButton(LOCTEXT("Restart", "Restart factory"),
 		FName(TEXT("Restart")));
-	AddMenuButton(LOCTEXT("Quit", "QUIT TO DESKTOP"),
+	AddMenuButton(LOCTEXT("Quit", "Quit to desktop"),
 		FName(TEXT("Quit")));
 
 	StatusText = WidgetTree->ConstructWidget<UTextBlock>(

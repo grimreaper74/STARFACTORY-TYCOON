@@ -131,7 +131,7 @@ bool ALBSpacecraftProductionAuthority::SpendPence(int64 AmountPence,
 {
 	if (AmountPence <= 0)
 	{
-		OutReason = TEXT("SPEND AMOUNT MUST BE POSITIVE");
+		OutReason = TEXT("Spend amount must be positive");
 		return false;
 	}
 	if (Ledger.CashPence < AmountPence)
@@ -139,7 +139,7 @@ bool ALBSpacecraftProductionAuthority::SpendPence(int64 AmountPence,
 		// Shown verbatim as a player toast: CREDITS, never the
 		// internal hundredths (owner currency decision, 2026-08-25).
 		OutReason = FString::Printf(
-			TEXT("INSUFFICIENT FUNDS - NEED %lld cr, HAVE %lld cr"),
+			TEXT("Insufficient funds - need %lld cr, have %lld cr"),
 			AmountPence / 100, Ledger.CashPence / 100);
 		return false;
 	}
@@ -153,7 +153,7 @@ bool ALBSpacecraftProductionAuthority::EarnPence(int64 AmountPence,
 {
 	if (AmountPence <= 0)
 	{
-		OutReason = TEXT("EARN AMOUNT MUST BE POSITIVE");
+		OutReason = TEXT("Earn amount must be positive");
 		return false;
 	}
 	Ledger.CashPence += AmountPence;
@@ -166,37 +166,37 @@ bool ALBSpacecraftProductionAuthority::OfferContract(
 {
 	if (Contract.ContractId.IsNone())
 	{
-		OutReason = TEXT("CONTRACT NEEDS AN ID");
+		OutReason = TEXT("Contract needs an ID");
 		return false;
 	}
 	if (FindContract(Contract.ContractId) != nullptr)
 	{
-		OutReason = FString::Printf(TEXT("CONTRACT %s ALREADY EXISTS"),
+		OutReason = FString::Printf(TEXT("Contract %s already exists"),
 			*Contract.ContractId.ToString());
 		return false;
 	}
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(Contract.RecipeId, Recipe))
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN RECIPE %s"),
+		OutReason = FString::Printf(TEXT("Unknown recipe %s"),
 			*Contract.RecipeId.ToString());
 		return false;
 	}
 	if (Contract.Quantity <= 0 || Contract.PricePerUnitPence <= 0)
 	{
-		OutReason = TEXT("CONTRACT NEEDS POSITIVE QUANTITY AND PRICE");
+		OutReason = TEXT("Contract needs positive quantity and price");
 		return false;
 	}
 	if (Contract.DispatchedCount != 0
 		|| Contract.State != ELBSpacecraftContractState::Offered)
 	{
-		OutReason = TEXT("A NEW CONTRACT STARTS UNDISPATCHED AND OFFERED");
+		OutReason = TEXT("A new contract starts undispatched and offered");
 		return false;
 	}
 	if (Contract.DeadlineSimSeconds > 0.0
 		&& Contract.DeadlineSimSeconds <= Ledger.SimSeconds)
 	{
-		OutReason = TEXT("CONTRACT DEADLINE IS ALREADY IN THE PAST");
+		OutReason = TEXT("Contract deadline is already in the past");
 		return false;
 	}
 	Ledger.Contracts.Add(Contract);
@@ -210,13 +210,13 @@ bool ALBSpacecraftProductionAuthority::AcceptContract(FName ContractId,
 	FLBSpacecraftContract* Contract = FindContractMutable(ContractId);
 	if (Contract == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN CONTRACT %s"),
+		OutReason = FString::Printf(TEXT("Unknown contract %s"),
 			*ContractId.ToString());
 		return false;
 	}
 	if (Contract->State != ELBSpacecraftContractState::Offered)
 	{
-		OutReason = TEXT("ONLY AN OFFERED CONTRACT CAN BE ACCEPTED");
+		OutReason = TEXT("Only an offered contract can be accepted");
 		return false;
 	}
 	Contract->State = ELBSpacecraftContractState::Accepted;
@@ -282,7 +282,7 @@ bool ALBSpacecraftProductionAuthority::CreateUnit(FName RecipeId,
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe))
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN RECIPE %s"),
+		OutReason = FString::Printf(TEXT("Unknown recipe %s"),
 			*RecipeId.ToString());
 		return false;
 	}
@@ -293,12 +293,12 @@ bool ALBSpacecraftProductionAuthority::CreateUnit(FName RecipeId,
 	}
 	if (InFlight >= Ledger.WIPCap)
 	{
-		OutReason = FString::Printf(TEXT("WIP CAP %d REACHED"), Ledger.WIPCap);
+		OutReason = FString::Printf(TEXT("WIP cap %d reached"), Ledger.WIPCap);
 		return false;
 	}
 	if (UnclaimedDemand(RecipeId) <= 0)
 	{
-		OutReason = TEXT("NO ACCEPTED CONTRACT DEMAND FOR THIS RECIPE");
+		OutReason = TEXT("No accepted contract demand for this recipe");
 		return false;
 	}
 	FLBSpacecraftUnitState Unit;
@@ -318,20 +318,20 @@ bool ALBSpacecraftProductionAuthority::AdvanceUnit(FName UnitId,
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(Unit->RecipeId, Recipe))
 	{
-		OutReason = TEXT("UNIT RECIPE IS NO LONGER REGISTERED");
+		OutReason = TEXT("Unit recipe is no longer registered");
 		return false;
 	}
 	ELBSpacecraftStage Target = Unit->Stage;
 	if (!FLBSpacecraftProductionCatalog::NextStage(Unit->Stage, Target))
 	{
-		OutReason = TEXT("UNIT IS AT THE TERMINAL STAGE");
+		OutReason = TEXT("Unit is at the terminal stage");
 		return false;
 	}
 
@@ -340,7 +340,7 @@ bool ALBSpacecraftProductionAuthority::AdvanceUnit(FName UnitId,
 	{
 		if (!Unit->bQualityRecorded)
 		{
-			OutReason = TEXT("QUALITY RESULT NOT YET RECORDED AT THE GATE");
+			OutReason = TEXT("Quality result not yet recorded at the gate");
 			return false;
 		}
 		// A CONCESSION SUBSTITUTES FOR A PASS. That is the entire
@@ -350,7 +350,7 @@ bool ALBSpacecraftProductionAuthority::AdvanceUnit(FName UnitId,
 		// every cost and still sit at the gate forever.
 		if (!Unit->bQualityPassed && !Unit->bConcessionGranted)
 		{
-			OutReason = TEXT("QUALITY FAILED - RETEST BEFORE DISPATCH");
+			OutReason = TEXT("Quality failed - retest before dispatch");
 			return false;
 		}
 	}
@@ -464,13 +464,13 @@ bool ALBSpacecraftProductionAuthority::AccrueDefects(FName UnitId,
 {
 	if (Points < 0)
 	{
-		OutReason = TEXT("DEFECTS ARE NEVER NEGATIVE");
+		OutReason = TEXT("Defects are never negative");
 		return false;
 	}
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
@@ -485,7 +485,7 @@ bool ALBSpacecraftProductionAuthority::RecordTrimPass(
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("NO SUCH UNIT %s"),
+		OutReason = FString::Printf(TEXT("No such unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
@@ -495,14 +495,14 @@ bool ALBSpacecraftProductionAuthority::RecordTrimPass(
 	if (Unit->Stage != ELBSpacecraftStage::Testing)
 	{
 		OutReason = FString::Printf(
-			TEXT("%s IS NOT ON THE PAD - NOTHING TO TRIM"),
+			TEXT("%s is not on the pad - nothing to trim"),
 			*UnitId.ToString());
 		return false;
 	}
 	if (Unit->bQualityRecorded)
 	{
 		OutReason = FString::Printf(
-			TEXT("%s HAS ALREADY BEEN SIGNED OFF"), *UnitId.ToString());
+			TEXT("%s has already been signed off"), *UnitId.ToString());
 		return false;
 	}
 	++Unit->TrimPassesDone;
@@ -515,13 +515,13 @@ bool ALBSpacecraftProductionAuthority::RecordQualityResult(FName UnitId,
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
 	if (!FLBSpacecraftProductionCatalog::IsQualityGate(Unit->Stage))
 	{
-		OutReason = TEXT("QUALITY IS RECORDED AT THE TESTING GATE ONLY");
+		OutReason = TEXT("Quality is recorded at the testing gate only");
 		return false;
 	}
 	Unit->bQualityRecorded = true;
@@ -567,7 +567,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 	const FLBSpacecraftUnitState* Origin = FindUnit(OriginUnitId);
 	if (Origin == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("NO SUCH CRAFT %s"),
+		OutReason = FString::Printf(TEXT("No such craft %s"),
 			*OriginUnitId.ToString());
 		return false;
 	}
@@ -579,7 +579,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 		|| Origin->Stage != ELBSpacecraftStage::Dispatched)
 	{
 		OutReason = FString::Printf(
-			TEXT("%s HAS NOT BEEN DELIVERED YET"), *OriginUnitId.ToString());
+			TEXT("%s has not been delivered yet"), *OriginUnitId.ToString());
 		return false;
 	}
 	// A hull is in the shop once. Without this the player could stack
@@ -590,7 +590,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 			&& Unit.Stage != ELBSpacecraftStage::Dispatched)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s IS ALREADY IN THE SHOP"), *OriginUnitId.ToString());
+				TEXT("%s is already in the shop"), *OriginUnitId.ToString());
 			return false;
 		}
 	}
@@ -603,7 +603,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 			&& Contract.RefitOriginUnitId == OriginUnitId)
 		{
 			OutReason = FString::Printf(
-				TEXT("AN ORDER ALREADY WANTS %s BACK"),
+				TEXT("An order already wants %s back"),
 				*OriginUnitId.ToString());
 			return false;
 		}
@@ -612,7 +612,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(Origin->RecipeId, Recipe))
 	{
-		OutReason = TEXT("THAT CRAFT'S RECIPE IS NO LONGER REGISTERED");
+		OutReason = TEXT("That craft's recipe is no longer registered");
 		return false;
 	}
 
@@ -636,7 +636,7 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 		static_cast<double>(Recipe.RevenuePence) * Fraction);
 	if (Refit.PricePerUnitPence <= 0)
 	{
-		OutReason = TEXT("THAT REFIT WOULD BE WORTH NOTHING");
+		OutReason = TEXT("That refit would be worth nothing");
 		return false;
 	}
 	Refit.CustomerId = Origin->RecipeId;
@@ -662,25 +662,25 @@ bool ALBSpacecraftProductionAuthority::CreateRefitUnit(FName ContractId,
 	FLBSpacecraftContract* Contract = FindContractMutable(ContractId);
 	if (Contract == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN ORDER %s"),
+		OutReason = FString::Printf(TEXT("Unknown order %s"),
 			*ContractId.ToString());
 		return false;
 	}
 	if (!Contract->IsRefit())
 	{
-		OutReason = TEXT("THAT ORDER IS A NEW BUILD, NOT A REFIT");
+		OutReason = TEXT("That order is a new build, not a refit");
 		return false;
 	}
 	if (Contract->State != ELBSpacecraftContractState::Accepted)
 	{
-		OutReason = TEXT("THAT REFIT ORDER HAS NOT BEEN ACCEPTED");
+		OutReason = TEXT("That refit order has not been accepted");
 		return false;
 	}
 	for (const FLBSpacecraftUnitState& Unit : Ledger.Units)
 	{
 		if (Unit.AssignedContractId == ContractId)
 		{
-			OutReason = TEXT("THAT REFIT IS ALREADY ON THE LINE");
+			OutReason = TEXT("That refit is already on the line");
 			return false;
 		}
 	}
@@ -688,7 +688,7 @@ bool ALBSpacecraftProductionAuthority::CreateRefitUnit(FName ContractId,
 		FindUnit(Contract->RefitOriginUnitId);
 	if (Origin == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("THE CRAFT %s NO LONGER EXISTS"),
+		OutReason = FString::Printf(TEXT("The craft %s no longer exists"),
 			*Contract->RefitOriginUnitId.ToString());
 		return false;
 	}
@@ -702,7 +702,7 @@ bool ALBSpacecraftProductionAuthority::CreateRefitUnit(FName ContractId,
 		// A refit competes for line capacity exactly as a build does -
 		// that is most of what makes taking one a decision.
 		OutReason = FString::Printf(
-			TEXT("WIP CAP %d REACHED - NO ROOM FOR THE REFIT"),
+			TEXT("WIP cap %d reached - no room for the refit"),
 			Ledger.WIPCap);
 		return false;
 	}
@@ -767,7 +767,7 @@ bool ALBSpacecraftProductionAuthority::GrantConcession(FName UnitId,
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
@@ -810,7 +810,7 @@ bool ALBSpacecraftProductionAuthority::ScrapUnit(FName UnitId,
 	const FLBSpacecraftUnitState* Unit = FindUnit(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
@@ -820,7 +820,7 @@ bool ALBSpacecraftProductionAuthority::ScrapUnit(FName UnitId,
 	// exists to make impossible.
 	if (Unit->bCompleted && !Unit->bAwaitingSale)
 	{
-		OutReason = TEXT("THAT CRAFT HAS ALREADY BEEN DELIVERED");
+		OutReason = TEXT("That craft has already been delivered");
 		return false;
 	}
 	const int32 Removed = Ledger.Units.RemoveAll(
@@ -834,7 +834,7 @@ bool ALBSpacecraftProductionAuthority::ScrapUnit(FName UnitId,
 		// than reported as success: a scrap that removed nothing while
 		// claiming to have worked would leave the line blocked by a
 		// craft the player believes is gone.
-		OutReason = TEXT("NOTHING WAS SCRAPPED");
+		OutReason = TEXT("Nothing was scrapped");
 		return false;
 	}
 	UE_LOG(LogTemp, Display,
@@ -848,18 +848,18 @@ bool ALBSpacecraftProductionAuthority::OpenStationRework(FName UnitId,
 {
 	if (Seconds <= 0.f)
 	{
-		OutReason = TEXT("NO REWORK TO OPEN");
+		OutReason = TEXT("No rework to open");
 		return false;
 	}
 	FLBSpacecraftUnitState* Unit = FindUnitMutable(UnitId);
 	if (Unit == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitId.ToString());
 		return false;
 	}
 	Unit->ReworkSecondsRemaining += Seconds;
-	OutReason = FString::Printf(TEXT("REWORK OPENED: %.0f s"), Seconds);
+	OutReason = FString::Printf(TEXT("Rework opened: %.0f s"), Seconds);
 	return true;
 }
 
@@ -868,7 +868,7 @@ bool ALBSpacecraftProductionAuthority::AdvanceSimSeconds(double DeltaSeconds,
 {
 	if (DeltaSeconds < 0.0)
 	{
-		OutReason = TEXT("THE SIM CLOCK NEVER RUNS BACKWARDS");
+		OutReason = TEXT("The sim clock never runs backwards");
 		return false;
 	}
 	Ledger.SimSeconds += DeltaSeconds;
@@ -920,7 +920,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 	if (State.SimSeconds < 0.0 || State.WIPCap <= 0
 		|| State.RevenuePence < 0 || State.CashPence < 0)
 	{
-		OutReason = TEXT("LEDGER SCALARS OUT OF RANGE");
+		OutReason = TEXT("Ledger scalars out of range");
 		return false;
 	}
 
@@ -932,13 +932,13 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 	{
 		if (Unit.DefectPoints < 0 || Unit.ReworkSecondsRemaining < 0.f)
 		{
-			OutReason = TEXT("UNIT DEFECT/REWORK COUNTERS OUT OF RANGE");
+			OutReason = TEXT("Unit defect/rework counters out of range");
 			return false;
 		}
 		if (Unit.FailedQualityTests < 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("UNIT %s HAS NEGATIVE QUALITY FAILURES"),
+				TEXT("Unit %s has negative quality failures"),
 				*Unit.UnitId.ToString());
 			return false;
 		}
@@ -949,15 +949,15 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 		if (Unit.ConcededDefectPoints < 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("UNIT %s HAS NEGATIVE CONCEDED DEFECTS"),
+				TEXT("Unit %s has negative conceded defects"),
 				*Unit.UnitId.ToString());
 			return false;
 		}
 		if (!Unit.bConcessionGranted && Unit.ConcededDefectPoints > 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("UNIT %s RECORDS A CONCEDED DEVIATION WITHOUT A ")
-				TEXT("CONCESSION"), *Unit.UnitId.ToString());
+				TEXT("Unit %s records a conceded deviation without a ")
+				TEXT("concession"), *Unit.UnitId.ToString());
 			return false;
 		}
 		// ---- REFIT INVARIANTS ----
@@ -979,7 +979,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 				Unit.EntryStage, EntryReason))
 			{
 				OutReason = FString::Printf(
-					TEXT("REFIT %s ENTERED AT AN ILLEGAL STAGE: %s"),
+					TEXT("Refit %s entered at an illegal stage: %s"),
 					*Unit.UnitId.ToString(), *EntryReason);
 				return false;
 			}
@@ -990,7 +990,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 				< static_cast<int32>(Unit.EntryStage))
 			{
 				OutReason = FString::Printf(
-					TEXT("REFIT %s STANDS BELOW THE STAGE IT JOINED AT"),
+					TEXT("Refit %s stands below the stage it joined at"),
 					*Unit.UnitId.ToString());
 				return false;
 			}
@@ -1007,7 +1007,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 			if (!bFoundOrigin)
 			{
 				OutReason = FString::Printf(
-					TEXT("REFIT %s NAMES A CRAFT THAT DOES NOT EXIST: %s"),
+					TEXT("Refit %s names a craft that does not exist: %s"),
 					*Unit.UnitId.ToString(),
 					*Unit.OriginUnitId.ToString());
 				return false;
@@ -1023,7 +1023,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 						&& Other.Stage != ELBSpacecraftStage::Dispatched)
 					{
 						OutReason = FString::Printf(
-							TEXT("TWO REFITS ARE OPEN ON CRAFT %s"),
+							TEXT("Two refits are open on craft %s"),
 							*Unit.OriginUnitId.ToString());
 						return false;
 					}
@@ -1036,7 +1036,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 			// own order. On a new build it must be absent, or the two
 			// halves of the identity disagree about what this craft is.
 			OutReason = FString::Printf(
-				TEXT("UNIT %s IS ASSIGNED TO AN ORDER BUT IS NOT A REFIT"),
+				TEXT("Unit %s is assigned to an order but is not a refit"),
 				*Unit.UnitId.ToString());
 			return false;
 		}
@@ -1048,7 +1048,7 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 			// Above the ceiling no board could have signed it, so the
 			// save is describing something the game cannot produce.
 			OutReason = FString::Printf(
-				TEXT("UNIT %s CONCEDES %d DEFECTS, OVER THE LIMIT OF %d"),
+				TEXT("Unit %s concedes %d defects, over the limit of %d"),
 				*Unit.UnitId.ToString(), Unit.ConcededDefectPoints,
 				FLBSpacecraftProductionCatalog
 					::MaxConcedableDefectPoints());
@@ -1056,45 +1056,45 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 		}
 		if (Unit.UnitId.IsNone())
 		{
-			OutReason = TEXT("A SAVED UNIT HAS NO ID");
+			OutReason = TEXT("A saved unit has no ID");
 			return false;
 		}
 		bool bAlready = false;
 		UnitIds.Add(Unit.UnitId, &bAlready);
 		if (bAlready)
 		{
-			OutReason = FString::Printf(TEXT("DUPLICATE UNIT ID %s"),
+			OutReason = FString::Printf(TEXT("Duplicate unit ID %s"),
 				*Unit.UnitId.ToString());
 			return false;
 		}
 		FLBSpacecraftRecipe Recipe;
 		if (!FLBSpacecraftProductionCatalog::FindRecipe(Unit.RecipeId, Recipe))
 		{
-			OutReason = FString::Printf(TEXT("UNIT %s HAS UNKNOWN RECIPE"),
+			OutReason = FString::Printf(TEXT("Unit %s has unknown recipe"),
 				*Unit.UnitId.ToString());
 			return false;
 		}
 		if (static_cast<int32>(Unit.Stage) >= StageCount)
 		{
-			OutReason = TEXT("UNIT STAGE OUTSIDE THE STAGE TABLE");
+			OutReason = TEXT("Unit stage outside the stage table");
 			return false;
 		}
 		if (Unit.bCompleted
 			!= (Unit.Stage == ELBSpacecraftStage::Dispatched))
 		{
-			OutReason = TEXT("UNIT COMPLETION FLAG DISAGREES WITH ITS STAGE");
+			OutReason = TEXT("Unit completion flag disagrees with its stage");
 			return false;
 		}
 		if (Unit.bQualityPassed && !Unit.bQualityRecorded)
 		{
-			OutReason = TEXT("UNIT CLAIMS A PASS WITHOUT A RECORDED RESULT");
+			OutReason = TEXT("Unit claims a pass without a recorded result");
 			return false;
 		}
 		MaxSuffix = FMath::Max(MaxSuffix, SpacecraftUnitSuffix(Unit.UnitId));
 	}
 	if (State.NextUnitSequence <= MaxSuffix)
 	{
-		OutReason = TEXT("SAVED UNIT SEQUENCE WOULD REUSE AN ID");
+		OutReason = TEXT("Saved unit sequence would reuse an ID");
 		return false;
 	}
 
@@ -1103,14 +1103,14 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 	{
 		if (Contract.ContractId.IsNone())
 		{
-			OutReason = TEXT("A SAVED CONTRACT HAS NO ID");
+			OutReason = TEXT("A saved contract has no ID");
 			return false;
 		}
 		bool bAlready = false;
 		ContractIds.Add(Contract.ContractId, &bAlready);
 		if (bAlready)
 		{
-			OutReason = FString::Printf(TEXT("DUPLICATE CONTRACT ID %s"),
+			OutReason = FString::Printf(TEXT("Duplicate contract ID %s"),
 				*Contract.ContractId.ToString());
 			return false;
 		}
@@ -1118,14 +1118,14 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 		if (!FLBSpacecraftProductionCatalog::FindRecipe(
 			Contract.RecipeId, Recipe))
 		{
-			OutReason = TEXT("A SAVED CONTRACT HAS AN UNKNOWN RECIPE");
+			OutReason = TEXT("A saved contract has an unknown recipe");
 			return false;
 		}
 		if (Contract.Quantity <= 0 || Contract.PricePerUnitPence <= 0
 			|| Contract.DispatchedCount < 0
 			|| Contract.DispatchedCount > Contract.Quantity)
 		{
-			OutReason = TEXT("SAVED CONTRACT COUNTS OUT OF RANGE");
+			OutReason = TEXT("Saved contract counts out of range");
 			return false;
 		}
 		const bool bShouldBeComplete =
@@ -1133,13 +1133,13 @@ bool ALBSpacecraftProductionAuthority::ValidateLedger(
 		if (bShouldBeComplete
 			&& Contract.State == ELBSpacecraftContractState::Accepted)
 		{
-			OutReason = TEXT("FULLY DISPATCHED CONTRACT NOT MARKED COMPLETE");
+			OutReason = TEXT("Fully dispatched contract not marked complete");
 			return false;
 		}
 		if (Contract.State == ELBSpacecraftContractState::Complete
 			&& !bShouldBeComplete)
 		{
-			OutReason = TEXT("CONTRACT MARKED COMPLETE WITH DEMAND LEFT");
+			OutReason = TEXT("Contract marked complete with demand left");
 			return false;
 		}
 	}

@@ -495,31 +495,31 @@ bool ALBSpacecraftBuildAuthority::IsTransformGridAligned(
 	if (!SpacecraftValueOnGrid(Location.X, GetPlacementGridCm())
 		|| !SpacecraftValueOnGrid(Location.Y, GetPlacementGridCm()))
 	{
-		OutReason = TEXT("SPACECRAFT STATIONS MUST SNAP TO THE 100 CM GRID");
+		OutReason = TEXT("Spacecraft stations must snap to the 100 cm grid");
 		return false;
 	}
 	if (FMath::Abs(Location.Z) > SpacecraftGridToleranceCm)
 	{
-		OutReason = TEXT("SPACECRAFT STATIONS SIT ON THE FLOOR DATUM Z=0");
+		OutReason = TEXT("Spacecraft stations sit on the floor datum Z=0");
 		return false;
 	}
 	const FRotator Rotation = Transform.Rotator();
 	if (FMath::Abs(Rotation.Pitch) > SpacecraftYawToleranceDeg
 		|| FMath::Abs(Rotation.Roll) > SpacecraftYawToleranceDeg)
 	{
-		OutReason = TEXT("SPACECRAFT STATIONS MUST NOT PITCH OR ROLL");
+		OutReason = TEXT("Spacecraft stations must not pitch or roll");
 		return false;
 	}
 	const float Yaw = FMath::Fmod(FMath::Abs(Rotation.Yaw) + 360.f, 90.f);
 	if (Yaw > SpacecraftYawToleranceDeg
 		&& 90.f - Yaw > SpacecraftYawToleranceDeg)
 	{
-		OutReason = TEXT("SPACECRAFT STATIONS ROTATE IN 90 DEGREE STEPS ONLY");
+		OutReason = TEXT("Spacecraft stations rotate in 90 degree steps only");
 		return false;
 	}
 	if (!Transform.GetScale3D().Equals(FVector::OneVector, 0.001f))
 	{
-		OutReason = TEXT("SPACECRAFT STATIONS USE UNIT SCALE");
+		OutReason = TEXT("Spacecraft stations use unit scale");
 		return false;
 	}
 	OutReason.Reset();
@@ -534,7 +534,7 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 	const FLBSpacecraftStationDefinition* Definition = FindDefinition(DefinitionId);
 	if (Definition == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN STATION DEFINITION %s"),
+		OutReason = FString::Printf(TEXT("Unknown station definition %s"),
 			*DefinitionId.ToString());
 		return false;
 	}
@@ -545,7 +545,7 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 	if (FMath::Abs(Location.X) + Half.X > BuildAreaHalfExtentCm
 		|| FMath::Abs(Location.Y) + Half.Y > BuildAreaHalfExtentCm)
 	{
-		OutReason = TEXT("STATION ENVELOPE LEAVES THE BUILDABLE FLOOR");
+		OutReason = TEXT("Station envelope leaves the buildable floor");
 		return false;
 	}
 
@@ -560,7 +560,7 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 		if (OtherDefinition == nullptr)
 		{
 			OutReason = FString::Printf(
-				TEXT("PLACED STATION %s HAS AN UNKNOWN DEFINITION"),
+				TEXT("Placed station %s has an unknown definition"),
 				*Other.StationId.ToString());
 			return false;
 		}
@@ -582,7 +582,7 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 		if (FMath::Abs(Location.X - OtherLocation.X) < Half.X + OtherHalf.X
 			&& FMath::Abs(Location.Y - OtherLocation.Y) < Half.Y + OtherHalf.Y)
 		{
-			OutReason = FString::Printf(TEXT("ENVELOPE OVERLAPS STATION %s"),
+			OutReason = FString::Printf(TEXT("Envelope overlaps station %s"),
 				*Other.StationId.ToString());
 			return false;
 		}
@@ -630,7 +630,7 @@ bool ALBSpacecraftBuildAuthority::AlignStationAxis(FName StationId,
 		OutReason.Reset();
 		return true;
 	}
-	OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+	OutReason = FString::Printf(TEXT("Unknown station %s"),
 		*StationId.ToString());
 	return false;
 }
@@ -837,7 +837,7 @@ bool ALBSpacecraftBuildAuthority::RemoveStationDrone(FName StationId,
 		if (Record.InstalledDrones <= 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s HAS NO INSTALLED DRONES"),
+				TEXT("%s has no installed drones"),
 				*StationId.ToString());
 			return false;
 		}
@@ -850,11 +850,11 @@ bool ALBSpacecraftBuildAuthority::RemoveStationDrone(FName StationId,
 		{
 			Record.InstalledDroneTypes.Pop();
 		}
-		OutReason = FString::Printf(TEXT("DRONE REMOVED (%d LEFT)"),
+		OutReason = FString::Printf(TEXT("Drone removed (%d left)"),
 			Record.InstalledDrones);
 		return true;
 	}
-	OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+	OutReason = FString::Printf(TEXT("Unknown station %s"),
 		*StationId.ToString());
 	return false;
 }
@@ -870,7 +870,7 @@ bool ALBSpacecraftBuildAuthority::PlaceStarterHall(FName& OutStationId,
 			&& !Definition->InteriorFloorCm.IsNearlyZero())
 		{
 			OutStationId = Record.StationId;
-			OutReason = TEXT("A SHIP FACTORY ALREADY STANDS");
+			OutReason = TEXT("A ship factory already stands");
 			return true;
 		}
 	}
@@ -920,12 +920,12 @@ bool ALBSpacecraftBuildAuthority::IsInteriorPlacementLegal(
 	}
 	OutReason = Halls == 0
 		? FString::Printf(
-			TEXT("NOTHING IS BUILT ON THIS SITE YET - PLACE A SHIP ")
-			TEXT("FACTORY FIRST, THEN BUILD %s INSIDE IT"),
-			*Definition->DisplayName.ToUpper())
+			TEXT("Nothing is built on this site yet - place a ship ")
+			TEXT("factory first, then build %s inside it"),
+			*Definition->DisplayName)
 		: FString::Printf(
-			TEXT("%s MUST STAND INSIDE A BUILDING - MOVE IT ONTO A ")
-			TEXT("FACTORY FLOOR"), *Definition->DisplayName.ToUpper());
+			TEXT("%s must stand inside a building - move it onto a ")
+			TEXT("factory floor"), *Definition->DisplayName);
 	return false;
 }
 
@@ -953,8 +953,8 @@ bool ALBSpacecraftBuildAuthority::PlaceStation(FName DefinitionId,
 		const FLBSpacecraftStationDefinition* HostDefinition =
 			FindDefinition(Host);
 		OutReason = FString::Printf(
-			TEXT("%s GOES INSIDE A %s - BUILD ONE AND INSTALL IT ")
-			TEXT("IN A SLOT"), *DefinitionId.ToString(),
+			TEXT("%s goes inside a %s - build one and install it ")
+			TEXT("in a slot"), *DefinitionId.ToString(),
 			HostDefinition != nullptr
 				? *HostDefinition->DisplayName : *Host.ToString());
 		return false;
@@ -1015,13 +1015,13 @@ bool ALBSpacecraftBuildAuthority::InstallStationDrone(FName StationId,
 		if (Definition == nullptr || Definition->DroneSlotCount <= 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s HAS NO DRONE SLOTS"), *StationId.ToString());
+				TEXT("%s has no drone slots"), *StationId.ToString());
 			return false;
 		}
 		if (Record.InstalledDrones >= Definition->DroneSlotCount)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s DRONE SLOTS FULL (%d/%d)"),
+				TEXT("%s drone slots full (%d/%d)"),
 				*StationId.ToString(), Record.InstalledDrones,
 				Definition->DroneSlotCount);
 			return false;
@@ -1036,13 +1036,13 @@ bool ALBSpacecraftBuildAuthority::InstallStationDrone(FName StationId,
 		++Record.InstalledDrones;
 		Record.InstalledDroneTypes.Add(
 			Kind != nullptr ? Kind->KindId : FName(TEXT("Assembly")));
-		OutReason = FString::Printf(TEXT("%s INSTALLED (%d/%d)"),
-			Kind != nullptr ? *Kind->DisplayName.ToUpper()
-				: TEXT("DRONE"),
+		OutReason = FString::Printf(TEXT("%s installed (%d/%d)"),
+			Kind != nullptr ? *Kind->DisplayName
+				: TEXT("Drone"),
 			Record.InstalledDrones, Definition->DroneSlotCount);
 		return true;
 	}
-	OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+	OutReason = FString::Printf(TEXT("Unknown station %s"),
 		*StationId.ToString());
 	return false;
 }
@@ -1113,7 +1113,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe))
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN RECIPE %s"),
+		OutReason = FString::Printf(TEXT("Unknown recipe %s"),
 			*RecipeId.ToString());
 		return false;
 	}
@@ -1125,7 +1125,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 	if (!BuildRoute(Route, RouteReason))
 	{
 		OutReason = FString::Printf(
-			TEXT("NO LINE TO SPLIT: %s"), *RouteReason);
+			TEXT("No line to split: %s"), *RouteReason);
 		return false;
 	}
 	const TArray<FName> Stations =
@@ -1134,7 +1134,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 	if (StationCounts.Num() != Stations.Num())
 	{
 		OutReason = FString::Printf(
-			TEXT("SPLIT COVERS %d STATIONS BUT THE LINE HAS %d"),
+			TEXT("Split covers %d stations but the line has %d"),
 			StationCounts.Num(), Stations.Num());
 		return false;
 	}
@@ -1145,7 +1145,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 		if (StationCounts[Index] < 0)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s CANNOT FIT A NEGATIVE NUMBER OF PARTS"),
+				TEXT("%s cannot fit a negative number of parts"),
 				*Stations[Index].ToString());
 			return false;
 		}
@@ -1157,7 +1157,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 	if (Total != Sequence.Num())
 	{
 		OutReason = FString::Printf(
-			TEXT("SPLIT FITS %d PARTS BUT %s NEEDS ALL %d"),
+			TEXT("Split fits %d parts but %s needs all %d"),
 			Total, *RecipeId.ToString(), Sequence.Num());
 		return false;
 	}
@@ -1183,7 +1183,7 @@ bool ALBSpacecraftBuildAuthority::SetFixingSplit(
 		}
 		Cursor += StationCounts[Index];
 	}
-	OutReason = FString::Printf(TEXT("%s SPLIT ACROSS %d STATIONS"),
+	OutReason = FString::Printf(TEXT("%s split across %d stations"),
 		*RecipeId.ToString(), Stations.Num());
 	return true;
 }
@@ -1198,7 +1198,7 @@ bool ALBSpacecraftBuildAuthority::GetFixingSplit(FName RecipeId,
 	FLBSpacecraftRecipe Recipe;
 	if (!FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe))
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN RECIPE %s"),
+		OutReason = FString::Printf(TEXT("Unknown recipe %s"),
 			*RecipeId.ToString());
 		return false;
 	}
@@ -1209,7 +1209,7 @@ bool ALBSpacecraftBuildAuthority::GetFixingSplit(FName RecipeId,
 	FString RouteReason;
 	if (!BuildRoute(Route, RouteReason))
 	{
-		OutReason = FString::Printf(TEXT("NO LINE TO READ: %s"),
+		OutReason = FString::Printf(TEXT("No line to read: %s"),
 			*RouteReason);
 		return false;
 	}
@@ -1235,8 +1235,8 @@ bool ALBSpacecraftBuildAuthority::GetFixingSplit(FName RecipeId,
 						Sequence[Cursor + Slot]))
 				{
 					OutReason = FString::Printf(
-						TEXT("%s IS NOT FITTING A CONTIGUOUS RUN OF THE ")
-						TEXT("%s SEQUENCE - RE-SPLIT THE LINE"),
+						TEXT("%s is not fitting a contiguous run of the ")
+						TEXT("%s sequence - re-split the line"),
 						*StationId.ToString(), *RecipeId.ToString());
 					return false;
 				}
@@ -1249,8 +1249,8 @@ bool ALBSpacecraftBuildAuthority::GetFixingSplit(FName RecipeId,
 	if (Cursor != Sequence.Num())
 	{
 		OutReason = FString::Printf(
-			TEXT("THE LINE FITS %d OF %s'S %d PARTS - %d HAVE NO ")
-			TEXT("STATION"), Cursor, *RecipeId.ToString(),
+			TEXT("The line fits %d of %s's %d parts - %d have no ")
+			TEXT("station"), Cursor, *RecipeId.ToString(),
 			Sequence.Num(), Sequence.Num() - Cursor);
 		return false;
 	}
@@ -1264,7 +1264,7 @@ bool ALBSpacecraftBuildAuthority::SetComponentAllocated(FName StationId,
 	if (!ComponentItemId.ToString().StartsWith(TEXT("Component.")))
 	{
 		OutReason = FString::Printf(
-			TEXT("%s IS NOT AN ASSEMBLED COMPONENT"),
+			TEXT("%s is not an assembled component"),
 			*ComponentItemId.ToString());
 		return false;
 	}
@@ -1279,8 +1279,8 @@ bool ALBSpacecraftBuildAuthority::SetComponentAllocated(FName StationId,
 		if (Definition == nullptr || Definition->StageClassId.IsNone())
 		{
 			OutReason = FString::Printf(
-				TEXT("%s IS NOT A LINE STATION - NOTHING IS FITTED ")
-				TEXT("THERE"), *StationId.ToString());
+				TEXT("%s is not a line station - nothing is fitted ")
+				TEXT("there"), *StationId.ToString());
 			return false;
 		}
 		// A PROCESS station fits nothing (the spray booth: the craft
@@ -1297,8 +1297,8 @@ bool ALBSpacecraftBuildAuthority::SetComponentAllocated(FName StationId,
 		if (Definition->bProcessStation)
 		{
 			OutReason = FString::Printf(
-				TEXT("%s IS A PROCESS STATION - THE CRAFT PASSES ")
-				TEXT("THROUGH IT AND HAS NOTHING FITTED THERE"),
+				TEXT("%s is a process station - the craft passes ")
+				TEXT("through it and has nothing fitted there"),
 				*StationId.ToString());
 			return false;
 		}
@@ -1310,13 +1310,13 @@ bool ALBSpacecraftBuildAuthority::SetComponentAllocated(FName StationId,
 		{
 			Record.AllocatedComponents.Remove(ComponentItemId);
 		}
-		OutReason = FString::Printf(TEXT("%s %s AT %s"),
+		OutReason = FString::Printf(TEXT("%s %s at %s"),
 			*ComponentItemId.ToString(),
-			bAllocated ? TEXT("ALLOCATED") : TEXT("REMOVED"),
+			bAllocated ? TEXT("allocated") : TEXT("removed"),
 			*StationId.ToString());
 		return true;
 	}
-	OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+	OutReason = FString::Printf(TEXT("Unknown station %s"),
 		*StationId.ToString());
 	return false;
 }
@@ -1355,7 +1355,7 @@ bool ALBSpacecraftBuildAuthority::InstallInSlot(FName HostStationId,
 	}
 	if (Host == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN SLOT BUILDING %s"),
+		OutReason = FString::Printf(TEXT("Unknown slot building %s"),
 			*HostStationId.ToString());
 		return false;
 	}
@@ -1363,7 +1363,7 @@ bool ALBSpacecraftBuildAuthority::InstallInSlot(FName HostStationId,
 		FindDefinition(Host->DefinitionId);
 	if (HostDefinition == nullptr || HostDefinition->SlotCount <= 0)
 	{
-		OutReason = FString::Printf(TEXT("%s HAS NO SLOTS"),
+		OutReason = FString::Printf(TEXT("%s has no slots"),
 			*HostStationId.ToString());
 		return false;
 	}
@@ -1371,7 +1371,7 @@ bool ALBSpacecraftBuildAuthority::InstallInSlot(FName HostStationId,
 		FindDefinition(UnitDefinitionId);
 	if (UnitDefinition == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN UNIT %s"),
+		OutReason = FString::Printf(TEXT("Unknown unit %s"),
 			*UnitDefinitionId.ToString());
 		return false;
 	}
@@ -1385,7 +1385,7 @@ bool ALBSpacecraftBuildAuthority::InstallInSlot(FName HostStationId,
 	if (!bClassLegal)
 	{
 		OutReason = FString::Printf(
-			TEXT("%s SLOTS HOLD %s UNITS - %s REFUSED"),
+			TEXT("%s slots hold %s units - %s refused"),
 			*HostStationId.ToString(),
 			*HostDefinition->SlotUnitClass.ToString(),
 			*UnitDefinitionId.ToString());
@@ -1395,7 +1395,7 @@ bool ALBSpacecraftBuildAuthority::InstallInSlot(FName HostStationId,
 	if (Hosted >= HostDefinition->SlotCount)
 	{
 		OutReason = FString::Printf(
-			TEXT("%s SLOTS FULL (%d/%d)"), *HostStationId.ToString(),
+			TEXT("%s slots full (%d/%d)"), *HostStationId.ToString(),
 			Hosted, HostDefinition->SlotCount);
 		return false;
 	}
@@ -1444,7 +1444,7 @@ bool ALBSpacecraftBuildAuthority::MoveStation(FName StationId,
 	}
 	if (Record == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+		OutReason = FString::Printf(TEXT("Unknown station %s"),
 			*StationId.ToString());
 		return false;
 	}
@@ -1468,7 +1468,7 @@ bool ALBSpacecraftBuildAuthority::RemoveStation(FName StationId,
 	const FLBSpacecraftStationRecord* Record = FindStation(StationId);
 	if (Record == nullptr)
 	{
-		OutReason = FString::Printf(TEXT("UNKNOWN STATION %s"),
+		OutReason = FString::Printf(TEXT("Unknown station %s"),
 			*StationId.ToString());
 		return false;
 	}
@@ -1513,8 +1513,8 @@ bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
 	}
 	if (LineStations == 0)
 	{
-		OutReason = TEXT("FACTORY NEEDS AT LEAST ONE ASSEMBLY STATION ")
-			TEXT("BEFORE COMMISSIONING");
+		OutReason = TEXT("Factory needs at least one assembly station ")
+			TEXT("before commissioning");
 		return false;
 	}
 	// NO BOOTH, NO LINE (owner 2026-08-28: the spray booth is
@@ -1540,9 +1540,9 @@ bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
 		if (bHasFitting && !bHasBooth)
 		{
 			Layout.bCommissioned = false;
-			OutReason = TEXT("THE LINE HAS NO SPRAY BOOTH - EVERY CRAFT ")
-				TEXT("LEAVES IN THE CUSTOMER'S LIVERY AND THERE IS ")
-				TEXT("NOWHERE TO PAINT IT");
+			OutReason = TEXT("The line has no spray booth - every craft ")
+				TEXT("leaves in the customer's livery and there is ")
+				TEXT("nowhere to paint it");
 			return false;
 		}
 		// AND NO FITTING, NO LINE (audit 2026-09-01): a booth-only
@@ -1552,8 +1552,8 @@ bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
 		if (!bHasFitting)
 		{
 			Layout.bCommissioned = false;
-			OutReason = TEXT("THE LINE HAS NO FITTING STATION - NOTHING ")
-				TEXT("WOULD PUT PARTS ON THE CRAFT");
+			OutReason = TEXT("The line has no fitting station - nothing ")
+				TEXT("would put parts on the craft");
 			return false;
 		}
 	}
@@ -1627,7 +1627,7 @@ bool ALBSpacecraftBuildAuthority::BuildRoute(
 	OutRoute.Reset();
 	if (!Layout.bCommissioned)
 	{
-		OutReason = TEXT("FACTORY MUST BE COMMISSIONED BEFORE ROUTING");
+		OutReason = TEXT("Factory must be commissioned before routing");
 		return false;
 	}
 
@@ -1663,7 +1663,7 @@ bool ALBSpacecraftBuildAuthority::BuildRoute(
 	}
 	if (Line.Num() == 0)
 	{
-		OutReason = TEXT("NO LINE STATIONS PLACED - THE ROUTE IS EMPTY");
+		OutReason = TEXT("No line stations placed - the route is empty");
 		return false;
 	}
 	Line.Sort([](const FLBSpacecraftOrderedStation& A,
@@ -1711,7 +1711,7 @@ bool ALBSpacecraftBuildAuthority::RouteCanServiceRecipe(
 		if (Definition == nullptr)
 		{
 			OutReason = FString::Printf(
-				TEXT("ROUTE STEP %s HAS AN UNKNOWN STATION CLASS"),
+				TEXT("Route step %s has an unknown station class"),
 				*Step.StationId.ToString());
 			return false;
 		}
@@ -1720,9 +1720,9 @@ bool ALBSpacecraftBuildAuthority::RouteCanServiceRecipe(
 		if (Craft.X > Max.X || Craft.Y > Max.Y || Craft.Z > Max.Z)
 		{
 			OutReason = FString::Printf(
-				TEXT("STATION %s (%s) CANNOT HOLD A %.0fx%.0fx%.0f CM CRAFT ")
-				TEXT("- ITS LIMIT IS %.0fx%.0fx%.0f CM. A LARGER STATION ")
-				TEXT("MARK IS REQUIRED"),
+				TEXT("Station %s (%s) cannot hold a %.0fx%.0fx%.0f cm craft ")
+				TEXT("- its limit is %.0fx%.0fx%.0f cm. A larger station ")
+				TEXT("mark is required"),
 				*Step.StationId.ToString(), *Definition->DisplayName,
 				Craft.X, Craft.Y, Craft.Z, Max.X, Max.Y, Max.Z);
 			return false;
@@ -1742,14 +1742,14 @@ bool ALBSpacecraftBuildAuthority::ValidateState(
 		const FLBSpacecraftStationRecord& Record = State.Stations[Index];
 		if (Record.StationId.IsNone())
 		{
-			OutReason = TEXT("A SAVED STATION HAS NO ID");
+			OutReason = TEXT("A saved station has no ID");
 			return false;
 		}
 		bool bAlready = false;
 		Ids.Add(Record.StationId, &bAlready);
 		if (bAlready)
 		{
-			OutReason = FString::Printf(TEXT("DUPLICATE STATION ID %s"),
+			OutReason = FString::Printf(TEXT("Duplicate station ID %s"),
 				*Record.StationId.ToString());
 			return false;
 		}
@@ -1796,7 +1796,7 @@ bool ALBSpacecraftBuildAuthority::ValidateState(
 		if (Record.InstalledDrones < 0 || Record.InstalledDrones > SlotMax)
 		{
 			OutReason = FString::Printf(
-				TEXT("SAVED STATION %s HAS %d DRONES FOR %d SLOTS"),
+				TEXT("Saved station %s has %d drones for %d slots"),
 				*Record.StationId.ToString(), Record.InstalledDrones,
 				SlotMax);
 			return false;
@@ -1806,7 +1806,7 @@ bool ALBSpacecraftBuildAuthority::ValidateState(
 			if (!Allocated.ToString().StartsWith(TEXT("Component.")))
 			{
 				OutReason = FString::Printf(
-					TEXT("SAVED STATION %s ALLOCATES NON-COMPONENT %s"),
+					TEXT("Saved station %s allocates non-component %s"),
 					*Record.StationId.ToString(),
 					*Allocated.ToString());
 				return false;
@@ -1823,7 +1823,7 @@ bool ALBSpacecraftBuildAuthority::ValidateState(
 	}
 	if (State.NextStationSequence <= MaxSequence)
 	{
-		OutReason = TEXT("SAVED SEQUENCE COUNTER WOULD REUSE A STATION ID");
+		OutReason = TEXT("Saved sequence counter would reuse a station ID");
 		return false;
 	}
 	if (State.bCommissioned)
@@ -1846,7 +1846,7 @@ bool ALBSpacecraftBuildAuthority::ValidateState(
 				&& !ServicedClasses.Contains(Row.StationClassId))
 			{
 				OutReason = TEXT(
-					"SAVE CLAIMS COMMISSIONED WITHOUT EVERY ROUTE CLASS");
+					"Save claims commissioned without every route class");
 				return false;
 			}
 		}

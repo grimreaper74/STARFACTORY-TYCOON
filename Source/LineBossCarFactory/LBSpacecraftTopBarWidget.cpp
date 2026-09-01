@@ -81,7 +81,7 @@ FString ULBSpacecraftTopBarWidget::FormatQualityText(int32 DefectPoints,
 	if (ReworkSecondsRemaining > 0.f)
 	{
 		bOutAlarm = true;
-		return FText::Format(LOCTEXT("QualityRework", "REWORKING {0}s"),
+		return FText::Format(LOCTEXT("QualityRework", "Reworking {0}s"),
 			FMath::CeilToInt(ReworkSecondsRemaining)).ToString();
 	}
 	if (DefectPoints > 0)
@@ -94,7 +94,7 @@ FString ULBSpacecraftTopBarWidget::FormatQualityText(int32 DefectPoints,
 		bOutAlarm = !FLBSpacecraftProductionCatalog::DefectsPassHoverTestAt(
 			DefectPoints,
 			FLBSpacecraftDifficulty::Current().HoverTestDefectTolerance);
-		return FText::Format(LOCTEXT("QualityDefects", "DEFECTS {0}"),
+		return FText::Format(LOCTEXT("QualityDefects", "Defects {0}"),
 			DefectPoints).ToString();
 	}
 	return FString();
@@ -113,10 +113,10 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 	// localization-ready (owner, 2026-08-25: the game ships translated).
 	Snapshot.CashText = TEXT("-- cr");
 	Snapshot.ContractText =
-		LOCTEXT("NoContract", "NO CONTRACT").ToString();
+		LOCTEXT("NoContract", "No contract").ToString();
 	Snapshot.ClockText = TEXT("--:--:--");
 	Snapshot.LineStatusText =
-		LOCTEXT("NoFactory", "NO FACTORY").ToString();
+		LOCTEXT("NoFactory", "No factory").ToString();
 	Snapshot.PowerText = LOCTEXT("PowerUnknown", "PWR --").ToString();
 	Snapshot.ResearchText =
 		LOCTEXT("ResearchUnknown", "RSC --").ToString();
@@ -133,13 +133,13 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 		if (InPower->GetGridUseKw() > 0)
 		{
 			Snapshot.PowerTradeText = FText::Format(
-				LOCTEXT("PowerBuying", "BUYING {0} kW"),
+				LOCTEXT("PowerBuying", "Buying {0} kW"),
 				InPower->GetGridUseKw()).ToString();
 		}
 		else if (InPower->GetGridExportKw() > 0)
 		{
 			Snapshot.PowerTradeText = FText::Format(
-				LOCTEXT("PowerSelling", "SELLING {0} kW"),
+				LOCTEXT("PowerSelling", "Selling {0} kW"),
 				InPower->GetGridExportKw()).ToString();
 		}
 		Snapshot.PowerLoad01 = InPower->GetTotalSupplyKw() > 0
@@ -214,7 +214,7 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 		else if (LastComplete != nullptr)
 		{
 			Snapshot.ContractText = FText::Format(
-				LOCTEXT("ContractComplete", "{0}  COMPLETE"),
+				LOCTEXT("ContractComplete", "{0}  Complete"),
 				FText::FromName(LastComplete->RecipeId)).ToString();
 		}
 	}
@@ -239,9 +239,9 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 				}
 			}
 			Snapshot.LineStatusText = Machines == 0
-				? LOCTEXT("BuildTheLine", "BUILD THE LINE").ToString()
+				? LOCTEXT("BuildTheLine", "Build the line").ToString()
 				: FText::Format(LOCTEXT("NotCommissioned",
-						"{0} STATIONS - NOT COMMISSIONED"),
+						"{0} stations - not commissioned"),
 					Machines).ToString();
 		}
 		else
@@ -253,8 +253,8 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 			}
 			Snapshot.LineStatusText = InFlight > 0
 				? FText::Format(LOCTEXT("LineRunning",
-						"LINE RUNNING - {0} CRAFT"), InFlight).ToString()
-				: LOCTEXT("LineIdle", "LINE IDLE").ToString();
+						"Line running - {0} craft"), InFlight).ToString()
+				: LOCTEXT("LineIdle", "Line idle").ToString();
 			// A SHIP IN STOCK IS NEVER INVISIBLE (overnight stranger
 			// run, 2026-09-01: the first ship finished after its
 			// contract expired, sold to nobody, and simply vanished

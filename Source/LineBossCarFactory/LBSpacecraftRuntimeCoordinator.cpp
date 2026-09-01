@@ -143,10 +143,10 @@ FString ALBSpacecraftRuntimeCoordinator::DescribeSupplyShortfall(
 	if (HoldingCount <= 0 && OnTheFloor <= 0)
 	{
 		return bHasDock
-			? FString(TEXT(" - NONE IN THE FACTORY; ORDER MORE AT THE "
-				"DELIVERY DOCK"))
-			: FString(TEXT(" - NONE IN THE FACTORY, AND NO DELIVERY DOCK "
-				"TO ORDER THEM TO; BUILD ONE"));
+			? FString(TEXT(" - none in the factory; order more at the "
+				"delivery dock"))
+			: FString(TEXT(" - none in the factory, and no delivery dock "
+				"to order them to; build one"));
 	}
 
 	// THERE ARE SOME, and they are not moving. This is the case that
@@ -155,16 +155,16 @@ FString ALBSpacecraftRuntimeCoordinator::DescribeSupplyShortfall(
 	// haulers work out of a STORAGE RACK, so without a rack nothing is
 	// ever collected.
 	const FString Where = HoldingCount > 0
-		? FString::Printf(TEXT("%d WAITING AT %s"), HoldingCount,
+		? FString::Printf(TEXT("%d waiting at %s"), HoldingCount,
 			*HoldingStation.ToString())
-		: FString::Printf(TEXT("%d ON THE FLOOR"), OnTheFloor);
+		: FString::Printf(TEXT("%d on the floor"), OnTheFloor);
 	if (!bHasRack)
 	{
 		return FString::Printf(
-			TEXT(" - %s, BUT NO STORAGE RACK IS BUILT; THE DRONES STAGE "
-				"THROUGH A RACK, SO NOTHING CAN BE COLLECTED"), *Where);
+			TEXT(" - %s, but no storage rack is built; the drones stage "
+				"through a rack, so nothing can be collected"), *Where);
 	}
-	return FString::Printf(TEXT(" - %s, A DRONE IS ON ITS WAY"), *Where);
+	return FString::Printf(TEXT(" - %s, a drone is on its way"), *Where);
 }
 
 bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
@@ -174,7 +174,7 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 {
 	if (InBuildAuthority == nullptr || InProductionAuthority == nullptr)
 	{
-		OutReason = TEXT("COORDINATOR NEEDS BOTH AUTHORITIES");
+		OutReason = TEXT("Coordinator needs both authorities");
 		return false;
 	}
 	TArray<FLBSpacecraftRouteStep> DerivedRoute;
@@ -199,8 +199,8 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 		if (Nodes.Num() != DerivedRoute.Num())
 		{
 			OutReason = FString::Printf(
-				TEXT("THE LINE HAS %d STATIONS BUT %d TRACK NODES - ")
-				TEXT("ATTACH EVERY LINE STATION TO THE TRACK"),
+				TEXT("The line has %d stations but %d track nodes - ")
+				TEXT("attach every line station to the track"),
 				DerivedRoute.Num(), Nodes.Num());
 			return false;
 		}
@@ -217,7 +217,7 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 			if (Definition == nullptr || Definition->StageClassId.IsNone())
 			{
 				OutReason = FString::Printf(
-					TEXT("TRACK NODE %d IS NOT A LINE STATION"),
+					TEXT("Track node %d is not a line station"),
 					Index + 1);
 				return false;
 			}
@@ -281,13 +281,13 @@ bool ALBSpacecraftRuntimeCoordinator::TryStartUnit(FName& OutUnitId,
 	OutUnitId = NAME_None;
 	if (!IsConfigured() || ProductionAuthority == nullptr)
 	{
-		OutReason = TEXT("COORDINATOR IS NOT CONFIGURED");
+		OutReason = TEXT("Coordinator is not configured");
 		return false;
 	}
 	const FLBSpacecraftRouteStep& Head = Route[0];
 	if (StationOccupiedByOther(Head.StationId, NAME_None))
 	{
-		OutReason = TEXT("THE HEAD STATION IS OCCUPIED");
+		OutReason = TEXT("The head station is occupied");
 		return false;
 	}
 	// Demand decides the recipe: the OLDEST accepted contract with
@@ -323,7 +323,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryStartUnit(FName& OutUnitId,
 			if (FirstRefusal.IsEmpty())
 			{
 				FirstRefusal = FString::Printf(
-					TEXT("CONTRACT NAMES UNKNOWN RECIPE %s"),
+					TEXT("Contract names unknown recipe %s"),
 					*Contract.RecipeId.ToString());
 			}
 			continue;
@@ -346,7 +346,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryStartUnit(FName& OutUnitId,
 	{
 		OutReason = bSawDemand && !FirstRefusal.IsEmpty()
 			? FirstRefusal
-			: TEXT("NO CONTRACT DEMANDS A CRAFT");
+			: TEXT("No contract demands a craft");
 		return false;
 	}
 	if (!ProductionAuthority->CreateUnit(DemandRecipeId, OutUnitId,
@@ -377,7 +377,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 		ProductionAuthority->FindUnit(Assignment.UnitId);
 	if (Unit == nullptr)
 	{
-		OutHoldReason = TEXT("ASSIGNED UNIT MISSING FROM THE LEDGER");
+		OutHoldReason = TEXT("Assigned unit missing from the ledger");
 		return false;
 	}
 
@@ -408,7 +408,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 		{
 			if (!bAutoRunHoverTest)
 			{
-				OutHoldReason = TEXT("HOLDING FOR THE HOVER TEST RESULT");
+				OutHoldReason = TEXT("Holding for the hover test result");
 				return false;
 			}
 			// THE TRIM LOOP. The self-start hover IS the test, and it
@@ -446,7 +446,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 				// looped.
 				Assignment.CycleElapsedSeconds = 0.f;
 				OutHoldReason = FString::Printf(
-					TEXT("TRIMMING %s - PASS %d OF %d, %.2f DEG OUT"),
+					TEXT("Trimming %s - pass %d of %d, %.2f deg out"),
 					*Assignment.UnitId.ToString(),
 					Unit->TrimPassesDone + 1, PassesNeeded,
 					FLBSpacecraftProductionCatalog::TrimResidualDeg(
@@ -468,8 +468,8 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 				// CycleElapsedSeconds clamped at the cycle length.
 				Assignment.CycleElapsedSeconds = 0.f;
 				OutHoldReason = FString::Printf(
-					TEXT("HOVER TEST FAILED: %s WILL NOT TRIM OUT - ")
-					TEXT("%d DEFECTS, REWORKING (CREW YOUR STATIONS)"),
+					TEXT("Hover test failed: %s will not trim out - ")
+					TEXT("%d defects, reworking (crew your stations)"),
 					*Assignment.UnitId.ToString(), Unit->DefectPoints);
 				return false;
 			}
@@ -548,7 +548,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 					// refusal that sends the player to fix the wrong
 					// thing.
 					OutHoldReason = FString::Printf(
-						TEXT("INSUFFICIENT RESOURCES: %s NEEDS %dx %s%s"),
+						TEXT("Insufficient resources: %s needs %dx %s%s"),
 						*Record->StationId.ToString(), Needed,
 						*Component.ToString(),
 						*DescribeSupplyShortfall(Record->StationId,
@@ -638,7 +638,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 	if (Unit->ReworkSecondsRemaining > 0.f && !bLastRouteStep)
 	{
 		OutHoldReason = FString::Printf(
-			TEXT("INSPECTION: REWORKING %s AT %s - %.0f s REMAINING"),
+			TEXT("Inspection: reworking %s at %s - %.0f s remaining"),
 			*Assignment.UnitId.ToString(),
 			*Assignment.StationId.ToString(),
 			Unit->ReworkSecondsRemaining);
@@ -653,7 +653,7 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 		if (NextStep.StationId != Assignment.StationId
 			&& StationOccupiedByOther(NextStep.StationId, Assignment.UnitId))
 		{
-			OutHoldReason = FString::Printf(TEXT("HOLDING: STATION %s OCCUPIED"),
+			OutHoldReason = FString::Printf(TEXT("Holding: station %s occupied"),
 				*NextStep.StationId.ToString());
 			return false;
 		}
@@ -751,7 +751,7 @@ bool ALBSpacecraftRuntimeCoordinator::TickProduction(double DeltaSeconds,
 	using namespace LBSpacecraftRuntimeCoordinatorPrivate;
 	if (!IsConfigured() || ProductionAuthority == nullptr)
 	{
-		OutReason = TEXT("COORDINATOR IS NOT CONFIGURED");
+		OutReason = TEXT("Coordinator is not configured");
 		return false;
 	}
 	if (!ProductionAuthority->AdvanceSimSeconds(DeltaSeconds, OutReason))
@@ -963,12 +963,12 @@ bool ALBSpacecraftRuntimeCoordinator::ValidateRuntime(
 {
 	if (!IsConfigured() || ProductionAuthority == nullptr)
 	{
-		OutReason = TEXT("COORDINATOR IS NOT CONFIGURED");
+		OutReason = TEXT("Coordinator is not configured");
 		return false;
 	}
 	if (State.RouteTopologyHash != ComputeRouteTopologyHash(Route))
 	{
-		OutReason = TEXT("RUNTIME STATE BELONGS TO A DIFFERENT ROUTE");
+		OutReason = TEXT("Runtime state belongs to a different route");
 		return false;
 	}
 	TSet<FName> UnitIds;
@@ -979,18 +979,18 @@ bool ALBSpacecraftRuntimeCoordinator::ValidateRuntime(
 		UnitIds.Add(Assignment.UnitId, &bAlready);
 		if (bAlready)
 		{
-			OutReason = TEXT("DUPLICATE UNIT IN RUNTIME STATE");
+			OutReason = TEXT("Duplicate unit in runtime state");
 			return false;
 		}
 		if (!Route.IsValidIndex(Assignment.RouteIndex))
 		{
-			OutReason = TEXT("ASSIGNMENT ROUTE INDEX OUT OF RANGE");
+			OutReason = TEXT("Assignment route index out of range");
 			return false;
 		}
 		const FLBSpacecraftRouteStep& Step = Route[Assignment.RouteIndex];
 		if (Step.StationId != Assignment.StationId)
 		{
-			OutReason = TEXT("ASSIGNMENT STATION DISAGREES WITH THE ROUTE");
+			OutReason = TEXT("Assignment station disagrees with the route");
 			return false;
 		}
 		const FLBSpacecraftUnitState* Unit =
@@ -998,7 +998,7 @@ bool ALBSpacecraftRuntimeCoordinator::ValidateRuntime(
 		if (Unit == nullptr)
 		{
 			OutReason = FString::Printf(
-				TEXT("RUNTIME UNIT %s MISSING FROM THE LEDGER"),
+				TEXT("Runtime unit %s missing from the ledger"),
 				*Assignment.UnitId.ToString());
 			return false;
 		}
@@ -1011,19 +1011,19 @@ bool ALBSpacecraftRuntimeCoordinator::ValidateRuntime(
 			&& !(bLastStep
 				&& Unit->Stage == ELBSpacecraftStage::Testing))
 		{
-			OutReason = TEXT("UNIT STAGE DISAGREES WITH ITS ROUTE STEP");
+			OutReason = TEXT("Unit stage disagrees with its route step");
 			return false;
 		}
 		if (Assignment.CycleElapsedSeconds < 0.f)
 		{
-			OutReason = TEXT("NEGATIVE CYCLE TIME IN RUNTIME STATE");
+			OutReason = TEXT("Negative cycle time in runtime state");
 			return false;
 		}
 		bool bStationTaken = false;
 		Stations.Add(Assignment.StationId, &bStationTaken);
 		if (bStationTaken)
 		{
-			OutReason = TEXT("TWO UNITS OCCUPY ONE STATION");
+			OutReason = TEXT("Two units occupy one station");
 			return false;
 		}
 	}
