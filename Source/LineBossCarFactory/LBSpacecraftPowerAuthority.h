@@ -121,8 +121,15 @@ public:
 	FLBSpacecraftPowerSnapshot CaptureSnapshot() const;
 	bool RestoreSnapshot(const FLBSpacecraftPowerSnapshot& Snapshot,
 		FString& OutReason);
+	// InGridFeedKw: the mains capacity the draw check may lean on.
+	// Buying grid power is a LEGAL billed state (the top bar prices
+	// it), so a snapshot whose draw exceeds owned supply but fits
+	// under supply+feed must save and restore - the overnight soak
+	// found every pre-power-plant factory refusing to save without
+	// this. Default 0 keeps the raw budget arithmetic the unit tests
+	// pin.
 	static bool ValidateSnapshot(const FLBSpacecraftPowerSnapshot& Snapshot,
-		FString& OutReason);
+		FString& OutReason, int32 InGridFeedKw = 0);
 
 private:
 	TArray<FLBSpacecraftPowerEntry> Supplies;

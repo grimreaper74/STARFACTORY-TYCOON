@@ -250,7 +250,8 @@ ALBSpacecraftPowerAuthority::CaptureSnapshot() const
 }
 
 bool ALBSpacecraftPowerAuthority::ValidateSnapshot(
-	const FLBSpacecraftPowerSnapshot& Snapshot, FString& OutReason)
+	const FLBSpacecraftPowerSnapshot& Snapshot, FString& OutReason,
+	int32 InGridFeedKw)
 {
 	int32 Totals[2] = {0, 0};
 	const TArray<FLBSpacecraftPowerEntry>* Sides[2] =
@@ -276,11 +277,11 @@ bool ALBSpacecraftPowerAuthority::ValidateSnapshot(
 			Totals[Side] += Entry.Kilowatts;
 		}
 	}
-	if (Totals[1] > Totals[0])
+	if (Totals[1] > Totals[0] + InGridFeedKw)
 	{
 		OutReason = FString::Printf(
-			TEXT("SNAPSHOT DRAW %d kW EXCEEDS SUPPLY %d kW"),
-			Totals[1], Totals[0]);
+			TEXT("SNAPSHOT DRAW %d kW EXCEEDS SUPPLY %d kW PLUS GRID ")
+			TEXT("FEED %d kW"), Totals[1], Totals[0], InGridFeedKw);
 		return false;
 	}
 	OutReason = TEXT("SNAPSHOT VALID");
@@ -291,7 +292,9 @@ bool ALBSpacecraftPowerAuthority::RestoreSnapshot(
 	const FLBSpacecraftPowerSnapshot& Snapshot, FString& OutReason)
 {
 	// Whole-snapshot validation BEFORE a single mutation (repo law).
-	if (!ValidateSnapshot(Snapshot, OutReason))
+	// The instance knows its mains feed; a grid-billed factory is a
+	// legal thing to restore.
+	if (!ValidateSnapshot(Snapshot, OutReason, GridFeedKw))
 	{
 		return false;
 	}

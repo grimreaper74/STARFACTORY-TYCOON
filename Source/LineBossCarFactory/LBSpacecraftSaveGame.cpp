@@ -52,7 +52,7 @@ bool FLBSpacecraftSavePipeline::SaveToSlot(
 		|| !ALBSpacecraftCraftingAuthority::ValidateSnapshot(
 			Save->Crafting, OutReason)
 		|| !ALBSpacecraftPowerAuthority::ValidateSnapshot(
-			Save->Power, OutReason)
+			Save->Power, OutReason, Context.Power->GridFeedKw)
 		|| !ALBSpacecraftResearchAuthority::ValidateSnapshot(
 			Save->Research, OutReason)
 		|| !ALBSpacecraftDroneFleetAuthority::ValidateSnapshot(
