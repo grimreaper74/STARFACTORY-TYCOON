@@ -1,4 +1,5 @@
 #include "LBSpacecraftPlayerPawn.h"
+#include "LBSpacecraftTrackAuthority.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -555,17 +556,84 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 		}
 		const FVector Snapped = SnapToBuildGrid(FloorPoint,
 			ALBSpacecraftBuildAuthority::GetPlacementGridCm());
+		// LINE STATIONS STAND ON THE TRACK (owner 2026-09-01: "you can
+		// put stuff anywhere" - seven scattered stations later the
+		// commission gate shouted a paragraph. The rule existed but
+		// fired LATE; now it fires at the click). A line-station drop
+		// snaps to the nearest FREE straight piece and attaches as its
+		// node in the same click; with no track in reach it refuses
+		// immediately, in one line, while the mistake is still free.
+		FTransform PlaceTransform(FRotator(0.f, GhostYawDeg, 0.f),
+			Snapped);
+		FName SnapPieceId = NAME_None;
+		const FLBSpacecraftStationDefinition* PlacingDefinition =
+			ALBSpacecraftBuildAuthority::FindDefinition(
+				PlacementDefinitionId);
+		if (PlacingDefinition != nullptr
+			&& PlacingDefinition->StageClassId
+				== FName(TEXT("LineStation"))
+			&& GameMode->GetTrackAuthority() != nullptr)
+		{
+			float BestDistSq = FMath::Square(3000.f);
+			const FLBSpacecraftTrackPieceRecord* BestPiece = nullptr;
+			for (const FLBSpacecraftTrackPieceRecord& Piece :
+				GameMode->GetTrackAuthority()->GetPieces())
+			{
+				if (Piece.PieceType != ELBSpacecraftTrackPiece::Straight
+					|| !Piece.NodeStationId.IsNone())
+				{
+					continue;
+				}
+				const float DistSq = FVector::DistSquared2D(
+					Piece.WorldTransform.GetLocation(), Snapped);
+				if (DistSq < BestDistSq)
+				{
+					BestDistSq = DistSq;
+					BestPiece = &Piece;
+				}
+			}
+			if (BestPiece == nullptr)
+			{
+				LastActionText = LOCTEXT("NeedTrack",
+					"LINE STATIONS STAND ON THE TRACK - lay track, "
+					"then click beside a free straight piece")
+					.ToString();
+				return;
+			}
+			PlaceTransform = FTransform(
+				BestPiece->WorldTransform.GetRotation(),
+				FVector(BestPiece->WorldTransform.GetLocation().X,
+					BestPiece->WorldTransform.GetLocation().Y, 0.f));
+			SnapPieceId = BestPiece->PieceId;
+		}
 		FName StationId;
 		FString Reason;
 		if (ALBSpacecraftGameMode::PlaceStationPowered(
 			*GameMode->GetBuildAuthority(), *GameMode->GetPowerAuthority(),
 			*GameMode->GetInventoryAuthority(), PlacementDefinitionId,
-			FTransform(FRotator(0.f, GhostYawDeg, 0.f), Snapped),
+			PlaceTransform,
 			StationId, Reason, GameMode->GetProductionAuthority(),
 			GameMode->GetProgression()))
 		{
 			LastActionText = FText::Format(LOCTEXT("Placed",
 				"PLACED {0}"), FText::FromName(StationId)).ToString();
+			if (!SnapPieceId.IsNone())
+			{
+				FString AttachReason;
+				if (GameMode->GetTrackAuthority()->AttachStationNode(
+					StationId, SnapPieceId,
+					GameMode->GetBuildAuthority(), AttachReason))
+				{
+					LastActionText = FText::Format(LOCTEXT(
+						"PlacedOnTrack",
+						"PLACED {0} ON THE TRACK"),
+						FText::FromName(StationId)).ToString();
+				}
+				else
+				{
+					LastActionText = AttachReason;
+				}
+			}
 			// A NEW SHIP FACTORY COMES WITH ITS STARTING LOADOUT
 			// (owner 2026-08-28): one assembly station crewed by one
 			// of each drone, commissioned, with the whole build
@@ -819,6 +887,13 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 		{
 			PlacementGhost->SetVisibility(false);
 		}
+		for (UStaticMeshComponent* Line : PlacementGridLines)
+		{
+			if (Line != nullptr)
+			{
+				Line->SetVisibility(false);
+			}
+		}
 		return;
 	}
 	if (PlacementGhost == nullptr)
@@ -851,6 +926,77 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 	}
 	const FVector Snapped = SnapToBuildGrid(FloorPoint,
 		ALBSpacecraftBuildAuthority::GetPlacementGridCm());
+	// THE GRID SHOWS WHILE PLACING (owner 2026-09-01, and every
+	// benchmark does it): 100 cm build-grid strips around the cursor so
+	// snapping is visible before the click rather than discovered after.
+	{
+		const float GridCm =
+			ALBSpacecraftBuildAuthority::GetPlacementGridCm();
+		constexpr int32 GridHalfLines = 6;
+		constexpr int32 GridLineCount = (GridHalfLines * 2 + 1) * 2;
+		const float GridSpanCm = GridHalfLines * 2 * GridCm;
+		if (PlacementGridLines.Num() == 0)
+		{
+			UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr,
+				SpacecraftGhostCubePath);
+			UMaterialInterface* ShapeMaterial =
+				LoadObject<UMaterialInterface>(nullptr,
+					SpacecraftGhostMaterialPath);
+			for (int32 Index = 0;
+				Cube != nullptr && Index < GridLineCount; ++Index)
+			{
+				UStaticMeshComponent* Line =
+					NewObject<UStaticMeshComponent>(this,
+						UStaticMeshComponent::StaticClass());
+				Line->SetStaticMesh(Cube);
+				Line->SetCollisionEnabled(
+					ECollisionEnabled::NoCollision);
+				Line->SetCastShadow(false);
+				Line->SetAbsolute(true, true, true);
+				Line->SetupAttachment(RootComponent);
+				Line->RegisterComponent();
+				if (ShapeMaterial != nullptr)
+				{
+					UMaterialInstanceDynamic* LineMID =
+						UMaterialInstanceDynamic::Create(
+							ShapeMaterial, Line);
+					LineMID->SetVectorParameterValue(TEXT("Color"),
+						FLinearColor(0.55f, 0.53f, 0.51f, 0.30f));
+					Line->SetMaterial(0, LineMID);
+				}
+				PlacementGridLines.Add(Line);
+			}
+		}
+		// Centre the grid on the snapped cell so the lines hold still
+		// while the cursor slides within a cell.
+		for (int32 Index = 0; Index < PlacementGridLines.Num(); ++Index)
+		{
+			UStaticMeshComponent* Line = PlacementGridLines[Index];
+			if (Line == nullptr)
+			{
+				continue;
+			}
+			const bool bAlongX = Index < GridLineCount / 2;
+			const int32 Offset =
+				(Index % (GridHalfLines * 2 + 1)) - GridHalfLines;
+			FVector Location = Snapped;
+			FVector Scale;
+			if (bAlongX)
+			{
+				Location.Y += Offset * GridCm;
+				Scale = FVector(GridSpanCm / 100.f, 0.03f, 0.01f);
+			}
+			else
+			{
+				Location.X += Offset * GridCm;
+				Scale = FVector(0.03f, GridSpanCm / 100.f, 0.01f);
+			}
+			Location.Z = 2.f;
+			Line->SetWorldTransform(FTransform(
+				FRotator::ZeroRotator, Location, Scale));
+			Line->SetVisibility(true);
+		}
+	}
 	// Polish (owner 2026-08-25): the ghost carries a verdict - blue
 	// where the placement would be accepted, warning orange where the
 	// fail-closed refusal would fire (land, bounds, funds).

@@ -146,6 +146,11 @@ private:
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> PlacementGhost;
 
+	/** PLACEMENT GRID (owner 2026-09-01 + benchmark research: a grid
+	 *  shows during placement). Thin translucent strips on the 100 cm
+	 *  build grid around the ghost; visible only while placing. */
+	TArray<TObjectPtr<UStaticMeshComponent>> PlacementGridLines;
+
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float ZoomMinCm = 2500.f;
 

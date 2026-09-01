@@ -7156,6 +7156,17 @@ void ALBSpacecraftWIPPresentationActor::RefreshSiteShells()
 			Piece->SetVisibility(!bOnMap);
 		}
 	}
+	// And the converse (owner 2026-09-01: "the walkways should go") -
+	// the site roads are OUTSIDE furniture, and with the hall roofless
+	// they showed through as grey walkway strips across the factory
+	// floor. Nothing on this floor walks; roads live on the site view.
+	for (UStaticMeshComponent* Road : RoadPieces)
+	{
+		if (Road != nullptr && Road->IsVisible() != bOnMap)
+		{
+			Road->SetVisibility(bOnMap);
+		}
+	}
 }
 
 UStaticMeshComponent* ALBSpacecraftWIPPresentationActor::MakeRoadSlab(
@@ -7410,7 +7421,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		}
 	}
 	HallInteriorPieces.Reset();
-	if (Hall == nullptr || LineStations.Num() == 0)
+	// HALL FIRST, LINE SECOND (owner 2026-09-01: "the screen is black
+	// until you put the station in"). This used to bail with zero line
+	// stations, so a brand-new player ENTERING their empty ship factory
+	// saw a black void until the first station spawned the first
+	// geometry. The ROOM - walls, door, the waiting crane - exists the
+	// moment the hall does; every station-derived piece below already
+	// falls back to hall-centre maths when the line is empty.
+	if (Hall == nullptr)
 	{
 		return;
 	}
@@ -7945,9 +7963,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			Place(CraneTrolley, FName(*FString::Printf(
 				TEXT("HallCraneTrolley_%d"), Index)),
 				FVector(HallAt.X, CraneY, 0.f), GantryYaw);
+			// IDLE POSITION IS RAISED (owner, 2026-09-01: "the crane has
+			// something hanging from it that's always there"). The
+			// hoist mesh models its cables and cradle at full drop and
+			// nothing animates it yet, so placed at floor anchor the
+			// cradle dangled mid-air forever. Tucked up by most of its
+			// own height it reads as a stowed hoist; the drop becomes
+			// part of the carry animation when that lands.
+			const float HoistRaiseCm = CraneHoist != nullptr
+				? CraneHoist->GetBounds().BoxExtent.Z * 2.f * 0.7f : 0.f;
 			Place(CraneHoist, FName(*FString::Printf(
 				TEXT("HallCraneHoist_%d"), Index)),
-				FVector(HallAt.X, CraneY, 0.f), GantryYaw);
+				FVector(HallAt.X, CraneY, HoistRaiseCm), GantryYaw);
 			for (int32 Rig = BeforeRig;
 				Rig < HallInteriorPieces.Num(); ++Rig)
 			{
