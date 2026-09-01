@@ -79,12 +79,28 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 			FVector(0.f, 0.f, 0.f), Plan, Reason));
 	TestEqual(TEXT("the exit-cell plan is one straight"), Plan.Num(), 1);
 
-	// Behind the open end refuses - the chain only grows forward.
-	TestFalse(TEXT("a click behind the open end refuses"),
+	// DIRECTLY behind the open end refuses - a U needs a lateral cell
+	// to turn through.
+	TestFalse(TEXT("a click directly behind the open end refuses"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
 			FVector(-800.f, 0.f, 0.f), Plan, Reason));
 	TestTrue(TEXT("the refusal teaches REMOVE"),
 		Reason.Contains(TEXT("REMOVE")));
+
+	// Behind WITH side room routes a U: turn, sidestep, turn back
+	// (owner 2026-09-01 "only seems to go up" - half the floor was
+	// unreachable under forward-only planning).
+	TestTrue(TEXT("a click behind with side room plans a U"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(-800.f, 800.f, 0.f), Plan, Reason));
+	TestEqual(TEXT("the U is turn + 1 + turn + 2"), Plan.Num(), 5);
+	TestEqual(TEXT("the U opens with a right turn"),
+		Plan[0], ELBSpacecraftTrackPiece::TurnRight);
+	TestEqual(TEXT("the U turns back the same way"),
+		Plan[2], ELBSpacecraftTrackPiece::TurnRight);
+	TestTrue(TEXT("the U lands on the clicked cell"),
+		LandingCell(ExitEast, Plan).Equals(
+			FVector(-800.f, 800.f, 0.f), 1.f));
 
 	// A rotated open end plans in ITS frame: heading south (+Y yaw 90),
 	// a click further south is dead ahead.

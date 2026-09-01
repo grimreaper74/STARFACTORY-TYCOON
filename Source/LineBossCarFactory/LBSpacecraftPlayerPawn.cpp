@@ -927,6 +927,13 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 				Line->SetVisibility(false);
 			}
 		}
+		for (UStaticMeshComponent* Tile : TrackPathGhosts)
+		{
+			if (Tile != nullptr)
+			{
+				Tile->SetVisibility(false);
+			}
+		}
 		return;
 	}
 	if (PlacementGhost == nullptr)
@@ -1030,19 +1037,19 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 			Line->SetVisibility(true);
 		}
 	}
-	// TRACK MODE GHOST: a flat 400 x 400 tile on the cell the NEXT
-	// click would reach - the planner's own answer, so what the ghost
-	// promises is what the click lays. Blue when the route plans and
-	// the pieces are affordable, warning orange otherwise.
+	// TRACK MODE GHOST: the WHOLE planned path, tip to cursor, one
+	// flat tile per cell - the benchmark rail-planner idiom. A single
+	// landing tile hid the route and made every refusal read as a
+	// dead click (owner 2026-09-01 "only seems to go up"). Blue when
+	// the route plans and is affordable, warning orange otherwise.
 	if (bTrackLay)
 	{
 		ALBSpacecraftGameMode* TrackGameMode = GetSpacecraftGameMode();
 		ALBSpacecraftTrackAuthority* TrackAuthority =
 			TrackGameMode != nullptr
 				? TrackGameMode->GetTrackAuthority() : nullptr;
-		FVector Target = Snapped;
-		int32 PieceCount = 1;
 		bool bWouldLay = TrackAuthority != nullptr;
+		TArray<FVector> PathCells;
 		if (TrackAuthority != nullptr
 			&& TrackAuthority->GetPieces().Num() > 0)
 		{
@@ -1055,41 +1062,101 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 				&& ALBSpacecraftTrackAuthority::PlanRouteToPoint(
 					Exit, FloorPoint, Plan, WhyNot))
 			{
-				// Walk the plan to the cell its last piece occupies.
+				// Each piece occupies the walk's CURRENT cell; the
+				// walk then advances to the next.
 				FTransform Walk = Exit;
-				FVector Landing = Exit.GetLocation();
 				for (const ELBSpacecraftTrackPiece Piece : Plan)
 				{
-					Landing = Walk.GetLocation();
+					PathCells.Add(Walk.GetLocation());
 					Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(
 						Walk, Piece);
 				}
-				Target = Landing;
-				PieceCount = Plan.Num();
 			}
 			else
 			{
 				bWouldLay = false;
+				// The refused click still shows WHERE it refused.
+				PathCells.Add(Snapped);
 			}
+		}
+		else if (TrackAuthority != nullptr)
+		{
+			// No line yet: the one tile is the start anchor.
+			PathCells.Add(Snapped);
 		}
 		if (bWouldLay && TrackGameMode->GetProductionAuthority() != nullptr
 			&& TrackGameMode->GetProductionAuthority()->GetCashPence()
-				< PieceCount * TrackAuthority->PieceCostPence)
+				< PathCells.Num() * TrackAuthority->PieceCostPence)
 		{
 			bWouldLay = false;
 		}
-		if (UMaterialInstanceDynamic* TrackMID =
-			Cast<UMaterialInstanceDynamic>(PlacementGhost->GetMaterial(0)))
+		// Pool grows to the longest path seen; spares hide. 96 covers
+		// any route the 110-cell-wide floor can legally hold.
+		constexpr int32 MaxPathTiles = 96;
+		const int32 Needed = FMath::Min(PathCells.Num(), MaxPathTiles);
+		if (TrackPathGhosts.Num() < Needed)
 		{
-			TrackMID->SetVectorParameterValue(TEXT("Color"), bWouldLay
-				? SpacecraftGhostColour : SpacecraftGhostRefusedColour);
+			UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr,
+				SpacecraftGhostCubePath);
+			UMaterialInterface* ShapeMaterial =
+				LoadObject<UMaterialInterface>(nullptr,
+					SpacecraftGhostMaterialPath);
+			while (Cube != nullptr && TrackPathGhosts.Num() < Needed)
+			{
+				UStaticMeshComponent* Tile =
+					NewObject<UStaticMeshComponent>(this,
+						UStaticMeshComponent::StaticClass());
+				Tile->SetStaticMesh(Cube);
+				Tile->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Tile->SetCastShadow(false);
+				Tile->SetAbsolute(true, true, true);
+				Tile->SetupAttachment(RootComponent);
+				Tile->RegisterComponent();
+				if (ShapeMaterial != nullptr)
+				{
+					UMaterialInstanceDynamic* TileMID =
+						UMaterialInstanceDynamic::Create(
+							ShapeMaterial, Tile);
+					Tile->SetMaterial(0, TileMID);
+				}
+				TrackPathGhosts.Add(Tile);
+			}
 		}
-		PlacementGhost->SetWorldTransform(FTransform(
-			FRotator::ZeroRotator,
-			FVector(Target.X, Target.Y, 2.f),
-			FVector(4.f, 4.f, 0.05f)));
-		PlacementGhost->SetVisibility(true);
+		for (int32 Index = 0; Index < TrackPathGhosts.Num(); ++Index)
+		{
+			UStaticMeshComponent* Tile = TrackPathGhosts[Index];
+			if (Tile == nullptr)
+			{
+				continue;
+			}
+			if (Index >= Needed)
+			{
+				Tile->SetVisibility(false);
+				continue;
+			}
+			if (UMaterialInstanceDynamic* TileMID =
+				Cast<UMaterialInstanceDynamic>(Tile->GetMaterial(0)))
+			{
+				TileMID->SetVectorParameterValue(TEXT("Color"),
+					bWouldLay ? SpacecraftGhostColour
+						: SpacecraftGhostRefusedColour);
+			}
+			Tile->SetWorldTransform(FTransform(FRotator::ZeroRotator,
+				FVector(PathCells[Index].X, PathCells[Index].Y, 2.f),
+				FVector(3.6f, 3.6f, 0.04f)));
+			Tile->SetVisibility(true);
+		}
+		// The station ghost cube has no job in track mode.
+		PlacementGhost->SetVisibility(false);
 		return;
+	}
+	// Station mode: any track-path tiles from a previous mode hide.
+	for (UStaticMeshComponent* Tile : TrackPathGhosts)
+	{
+		if (Tile != nullptr)
+		{
+			Tile->SetVisibility(false);
+		}
 	}
 	// Polish (owner 2026-08-25): the ghost carries a verdict - blue
 	// where the placement would be accepted, warning orange where the

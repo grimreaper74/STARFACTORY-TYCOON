@@ -99,9 +99,33 @@ bool ALBSpacecraftTrackAuthority::PlanRouteToPoint(
 		FMath::RoundToInt32(Local.Y / GetPieceLengthCm());
 	if (ForwardCells < 0)
 	{
-		OutReason = TEXT("THE LINE GROWS FORWARD - CLICK AHEAD OF THE "
-			"OPEN END (REMOVE LAST PIECE goes back)");
-		return false;
+		// BEHIND THE TIP: route a U - turn, sidestep, turn back (owner
+		// 2026-09-01 "only seems to go up": the forward-only refusal
+		// made half the floor unreachable, which no benchmark planner
+		// does). The one genuinely unreachable cell is directly astern
+		// with zero side room, because a U needs a lateral cell to
+		// turn through.
+		if (LateralCells == 0)
+		{
+			OutReason = TEXT("DIRECTLY BEHIND THE OPEN END - CLICK A "
+				"CELL TO EITHER SIDE (REMOVE LAST PIECE goes back)");
+			return false;
+		}
+		const ELBSpacecraftTrackPiece UTurn = LateralCells > 0
+			? ELBSpacecraftTrackPiece::TurnRight
+			: ELBSpacecraftTrackPiece::TurnLeft;
+		OutPieces.Add(UTurn);
+		for (int32 Step = 1; Step < FMath::Abs(LateralCells); ++Step)
+		{
+			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		}
+		OutPieces.Add(UTurn);
+		for (int32 Step = 0; Step < -ForwardCells; ++Step)
+		{
+			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		}
+		OutReason.Reset();
+		return true;
 	}
 	// Straights cover cells (0..ForwardCells-1) on the build axis.
 	for (int32 Step = 0; Step < ForwardCells; ++Step)

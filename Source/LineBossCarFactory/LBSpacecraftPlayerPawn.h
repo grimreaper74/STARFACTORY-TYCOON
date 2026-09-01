@@ -161,6 +161,12 @@ private:
 	 *  build grid around the ghost; visible only while placing. */
 	TArray<TObjectPtr<UStaticMeshComponent>> PlacementGridLines;
 
+	/** TRACK PATH PREVIEW (owner 2026-09-01 "only seems to go up" -
+	 *  the single landing tile hid the route, so every refusal read as
+	 *  a dead click). One flat tile per planned cell, tip to cursor,
+	 *  the way the benchmark rail planners ghost the whole path. */
+	TArray<TObjectPtr<UStaticMeshComponent>> TrackPathGhosts;
+
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float ZoomMinCm = 2500.f;
 
