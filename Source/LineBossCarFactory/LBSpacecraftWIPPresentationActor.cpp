@@ -57,6 +57,15 @@ namespace LBSpacecraftWIPPresentationPrivate
 	const TCHAR* SpacecraftCubePath = TEXT("/Engine/BasicShapes/Cube.Cube");
 	const TCHAR* SpacecraftShapeMaterialPath =
 		TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial");
+	// Spline mesh components need bUsedWithSplineMeshes on their
+	// material, which the engine BasicShapeMaterial lacks - in the
+	// first packaged run every belt segment cost a game-thread SMU
+	// fixup, and a Shipping build would render default material.
+	// Project-owned equivalent (same "Color" parameter), created by
+	// Scripts/fix_cooked_material_usage_v001.py, flag baked in.
+	const TCHAR* SpacecraftSplineShapeMaterialPath = TEXT(
+		"/Game/LineBoss/Candidates/Spacecraft/StationMeshes_v001"
+		"/Materials/M_LB_ShapeSpline_v001.M_LB_ShapeSpline_v001");
 	const TCHAR* SpacecraftCraftMeshPath = TEXT(
 		"/Game/LineBoss/Candidates/Spacecraft/SpacecraftTestBay_v001"
 		"/Meshes/SM_LB_SC_Scout01_v001.SM_LB_SC_Scout01_v001");
@@ -1433,8 +1442,16 @@ void ALBSpacecraftWIPPresentationActor::TickTrack(float DeltaSeconds)
 	}
 	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr,
 		SpacecraftCubePath);
+	// Spline-flagged parent first; the engine shape material only as a
+	// fallback so a missing asset degrades to the old SMU-fixup path
+	// rather than an unrendered track.
 	UMaterialInterface* ShapeMaterial = LoadObject<UMaterialInterface>(
-		nullptr, SpacecraftShapeMaterialPath);
+		nullptr, SpacecraftSplineShapeMaterialPath);
+	if (ShapeMaterial == nullptr)
+	{
+		ShapeMaterial = LoadObject<UMaterialInterface>(
+			nullptr, SpacecraftShapeMaterialPath);
+	}
 	if (Cube == nullptr)
 	{
 		return;

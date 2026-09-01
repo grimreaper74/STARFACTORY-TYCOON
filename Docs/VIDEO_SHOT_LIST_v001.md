@@ -120,3 +120,29 @@
 - **Fallback:** If the paint booth is not ready or audio is incomplete, compress Shot 6 and Shot 8, extend Shot 5 to 40s and show a second contract/delivery cycle for "here's the repeat loop that earns you money."
 
 **Total:** 120 seconds | **Critical Path:** Shots 1–8 as listed, in order. Owner films live play; Claude prepares the starting state and verifies each beat loads correctly.
+
+---
+
+## Fable verification (2026-09-01) — corrections to the draft above
+
+The structure and timings stand. Four claims do not match the game and
+must be read as corrected here before filming:
+
+1. **Shot 1 names the wrong map.** The game opens on the spacecraft
+   site map (`LB_SpacecraftFactory_v002`), factory building pre-placed;
+   the player clicks in to the hall. "OneFactory" is the car-era
+   integration map and is not what gets filmed. The empty-hall
+   establish shot happens after entering the pre-placed ship factory.
+2. **Shot 6 oversells the spray booth.** The booth is a pass-through
+   process station; there is currently NO visible colour change on the
+   craft body. Film the booth as a tunnel beat the craft passes
+   through, or use the fallback in the Notes (extend Shot 5). Do not
+   promise a paint transformation the build cannot show.
+3. **Shot 7's "in flight" hold must be filmed from the runway view.**
+   The launch camera is deliberately disabled (owner decision,
+   2026-08-30, do not re-enable). The craft departs the building; the
+   camera stays in the world view.
+4. **The Notes' "in-game ambient" audio does not exist.** The module
+   ships silent today; audio is a pending owner commission. Plan the
+   cut for licensed music or commissioned SFX overlaid in the edit —
+   do not rely on captured game audio.

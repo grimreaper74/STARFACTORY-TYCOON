@@ -3662,45 +3662,85 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftEnterCommand(
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 		[](const TArray<FString>& Args, UWorld* World)
 {
-	ALBSpacecraftGameMode* GameMode = ALBSpacecraftGameMode::FindInWorld(World);
-	APlayerController* Controller =
-		World != nullptr ? World->GetFirstPlayerController() : nullptr;
-	ALBSpacecraftPlayerPawn* Pawn = Controller != nullptr
-		? Cast<ALBSpacecraftPlayerPawn>(Controller->GetPawn()) : nullptr;
-	if (GameMode == nullptr || Pawn == nullptr
-		|| GameMode->GetBuildAuthority() == nullptr)
+	if (World == nullptr)
 	{
-		UE_LOG(LogLBSpacecraft, Warning,
-			TEXT("LB.Spacecraft.Enter: no spacecraft pawn"));
 		return;
 	}
-	FName Target = Args.Num() > 0 ? FName(*Args[0]) : NAME_None;
-	if (Target.IsNone())
+	// Boot ordering ate the first packaged journey's interior shots:
+	// Enter ran from -ExecCmds at frame 0, logged OK, and the pawn's
+	// own initial framing then stamped the site view back over it. An
+	// optional numeric delay ("LB.Spacecraft.Enter 3", or
+	// "LB.Spacecraft.Enter <stationId> 3") re-enters after the world
+	// has settled, resolving the pawn and target at fire time.
+	FName Target = NAME_None;
+	float Delay = 0.f;
+	if (Args.Num() > 0)
 	{
-		for (const FLBSpacecraftStationRecord& Record :
-			GameMode->GetBuildAuthority()->GetStations())
+		if (Args[0].IsNumeric())
 		{
-			const FLBSpacecraftStationDefinition* Definition =
-				ALBSpacecraftBuildAuthority::FindDefinition(
-					Record.DefinitionId);
-			if (Definition != nullptr && Definition->bSiteBuilding)
+			Delay = FCString::Atof(*Args[0]);
+		}
+		else
+		{
+			Target = FName(*Args[0]);
+			if (Args.Num() > 1)
 			{
-				Target = Record.StationId;
-				break;
+				Delay = FCString::Atof(*Args[1]);
 			}
 		}
 	}
-	if (Target.IsNone())
+	auto EnterNow = [World, Target]()
 	{
-		UE_LOG(LogLBSpacecraft, Warning,
-			TEXT("LB.Spacecraft.Enter: nothing to enter - no building "
-				"stands on the site"));
+		ALBSpacecraftGameMode* GameMode =
+			ALBSpacecraftGameMode::FindInWorld(World);
+		APlayerController* Controller = World->GetFirstPlayerController();
+		ALBSpacecraftPlayerPawn* Pawn = Controller != nullptr
+			? Cast<ALBSpacecraftPlayerPawn>(Controller->GetPawn()) : nullptr;
+		if (GameMode == nullptr || Pawn == nullptr
+			|| GameMode->GetBuildAuthority() == nullptr)
+		{
+			UE_LOG(LogLBSpacecraft, Warning,
+				TEXT("LB.Spacecraft.Enter: no spacecraft pawn"));
+			return;
+		}
+		FName Resolved = Target;
+		if (Resolved.IsNone())
+		{
+			for (const FLBSpacecraftStationRecord& Record :
+				GameMode->GetBuildAuthority()->GetStations())
+			{
+				const FLBSpacecraftStationDefinition* Definition =
+					ALBSpacecraftBuildAuthority::FindDefinition(
+						Record.DefinitionId);
+				if (Definition != nullptr && Definition->bSiteBuilding)
+				{
+					Resolved = Record.StationId;
+					break;
+				}
+			}
+		}
+		if (Resolved.IsNone())
+		{
+			UE_LOG(LogLBSpacecraft, Warning,
+				TEXT("LB.Spacecraft.Enter: nothing to enter - no building "
+					"stands on the site"));
+			return;
+		}
+		Pawn->SetSelectedStation(Resolved);
+		Pawn->FocusStation(Resolved);
+		UE_LOG(LogLBSpacecraft, Display, TEXT("LB.Spacecraft.Enter OK: %s"),
+			*Resolved.ToString());
+	};
+	if (Delay > 0.f)
+	{
+		FTimerHandle EnterTimer;
+		World->GetTimerManager().SetTimer(EnterTimer,
+			FTimerDelegate::CreateLambda(EnterNow), Delay, false);
+		UE_LOG(LogLBSpacecraft, Display,
+			TEXT("LB.Spacecraft.Enter ARMED in %.1f s"), Delay);
 		return;
 	}
-	Pawn->SetSelectedStation(Target);
-	Pawn->FocusStation(Target);
-	UE_LOG(LogLBSpacecraft, Display, TEXT("LB.Spacecraft.Enter OK: %s"),
-		*Target.ToString());
+	EnterNow();
 }));
 #endif // !UE_BUILD_SHIPPING
 
