@@ -6023,10 +6023,60 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		{
 			const FVector Next =
 				Route[Assignment.RouteIndex + 1].WorldTransform.GetLocation();
-			const float Alpha = (Progress01 - SlideStartFraction)
-				/ FMath::Max(1.f - SlideStartFraction, 0.01f);
-			Location = FMath::Lerp(Location, Next,
-				FMath::SmoothStep(0.f, 1.f, Alpha));
+			const float Alpha = FMath::SmoothStep(0.f, 1.f,
+				(Progress01 - SlideStartFraction)
+					/ FMath::Max(1.f - SlideStartFraction, 0.01f));
+			// THE CRAFT RIDES THE LINE, NOT THE CHORD (2026-09-01): a
+			// straight lerp cut every corner the free-form track lays.
+			// The belt spline carries one point per track piece and
+			// both stations ARE pieces, so the carry samples the
+			// spline by distance and follows the geometry the player
+			// actually built - bends, U-turns and all. The travel-
+			// facing yaw below then leads the nose through corners
+			// with no extra work. The chord lerp stays as the honest
+			// fallback for a stale or absent spline.
+			bool bRodeTrack = false;
+			if (TrackSpline != nullptr && TrackAuthority != nullptr
+				&& TrackSpline->GetNumberOfSplinePoints()
+					== TrackAuthority->GetPieces().Num())
+			{
+				const FName FromStation =
+					Route[Assignment.RouteIndex].StationId;
+				const FName ToStation =
+					Route[Assignment.RouteIndex + 1].StationId;
+				int32 FromPoint = INDEX_NONE;
+				int32 ToPoint = INDEX_NONE;
+				const TArray<FLBSpacecraftTrackPieceRecord>& Pieces =
+					TrackAuthority->GetPieces();
+				for (int32 Piece = 0; Piece < Pieces.Num(); ++Piece)
+				{
+					if (Pieces[Piece].NodeStationId == FromStation)
+					{
+						FromPoint = Piece;
+					}
+					else if (Pieces[Piece].NodeStationId == ToStation)
+					{
+						ToPoint = Piece;
+					}
+				}
+				if (FromPoint != INDEX_NONE && ToPoint != INDEX_NONE)
+				{
+					const float FromDistance = TrackSpline
+						->GetDistanceAlongSplineAtSplinePoint(FromPoint);
+					const float ToDistance = TrackSpline
+						->GetDistanceAlongSplineAtSplinePoint(ToPoint);
+					const FVector OnSpline =
+						TrackSpline->GetLocationAtDistanceAlongSpline(
+							FMath::Lerp(FromDistance, ToDistance, Alpha),
+							ESplineCoordinateSpace::World);
+					Location = FVector(OnSpline.X, OnSpline.Y, 0.f);
+					bRodeTrack = true;
+				}
+			}
+			if (!bRodeTrack)
+			{
+				Location = FMath::Lerp(Location, Next, Alpha);
+			}
 			Location.Z += ComputeCraneCarryCm(Progress01,
 				SlideStartFraction, CraneCarryRiseCm);
 			// Published for the crane tick. ONE writer, so the gantry

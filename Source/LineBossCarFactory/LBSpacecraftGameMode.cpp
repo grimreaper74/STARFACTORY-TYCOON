@@ -4793,6 +4793,23 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftPlaceCommand(
 	UE_LOG(LogLBSpacecraft, Display, TEXT("LB.Spacecraft.Place %s: %s"),
 		bLoadout ? TEXT("LOADOUT") : TEXT("LOADOUT SKIPPED"),
 		*LoadoutReason);
+	// AND THE TRACK CONNECTS ITSELF, by this route as well (owner
+	// 2026-09-01) - the player's click relays after every line-station
+	// drop, and a dev command that leaves the chain unrouted proves a
+	// factory the player could never have.
+	if (GameMode->GetTrackAuthority() != nullptr)
+	{
+		FString RelayReason;
+		if (!ALBSpacecraftGameMode::RelayTrackThroughStations(
+			*GameMode->GetBuildAuthority(),
+			*GameMode->GetTrackAuthority(), GameMode->GetCoordinator(),
+			GameMode->GetProductionAuthority(), RelayReason))
+		{
+			UE_LOG(LogLBSpacecraft, Warning,
+				TEXT("LB.Spacecraft.Place RELAY REFUSED: %s"),
+				*RelayReason);
+		}
+	}
 }));
 #endif // !UE_BUILD_SHIPPING
 

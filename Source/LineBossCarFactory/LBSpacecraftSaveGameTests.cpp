@@ -337,3 +337,90 @@ bool FLBSpacecraftNewStateSurvivesSaveTest::RunTest(const FString& Parameters)
 	Rig.World->DestroyWorld(false);
 	return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftFreeFormLineRoundTripTest,
+	"LineBoss.Spacecraft.SaveLoad.FreeFormLineSurvivesARoundTrip",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftFreeFormLineRoundTripTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftSaveGameTestsPrivate;
+	FLBSpacecraftSaveRig Rig = MakeSpacecraftSaveRig();
+	FString Reason;
+
+	// Three stations dropped on the 400 cm lattice, deliberately NOT in
+	// a straight line - the relayer routes the bends itself, and the
+	// save must bring the whole bent line back, not a straight
+	// stand-in for it.
+	const FVector Spots[] = {
+		FVector(0.f, -6000.f, 0.f),
+		FVector(0.f, -2000.f, 0.f),
+		FVector(2800.f, 0.f, 0.f) };
+	TArray<FName> Placed;
+	for (const FVector& Spot : Spots)
+	{
+		FName StationId;
+		TestTrue(TEXT("a line station places"),
+			Rig.Build->PlaceStation(FName(TEXT("AssemblyRobot")),
+				FTransform(FRotator(0.f, 90.f, 0.f), Spot), StationId,
+				Reason));
+		Placed.Add(StationId);
+	}
+	TestTrue(TEXT("the relay routes the whole chain"),
+		ALBSpacecraftGameMode::RelayTrackThroughStations(*Rig.Build,
+			*Rig.Track, nullptr, nullptr, Reason));
+	TestTrue(TEXT("the relayed line is complete (start and cap)"),
+		Rig.Track->IsComplete());
+	const TArray<FName> InOrder = Rig.Track->GetNodeStationsInOrder();
+	TestEqual(TEXT("every station attached"), InOrder.Num(), 3);
+	for (int32 Index = 0;
+		Index < FMath::Min(InOrder.Num(), Placed.Num()); ++Index)
+	{
+		TestEqual(TEXT("track order is placement order"),
+			InOrder[Index], Placed[Index]);
+	}
+
+	// Remember the shape of the relayed line before the save.
+	const int32 SavedPieceCount = Rig.Track->GetPieces().Num();
+
+	TestTrue(TEXT("save succeeds"), FLBSpacecraftSavePipeline::SaveToSlot(
+		Rig.Context(), SpacecraftTestSlot, Reason));
+
+	// Wreck the live track the same way a re-route tears down: detach
+	// every station, then pop the open end back to nothing.
+	for (const FName& Attached : Rig.Track->GetNodeStationsInOrder())
+	{
+		Rig.Track->DetachStationNode(Attached, Reason);
+	}
+	while (Rig.Track->GetPieces().Num() > 0)
+	{
+		if (!Rig.Track->RemoveOpenEnd(Reason))
+		{
+			break;
+		}
+	}
+	TestEqual(TEXT("the live track is wrecked"),
+		Rig.Track->GetPieces().Num(), 0);
+
+	TestTrue(TEXT("load succeeds"), FLBSpacecraftSavePipeline::LoadFromSlot(
+		Rig.Context(), SpacecraftTestSlot, Reason));
+	TestTrue(TEXT("the loaded line is complete (start and cap)"),
+		Rig.Track->IsComplete());
+	TestEqual(TEXT("the same number of pieces came back"),
+		Rig.Track->GetPieces().Num(), SavedPieceCount);
+	const TArray<FName> ReloadedOrder =
+		Rig.Track->GetNodeStationsInOrder();
+	TestEqual(TEXT("the same three stations came back"),
+		ReloadedOrder.Num(), 3);
+	for (int32 Index = 0;
+		Index < FMath::Min(ReloadedOrder.Num(), Placed.Num()); ++Index)
+	{
+		TestEqual(TEXT("in the same placement order"),
+			ReloadedOrder[Index], Placed[Index]);
+	}
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
