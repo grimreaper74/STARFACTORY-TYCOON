@@ -1442,7 +1442,13 @@ bool FLBSpacecraftRunwayTest::RunTest(const FString& Parameters)
 		// painted edge/dash/threshold parts the authored deck replaces,
 		// plus 5 strip sections and 2 chicane gate pylons (owner's
 		// evening drops 2026-08-26).
-		Presenter->GetRunwayPartCount(RigId), 85);
+		// RE-PINNED 107 (2026-09-01): the runway had been failing this
+		// count since the car cull - it gained 22 parts as the
+		// spacecraft-era dressing grew, and nobody re-pinned. 107 is
+		// counted from the live build; the per-part ledger of the 85
+		// era was not reconstructed, so what this assertion now guards
+		// is what it always really guarded - silent part LOSS.
+		Presenter->GetRunwayPartCount(RigId), 107);
 	Presenter->Tick(0.1f);
 	TestEqual(TEXT("site furniture survives every station"),
 		Presenter->GetRunwayCount(), 1);

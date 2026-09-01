@@ -471,7 +471,14 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 			{ TEXT("PropulsionStation"), TEXT("fabricator_cell_v003") },
 			{ TEXT("ElectronicsStation"), TEXT("fabricator_cell_v003") },
 			{ TEXT("SubAssemblyRobot"), TEXT("fabricator_cell_v003") },
-			{ TEXT("Smelter"), TEXT("fabricator_cell_v003") } };
+			{ TEXT("Smelter"), TEXT("fabricator_cell_v003") },
+			// The two machine ids the batch missed (2026-09-01, found
+			// through the long-red StationAccents test): the plant and
+			// mill still pointed at quarantined car-era meshes, so
+			// they rendered as blocks and grew no accents. Same
+			// shared fabricator dress as their whole family.
+			{ TEXT("PowerPlant"), TEXT("fabricator_cell_v003") },
+			{ TEXT("RollingMill"), TEXT("fabricator_cell_v003") } };
 		for (const auto& Dress : ConceptDress)
 		{
 			StationMeshes.Add(FName(Dress.Key),
@@ -749,6 +756,8 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId == FName(TEXT("ElectronicsStation"))
 		|| DefinitionId == FName(TEXT("SubAssemblyRobot"))
 		|| DefinitionId == FName(TEXT("Smelter"))
+		|| DefinitionId == FName(TEXT("PowerPlant"))
+		|| DefinitionId == FName(TEXT("RollingMill"))
 		|| DefinitionId.ToString().StartsWith(TEXT("Carrier."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
 		// PALLETLOADS_v001 (2026-08-30): added at registration time,
