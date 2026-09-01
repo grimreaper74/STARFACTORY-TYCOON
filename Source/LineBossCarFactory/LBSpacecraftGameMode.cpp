@@ -4571,6 +4571,54 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftLoadCommand(
 // headless verification and a reviewer build, and exactly wrong in
 // a retail one.
 #if !UE_BUILD_SHIPPING
+static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftAfterCommand(
+	TEXT("LB.Spacecraft.After"),
+	TEXT("Dev: runs any console command after a wall-clock delay. Args: ")
+	TEXT("<seconds> <command...>. -ExecCmds runs everything at frame 0, ")
+	TEXT("which is exactly wrong for a scripted journey that needs to ")
+	TEXT("save mid-production or act after the world settles. Note the ")
+	TEXT("payload cannot contain commas - -ExecCmds splits on them."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+		[](const TArray<FString>& Args, UWorld* World)
+{
+	if (World == nullptr || Args.Num() < 2)
+	{
+		UE_LOG(LogLBSpacecraft, Warning,
+			TEXT("LB.Spacecraft.After: needs <seconds> <command...>"));
+		return;
+	}
+	const float Delay = FMath::Max(FCString::Atof(*Args[0]), 0.1f);
+	FString Command;
+	for (int32 Index = 1; Index < Args.Num(); ++Index)
+	{
+		if (Index > 1)
+		{
+			Command += TEXT(" ");
+		}
+		Command += Args[Index];
+	}
+	FTimerHandle AfterTimer;
+	World->GetTimerManager().SetTimer(AfterTimer,
+		FTimerDelegate::CreateLambda([World, Command]()
+	{
+		if (GEngine != nullptr)
+		{
+			GEngine->Exec(World, *Command);
+			UE_LOG(LogLBSpacecraft, Display,
+				TEXT("LB.Spacecraft.After FIRED: %s"), *Command);
+		}
+	}), Delay, false);
+	UE_LOG(LogLBSpacecraft, Display,
+		TEXT("LB.Spacecraft.After ARMED %.1f s: %s"), Delay, *Command);
+}));
+#endif // !UE_BUILD_SHIPPING
+
+// DEV COMMAND - COMPILED OUT OF SHIPPING. These drive and cheat the
+// game freely (grant points, bank materials, build the whole
+// factory, skip a craft to any stage), which is exactly right for
+// headless verification and a reviewer build, and exactly wrong in
+// a retail one.
+#if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftPowerCommand(
 	TEXT("LB.Spacecraft.Power"),
 	TEXT("Registers a dev power supply. Arg: capacityKw (default 2000)."),

@@ -1442,13 +1442,15 @@ bool FLBSpacecraftRunwayTest::RunTest(const FString& Parameters)
 		// painted edge/dash/threshold parts the authored deck replaces,
 		// plus 5 strip sections and 2 chicane gate pylons (owner's
 		// evening drops 2026-08-26).
-		// RE-PINNED 107 (2026-09-01): the runway had been failing this
-		// count since the car cull - it gained 22 parts as the
-		// spacecraft-era dressing grew, and nobody re-pinned. 107 is
-		// counted from the live build; the per-part ledger of the 85
-		// era was not reconstructed, so what this assertion now guards
-		// is what it always really guarded - silent part LOSS.
-		Presenter->GetRunwayPartCount(RigId), 107);
+		// PIN HISTORY (2026-09-01, twice in one day): the morning re-pin
+		// to 107 blamed "spacecraft-era dressing growth" - wrong. The
+		// Meshy blockout gate had been silently denying every Site.*
+		// mesh, so the runway built its PROCEDURAL fallback (+22 pieces
+		// vs the authored deck). Allowlisting the procedural site kit
+		// restored the authored path and the count came back to exactly
+		// the 85 this ledger always described. If this fails at 107
+		// again, the site kit stopped loading - fix THAT, not the pin.
+		Presenter->GetRunwayPartCount(RigId), 85);
 	Presenter->Tick(0.1f);
 	TestEqual(TEXT("site furniture survives every station"),
 		Presenter->GetRunwayCount(), 1);

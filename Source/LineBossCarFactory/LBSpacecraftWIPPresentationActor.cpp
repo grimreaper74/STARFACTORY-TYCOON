@@ -771,7 +771,13 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
 		// PALLETLOADS_v001 (2026-08-30): added at registration time,
 		// not discovered as a second silent-block bug later.
-		|| DefinitionId.ToString().StartsWith(TEXT("Pallet."));
+		|| DefinitionId.ToString().StartsWith(TEXT("Pallet."))
+		// SITE KIT (2026-09-01): import_site_kit_v002.py is explicit -
+		// "Procedural, no Meshy, no third-party assets", owner-requested
+		// floor/wall quality. The gate's default-deny had silently
+		// killed RefreshSiteDressing in every build since it went up;
+		// the packaged journey finally made the fallback visible.
+		|| DefinitionId.ToString().StartsWith(TEXT("Site."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
