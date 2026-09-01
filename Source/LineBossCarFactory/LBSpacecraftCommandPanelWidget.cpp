@@ -760,9 +760,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		{
 			// The friendly name already says what it is - "Assembly
 			// station Mk1 2" needs no STATION prefix shouting over it.
-			AddSectionLabel(SpacecraftPrettifyStationIds(
-				Selected.ToString(),
-				GameMode->GetBuildAuthority()).ToUpper());
+			AddSectionLabel(LBSpacecraftCommandPanelPrivate
+				::SpacecraftPrettifyStationIds(Selected.ToString(),
+					GameMode->GetBuildAuthority()).ToUpper());
 			for (const FLBSpacecraftStationRecord& Record :
 				GameMode->GetBuildAuthority()->GetStations())
 			{
@@ -2607,9 +2607,9 @@ void ULBSpacecraftCommandPanelWidget::NativeTick(const FGeometry& MyGeometry,
 			Combined = SimAlert;
 		}
 		ToastBlock->SetText(FText::FromString(
-			SpacecraftPrettifyStationIds(Combined,
-				GameMode != nullptr ? GameMode->GetBuildAuthority()
-					: nullptr)));
+			LBSpacecraftCommandPanelPrivate::SpacecraftPrettifyStationIds(
+				Combined, GameMode != nullptr
+					? GameMode->GetBuildAuthority() : nullptr)));
 		if (ToastBorder != nullptr)
 		{
 			ToastBorder->SetVisibility(Combined.IsEmpty()
