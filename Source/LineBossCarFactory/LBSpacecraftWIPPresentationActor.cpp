@@ -8046,10 +8046,22 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 					- (Pieces - 1) * RailPieceCm * 0.5f;
 				for (int32 Piece = 0; Piece < Pieces; ++Piece)
 				{
+					const int32 BeforeRail = HallInteriorPieces.Num();
 					Place(CraneRails, FName(*FString::Printf(
 						TEXT("HallCraneRails_%d_%d"), LegIndex, Piece)),
 						LegPoint(FirstAlong + Piece * RailPieceCm, 0.f),
 						LegYaw);
+					// The rail GAUGE narrows with the portal span (the
+					// legs must land on their rails) - same native-Y
+					// scale as the portal below.
+					if (HallInteriorPieces.Num() > BeforeRail)
+					{
+						UStaticMeshComponent* Rail =
+							HallInteriorPieces.Last();
+						FVector RailScale = Rail->GetRelativeScale3D();
+						RailScale.Y *= 0.42f;
+						Rail->SetRelativeScale3D(RailScale);
+					}
 				}
 			}
 			// One crane per GAP within the leg, or one for the leg.
@@ -8086,6 +8098,20 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 					continue;
 				}
 				UStaticMeshComponent* Portal = HallInteriorPieces.Last();
+				// HUG THE LINE (owner 2026-09-01 "cranes only go
+				// across"): the authored portal spans 31.5 m - sized
+				// for the old multi-line bay - so over a single leg it
+				// reached twelve metres of empty floor each side and
+				// read as a bridge across the hall, not a crane over
+				// the line. Scaled on the mesh's native span axis (its
+				// local Y; the yaw has already turned the component)
+				// to shoulder the stations instead.
+				constexpr float PortalSpanScale = 0.42f;
+				{
+					FVector PortalScale = Portal->GetRelativeScale3D();
+					PortalScale.Y *= PortalSpanScale;
+					Portal->SetRelativeScale3D(PortalScale);
+				}
 				HallCranes.Add(Portal);
 				HallCraneParkCm.Add(LegPoint(Park, 0.f));
 				HallCraneAxisAlongY.Add(Leg.bAlongY);
