@@ -11,7 +11,6 @@
 #include "LBSpacecraftObjectivesWidget.h"
 #include "LBSpacecraftTransportAuthority.h"
 #include "LBSpacecraftTrackAuthority.h"
-#include "LBDeveloperAutomationBridge.h"
 #include "LBSpacecraftDifficulty.h"
 #include "LBSpacecraftProgressionAuthority.h"
 #include "Kismet/GameplayStatics.h"
@@ -539,38 +538,8 @@ void ALBSpacecraftGameMode::BeginPlay()
 			PlayerController->SetInputMode(InputMode);
 		}
 	}
-#if !UE_BUILD_SHIPPING
-	// THE AUTOMATION BRIDGE, in the spacecraft game too. It was spawned
-	// only by the car-era LBGameMode, so launching the spacecraft map
-	// with -LineBossAutomationBridge produced a running game, a flag on
-	// the command line, and no session at all - the bridge silently did
-	// not exist.
-	//
-	// It is what makes a PERSISTENT session possible: drive a running
-	// game with a file write instead of relaunching for every capture,
-	// which costs thirty seconds of engine start plus however long the
-	// simulation needs to warm back up to the state being looked at.
-	//
-	// Same guards as the car-era spawn, deliberately unchanged: never
-	// in Shipping, off unless the flag is on the command line, and it
-	// opens no socket.
-	if (ALBDeveloperAutomationBridge::IsEnabledFromCommandLine(
-		FCommandLine::Get()))
-	{
-		FActorSpawnParameters BridgeSpawn;
-		BridgeSpawn.SpawnCollisionHandlingOverride =
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		if (ALBDeveloperAutomationBridge* Bridge =
-			World->SpawnActor<ALBDeveloperAutomationBridge>(
-				ALBDeveloperAutomationBridge::StaticClass(),
-				FTransform::Identity, BridgeSpawn))
-		{
-			Bridge->Tags.AddUnique(TEXT("LB.Developer.AutomationBridge"));
-			UE_LOG(LogLBSpacecraft, Display,
-				TEXT("SPACECRAFT AUTOMATION BRIDGE READY"));
-		}
-	}
-#endif
+// (Car-era automation bridge removed with the 2026-09-01 cull;
+	// spacecraft dev driving runs through LB.Spacecraft.* -ExecCmds.)
 
 	// The STARTING LAND is not the starter spine's. It used to be
 	// seeded inside SeedStarterSpine, so switching the spine off left
