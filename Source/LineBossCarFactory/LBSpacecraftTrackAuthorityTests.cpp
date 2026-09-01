@@ -97,6 +97,31 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("rotated plan lands on the clicked cell"),
 		LandingCell(ExitSouth, Plan).Equals(
 			FVector(2000.f, 1800.f, 0.f), 1.f));
+
+	// FLOAT DRIFT REGRESSION (2026-09-01): cos(90 deg) is -4.4e-8 in
+	// float, so before exit snapping a yaw-90 run drifted X and the
+	// first piece after a turn landed at 399.9999 - refused as
+	// off-grid. Walk a long yaw-90 run through a turn and demand every
+	// exit sits EXACTLY on the 100 cm lattice.
+	{
+		FTransform Walk(FRotator(0.f, 90.f, 0.f), FVector::ZeroVector);
+		for (int32 Step = 0; Step < 20; ++Step)
+		{
+			Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(Walk,
+				ELBSpacecraftTrackPiece::Straight);
+		}
+		Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(Walk,
+			ELBSpacecraftTrackPiece::TurnLeft);
+		Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(Walk,
+			ELBSpacecraftTrackPiece::Straight);
+		const FVector Drifted = Walk.GetLocation();
+		TestTrue(TEXT("post-turn exit X sits exactly on the lattice"),
+			FMath::IsNearlyZero(
+				FMath::Fmod(Drifted.X, 100.f), 0.0001f));
+		TestTrue(TEXT("post-turn exit Y sits exactly on the lattice"),
+			FMath::IsNearlyZero(
+				FMath::Fmod(Drifted.Y, 100.f), 0.0001f));
+	}
 	return true;
 }
 

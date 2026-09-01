@@ -14,10 +14,15 @@ namespace LBSpacecraftTrackAuthorityPrivate
 			OutReason = TEXT("TRACK LIES ON THE FLOOR DATUM Z=0");
 			return false;
 		}
-		if (!FMath::IsNearlyZero(
-				FMath::Fmod(Location.X, 100.f), 0.01f)
-			|| !FMath::IsNearlyZero(
-				FMath::Fmod(Location.Y, 100.f), 0.01f))
+		// Symmetric tolerance: 399.9999 is as on-grid as 400.0001. The
+		// old IsNearlyZero(Fmod) accepted drift only ABOVE a grid line
+		// and refused it below - the drift the exit snapping now
+		// prevents, but the gate itself should never have cared which
+		// side of the line a rounding error fell on.
+		const float ModX = FMath::Abs(FMath::Fmod(Location.X, 100.f));
+		const float ModY = FMath::Abs(FMath::Fmod(Location.Y, 100.f));
+		if (FMath::Min(ModX, 100.f - ModX) > 0.01f
+			|| FMath::Min(ModY, 100.f - ModY) > 0.01f)
 		{
 			OutReason = TEXT("TRACK SNAPS TO THE 100 CM GRID");
 			return false;
@@ -55,14 +60,26 @@ FTransform ALBSpacecraftTrackAuthority::ComputePieceExit(
 		YawDelta = 90.f;
 	}
 	FRotator OutRotation = Entry.Rotator();
-	OutRotation.Yaw = FRotator::NormalizeAxis(
-		OutRotation.Yaw + YawDelta);
+	// EXACT QUARTER TURNS, EXACT LATTICE (found 2026-09-01 by the
+	// click-to-draw repro): cos(90 deg) is -4.4e-8 in float, so a run
+	// of yaw-90 straights drifts X by ~2e-5 per piece and the first
+	// piece after a turn lands at 399.9999 - which the grid legality
+	// check refuses from BELOW a grid line. The chain is a 90-degree
+	// 400 cm lattice by definition, so the exit is snapped to it and
+	// drift can never accumulate.
+	OutRotation.Yaw = FRotator::NormalizeAxis(FMath::RoundToFloat(
+		FRotator::NormalizeAxis(OutRotation.Yaw + YawDelta) / 90.f)
+		* 90.f);
 	const FVector OutDirection =
 		FRotationMatrix(OutRotation).GetUnitAxis(EAxis::X);
 	FTransform Exit;
 	Exit.SetRotation(OutRotation.Quaternion());
-	Exit.SetLocation(Entry.GetLocation()
-		+ OutDirection * GetPieceLengthCm());
+	FVector ExitLocation = Entry.GetLocation()
+		+ OutDirection * GetPieceLengthCm();
+	ExitLocation.X = FMath::GridSnap(ExitLocation.X, 100.f);
+	ExitLocation.Y = FMath::GridSnap(ExitLocation.Y, 100.f);
+	ExitLocation.Z = 0.f;
+	Exit.SetLocation(ExitLocation);
 	return Exit;
 }
 

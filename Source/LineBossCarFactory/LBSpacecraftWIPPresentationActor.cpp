@@ -7856,6 +7856,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	//
 	// The RAILS are one continuous full-length pair either way. That
 	// part he did specify, and it holds for both.
+	//
+	// NO STATIONS, NO CRANE (owner 2026-09-01: "and the crane is
+	// already there" - a fresh empty hall was spawning one crane and a
+	// 60 m rail at Y=0 because the empty StationYs degraded to MeanY=0
+	// instead of skipping). The crane exists to move craft BETWEEN
+	// stations; an empty floor has nothing to serve. The resets stay
+	// outside the guard so TickHallCrane never drives a component the
+	// skipped rebuild destroyed.
+	HallCranes.Reset();
+	HallCraneParkYsCm.Reset();
+	HallCrane = nullptr;
+	if (LineStations.Num() > 0)
 	{
 		TArray<float> StationYs;
 		for (const FLBSpacecraftStationRecord* Station : LineStations)

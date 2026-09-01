@@ -546,6 +546,19 @@ void ALBSpacecraftPlayerPawn::CancelPlacement()
 void ALBSpacecraftPlayerPawn::PrimaryClick()
 {
 	ALBSpacecraftGameMode* GameMode = GetSpacecraftGameMode();
+	// GROUND TRUTH FOR CLICK REPORTS (owner 2026-09-01 "that dosent
+	// work" with a frozen toast): the log answers the one question a
+	// screenshot cannot - did the click reach the pawn at all, and in
+	// what state. One line per click; a session's worth is nothing.
+	{
+		FVector ClickFloor = FVector::ZeroVector;
+		const bool bClickHitFloor = CursorToFloor(ClickFloor);
+		UE_LOG(LogTemp, Display, TEXT(
+			"LBSpacecraftPawn click: armed=%s floor=%s (%.0f, %.0f)"),
+			*PlacementDefinitionId.ToString(),
+			bClickHitFloor ? TEXT("yes") : TEXT("NO"),
+			ClickFloor.X, ClickFloor.Y);
+	}
 	if (GameMode == nullptr)
 	{
 		return;

@@ -3098,6 +3098,38 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftBuildLineCommand(
 }));
 #endif // !UE_BUILD_SHIPPING
 
+// DEV COMMAND - drives the click-to-draw router exactly as a floor click
+// does (owner 2026-09-01 "that dosent work": the live session laid ONE
+// piece then went silent, and a mouse cannot be clicked headlessly - this
+// is the reproducible half of that investigation).
+#if !UE_BUILD_SHIPPING
+static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftLayToCommand(
+	TEXT("LB.Spacecraft.LayTo"),
+	TEXT("Args: <xCm> <yCm> [yawDeg]. Calls LayTrackToPoint like a floor ")
+	TEXT("click and logs the toast and resulting piece count."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+		[](const TArray<FString>& Args, UWorld* World)
+{
+	ALBSpacecraftGameMode* GameMode =
+		ALBSpacecraftGameMode::FindInWorld(World);
+	if (GameMode == nullptr || GameMode->GetTrackAuthority() == nullptr)
+	{
+		UE_LOG(LogLBSpacecraft, Warning,
+			TEXT("LB.Spacecraft.LayTo: no spacecraft game mode"));
+		return;
+	}
+	const float X = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 0.f;
+	const float Y = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f;
+	const float Yaw = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 90.f;
+	FString Toast;
+	GameMode->LayTrackToPoint(FVector(X, Y, 0.f), Yaw, Toast);
+	UE_LOG(LogLBSpacecraft, Display,
+		TEXT("LB.Spacecraft.LayTo (%.0f, %.0f): %s [pieces now %d]"),
+		X, Y, *Toast,
+		GameMode->GetTrackAuthority()->GetPieces().Num());
+}));
+#endif // !UE_BUILD_SHIPPING
+
 // DEV COMMAND - stocks components into fitting stations for immediate production.
 #if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
