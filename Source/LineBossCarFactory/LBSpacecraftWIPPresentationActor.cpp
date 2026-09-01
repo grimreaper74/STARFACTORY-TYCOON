@@ -14,6 +14,8 @@
 #include "LBSpacecraftTrackAuthority.h"
 #include "Components/DecalComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "Components/RectLightComponent.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
@@ -1373,170 +1375,185 @@ void ALBSpacecraftWIPPresentationActor::TickTrack(float DeltaSeconds)
 	{
 		return;
 	}
-	TSet<FName> Live;
+	// ONE CONTINUOUS BELT, not butted blocks (owner 2026-09-01: "think
+	// you should make better track"). The benchmark conveyors read at
+	// any zoom because they are one bold object; forty small pieces
+	// with seams never will. The chain renders as a single smooth
+	// spline - corners round themselves - with a pale sleeper rhythm
+	// and the authored caps at the ends. Rebuilt only when the piece
+	// set changes; the relayer rebuilds the chain wholesale anyway, so
+	// piece-level diffing buys nothing.
+	FString Signature;
 	for (const FLBSpacecraftTrackPieceRecord& Piece :
 		TrackAuthority->GetPieces())
 	{
-		Live.Add(Piece.PieceId);
-		if (TrackVisuals.Contains(Piece.PieceId))
+		Signature += Piece.PieceId.ToString();
+		Signature += TEXT(";");
+	}
+	if (Signature == TrackRenderSignature)
+	{
+		return;
+	}
+	TrackRenderSignature = Signature;
+	for (USplineMeshComponent* Segment : TrackSplineMeshes)
+	{
+		if (Segment != nullptr)
 		{
-			continue;
-		}
-		TArray<TObjectPtr<UStaticMeshComponent>>& Parts =
-			TrackVisuals.Add(Piece.PieceId);
-		const FTransform& Where = Piece.WorldTransform;
-		const float Length = ALBSpacecraftTrackAuthority
-			::GetPieceLengthCm();
-		// The authored piece set (straight / mirrored turn / cap) is
-		// preferred; the block furniture below stays as the honest
-		// fallback when the content is absent.
-		UStaticMesh* StraightMesh =
-			TryGetStationMesh(FName(TEXT("Track.Straight")));
-		UStaticMesh* TurnMesh =
-			TryGetStationMesh(FName(TEXT("Track.Turn")));
-		UStaticMesh* CapMesh =
-			TryGetStationMesh(FName(TEXT("Track.Cap")));
-		if (StraightMesh != nullptr && TurnMesh != nullptr
-			&& CapMesh != nullptr)
-		{
-			const bool bTurn =
-				Piece.PieceType == ELBSpacecraftTrackPiece::TurnLeft
-				|| Piece.PieceType == ELBSpacecraftTrackPiece::TurnRight;
-			if (UStaticMeshComponent* DeckComp = MakeTrackPieceComponent(
-				FName(*FString::Printf(TEXT("%s_Piece"),
-					*Piece.PieceId.ToString())),
-				bTurn ? TurnMesh : StraightMesh))
-			{
-				FTransform PieceTransform = Where;
-				// THE BELT IS NEAR PRODUCT WIDTH (owner's standing
-				// scale rule, and both reference games). The generated
-				// conveyor section is 149 cm across, which against a
-				// 7.5 m craft and an 18 m station reads as a pencil
-				// line drawn on the floor rather than the spine of the
-				// factory. Widened to roughly the craft's own width;
-				// the LENGTH is left alone because 400 cm is the track
-				// authority's piece length and the joints depend on it.
-				const float BeltWidthScale = 4.4f;
-				// LOW, and that is the correction (owner 2026-08-28:
-				// "the conveyor looks on top of stations"). At 1.6 the
-				// deck stood 114 cm off the floor, so it crossed OVER
-				// each station's marked square and hid the hazard bands
-				// and dock pads underneath it.
-				//
-				// The deeper reason it should be low: our craft rolls
-				// on its OWN LANDING GEAR and is raised by the station's
-				// ram. It never rides the belt. So this is a floor
-				// guideway the gear straddles - an aircraft towing
-				// track - not a waist-high belt carrying a car body.
-				// 0.5 puts the deck at about 35 cm.
-				const float BeltHeightScale = 0.5f;
-				PieceTransform.SetScale3D(
-					FVector(1.f, BeltWidthScale, BeltHeightScale));
-				if (Piece.PieceType == ELBSpacecraftTrackPiece::TurnRight)
-				{
-					// Mirror of the authored left turn; negative scale
-					// reverses culling, which Unreal handles per
-					// component. Mapping verified by capture.
-					PieceTransform.SetScale3D(
-						FVector(1.f, -BeltWidthScale, BeltHeightScale));
-				}
-				DeckComp->SetWorldTransform(PieceTransform);
-				// The authored set wears machined_pale as its deck, which
-				// vanished into the pale floor (owner 2026-09-01 "still
-				// not right"). Regrade in place: pale slots go dark-bed,
-				// livery slots go amber - same tokens as the fallback.
-				GradeTrackPieceMaterials(DeckComp);
-				Parts.Add(DeckComp);
-			}
-			const bool bIsStart =
-				Piece.PieceType == ELBSpacecraftTrackPiece::Start;
-			if (bIsStart
-				|| Piece.PieceType == ELBSpacecraftTrackPiece::End)
-			{
-				// The terminator block rides the deck's outward end;
-				// one mesh serves both roles - the Start anchor turns
-				// 180 degrees and swaps its accent to blue.
-				if (UStaticMeshComponent* CapComp =
-					MakeTrackPieceComponent(FName(*FString::Printf(
-						TEXT("%s_Cap"), *Piece.PieceId.ToString())),
-						CapMesh))
-				{
-					FTransform CapTransform = Where;
-					const float CapOffset = Length * 0.5f - 40.f;
-					CapTransform.AddToTranslation(
-						Where.GetRotation().RotateVector(FVector(
-							bIsStart ? -CapOffset : CapOffset, 0.f,
-							0.f)));
-					if (bIsStart)
-					{
-						CapTransform.SetRotation(
-							(Where.Rotator() + FRotator(0.f, 180.f, 0.f))
-								.Quaternion());
-						TintTrackCapForStart(CapComp);
-					}
-					CapComp->SetWorldTransform(CapTransform);
-					Parts.Add(CapComp);
-				}
-			}
-			continue;
-		}
-		// One deck slab + two rails + a heading chevron per piece -
-		// the premium belt furniture language on the laid track.
-		if (UStaticMeshComponent* Deck = MakeBlockComponent(
-			FName(*FString::Printf(TEXT("%s_Deck"),
-				*Piece.PieceId.ToString())), SpacecraftConveyorBed))
-		{
-			FTransform DeckTransform = Where;
-			DeckTransform.SetScale3D(FVector(Length / 100.f, 3.0f,
-				0.34f));
-			DeckTransform.AddToTranslation(FVector(0.f, 0.f, 17.f));
-			Deck->SetWorldTransform(DeckTransform);
-			Parts.Add(Deck);
-		}
-		for (int32 Rail = 0; Rail < 2; ++Rail)
-		{
-			if (UStaticMeshComponent* RailComp = MakeBlockComponent(
-				FName(*FString::Printf(TEXT("%s_Rail%d"),
-					*Piece.PieceId.ToString(), Rail)),
-				SpacecraftBeltRail))
-			{
-				FTransform RailTransform = Where;
-				RailTransform.SetScale3D(
-					FVector(Length / 100.f, 0.18f, 0.62f));
-				RailTransform.AddToTranslation(
-					Where.GetRotation().RotateVector(FVector(0.f,
-						Rail == 0 ? -160.f : 160.f, 31.f)));
-				RailComp->SetWorldTransform(RailTransform);
-				Parts.Add(RailComp);
-			}
-		}
-		const bool bCap =
-			Piece.PieceType == ELBSpacecraftTrackPiece::Start
-			|| Piece.PieceType == ELBSpacecraftTrackPiece::End;
-		if (UStaticMeshComponent* Chevron = MakeBlockComponent(
-			FName(*FString::Printf(TEXT("%s_Chevron"),
-				*Piece.PieceId.ToString())),
-			bCap ? SpacecraftBeltAccent : SpacecraftConveyorChevron))
-		{
-			FTransform ChevronTransform = Where;
-			ChevronTransform.SetScale3D(FVector(0.9f, 1.4f, 0.1f));
-			ChevronTransform.AddToTranslation(FVector(0.f, 0.f, 40.f));
-			Chevron->SetWorldTransform(ChevronTransform);
-			Parts.Add(Chevron);
+			Segment->DestroyComponent();
 		}
 	}
-	for (auto It = TrackVisuals.CreateIterator(); It; ++It)
+	TrackSplineMeshes.Reset();
+	for (UStaticMeshComponent* Cap : TrackCaps)
 	{
-		if (!Live.Contains(It.Key()))
+		if (Cap != nullptr)
 		{
-			for (UStaticMeshComponent* Part : It.Value())
+			Cap->DestroyComponent();
+		}
+	}
+	TrackCaps.Reset();
+	if (TrackSleepers != nullptr)
+	{
+		TrackSleepers->ClearInstances();
+	}
+	const TArray<FLBSpacecraftTrackPieceRecord>& Pieces =
+		TrackAuthority->GetPieces();
+	if (Pieces.Num() < 2)
+	{
+		// A lone anchor piece has no run to draw yet.
+		return;
+	}
+	UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr,
+		SpacecraftCubePath);
+	UMaterialInterface* ShapeMaterial = LoadObject<UMaterialInterface>(
+		nullptr, SpacecraftShapeMaterialPath);
+	if (Cube == nullptr)
+	{
+		return;
+	}
+	if (TrackSpline == nullptr)
+	{
+		TrackSpline = NewObject<USplineComponent>(this,
+			USplineComponent::StaticClass(), TEXT("TrackSpline"));
+		TrackSpline->SetMobility(EComponentMobility::Movable);
+		TrackSpline->SetupAttachment(RootComponent);
+		TrackSpline->RegisterComponent();
+	}
+	TrackSpline->ClearSplinePoints(false);
+	constexpr float BeltTopZCm = 22.f;
+	for (const FLBSpacecraftTrackPieceRecord& Piece : Pieces)
+	{
+		TrackSpline->AddSplinePoint(
+			Piece.WorldTransform.GetLocation()
+				+ FVector(0.f, 0.f, BeltTopZCm),
+			ESplineCoordinateSpace::World, false);
+	}
+	TrackSpline->UpdateSpline();
+	const int32 SegmentCount = TrackSpline->GetNumberOfSplinePoints() - 1;
+	for (int32 Index = 0; Index < SegmentCount; ++Index)
+	{
+		USplineMeshComponent* Belt = NewObject<USplineMeshComponent>(
+			this, USplineMeshComponent::StaticClass());
+		Belt->SetMobility(EComponentMobility::Movable);
+		Belt->SetStaticMesh(Cube);
+		Belt->SetForwardAxis(ESplineMeshAxis::X, false);
+		Belt->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// The dark albedo does the reading; a 40 cm slab's shadow is
+		// z-band noise at management zoom.
+		Belt->SetCastShadow(false);
+		Belt->SetupAttachment(TrackSpline);
+		Belt->RegisterComponent();
+		if (ShapeMaterial != nullptr)
+		{
+			UMaterialInstanceDynamic* BeltMID =
+				UMaterialInstanceDynamic::Create(ShapeMaterial, Belt);
+			BeltMID->SetVectorParameterValue(TEXT("Color"),
+				SpacecraftConveyorBed);
+			Belt->SetMaterial(0, BeltMID);
+		}
+		Belt->SetStartAndEnd(
+			TrackSpline->GetLocationAtSplinePoint(Index,
+				ESplineCoordinateSpace::Local),
+			TrackSpline->GetTangentAtSplinePoint(Index,
+				ESplineCoordinateSpace::Local),
+			TrackSpline->GetLocationAtSplinePoint(Index + 1,
+				ESplineCoordinateSpace::Local),
+			TrackSpline->GetTangentAtSplinePoint(Index + 1,
+				ESplineCoordinateSpace::Local),
+			false);
+		// The engine cube is 100 cm: 6.5 across is a 650 cm belt, near
+		// the craft's own width per the standing scale rule.
+		Belt->SetStartScale(FVector2D(6.5f, 0.44f), false);
+		Belt->SetEndScale(FVector2D(6.5f, 0.44f), false);
+		Belt->UpdateMesh();
+		TrackSplineMeshes.Add(Belt);
+	}
+	// Sleeper bars across the belt give it rhythm and scale - the
+	// difference between a band of paint and a machine.
+	if (TrackSleepers == nullptr)
+	{
+		TrackSleepers = NewObject<UInstancedStaticMeshComponent>(this,
+			UInstancedStaticMeshComponent::StaticClass(),
+			TEXT("TrackSleepers"));
+		TrackSleepers->SetStaticMesh(Cube);
+		TrackSleepers->SetMobility(EComponentMobility::Movable);
+		TrackSleepers->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		TrackSleepers->SetCastShadow(false);
+		TrackSleepers->SetupAttachment(RootComponent);
+		TrackSleepers->RegisterComponent();
+		if (ShapeMaterial != nullptr)
+		{
+			UMaterialInstanceDynamic* SleeperMID =
+				UMaterialInstanceDynamic::Create(ShapeMaterial,
+					TrackSleepers);
+			SleeperMID->SetVectorParameterValue(TEXT("Color"),
+				SpacecraftConveyorChevron);
+			TrackSleepers->SetMaterial(0, SleeperMID);
+		}
+	}
+	const float SplineLengthCm = TrackSpline->GetSplineLength();
+	for (float Along = 150.f; Along < SplineLengthCm; Along += 260.f)
+	{
+		const FVector At = TrackSpline->GetLocationAtDistanceAlongSpline(
+			Along, ESplineCoordinateSpace::World);
+		const FRotator Facing =
+			TrackSpline->GetRotationAtDistanceAlongSpline(Along,
+				ESplineCoordinateSpace::World);
+		TrackSleepers->AddInstance(FTransform(
+			FRotator(0.f, Facing.Yaw, 0.f),
+			FVector(At.X, At.Y, BeltTopZCm + 24.f),
+			FVector(0.5f, 5.6f, 0.06f)), true);
+	}
+	// The authored terminators keep the ends honest: blue at the
+	// anchor, warning orange at the cap.
+	if (UStaticMesh* CapMesh = TryGetStationMesh(FName(TEXT("Track.Cap"))))
+	{
+		const float PieceLength =
+			ALBSpacecraftTrackAuthority::GetPieceLengthCm();
+		for (int32 End = 0; End < 2; ++End)
+		{
+			const bool bIsStart = End == 0;
+			const FLBSpacecraftTrackPieceRecord& Piece =
+				bIsStart ? Pieces[0] : Pieces.Last();
+			if (UStaticMeshComponent* CapComp = MakeTrackPieceComponent(
+				FName(*FString::Printf(TEXT("TrackCap_%d"), End)),
+				CapMesh))
 			{
-				if (Part != nullptr)
+				FTransform CapTransform = Piece.WorldTransform;
+				const float CapOffset = PieceLength * 0.5f - 40.f;
+				CapTransform.AddToTranslation(
+					Piece.WorldTransform.GetRotation().RotateVector(
+						FVector(bIsStart ? -CapOffset : CapOffset, 0.f,
+							0.f)));
+				if (bIsStart)
 				{
-					Part->DestroyComponent();
+					CapTransform.SetRotation((
+						Piece.WorldTransform.Rotator()
+							+ FRotator(0.f, 180.f, 0.f)).Quaternion());
+					TintTrackCapForStart(CapComp);
 				}
+				CapComp->SetWorldTransform(CapTransform);
+				TrackCaps.Add(CapComp);
 			}
-			It.RemoveCurrent();
 		}
 	}
 }
@@ -3786,58 +3803,6 @@ UStaticMeshComponent* ALBSpacecraftWIPPresentationActor::MakeTrackPieceComponent
 	Component->SetupAttachment(RootComponent);
 	Component->RegisterComponent();
 	return Component;
-}
-
-void ALBSpacecraftWIPPresentationActor::GradeTrackPieceMaterials(
-	UStaticMeshComponent* PieceComponent)
-{
-	using namespace LBSpacecraftWIPPresentationPrivate;
-	if (PieceComponent == nullptr
-		|| PieceComponent->GetStaticMesh() == nullptr)
-	{
-		return;
-	}
-	UMaterialInterface* ShapeMaterial = LoadObject<UMaterialInterface>(
-		nullptr, SpacecraftShapeMaterialPath);
-	if (ShapeMaterial == nullptr)
-	{
-		return;
-	}
-	const TArray<FStaticMaterial>& Slots =
-		PieceComponent->GetStaticMesh()->GetStaticMaterials();
-	int32 Regraded = 0;
-	for (int32 Index = 0; Index < Slots.Num(); ++Index)
-	{
-		const FString SlotName =
-			Slots[Index].MaterialSlotName.ToString().ToLower();
-		FLinearColor Wanted = FLinearColor::Transparent;
-		if (SlotName.Contains(TEXT("pale")))
-		{
-			Wanted = SpacecraftConveyorBed;
-		}
-		else if (SlotName.Contains(TEXT("livery"))
-			|| SlotName.Contains(TEXT("accent")))
-		{
-			Wanted = SpacecraftBeltAccent;
-		}
-		else
-		{
-			continue;
-		}
-		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(
-			ShapeMaterial, PieceComponent);
-		MID->SetVectorParameterValue(TEXT("Color"), Wanted);
-		PieceComponent->SetMaterial(Index, MID);
-		++Regraded;
-	}
-	if (Regraded == 0)
-	{
-		// A renamed slot set would silently keep the invisible pale
-		// deck; say so once per piece rather than nothing.
-		UE_LOG(LogTemp, Warning, TEXT(
-			"SPACECRAFT PRESENTER: no gradable slots on track piece %s"),
-			*PieceComponent->GetName());
-	}
 }
 
 void ALBSpacecraftWIPPresentationActor::TintTrackCapForStart(
@@ -8044,8 +8009,15 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		static const auto* CranePerGapVar =
 			IConsoleManager::Get().FindConsoleVariable(
 				TEXT("LB.Spacecraft.CranePerGap"));
-		const bool bCranePerGap = CranePerGapVar == nullptr
-			|| CranePerGapVar->GetInt() != 0;
+		// ONE CRANE PER LEG BY DEFAULT (owner 2026-09-01 "how many
+		// cranes do we need?", answered from the pulse-line research:
+		// real plants hold lift capacity at a few positions and grow
+		// it with rate. One crane makes the pulse a visible queue of
+		// trips - an honest bottleneck - and buying more toward
+		// one-per-gap becomes the upgrade that lets the whole line
+		// pulse at once. The cvar keeps the per-gap A/B alive.
+		const bool bCranePerGap = CranePerGapVar != nullptr
+			&& CranePerGapVar->GetInt() != 0;
 		int32 CraneIndex = 0;
 		for (int32 LegIndex = 0; LegIndex < Legs.Num(); ++LegIndex)
 		{

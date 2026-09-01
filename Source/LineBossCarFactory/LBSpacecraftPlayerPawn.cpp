@@ -587,7 +587,7 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 			// interaction, and the one the benchmarks use.
 			const float TrackCellCm =
 				ALBSpacecraftTrackAuthority::GetPieceLengthCm();
-			const FVector LatticeSnapped(
+			FVector LatticeSnapped(
 				FMath::GridSnap(FloorPoint.X, TrackCellCm),
 				FMath::GridSnap(FloorPoint.Y, TrackCellCm), 0.f);
 			float AxisYaw = FMath::Fmod(GhostYawDeg, 180.f);
@@ -609,10 +609,28 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 				}
 				if (Previous != nullptr)
 				{
-					const FVector Delta = LatticeSnapped
-						- Previous->WorldTransform.GetLocation();
-					AxisYaw = FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y)
-						? 0.f : 90.f;
+					// CHAIN AXIS SNAP (owner 2026-09-01 "the stations
+					// dont follow directin"): the new station SHARES
+					// AN AXIS with the previous one - the click
+					// projects onto the nearer axis line through it.
+					// Diagonal clicks used to make staircase track
+					// with stations facing alternate ways.
+					const FVector PrevAt =
+						Previous->WorldTransform.GetLocation();
+					const FVector PrevCell(
+						FMath::GridSnap(PrevAt.X, TrackCellCm),
+						FMath::GridSnap(PrevAt.Y, TrackCellCm), 0.f);
+					const FVector Delta = LatticeSnapped - PrevCell;
+					if (FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y))
+					{
+						LatticeSnapped.Y = PrevCell.Y;
+						AxisYaw = 0.f;
+					}
+					else
+					{
+						LatticeSnapped.X = PrevCell.X;
+						AxisYaw = 90.f;
+					}
 				}
 			}
 			PlaceTransform = FTransform(FRotator(0.f, AxisYaw, 0.f),
@@ -1039,7 +1057,7 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 	{
 		const float TrackCellCm =
 			ALBSpacecraftTrackAuthority::GetPieceLengthCm();
-		const FVector Lattice(
+		FVector Lattice(
 			FMath::GridSnap(FloorPoint.X, TrackCellCm),
 			FMath::GridSnap(FloorPoint.Y, TrackCellCm), 0.f);
 		float AxisYaw = FMath::Fmod(GhostYawDeg, 180.f);
@@ -1064,10 +1082,23 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 				}
 				if (Previous != nullptr)
 				{
-					const FVector Delta = Lattice
-						- Previous->WorldTransform.GetLocation();
-					AxisYaw = FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y)
-						? 0.f : 90.f;
+					// Mirrors the click's chain-axis snap exactly.
+					const FVector PrevAt =
+						Previous->WorldTransform.GetLocation();
+					const FVector PrevCell(
+						FMath::GridSnap(PrevAt.X, TrackCellCm),
+						FMath::GridSnap(PrevAt.Y, TrackCellCm), 0.f);
+					const FVector Delta = Lattice - PrevCell;
+					if (FMath::Abs(Delta.X) >= FMath::Abs(Delta.Y))
+					{
+						Lattice.Y = PrevCell.Y;
+						AxisYaw = 0.f;
+					}
+					else
+					{
+						Lattice.X = PrevCell.X;
+						AxisYaw = 90.f;
+					}
 				}
 				FString GhostWhy;
 				bWouldTake = SnapGameMode->GetBuildAuthority()

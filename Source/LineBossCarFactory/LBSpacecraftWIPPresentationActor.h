@@ -1243,11 +1243,15 @@ private:
 	/** Swaps the cap's orange accent slot for the Start-anchor blue. */
 	void TintTrackCapForStart(class UStaticMeshComponent* CapComponent);
 
-	/** Regrades an authored track piece to the dark-bed language:
-	 *  pale slots to the conveyor bed token, livery slots to amber.
-	 *  The authored machined_pale deck vanished into the pale floor. */
-	void GradeTrackPieceMaterials(class UStaticMeshComponent* PieceComponent);
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> TrackVisuals;
+	/** THE BELT IS ONE OBJECT (owner 2026-09-01 "make better track"):
+	 *  the whole chain renders as a single smooth spline with sleeper
+	 *  rhythm and authored end caps, rebuilt only when the piece set
+	 *  changes. */
+	TObjectPtr<class USplineComponent> TrackSpline;
+	TArray<TObjectPtr<class USplineMeshComponent>> TrackSplineMeshes;
+	TObjectPtr<class UInstancedStaticMeshComponent> TrackSleepers;
+	TArray<TObjectPtr<UStaticMeshComponent>> TrackCaps;
+	FString TrackRenderSignature;
 	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftTrackAuthority> TrackAuthority;
 	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> BufferCrates;
