@@ -241,6 +241,15 @@ private:
 
 	/** Cursor ray intersected with the Z=0 floor plane. */
 	bool CursorToFloor(FVector& OutFloorPoint) const;
+
+	/** LINE-STATION SNAP (owner 2026-09-01): the straight, free,
+	 *  envelope-legal track piece NEAREST the cursor. Shared by the
+	 *  ghost and the click so the preview IS the promise - v2 placed
+	 *  by track order and refused about stations the player was not
+	 *  even pointing at. */
+	bool FindTrackSnapForStation(const FVector& FloorPoint,
+		FName DefinitionId, FTransform& OutTransform, FName& OutPieceId,
+		FString& OutWhyNot) const;
 	ALBSpacecraftGameMode* GetSpacecraftGameMode() const;
 	void UpdateGhost();
 };

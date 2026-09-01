@@ -212,7 +212,11 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// THE LANE, not a belt (owner: gantry crane plus rail). Pale
 	// hardstand, so it reads as ground the craft is set down on rather
 	// than a dark moving surface it rides.
-	const FLinearColor SpacecraftConveyorBed(0.62f, 0.61f, 0.58f);
+	// DARK BED (owner 2026-09-01 "still not right" over a frame of
+	// chalk-pale track on a pale floor). Both benchmarks make the
+	// conveyor the darkest thing on the floor - that contrast IS how
+	// it reads as the spine. Palette hazard backing #23211F in linear.
+	const FLinearColor SpacecraftConveyorBed(0.017f, 0.016f, 0.014f);
 	const FLinearColor SpacecraftCrateColour = LBSpacecraftPalette::CrateTan; // delivered crates - a second, different crate tone
 	const FLinearColor SpacecraftBeamColour(0.4f, 0.85f, 1.f);
 	const FLinearColor SpacecraftWeldColour(1.f, 0.92f, 0.7f);
@@ -222,7 +226,8 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// the surface carries things. It does not; the crane does. Dark
 	// cross-ties keep the repeating rhythm that made the lane read as
 	// the factory's spine, without the claim.
-	const FLinearColor SpacecraftConveyorChevron(0.24f, 0.23f, 0.22f);
+	// Pale on the now-dark bed (was dark-on-pale before the flip).
+	const FLinearColor SpacecraftConveyorChevron(0.58f, 0.57f, 0.54f);
 	const FLinearColor SpacecraftBeltRail(0.52f, 0.53f, 0.56f);
 	const FLinearColor SpacecraftBeltAccent = LBSpacecraftPalette::MachineAmberTrim; // belt accent, running the length of the floor
 	constexpr float SpacecraftBeltDeckZCm = 34.f;
@@ -1441,6 +1446,11 @@ void ALBSpacecraftWIPPresentationActor::TickTrack(float DeltaSeconds)
 						FVector(1.f, -BeltWidthScale, BeltHeightScale));
 				}
 				DeckComp->SetWorldTransform(PieceTransform);
+				// The authored set wears machined_pale as its deck, which
+				// vanished into the pale floor (owner 2026-09-01 "still
+				// not right"). Regrade in place: pale slots go dark-bed,
+				// livery slots go amber - same tokens as the fallback.
+				GradeTrackPieceMaterials(DeckComp);
 				Parts.Add(DeckComp);
 			}
 			const bool bIsStart =
@@ -3781,6 +3791,58 @@ UStaticMeshComponent* ALBSpacecraftWIPPresentationActor::MakeTrackPieceComponent
 	Component->SetupAttachment(RootComponent);
 	Component->RegisterComponent();
 	return Component;
+}
+
+void ALBSpacecraftWIPPresentationActor::GradeTrackPieceMaterials(
+	UStaticMeshComponent* PieceComponent)
+{
+	using namespace LBSpacecraftWIPPresentationPrivate;
+	if (PieceComponent == nullptr
+		|| PieceComponent->GetStaticMesh() == nullptr)
+	{
+		return;
+	}
+	UMaterialInterface* ShapeMaterial = LoadObject<UMaterialInterface>(
+		nullptr, SpacecraftShapeMaterialPath);
+	if (ShapeMaterial == nullptr)
+	{
+		return;
+	}
+	const TArray<FStaticMaterial>& Slots =
+		PieceComponent->GetStaticMesh()->GetStaticMaterials();
+	int32 Regraded = 0;
+	for (int32 Index = 0; Index < Slots.Num(); ++Index)
+	{
+		const FString SlotName =
+			Slots[Index].MaterialSlotName.ToString().ToLower();
+		FLinearColor Wanted = FLinearColor::Transparent;
+		if (SlotName.Contains(TEXT("pale")))
+		{
+			Wanted = SpacecraftConveyorBed;
+		}
+		else if (SlotName.Contains(TEXT("livery"))
+			|| SlotName.Contains(TEXT("accent")))
+		{
+			Wanted = SpacecraftBeltAccent;
+		}
+		else
+		{
+			continue;
+		}
+		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(
+			ShapeMaterial, PieceComponent);
+		MID->SetVectorParameterValue(TEXT("Color"), Wanted);
+		PieceComponent->SetMaterial(Index, MID);
+		++Regraded;
+	}
+	if (Regraded == 0)
+	{
+		// A renamed slot set would silently keep the invisible pale
+		// deck; say so once per piece rather than nothing.
+		UE_LOG(LogTemp, Warning, TEXT(
+			"SPACECRAFT PRESENTER: no gradable slots on track piece %s"),
+			*PieceComponent->GetName());
+	}
 }
 
 void ALBSpacecraftWIPPresentationActor::TintTrackCapForStart(
@@ -7160,6 +7222,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshSiteShells()
 	// the site roads are OUTSIDE furniture, and with the hall roofless
 	// they showed through as grey walkway strips across the factory
 	// floor. Nothing on this floor walks; roads live on the site view.
+	// The 20 m survey grid is site furniture too: its painted bars sit
+	// higher than the hall's floor paint and were striping the factory
+	// floor from underneath (owner 2026-09-01 "and the yellow lines?").
+	if (SiteGridLines != nullptr && SiteGridLines->IsVisible() != bOnMap)
+	{
+		SiteGridLines->SetVisibility(bOnMap);
+	}
 	for (UStaticMeshComponent* Road : RoadPieces)
 	{
 		if (Road != nullptr && Road->IsVisible() != bOnMap)
@@ -7770,6 +7839,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		const float HalfX = Floor.X * 0.5f;
 		const float HalfY = Floor.Y * 0.5f;
 
+		// A CLEAN SLAB OVER THE AUTHORED FLOOR (owner 2026-09-01 "and
+		// the yellow lines?"): the kept hall interior mesh carries its
+		// own baked lane markings, which cross under the free-laid
+		// track meaning nothing and cannot be removed from code. One
+		// palette-concrete slab masks all of it and gives the floor a
+		// single controlled surface; the zone paint above (22-30 cm)
+		// still reads.
+		Flat(TEXT("CleanSlab"), 0,
+			FLinearColor(0.59f, 0.565f, 0.52f),
+			FVector(HallAt.X, HallAt.Y, 14.f),
+			FVector(Floor.X - 80.f, Floor.Y - 80.f, 4.f));
+
 		// The storage half of the hall, west of the line.
 		Flat(TEXT("ZoneStorage"), 0, ZoneStorage,
 			FVector(HallAt.X - HalfX + 3600.f, HallAt.Y, 22.f),
@@ -7787,15 +7868,12 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 				FVector(HallAt.X, HallAt.Y + Sign * (HalfY - 2200.f), 22.f),
 				FVector(Floor.X - 2400.f, 2600.f, 6.f));
 		}
-		// Bay divisions inside the storage zone, wide enough to read.
-		for (int32 Bay = 1; Bay < 7; ++Bay)
-		{
-			const float Y = HallAt.Y - HalfY + 1200.f
-				+ Bay * ((Floor.Y - 2400.f) / 7.f);
-			Flat(TEXT("BayLine"), Bay, HazardTone,
-				FVector(HallAt.X - HalfX + 3600.f, Y, 30.f),
-				FVector(6400.f, 60.f, 3.f));
-		}
+		// BAY DIVIDER LINES CUT (owner 2026-09-01 "and the yellow
+		// lines?"): they were drawn for the fixed starter line, and
+		// with free track laying they cross under whatever the player
+		// builds - loud paint that means nothing. The rack rows mark
+		// the bays by themselves; hazard paint now only appears where
+		// it states a rule (wall perimeter, station pads, dock apron).
 		// HAZARD EDGING where the floor meets the wall, which is what
 		// stops the far corners reading as unfinished ground.
 		for (int32 Side = 0; Side < 2; ++Side)

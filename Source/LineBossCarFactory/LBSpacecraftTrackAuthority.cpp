@@ -85,73 +85,155 @@ FTransform ALBSpacecraftTrackAuthority::ComputePieceExit(
 
 bool ALBSpacecraftTrackAuthority::PlanRouteToPoint(
 	const FTransform& OpenEndExit, const FVector& TargetFloor,
+	const TArray<FVector>& OccupiedPieceCentres,
 	TArray<ELBSpacecraftTrackPiece>& OutPieces, FString& OutReason)
 {
 	OutPieces.Reset();
-	// Target in the open end's frame: X forward along the build
-	// direction, Y lateral. The exit IS the cell the next piece lands
-	// on, so a piece laid at the exit sits at local (0,0).
-	const FVector Local = OpenEndExit.InverseTransformPosition(
+	const float CellCm = GetPieceLengthCm();
+	// Everything happens in the open end's frame: X forward along the
+	// build direction, Y lateral, one cell per 400 cm. The exit IS the
+	// cell the next piece lands on, so a piece laid there is (0,0).
+	const FVector LocalTarget = OpenEndExit.InverseTransformPosition(
 		FVector(TargetFloor.X, TargetFloor.Y, 0.f));
-	const int32 ForwardCells =
-		FMath::RoundToInt32(Local.X / GetPieceLengthCm());
-	const int32 LateralCells =
-		FMath::RoundToInt32(Local.Y / GetPieceLengthCm());
-	if (ForwardCells < 0)
+	const FIntPoint Target(
+		FMath::RoundToInt32(LocalTarget.X / CellCm),
+		FMath::RoundToInt32(LocalTarget.Y / CellCm));
+
+	// Laid pieces sit exactly on this lattice (the chain grows in
+	// whole cells from the same origin), so quantising them is exact.
+	TSet<FIntPoint> Occupied;
+	for (const FVector& Centre : OccupiedPieceCentres)
 	{
-		// BEHIND THE TIP: route a U - turn, sidestep, turn back (owner
-		// 2026-09-01 "only seems to go up": the forward-only refusal
-		// made half the floor unreachable, which no benchmark planner
-		// does). The one genuinely unreachable cell is directly astern
-		// with zero side room, because a U needs a lateral cell to
-		// turn through.
-		if (LateralCells == 0)
-		{
-			OutReason = TEXT("DIRECTLY BEHIND THE OPEN END - CLICK A "
-				"CELL TO EITHER SIDE (REMOVE LAST PIECE goes back)");
-			return false;
-		}
-		const ELBSpacecraftTrackPiece UTurn = LateralCells > 0
-			? ELBSpacecraftTrackPiece::TurnRight
-			: ELBSpacecraftTrackPiece::TurnLeft;
-		OutPieces.Add(UTurn);
-		for (int32 Step = 1; Step < FMath::Abs(LateralCells); ++Step)
-		{
-			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
-		}
-		OutPieces.Add(UTurn);
-		for (int32 Step = 0; Step < -ForwardCells; ++Step)
-		{
-			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
-		}
-		OutReason.Reset();
-		return true;
+		const FVector Local = OpenEndExit.InverseTransformPosition(
+			FVector(Centre.X, Centre.Y, 0.f));
+		Occupied.Add(FIntPoint(
+			FMath::RoundToInt32(Local.X / CellCm),
+			FMath::RoundToInt32(Local.Y / CellCm)));
 	}
-	// Straights cover cells (0..ForwardCells-1) on the build axis.
-	for (int32 Step = 0; Step < ForwardCells; ++Step)
+	if (Occupied.Contains(Target))
 	{
-		OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		OutReason = TEXT("THE LINE ALREADY RUNS THROUGH THAT CELL - "
+			"CLICK AN EMPTY ONE");
+		return false;
 	}
-	if (LateralCells != 0)
+
+	// A* over (cell, heading). A node is "the walk stands here, about
+	// to lay a piece"; each move lays a piece ON the current cell and
+	// advances one cell in the move's out-direction. Reaching the
+	// target cell wins; a final straight then occupies it.
+	struct FLBTrackPlanNode
 	{
-		// A quarter turn occupies the corner cell, then straights walk
-		// the lateral leg so the last piece SITS on the clicked cell.
-		// UE yaw grows X toward Y, so a positive lateral offset is a
-		// right turn.
-		OutPieces.Add(LateralCells > 0
-			? ELBSpacecraftTrackPiece::TurnRight
-			: ELBSpacecraftTrackPiece::TurnLeft);
-		for (int32 Step = 0; Step < FMath::Abs(LateralCells); ++Step)
+		FIntPoint Cell;
+		int8 Heading; // 0=+X 1=+Y 2=-X 3=-Y in the exit frame
+		float G;
+		float F;
+		int32 Parent;
+		ELBSpacecraftTrackPiece Piece; // the piece that REACHED here
+	};
+	const auto DirOf = [](int8 Heading) -> FIntPoint
+	{
+		switch (Heading & 3)
 		{
-			OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		case 0: return FIntPoint(1, 0);
+		case 1: return FIntPoint(0, 1);
+		case 2: return FIntPoint(-1, 0);
+		default: return FIntPoint(0, -1);
+		}
+	};
+	const auto Heuristic = [&Target](const FIntPoint& Cell) -> float
+	{
+		return static_cast<float>(FMath::Abs(Cell.X - Target.X)
+			+ FMath::Abs(Cell.Y - Target.Y));
+	};
+	const auto KeyOf = [](const FIntPoint& Cell, int8 Heading) -> int32
+	{
+		return ((Cell.X + 128) << 16) | ((Cell.Y + 128) << 8) | Heading;
+	};
+	// The floor is ~55 cells across; 120 leaves room for any detour a
+	// real layout could need while bounding the search hard.
+	constexpr int32 BoundCells = 60;
+	// Turns cost a little extra so open floor gets straight runs.
+	constexpr float TurnCost = 1.25f;
+
+	TArray<FLBTrackPlanNode> Nodes;
+	TArray<int32> OpenHeap;
+	TSet<int32> Closed;
+	Nodes.Add({ FIntPoint(0, 0), 0, 0.f, Heuristic(FIntPoint(0, 0)),
+		INDEX_NONE, ELBSpacecraftTrackPiece::Straight });
+	OpenHeap.Add(0);
+	const auto ByLowestF = [&Nodes](int32 A, int32 B)
+	{
+		return Nodes[A].F < Nodes[B].F;
+	};
+	int32 GoalNode = INDEX_NONE;
+	while (OpenHeap.Num() > 0 && Nodes.Num() < 20000)
+	{
+		int32 Current = INDEX_NONE;
+		OpenHeap.HeapPop(Current, ByLowestF, EAllowShrinking::No);
+		const FLBTrackPlanNode Node = Nodes[Current];
+		const int32 Key = KeyOf(Node.Cell, Node.Heading);
+		if (Closed.Contains(Key))
+		{
+			continue;
+		}
+		Closed.Add(Key);
+		if (Node.Cell == Target)
+		{
+			GoalNode = Current;
+			break;
+		}
+		if (Occupied.Contains(Node.Cell))
+		{
+			// Cannot lay a piece here, so the walk ends on this branch.
+			continue;
+		}
+		for (int32 Move = 0; Move < 3; ++Move)
+		{
+			int8 NewHeading = Node.Heading;
+			ELBSpacecraftTrackPiece Piece =
+				ELBSpacecraftTrackPiece::Straight;
+			if (Move == 1)
+			{
+				NewHeading = (Node.Heading + 3) & 3;
+				Piece = ELBSpacecraftTrackPiece::TurnLeft;
+			}
+			else if (Move == 2)
+			{
+				NewHeading = (Node.Heading + 1) & 3;
+				Piece = ELBSpacecraftTrackPiece::TurnRight;
+			}
+			const FIntPoint Next = Node.Cell + DirOf(NewHeading);
+			if (FMath::Abs(Next.X) > BoundCells
+				|| FMath::Abs(Next.Y) > BoundCells
+				|| Closed.Contains(KeyOf(Next, NewHeading)))
+			{
+				continue;
+			}
+			const float G = Node.G + (Move == 0 ? 1.f : TurnCost);
+			const int32 Index = Nodes.Add({ Next, NewHeading, G,
+				G + Heuristic(Next), Current, Piece });
+			OpenHeap.HeapPush(Index, ByLowestF);
 		}
 	}
-	else
+	if (GoalNode == INDEX_NONE)
 	{
-		// Dead ahead: one more straight occupies the clicked cell
-		// itself (ForwardCells straights stop one short of it).
-		OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
+		OutReason = TEXT("NO CLEAR ROUTE - THE LAID TRACK IS IN THE "
+			"WAY (CLICK ANOTHER CELL OR REMOVE PIECES)");
+		return false;
 	}
+	TArray<ELBSpacecraftTrackPiece> Reversed;
+	for (int32 Walk = GoalNode; Nodes[Walk].Parent != INDEX_NONE;
+		Walk = Nodes[Walk].Parent)
+	{
+		Reversed.Add(Nodes[Walk].Piece);
+	}
+	for (int32 Index = Reversed.Num() - 1; Index >= 0; --Index)
+	{
+		OutPieces.Add(Reversed[Index]);
+	}
+	// The walk stops ON the clicked cell; a straight occupies it -
+	// always a straight, because stations attach to straights.
+	OutPieces.Add(ELBSpacecraftTrackPiece::Straight);
 	OutReason.Reset();
 	return true;
 }

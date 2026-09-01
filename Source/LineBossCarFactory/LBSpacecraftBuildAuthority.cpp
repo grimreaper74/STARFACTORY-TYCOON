@@ -585,6 +585,14 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 	return true;
 }
 
+bool ALBSpacecraftBuildAuthority::IsStationEnvelopeLegal(
+	FName DefinitionId, const FTransform& Transform,
+	FString& OutReason) const
+{
+	return EnvelopeIsLegal(DefinitionId, Transform, NAME_None,
+		GetStations(), OutReason);
+}
+
 FName ALBSpacecraftBuildAuthority::FindSlotHostClassFor(
 	FName UnitDefinitionId)
 {

@@ -1145,10 +1145,16 @@ bool ALBSpacecraftGameMode::LayTrackToPoint(const FVector& FloorPoint,
 		OutToast = TEXT("THE LINE HAS NO OPEN END");
 		return false;
 	}
+	TArray<FVector> OccupiedCentres;
+	for (const FLBSpacecraftTrackPieceRecord& Piece :
+		TrackAuthority->GetPieces())
+	{
+		OccupiedCentres.Add(Piece.WorldTransform.GetLocation());
+	}
 	TArray<ELBSpacecraftTrackPiece> Plan;
 	FString Reason;
 	if (!ALBSpacecraftTrackAuthority::PlanRouteToPoint(Exit, FloorPoint,
-		Plan, Reason))
+		OccupiedCentres, Plan, Reason))
 	{
 		OutToast = Reason;
 		return false;

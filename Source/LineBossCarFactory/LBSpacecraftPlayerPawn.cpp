@@ -25,6 +25,10 @@ namespace LBSpacecraftPlayerPawnPrivate
 	constexpr float SpacecraftGhostHeightCm = 300.f;
 	const FLinearColor SpacecraftGhostColour(0.35f, 0.65f, 1.f, 0.5f);
 	const FLinearColor SpacecraftGhostRefusedColour(1.f, 0.32f, 0.1f, 0.5f);
+	// Track path tiles fight a bright pale floor at management zoom;
+	// they carry more alpha than the station ghost or they vanish.
+	const FLinearColor SpacecraftTrackPathColour(0.30f, 0.62f, 1.f, 0.8f);
+	const FLinearColor SpacecraftTrackPathRefused(1.f, 0.32f, 0.1f, 0.8f);
 }
 
 ALBSpacecraftPlayerPawn::ALBSpacecraftPlayerPawn()
@@ -543,6 +547,125 @@ void ALBSpacecraftPlayerPawn::CancelPlacement()
 	SetPlacementDefinition(NAME_None);
 }
 
+bool ALBSpacecraftPlayerPawn::FindTrackSnapForStation(
+	const FVector& FloorPoint, FName DefinitionId,
+	FTransform& OutTransform, FName& OutPieceId,
+	FString& OutWhyNot) const
+{
+	OutPieceId = NAME_None;
+	ALBSpacecraftGameMode* GameMode = GetSpacecraftGameMode();
+	if (GameMode == nullptr || GameMode->GetTrackAuthority() == nullptr
+		|| GameMode->GetBuildAuthority() == nullptr)
+	{
+		OutWhyNot = TEXT("THE TRACK AUTHORITY IS NOT UP YET");
+		return false;
+	}
+	const FLBSpacecraftStationDefinition* Definition =
+		ALBSpacecraftBuildAuthority::FindDefinition(DefinitionId);
+	if (Definition == nullptr)
+	{
+		OutWhyNot = FString::Printf(TEXT("UNKNOWN STATION %s"),
+			*DefinitionId.ToString());
+		return false;
+	}
+	bool bAnyFree = false;
+	float BestDistSq = TNumericLimits<float>::Max();
+	float NearestIllegalDistSq = TNumericLimits<float>::Max();
+	FString NearestIllegalReason;
+	for (const FLBSpacecraftTrackPieceRecord& Piece :
+		GameMode->GetTrackAuthority()->GetPieces())
+	{
+		if (Piece.PieceType != ELBSpacecraftTrackPiece::Straight
+			|| !Piece.NodeStationId.IsNone())
+		{
+			continue;
+		}
+		bAnyFree = true;
+		const FVector At(Piece.WorldTransform.GetLocation().X,
+			Piece.WorldTransform.GetLocation().Y, 0.f);
+		// THE LEG'S AXIS, NOT ITS DIRECTION (owner 2026-09-01 "still a
+		// bit messy with stations not in correct orentation"): a leg
+		// laid coming back the other way carries yaw 180 off, and a
+		// station wearing it flipped alternated down the line. The
+		// arch straddles an axis; 0 and 180 are the same station.
+		const float PieceYaw = Piece.WorldTransform.Rotator().Yaw;
+		const bool bAxisAlongY = FMath::Abs(FMath::Fmod(
+			FMath::Abs(PieceYaw), 180.f) - 90.f) < 45.f;
+		const FTransform Candidate(
+			FRotator(0.f, bAxisAlongY ? 90.f : 0.f, 0.f), At);
+		const float DistSq = FVector::DistSquared2D(At, FloorPoint);
+		FString EnvelopeReason;
+		if (!GameMode->GetBuildAuthority()->IsStationEnvelopeLegal(
+			DefinitionId, Candidate, EnvelopeReason))
+		{
+			// Remember the closest refusal so a fully-blocked track
+			// explains itself with the piece the player MEANT.
+			if (DistSq < NearestIllegalDistSq)
+			{
+				NearestIllegalDistSq = DistSq;
+				NearestIllegalReason = EnvelopeReason;
+			}
+			continue;
+		}
+		// THE TRACK MUST RUN STRAIGHT THROUGH THE STATION: reject any
+		// piece whose footprint would cover track on another axis or a
+		// parallel leg - an 18 m portal dropped over a zigzag buries
+		// the corners under it (the owner's "messy" frame).
+		bool bTrackClear = true;
+		for (const FLBSpacecraftTrackPieceRecord& Other :
+			GameMode->GetTrackAuthority()->GetPieces())
+		{
+			const FVector OtherAt(
+				Other.WorldTransform.GetLocation().X,
+				Other.WorldTransform.GetLocation().Y, 0.f);
+			if (!StationContainsPoint(Candidate,
+				Definition->FootprintCm, OtherAt))
+			{
+				continue;
+			}
+			const bool bSameLeg = bAxisAlongY
+				? FMath::IsNearlyEqual(OtherAt.X, At.X, 1.f)
+				: FMath::IsNearlyEqual(OtherAt.Y, At.Y, 1.f);
+			const bool bStraightPiece = Other.PieceType
+				== ELBSpacecraftTrackPiece::Straight
+				|| Other.PieceType == ELBSpacecraftTrackPiece::Start
+				|| Other.PieceType == ELBSpacecraftTrackPiece::End;
+			if (!bSameLeg || !bStraightPiece)
+			{
+				bTrackClear = false;
+				break;
+			}
+		}
+		if (!bTrackClear)
+		{
+			if (DistSq < NearestIllegalDistSq)
+			{
+				NearestIllegalDistSq = DistSq;
+				NearestIllegalReason = TEXT("THE TRACK BENDS UNDER "
+					"THAT SPOT - PICK A LONGER STRAIGHT RUN");
+			}
+			continue;
+		}
+		if (DistSq < BestDistSq)
+		{
+			BestDistSq = DistSq;
+			OutTransform = Candidate;
+			OutPieceId = Piece.PieceId;
+		}
+	}
+	if (!OutPieceId.IsNone())
+	{
+		OutWhyNot.Reset();
+		return true;
+	}
+	OutWhyNot = !bAnyFree
+		? FString(TEXT("LINE STATIONS STAND ON THE TRACK - LAY MORE "
+			"STRAIGHT TRACK FIRST"))
+		: FString::Printf(TEXT("NO ROOM ON THE TRACK THERE - %s"),
+			*NearestIllegalReason);
+	return false;
+}
+
 void ALBSpacecraftPlayerPawn::PrimaryClick()
 {
 	ALBSpacecraftGameMode* GameMode = GetSpacecraftGameMode();
@@ -608,35 +731,20 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 				== FName(TEXT("LineStation"))
 			&& GameMode->GetTrackAuthority() != nullptr)
 		{
-			// NEXT FREE PIECE IN TRACK ORDER, not nearest-to-cursor
-			// (v1 required the click within 30 m of the track and the
-			// owner's first test read as "not snapping"). The route IS
-			// the stations in track order, so the click only says
-			// "another station" and the line says where: the first
-			// free straight piece down the track.
-			const FLBSpacecraftTrackPieceRecord* BestPiece = nullptr;
-			for (const FLBSpacecraftTrackPieceRecord& Piece :
-				GameMode->GetTrackAuthority()->GetPieces())
+			// NEAREST LEGAL PIECE TO THE CLICK (third iteration: a
+			// 30 m radius read as "not snapping"; first-free-in-track-
+			// order acted far from the cursor and refused about
+			// stations the player was not pointing at - owner
+			// 2026-09-01 "still no good"). The ghost shows this same
+			// target, so the click builds what the preview promised.
+			FString SnapReason;
+			if (!FindTrackSnapForStation(FloorPoint,
+				PlacementDefinitionId, PlaceTransform, SnapPieceId,
+				SnapReason))
 			{
-				if (Piece.PieceType == ELBSpacecraftTrackPiece::Straight
-					&& Piece.NodeStationId.IsNone())
-				{
-					BestPiece = &Piece;
-					break;
-				}
-			}
-			if (BestPiece == nullptr)
-			{
-				LastActionText = LOCTEXT("NeedTrack",
-					"LINE STATIONS STAND ON THE TRACK - lay more "
-					"straight track first").ToString();
+				LastActionText = SnapReason;
 				return;
 			}
-			PlaceTransform = FTransform(
-				BestPiece->WorldTransform.GetRotation(),
-				FVector(BestPiece->WorldTransform.GetLocation().X,
-					BestPiece->WorldTransform.GetLocation().Y, 0.f));
-			SnapPieceId = BestPiece->PieceId;
 		}
 		FName StationId;
 		FString Reason;
@@ -1054,13 +1162,19 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 			&& TrackAuthority->GetPieces().Num() > 0)
 		{
 			FTransform Exit;
+			TArray<FVector> OccupiedCentres;
+			for (const FLBSpacecraftTrackPieceRecord& Piece :
+				TrackAuthority->GetPieces())
+			{
+				OccupiedCentres.Add(Piece.WorldTransform.GetLocation());
+			}
 			TArray<ELBSpacecraftTrackPiece> Plan;
 			FString WhyNot;
 			if (TrackAuthority->GetPieces().Last().PieceType
 					!= ELBSpacecraftTrackPiece::End
 				&& TrackAuthority->GetOpenEndExit(Exit)
 				&& ALBSpacecraftTrackAuthority::PlanRouteToPoint(
-					Exit, FloorPoint, Plan, WhyNot))
+					Exit, FloorPoint, OccupiedCentres, Plan, WhyNot))
 			{
 				// Each piece occupies the walk's CURRENT cell; the
 				// walk then advances to the next.
@@ -1138,12 +1252,12 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 				Cast<UMaterialInstanceDynamic>(Tile->GetMaterial(0)))
 			{
 				TileMID->SetVectorParameterValue(TEXT("Color"),
-					bWouldLay ? SpacecraftGhostColour
-						: SpacecraftGhostRefusedColour);
+					bWouldLay ? SpacecraftTrackPathColour
+						: SpacecraftTrackPathRefused);
 			}
 			Tile->SetWorldTransform(FTransform(FRotator::ZeroRotator,
-				FVector(PathCells[Index].X, PathCells[Index].Y, 2.f),
-				FVector(3.6f, 3.6f, 0.04f)));
+				FVector(PathCells[Index].X, PathCells[Index].Y, 6.f),
+				FVector(3.6f, 3.6f, 0.06f)));
 			Tile->SetVisibility(true);
 		}
 		// The station ghost cube has no job in track mode.
@@ -1157,6 +1271,41 @@ void ALBSpacecraftPlayerPawn::UpdateGhost()
 		{
 			Tile->SetVisibility(false);
 		}
+	}
+	// LINE STATIONS GHOST AT THE SNAP TARGET, not the cursor cell -
+	// the preview shows the exact piece the click will build on, in
+	// the piece's own rotation, orange when nothing legal is in reach.
+	if (Definition->StageClassId == FName(TEXT("LineStation")))
+	{
+		FTransform SnapTransform(FRotator(0.f, GhostYawDeg, 0.f),
+			Snapped);
+		FName SnapPiece;
+		FString SnapWhy;
+		const bool bSnapOk = FindTrackSnapForStation(FloorPoint,
+			PlacementDefinitionId, SnapTransform, SnapPiece, SnapWhy);
+		bool bAfford = true;
+		if (ALBSpacecraftGameMode* SnapGameMode = GetSpacecraftGameMode())
+		{
+			bAfford = SnapGameMode->GetProductionAuthority() == nullptr
+				|| SnapGameMode->GetProductionAuthority()->GetCashPence()
+					>= Definition->CostPence;
+		}
+		if (UMaterialInstanceDynamic* SnapMID =
+			Cast<UMaterialInstanceDynamic>(PlacementGhost->GetMaterial(0)))
+		{
+			SnapMID->SetVectorParameterValue(TEXT("Color"),
+				bSnapOk && bAfford ? SpacecraftGhostColour
+					: SpacecraftGhostRefusedColour);
+		}
+		FTransform SnapGhost = SnapTransform;
+		SnapGhost.SetLocation(SnapGhost.GetLocation()
+			+ FVector(0.f, 0.f, SpacecraftGhostHeightCm * 0.5f));
+		SnapGhost.SetScale3D(FVector(Definition->FootprintCm.X / 100.f,
+			Definition->FootprintCm.Y / 100.f,
+			SpacecraftGhostHeightCm / 100.f));
+		PlacementGhost->SetVisibility(true);
+		PlacementGhost->SetWorldTransform(SnapGhost);
+		return;
 	}
 	// Polish (owner 2026-08-25): the ghost carries a verdict - blue
 	// where the placement would be accepted, warning orange where the

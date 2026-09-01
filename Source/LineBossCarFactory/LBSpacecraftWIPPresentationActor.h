@@ -1236,6 +1236,11 @@ private:
 
 	/** Swaps the cap's orange accent slot for the Start-anchor blue. */
 	void TintTrackCapForStart(class UStaticMeshComponent* CapComponent);
+
+	/** Regrades an authored track piece to the dark-bed language:
+	 *  pale slots to the conveyor bed token, livery slots to amber.
+	 *  The authored machined_pale deck vanished into the pale floor. */
+	void GradeTrackPieceMaterials(class UStaticMeshComponent* PieceComponent);
 	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> TrackVisuals;
 	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftTrackAuthority> TrackAuthority;

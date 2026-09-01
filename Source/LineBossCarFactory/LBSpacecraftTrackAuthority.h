@@ -134,14 +134,17 @@ public:
 	/** CLICK-TO-DRAW routing (owner 2026-09-01: "you just click on the
 	 *  track and nothing happens with turn left etc, is there a better
 	 *  way from resurch?" - yes: every benchmark lays paths by clicking
-	 *  the destination, not by naming each piece). Pure: plans the
-	 *  piece sequence that walks the open end to the clicked floor
-	 *  point - straights forward, ONE quarter turn, straights lateral.
-	 *  The target snaps to the 400 cm cell lattice anchored at the open
-	 *  end. Clicks behind the open end refuse: the chain only grows
-	 *  forward, going back is RemoveOpenEnd's job. */
+	 *  the destination, not by naming each piece). Pure A* over the
+	 *  400 cm cell lattice anchored at the open end, one state per
+	 *  (cell, heading): finds the cheapest piece sequence from the tip
+	 *  to the clicked cell, detouring AROUND the already-laid track
+	 *  (the v1 straight-then-turn walk marched blindly through it and
+	 *  died mid-route on "WOULD CROSS ITSELF"). Turns cost a little
+	 *  extra so open floor gets straight runs, and the final piece is
+	 *  always a straight - stations attach to straights. */
 	static bool PlanRouteToPoint(const FTransform& OpenEndExit,
 		const FVector& TargetFloor,
+		const TArray<FVector>& OccupiedPieceCentres,
 		TArray<ELBSpacecraftTrackPiece>& OutPieces, FString& OutReason);
 
 private:

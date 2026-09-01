@@ -39,12 +39,13 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	};
 	TArray<ELBSpacecraftTrackPiece> Plan;
 	FString Reason;
+	const TArray<FVector> NoTrack;
 
 	// Dead ahead: three cells forward plans four straights (the last
 	// occupies the clicked cell).
 	TestTrue(TEXT("a forward click plans"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(1200.f, 0.f, 0.f), Plan, Reason));
+			FVector(1200.f, 0.f, 0.f), NoTrack, Plan, Reason));
 	TestEqual(TEXT("forward plan is straights to the cell"),
 		Plan.Num(), 4);
 	TestTrue(TEXT("forward plan lands on the clicked cell"),
@@ -55,7 +56,7 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	// turn at the corner, straights down the lateral leg.
 	TestTrue(TEXT("an L click plans"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(800.f, 1200.f, 0.f), Plan, Reason));
+			FVector(800.f, 1200.f, 0.f), NoTrack, Plan, Reason));
 	TestEqual(TEXT("L plan is 2 + turn + 3"), Plan.Num(), 6);
 	TestEqual(TEXT("the corner is a right turn"),
 		Plan[2], ELBSpacecraftTrackPiece::TurnRight);
@@ -66,7 +67,7 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	// Leftward lateral picks the left turn.
 	TestTrue(TEXT("a left L plans"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(0.f, -800.f, 0.f), Plan, Reason));
+			FVector(0.f, -800.f, 0.f), NoTrack, Plan, Reason));
 	TestEqual(TEXT("the immediate corner is a left turn"),
 		Plan[0], ELBSpacecraftTrackPiece::TurnLeft);
 	TestTrue(TEXT("left plan lands on the clicked cell"),
@@ -76,31 +77,58 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 	// Clicking the open end cell itself lays exactly one straight.
 	TestTrue(TEXT("clicking the exit cell plans"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(0.f, 0.f, 0.f), Plan, Reason));
+			FVector(0.f, 0.f, 0.f), NoTrack, Plan, Reason));
 	TestEqual(TEXT("the exit-cell plan is one straight"), Plan.Num(), 1);
 
-	// DIRECTLY behind the open end refuses - a U needs a lateral cell
-	// to turn through.
-	TestFalse(TEXT("a click directly behind the open end refuses"),
+	// Behind the open end routes a U (owner 2026-09-01 "only seems to
+	// go up" - half the floor was unreachable under forward-only
+	// planning; the A* loops around).
+	TestTrue(TEXT("a click behind plans a route"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(-800.f, 0.f, 0.f), Plan, Reason));
-	TestTrue(TEXT("the refusal teaches REMOVE"),
-		Reason.Contains(TEXT("REMOVE")));
-
-	// Behind WITH side room routes a U: turn, sidestep, turn back
-	// (owner 2026-09-01 "only seems to go up" - half the floor was
-	// unreachable under forward-only planning).
-	TestTrue(TEXT("a click behind with side room plans a U"),
-		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
-			FVector(-800.f, 800.f, 0.f), Plan, Reason));
-	TestEqual(TEXT("the U is turn + 1 + turn + 2"), Plan.Num(), 5);
-	TestEqual(TEXT("the U opens with a right turn"),
-		Plan[0], ELBSpacecraftTrackPiece::TurnRight);
-	TestEqual(TEXT("the U turns back the same way"),
-		Plan[2], ELBSpacecraftTrackPiece::TurnRight);
-	TestTrue(TEXT("the U lands on the clicked cell"),
+			FVector(-800.f, 800.f, 0.f), NoTrack, Plan, Reason));
+	TestTrue(TEXT("the behind route lands on the clicked cell"),
 		LandingCell(ExitEast, Plan).Equals(
 			FVector(-800.f, 800.f, 0.f), 1.f));
+	TestTrue(TEXT("a click directly astern also plans"),
+		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+			FVector(-800.f, 0.f, 0.f), NoTrack, Plan, Reason));
+	TestTrue(TEXT("the astern route lands on the clicked cell"),
+		LandingCell(ExitEast, Plan).Equals(
+			FVector(-800.f, 0.f, 0.f), 1.f));
+
+	// OBSTACLES: laid track blocks cells and the planner detours
+	// around them instead of marching through (the v1 walk died on
+	// "WOULD CROSS ITSELF" mid-route).
+	{
+		TArray<FVector> Blocking;
+		Blocking.Add(FVector(400.f, 0.f, 0.f)); // dead ahead, cell (1,0)
+		TestTrue(TEXT("a blocked straight line detours"),
+			ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+				FVector(1200.f, 0.f, 0.f), Blocking, Plan, Reason));
+		TestTrue(TEXT("the detour lands on the clicked cell"),
+			LandingCell(ExitEast, Plan).Equals(
+				FVector(1200.f, 0.f, 0.f), 1.f));
+		// Walk the plan: no piece may sit on the blocked cell.
+		FTransform Walk = ExitEast;
+		bool bTouchedBlock = false;
+		for (const ELBSpacecraftTrackPiece Piece : Plan)
+		{
+			if (Walk.GetLocation().Equals(FVector(400.f, 0.f, 0.f), 1.f))
+			{
+				bTouchedBlock = true;
+			}
+			Walk = ALBSpacecraftTrackAuthority::ComputePieceExit(Walk,
+				Piece);
+		}
+		TestFalse(TEXT("the detour avoids the occupied cell"),
+			bTouchedBlock);
+		// A click ON laid track refuses - there is already line there.
+		TestFalse(TEXT("clicking an occupied cell refuses"),
+			ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitEast,
+				FVector(400.f, 0.f, 0.f), Blocking, Plan, Reason));
+		TestTrue(TEXT("the occupied refusal names the cause"),
+			Reason.Contains(TEXT("ALREADY")));
+	}
 
 	// A rotated open end plans in ITS frame: heading south (+Y yaw 90),
 	// a click further south is dead ahead.
@@ -108,7 +136,7 @@ bool FLBSpacecraftTrackRoutePlanTest::RunTest(const FString& Parameters)
 		FVector(2000.f, 1000.f, 0.f));
 	TestTrue(TEXT("a rotated exit plans in its own frame"),
 		ALBSpacecraftTrackAuthority::PlanRouteToPoint(ExitSouth,
-			FVector(2000.f, 1800.f, 0.f), Plan, Reason));
+			FVector(2000.f, 1800.f, 0.f), NoTrack, Plan, Reason));
 	TestEqual(TEXT("the rotated plan is all straights"), Plan.Num(), 3);
 	TestTrue(TEXT("rotated plan lands on the clicked cell"),
 		LandingCell(ExitSouth, Plan).Equals(

@@ -406,6 +406,16 @@ public:
 	 *  (public: the track and coordinator read records by id). */
 	const FLBSpacecraftStationRecord* FindStation(FName StationId) const;
 
+	/** Pure placement query for ghosts and snap targets: would this
+	 *  definition at this transform pass the envelope rules against
+	 *  the placed stations? Same test PlaceStation runs, callable
+	 *  without mutating anything - so what a ghost promises is what
+	 *  the click gets (owner 2026-09-01: the snap picked a piece by
+	 *  track order, and its refusal named a station the player was
+	 *  not even pointing at). */
+	bool IsStationEnvelopeLegal(FName DefinitionId,
+		const FTransform& Transform, FString& OutReason) const;
+
 	// ---- production-line drone slots (owner 2026-08-26) ----
 	/** PROVISIONAL: one drone with its dock, bought into a slot. */
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
