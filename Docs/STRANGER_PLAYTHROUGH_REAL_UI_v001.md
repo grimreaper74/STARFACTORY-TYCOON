@@ -129,5 +129,51 @@ Nineteen findings in full: `scratchpad/stranger/findings.md`
 
 Status: the fixes are verified in PIE (this session) and the package
 at Builds/Overnight_2026_09_01 was rebuilt with them (cycle 9, BUILD
-SUCCESSFUL, 2026-09-02 01:33). The stranger path has not yet been
-replayed inside that package - PIE is the evidence so far.
+SUCCESSFUL, 2026-09-02 01:33). The site-map path (quote, buy, enter)
+was then replayed INSIDE that package with real OS input once the
+owner went to bed (frames p02/p03/p04): the two-click purchase and the
+ENTER caption behave in the shipped exe.
+
+## Second wave (after midnight, owner asleep): the loop past the hall
+
+Played on with the same tools through building, crewing, commissioning,
+accepting and running. Findings F20-F28 (full text in the audit
+folder), the severe ones first:
+
+| # | Severity | Finding |
+|---|---|---|
+| F22 | severe | Commissioning half-succeeded: "Line idle" + ticked objective while the coordinator refused with "attach every line station to the track" - an action the auto-relay makes impossible |
+| F28 | severe | The first contract (11 min) expired while the stranger learned, from a stall toast, that a ship needs a dock and parts |
+| F27 | high | FIRST STEPS never mentions a delivery dock or ordering parts |
+| F2b | high | 48 wheel notches down CONTRACTS still showed imports; offers unreachable |
+| F18b | high | Clicking a station's own pad selected the hall around it (first-footprint pick) |
+| F23 | med | Offer buttons clipped their price and deadline |
+| F21 | med | "Hire drones at each station" ticked after one drone at one station |
+| F20 | med | Four stations left 125,000 cr - not enough to crew them; nothing warned |
+| F24/F26 | low | Ledger id in the accept toast; item id in the stall toast |
+| F25 | low | Speed keys undiscoverable |
+| F29 | severe | A first ship was unaffordable: components imported only in fives (598,000 cr for a set) against ~324,000 cr held, with fabrication locked until delivery 2 |
+| F30 | low | Order toast: "ORDER ORD-0003 PLACED - ARRIVING SOON" - id, no item, no time |
+| F31 | med | Content above the import list changes height after an order, so the rows shift ~25 px under the cursor and neighbouring clicks miss |
+| F32 | severe | Bought parts never left the delivery dock: only a STORAGE RACK had a hauler drone, and nothing on screen had named a rack. The stall toast then said "none in the factory; order more" while five components sat 24 units deep at the dock |
+
+F32 is the one that would have ended a stranger's evening: the loop
+"build stations, dock, hire, commission, accept, order" was complete
+and correct by every cue the game gave, and the ship still never
+started. Fixed by giving the delivery dock a hauler of its own (it
+feeds the line from what lands there and never collects machine
+output into the dock), rewording the shortfall diagnosis for a
+factory with neither dock nor rack, and saying on the FIRST STEPS
+line that the dock's drone carries parts to the line. Pinned by
+`LineBoss.Spacecraft.Logistics.ADeliveryDockCarriesBoughtPartsToTheLine`.
+F30's toast now reads "Ordered 1x Hull Component - arrives in about
+30 s". F31 stays open: the scroll offset is already preserved, it is
+the content above the list changing height, and the honest fix is an
+anchor row rather than an offset.
+
+Fixed and verified in PIE this wave: F2b (offers first), F22
+(commission fails closed and names the unreachable station), F18b
+(smallest footprint wins), F15 (pinned PLACING line), F21, F23, F24,
+F25, F26, F27, F28 (3x deadline until the first delivery). Open: F20
+(a budget warning before the fourth station) and F5/F9/F12 from the
+first wave.

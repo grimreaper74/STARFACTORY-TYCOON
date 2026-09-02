@@ -2843,8 +2843,14 @@ bool ALBSpacecraftGameMode::PlaceResourceOrder(
 		InLedger.EarnPence(UnitPrice * Count, Ignored);
 		return false;
 	}
-	OutReason = FString::Printf(TEXT("ORDER %s PLACED - ARRIVING SOON"),
-		*OrderId.ToString());
+	// Name the thing and the wait, not the ledger id ("ORDER ORD-0003
+	// PLACED - ARRIVING SOON" was what the stranger read, 2026-09-02).
+	const FLBSpacecraftItemDefinition* Item =
+		FLBSpacecraftItemCatalogue::FindItem(ItemId);
+	OutReason = FString::Printf(
+		TEXT("Ordered %dx %s - arrives in about %.0f s"), Count,
+		Item != nullptr ? *Item->DisplayName : *ItemId.ToString(),
+		FLBSpacecraftItemCatalogue::GetOrderLeadSeconds(Count));
 	return true;
 }
 

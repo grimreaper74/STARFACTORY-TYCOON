@@ -109,12 +109,20 @@ void ALBSpacecraftDroneFleetAuthority::SyncFromBuild(
 		}
 	}
 	// Heavy haulers mirror the storage racks (owner 2026-08-26: the
-	// heavy drone empties sub-assembly buffers into the storage zone).
+	// heavy drone empties sub-assembly buffers into the storage zone)
+	// AND the delivery docks. The dock's hauler exists for the first
+	// factory: the stranger playthrough (2026-09-02) built line
+	// stations and a dock, bought five components, and watched them sit
+	// at the dock forever - a rack was a hidden third requirement that
+	// nothing on screen had named. A dock's hauler only FEEDS the line
+	// from what lands there; collecting machine output into the dock
+	// would clog the place bought goods arrive (see the job pick).
 	TSet<FName> Racks;
 	for (const FLBSpacecraftStationRecord& Record : InBuild->GetStations())
 	{
 		if (Record.DefinitionId == FName(TEXT("StorageRack"))
-			|| Record.DefinitionId == FName(TEXT("StorageRackMk2")))
+			|| Record.DefinitionId == FName(TEXT("StorageRackMk2"))
+			|| Record.DefinitionId == FName(TEXT("DeliveryDock")))
 		{
 			Racks.Add(Record.StationId);
 		}
@@ -488,6 +496,20 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 				Haul.CarryCount = FMath::Min3(HaulCapacity, WantRoom,
 					InInventory->GetQuantity(WantSource, WantItem));
 				break;
+			}
+			// A DOCK'S hauler never collects: machine output landing in
+			// the dock would fill the one store bought goods arrive in,
+			// and a backed-up dock refuses new orders.
+			if (InBuild != nullptr)
+			{
+				if (const FLBSpacecraftStationRecord* Host
+					= InBuild->FindStation(Haul.RackStationId))
+				{
+					if (Host->DefinitionId == FName(TEXT("DeliveryDock")))
+					{
+						break;
+					}
+				}
 			}
 			const FName Machine =
 				InCrafting->FindStationWithBufferedOutput();

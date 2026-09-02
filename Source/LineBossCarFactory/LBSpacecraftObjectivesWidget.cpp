@@ -252,7 +252,7 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 			"Hire drones at every station - uncrewed work is dirty")
 			.ToString(), bHasAnyDrone);
 		AddLine(LOCTEXT("StepDock",
-			"Build a delivery dock - parts arrive there").ToString(),
+			"Build a delivery dock - parts land there and its drone carries them to the line").ToString(),
 			bHasDock);
 		AddLine(LOCTEXT("StepCommission", "Commission the factory")
 			.ToString(), bCommissioned);

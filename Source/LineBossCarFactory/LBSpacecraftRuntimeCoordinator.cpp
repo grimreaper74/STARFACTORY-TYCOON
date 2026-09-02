@@ -158,11 +158,17 @@ FString ALBSpacecraftRuntimeCoordinator::DescribeSupplyShortfall(
 		? FString::Printf(TEXT("%d waiting at %s"), HoldingCount,
 			*HoldingStation.ToString())
 		: FString::Printf(TEXT("%d on the floor"), OnTheFloor);
-	if (!bHasRack)
+	// A delivery dock hosts a hauler of its own now (the stranger
+	// playthrough, 2026-09-02: five bought components sat at the dock
+	// of a rack-less first factory while the line reported "none in
+	// the factory"), so only a factory with NEITHER has nothing to
+	// carry the goods.
+	if (!bHasRack && !bHasDock)
 	{
 		return FString::Printf(
-			TEXT(" - %s, but no storage rack is built; the drones stage "
-				"through a rack, so nothing can be collected"), *Where);
+			TEXT(" - %s, but nothing can carry them; build a delivery "
+				"dock or a storage rack, whose drone collects parts"),
+			*Where);
 	}
 	return FString::Printf(TEXT(" - %s, a drone is on its way"), *Where);
 }

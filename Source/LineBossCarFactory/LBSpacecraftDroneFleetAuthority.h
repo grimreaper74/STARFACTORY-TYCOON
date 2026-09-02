@@ -92,7 +92,8 @@ enum class ELBSpacecraftHaulJob : uint8
 	DeliverInput
 };
 
-/** One heavy hauler (one per storage rack). */
+/** One heavy hauler (one per storage rack, and one per delivery dock -
+ *  a dock's hauler only feeds the line). */
 USTRUCT(BlueprintType)
 struct LINEBOSSCARFACTORY_API FLBSpacecraftHaulState
 {

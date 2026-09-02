@@ -3326,6 +3326,95 @@ bool FLBSpacecraftDroneDeliveryTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftDockHaulerTest,
+	"LineBoss.Spacecraft.Logistics.ADeliveryDockCarriesBoughtPartsToTheLine",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftDockHaulerTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftPhase2IntegrationTestsPrivate;
+	FLBSpacecraftPhase2Rig Rig = MakeSpacecraftPhase2Rig();
+	FString Reason;
+
+	// The stranger's first factory (2026-09-02): line stations and a
+	// delivery dock, NO storage rack. Bought parts landed at the dock
+	// and nothing ever carried them, because only racks had haulers -
+	// a third building the screen never named. The dock's own drone
+	// must feed the line.
+	const TCHAR* Classes[] = {
+		TEXT("MaterialProcessor"), TEXT("HullFabricator"),
+		TEXT("ComponentFabricator"), TEXT("AssemblyRobot") };
+	float Y = -4000.f;
+	for (const TCHAR* ClassId : Classes)
+	{
+		FName StationId;
+		TestTrue(TEXT("line station places"),
+			Rig.Build->PlaceStation(FName(ClassId),
+				FTransform(FRotator::ZeroRotator, FVector(0.f, Y, 0.f)),
+				StationId, Reason));
+		Y += 2200.f;
+	}
+	FName DockId;
+	TestTrue(TEXT("a delivery dock places"),
+		Rig.Build->PlaceStation(FName(TEXT("DeliveryDock")),
+			FTransform(FRotator::ZeroRotator, FVector(-4000.f, 0.f, 0.f)),
+			DockId, Reason));
+	TestTrue(TEXT("the line commissions"),
+		EnsureSprayBoothAndCommission(Rig, Reason));
+	ALBSpacecraftGameMode::SyncStationStores(*Rig.Build, *Rig.Inventory,
+		Rig.Crafting);
+
+	FName Consumer;
+	FName Wanted;
+	for (const FLBSpacecraftStationRecord& Record : Rig.Build->GetStations())
+	{
+		if (Record.AllocatedComponents.Num() > 0)
+		{
+			Consumer = Record.StationId;
+			Wanted = Record.AllocatedComponents[0];
+			break;
+		}
+	}
+	TestFalse(TEXT("commissioning gave some station work to do"),
+		Consumer.IsNone());
+	const FName DockStore(*FString::Printf(TEXT("Store.%s"),
+		*DockId.ToString()));
+	TestTrue(TEXT("the bought part lands at the dock"),
+		Rig.Inventory->Deposit(DockStore, Wanted, 1, Reason));
+	const FName Stockpile(*FString::Printf(TEXT("Store.%s"),
+		*Consumer.ToString()));
+	TestEqual(TEXT("the station starts with an empty shelf"),
+		Rig.Inventory->GetQuantity(Stockpile, Wanted), 0);
+
+	ALBSpacecraftDroneFleetAuthority* Fleet =
+		Rig.World->SpawnActor<ALBSpacecraftDroneFleetAuthority>();
+	Fleet->SyncFromBuild(Rig.Build, nullptr);
+	TestEqual(TEXT("the dock has a hauler of its own"),
+		Fleet->GetHauls().Num(), 1);
+	bool bEverCollected = false;
+	for (int32 Tick = 0; Tick < 40; ++Tick)
+	{
+		Fleet->TickHauls(2.0, Rig.Crafting, Rig.Inventory, Rig.Build);
+		for (const FLBSpacecraftHaulState& Haul : Fleet->GetHauls())
+		{
+			bEverCollected |= Haul.Phase != ELBSpacecraftHaulPhase::Idle
+				&& Haul.Job == ELBSpacecraftHaulJob::CollectOutput;
+		}
+	}
+	TestEqual(TEXT("the part reached the station that fits it"),
+		Rig.Inventory->GetQuantity(Stockpile, Wanted), 1);
+	TestEqual(TEXT("and left the dock"),
+		Rig.Inventory->GetQuantity(DockStore, Wanted), 0);
+	// The dock's drone only feeds: machine output collected INTO the
+	// dock would fill the store bought goods arrive in.
+	TestFalse(TEXT("a dock hauler never collects machine output"),
+		bEverCollected);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftMk2UpgradePathTest,
 	"LineBoss.Spacecraft.Phase2.AnUpgradedLineCanBuildTheBiggerCraft",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
