@@ -54,8 +54,9 @@ cards, cut from real captures.
 ## Order of work
 
 1. Tile studio and BUILD-tab tiles - **done 2026-09-02** (this commit).
-2. The line as a filmstrip of station thumbnails with bars and chips;
-   the same tags over the floor.
+2. The line as a filmstrip of station thumbnails with bars and chips -
+   **done 2026-09-02** (render, number and task, parts, bar, chip, one
+   compact take/give pair per gap). The floor tags are unchanged so far.
 3. Contracts as ship cards with the customer, one big number, a
    parts-to-buy line and an Accept button; the six parts as picture
    tiles with "order the missing parts".

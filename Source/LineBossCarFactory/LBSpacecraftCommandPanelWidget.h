@@ -186,6 +186,12 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** ONE FRAME OF THE LINE FILMSTRIP: the station's render, its number
+	 *  and task, a progress bar and a state chip (Working / Done -
+	 *  waiting for the pulse / Idle). Clicking it selects the station. */
+	ULBSpacecraftTaggedButton* AddStationTile(FName StationId, int32 Number,
+		class UTexture* Picture, const FString& Title, const FString& Sub,
+		float Progress01, const FString& Chip, bool bHold);
 	/** A PICTURE TILE (owner 2026-09-02: the interface is pictures, not
 	 *  rows): a rendered thumbnail of the thing, its name and its price
 	 *  as captions, the whole tile the button. Two per row. */

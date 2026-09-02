@@ -8,6 +8,9 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
+#include "Components/ProgressBar.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "LBSpacecraftWIPPresentationActor.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/OverlaySlot.h"
@@ -684,6 +687,105 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTileButton(
 	{
 		TileSlot->SetHorizontalAlignment(HAlign_Fill);
 		TileSlot->SetVerticalAlignment(VAlign_Fill);
+	}
+	return Button;
+}
+
+ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddStationTile(
+	FName StationId, int32 Number, UTexture* Picture, const FString& Title,
+	const FString& Sub, float Progress01, const FString& Chip, bool bHold)
+{
+	using namespace LBSpacecraftCommandPanelPrivate;
+	ULBSpacecraftTaggedButton* Button =
+		WidgetTree->ConstructWidget<ULBSpacecraftTaggedButton>(
+			ULBSpacecraftTaggedButton::StaticClass());
+	Button->Tag = StationId;
+	Button->OnTagClicked = [this](FName InTag)
+	{
+		if (Pawn != nullptr)
+		{
+			Pawn->SetSelectedStation(InTag);
+		}
+	};
+	Button->Arm();
+	Button->SetStyle(SpacecraftPanelButtonStyle(bHold));
+	UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(
+		UHorizontalBox::StaticClass());
+	// The picture, 96 by 60, left.
+	UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+	if (Picture != nullptr)
+	{
+		FSlateBrush Brush;
+		Brush.SetResourceObject(Picture);
+		Brush.ImageSize = FVector2D(96.f, 60.f);
+		Image->SetBrush(Brush);
+	}
+	else
+	{
+		Image->SetColorAndOpacity(FLinearColor(0.02f, 0.02f, 0.02f, 1.f));
+	}
+	Image->SetDesiredSizeOverride(FVector2D(96.f, 60.f));
+	if (UHorizontalBoxSlot* ImageSlot = Row->AddChildToHorizontalBox(Image))
+	{
+		ImageSlot->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+		ImageSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	UVerticalBox* Lines = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	// Number and task.
+	UTextBlock* Head = WidgetTree->ConstructWidget<UTextBlock>(
+		UTextBlock::StaticClass());
+	Head->SetText(FText::FromString(FString::Printf(TEXT("%d.  %s"),
+		Number, *Title)));
+	Head->SetAutoWrapText(true);
+	Head->SetColorAndOpacity(FSlateColor(SpacecraftPanelText));
+	FSlateFontInfo HeadFont = Head->GetFont();
+	HeadFont.Size = 13;
+	Head->SetFont(HeadFont);
+	Lines->AddChildToVerticalBox(Head);
+	if (!Sub.IsEmpty())
+	{
+		UTextBlock* SubText = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		SubText->SetText(FText::FromString(Sub));
+		SubText->SetAutoWrapText(true);
+		SubText->SetColorAndOpacity(FSlateColor(SpacecraftPanelSubText));
+		FSlateFontInfo SubFont = SubText->GetFont();
+		SubFont.Size = 11;
+		SubText->SetFont(SubFont);
+		Lines->AddChildToVerticalBox(SubText);
+	}
+	// The bar: the stop's progress, full and dashed-framed while the
+	// station holds its craft for the pulse.
+	UProgressBar* Bar = WidgetTree->ConstructWidget<UProgressBar>(
+		UProgressBar::StaticClass());
+	Bar->SetPercent(FMath::Clamp(Progress01, 0.f, 1.f));
+	Bar->SetFillColorAndOpacity(SpacecraftPanelText);
+	if (UVerticalBoxSlot* BarSlot = Lines->AddChildToVerticalBox(Bar))
+	{
+		BarSlot->SetPadding(FMargin(0.f, 4.f, 0.f, 2.f));
+	}
+	// The chip: state in words, small caps.
+	UTextBlock* ChipText = WidgetTree->ConstructWidget<UTextBlock>(
+		UTextBlock::StaticClass());
+	ChipText->SetText(FText::FromString(Chip.ToUpper()));
+	ChipText->SetColorAndOpacity(FSlateColor(
+		bHold ? SpacecraftPanelText : SpacecraftPanelSubText));
+	FSlateFontInfo ChipFont = ChipText->GetFont();
+	ChipFont.Size = 10;
+	ChipFont.LetterSpacing = 120;
+	ChipText->SetFont(ChipFont);
+	Lines->AddChildToVerticalBox(ChipText);
+	if (UHorizontalBoxSlot* LinesSlot = Row->AddChildToHorizontalBox(Lines))
+	{
+		LinesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		LinesSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	Button->AddChild(Row);
+	if (UVerticalBoxSlot* ButtonSlot =
+		ContentBox->AddChildToVerticalBox(Button))
+	{
+		ButtonSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
 	}
 	return Button;
 }
@@ -1485,6 +1587,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					// moved on is a HOLD, and the hold's named reason
 					// belongs on the row where the craft is stuck.
 					FString Live;
+					float RowProgress = 0.f;
+					bool bRowHold = false;
+					bool bRowOccupied = false;
 					if (const ALBSpacecraftRuntimeCoordinator*
 						LiveCoordinator = GameMode->GetCoordinator())
 					{
@@ -1500,6 +1605,11 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 							float Progress = 0.f;
 							LiveCoordinator->GetUnitCycleProgress(
 								Assignment.UnitId, Progress);
+							RowProgress = Progress;
+							bRowOccupied = true;
+							bRowHold = Progress >= 1.f
+								&& LiveCoordinator->GetLinePhase()
+									!= ELBSpacecraftLinePhase::Moving;
 							if (Progress >= 1.f)
 							{
 								Live = LiveCoordinator
@@ -1551,46 +1661,91 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 							break;
 						}
 					}
-					AddTaggedButton((Live.IsEmpty()
-						? FText::Format(
-							LOCTEXT("SplitRow",
-								"{0}. Fits {1}  (~{2} s stop)"),
-							FText::AsNumber(Index + 1),
-							FText::AsNumber(SplitCounts[Index]),
-							FText::AsNumber(FMath::RoundToInt(
-								StopSeconds)))
-						: FText::Format(
-							LOCTEXT("SplitRowLive",
-								"{0}. Fits {1}  -  {2}"),
-							FText::AsNumber(Index + 1),
-							FText::AsNumber(SplitCounts[Index]),
-							FText::FromString(Live))).ToString(),
-						SplitStations[Index],
-						[this](FName InTag)
+					{
+						UTexture* Picture = nullptr;
+						FName RowDefinition;
+						if (const FLBSpacecraftStationRecord* RowRecord =
+							SplitBuild->FindStation(SplitStations[Index]))
 						{
-							// Clicking the row selects that station.
-							if (Pawn != nullptr)
-							{
-								Pawn->SetSelectedStation(InTag);
-							}
-						}, Parts);
+							RowDefinition = RowRecord->DefinitionId;
+						}
+						if (ALBSpacecraftWIPPresentationActor* Presenter =
+							GameMode->GetPresenter())
+						{
+							Picture = Presenter->GetDefinitionTile(RowDefinition);
+						}
+						const FString Chip = !bRowOccupied
+							? LOCTEXT("ChipIdle", "Idle").ToString()
+							: (bRowHold
+								? LOCTEXT("ChipHold", "Done - waiting for the pulse")
+									.ToString()
+								: (Live.IsEmpty()
+									? LOCTEXT("ChipWorking", "Working").ToString()
+									: Live));
+						AddStationTile(SplitStations[Index], Index + 1, Picture,
+							FText::Format(LOCTEXT("SplitTileTitle",
+								"Fits {0}  (~{1} s stop)"),
+								FText::AsNumber(SplitCounts[Index]),
+								FText::AsNumber(FMath::RoundToInt(StopSeconds)))
+								.ToString(),
+							Parts, bRowOccupied ? RowProgress : 0.f, Chip,
+							bRowHold);
+					}
 					if (Index < SplitStations.Num() - 1)
 					{
 						// Real glyphs, sentence case (owner 2026-09-01:
 						// "the ui has got to be really easy to use" -
 						// caret characters read as a debug overlay).
-						AddTaggedButton(LOCTEXT("SplitTake",
-							"   ▲ Take one from the next station")
-							.ToString(),
-							SplitStations[Index],
-							[this](FName InTag)
-							{ HandleSplitTake(InTag); });
-						AddTaggedButton(LOCTEXT("SplitGive",
-							"   ▼ Give one to the next station")
-							.ToString(),
-							SplitStations[Index],
-							[this](FName InTag)
-							{ HandleSplitGive(InTag); });
+						// ONE COMPACT PAIR per gap, not two full rows: with
+						// the frames as pictures the two text rows between
+						// them were the loudest thing on the panel
+						// (filmstrip pass, 2026-09-02).
+						UHorizontalBox* Pair =
+							WidgetTree->ConstructWidget<UHorizontalBox>(
+								UHorizontalBox::StaticClass());
+						const auto AddHalf = [this, Pair, &SplitStations, Index](
+							const FString& Label, bool bTake)
+						{
+							ULBSpacecraftTaggedButton* Half =
+								WidgetTree->ConstructWidget<ULBSpacecraftTaggedButton>(
+									ULBSpacecraftTaggedButton::StaticClass());
+							Half->Tag = SplitStations[Index];
+							Half->OnTagClicked = bTake
+								? TFunction<void(FName)>([this](FName InTag)
+									{ HandleSplitTake(InTag); })
+								: TFunction<void(FName)>([this](FName InTag)
+									{ HandleSplitGive(InTag); });
+							Half->Arm();
+							Half->SetStyle(
+								LBSpacecraftCommandPanelPrivate::SpacecraftPanelButtonStyle(false));
+							UTextBlock* HalfText =
+								WidgetTree->ConstructWidget<UTextBlock>(
+									UTextBlock::StaticClass());
+							HalfText->SetText(FText::FromString(Label));
+							HalfText->SetJustification(ETextJustify::Center);
+							HalfText->SetColorAndOpacity(FSlateColor(
+								LBSpacecraftCommandPanelPrivate::SpacecraftPanelSubText));
+							FSlateFontInfo HalfFont = HalfText->GetFont();
+							HalfFont.Size = 11;
+							HalfText->SetFont(HalfFont);
+							Half->AddChild(HalfText);
+							if (UHorizontalBoxSlot* HalfSlot =
+								Pair->AddChildToHorizontalBox(Half))
+							{
+								HalfSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+								HalfSlot->SetPadding(FMargin(bTake ? 0.f : 3.f, 0.f,
+									bTake ? 3.f : 0.f, 0.f));
+							}
+						};
+						AddHalf(LOCTEXT("SplitTakeShort",
+							"▲ Take one from the next").ToString(), true);
+						AddHalf(LOCTEXT("SplitGiveShort",
+							"Give one to the next ▼").ToString(), false);
+						if (UVerticalBoxSlot* PairSlot =
+							ContentBox->AddChildToVerticalBox(Pair))
+						{
+							PairSlot->SetPadding(FMargin(20.f, 2.f, 20.f, 2.f));
+						}
 					}
 				}
 			}
