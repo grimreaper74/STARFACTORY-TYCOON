@@ -2148,31 +2148,26 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			// 2026-09-02): the first ship delivered, its one-craft
 			// contract closed, and the grid went straight back to
 			// "Order the 6 missing part(s)" for a ship nobody had
-			// ordered. Accepted demand not yet covered by a craft in
-			// flight is what makes the order button honest.
+			// ordered. Accepted demand not yet DISPATCHED is what makes
+			// the order button honest. A craft already on the line still
+			// counts - it eats its parts station by station, and the
+			// first cut of this rule subtracted it, which hid the button
+			// from a player whose only ship sat at the head station
+			// waiting for the very parts it would not let them order.
 			bool bNextShipDemanded = false;
 			if (GameMode->GetProductionAuthority() != nullptr)
 			{
-				int32 Remaining = 0;
 				for (const FLBSpacecraftContract& Contract :
 					GameMode->GetProductionAuthority()->GetContracts())
 				{
 					if (Contract.State == ELBSpacecraftContractState::Accepted
-						&& Contract.RecipeId == LineRecipeId())
+						&& Contract.RecipeId == LineRecipeId()
+						&& Contract.Quantity > Contract.DispatchedCount)
 					{
-						Remaining += Contract.Quantity - Contract.DispatchedCount;
+						bNextShipDemanded = true;
+						break;
 					}
 				}
-				for (const FLBSpacecraftUnitState& Unit :
-					GameMode->GetProductionAuthority()->GetUnits())
-				{
-					if (Unit.RecipeId == LineRecipeId()
-						&& Unit.Stage != ELBSpacecraftStage::Dispatched)
-					{
-						--Remaining;
-					}
-				}
-				bNextShipDemanded = Remaining > 0;
 			}
 			int64 MissingCost = 0;
 			int32 Missing = 0;

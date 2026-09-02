@@ -7406,37 +7406,124 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		}
 	}
 	// --- the heavy hauler's flights (mirrors the fleet, never invents) ---
+	//
+	// THE TRANSPORTER PASS (owner 2026-09-02: Car Manufacture's
+	// transporters are never still, "we have the heavy drones that's
+	// supposed to do that"; and "ours will go to their dock and charge").
+	// What changed from the first version: a hauler now has a PAD at
+	// its home rack or dock and sits on it between runs instead of
+	// vanishing; a delivery flies OUT loaded and drops on arrival (the
+	// fleet's HaulIsLoaded rule decides, so the picture cannot disagree
+	// with the ledger); the carried part is the real component mesh
+	// when one exists and a crate otherwise; and every leg lifts to a
+	// lane height, cruises, and settles, rather than a straight line
+	// through whatever stood between.
 	if (DroneFleetAuthority == nullptr)
 	{
 		return;
 	}
+	const float LaneZCm = 520.f;
+	const float PadStandoffCm = 220.f;
+	const float LiftFraction = 0.15f;
 	TSet<FName> LiveHaulers;
 	for (const FLBSpacecraftHaulState& Haul :
 		DroneFleetAuthority->GetHauls())
 	{
-		if (Haul.Phase == ELBSpacecraftHaulPhase::Idle)
-		{
-			continue; // parked at the rack, the crew visuals cover it
-		}
-		const FLBSpacecraftStationRecord* Rack = nullptr;
+		const FLBSpacecraftStationRecord* Home = nullptr;
 		const FLBSpacecraftStationRecord* Machine = nullptr;
+		const FLBSpacecraftStationRecord* Source = nullptr;
 		for (const FLBSpacecraftStationRecord& Record :
 			BuildAuthority->GetStations())
 		{
 			if (Record.StationId == Haul.RackStationId)
 			{
-				Rack = &Record;
+				Home = &Record;
 			}
 			if (Record.StationId == Haul.MachineStationId)
 			{
 				Machine = &Record;
 			}
+			if (Record.StationId == Haul.SourceStationId)
+			{
+				Source = &Record;
+			}
 		}
-		if (Rack == nullptr || Machine == nullptr)
+		const FLBSpacecraftStationDefinition* HomeDefinition = Home != nullptr
+			? ALBSpacecraftBuildAuthority::FindDefinition(Home->DefinitionId)
+			: nullptr;
+		if (Home == nullptr || HomeDefinition == nullptr)
 		{
 			continue;
 		}
 		LiveHaulers.Add(Haul.RackStationId);
+		// THE PAD, beside home on its local +Y side, clear of the
+		// footprint so nothing lands on the rack itself.
+		const FVector PadCm = Home->WorldTransform.TransformPosition(
+			FVector(0.f, HomeDefinition->FootprintCm.Y * 0.5f
+				+ PadStandoffCm, 0.f));
+		TObjectPtr<UStaticMeshComponent>& Pad =
+			HaulerPads.FindOrAdd(Haul.RackStationId);
+		if (Pad == nullptr)
+		{
+			const FName PadKey(*FString::Printf(TEXT("%s_HaulPad"),
+				*Haul.RackStationId.ToString()));
+			Pad = MakeBlockComponent(PadKey, LBSpacecraftPalette::IndicatorIdle);
+			if (Pad != nullptr)
+			{
+				Pad->SetCastShadow(false);
+				Pad->SetWorldTransform(FTransform(FQuat::Identity,
+					PadCm + FVector(0.f, 0.f, 8.f),
+					FVector(1.4f, 1.4f, 0.16f)));
+				HaulerPadMIDs.FindOrAdd(Haul.RackStationId) =
+					Cast<UMaterialInstanceDynamic>(Pad->GetMaterial(0));
+				if (UStaticMesh* DockMesh = TryGetStationMesh(
+					FName(TEXT("Dock.Charging"))))
+				{
+					const FName ModelKey(*FString::Printf(
+						TEXT("%s_HaulPadModel"),
+						*Haul.RackStationId.ToString()));
+					UStaticMeshComponent* Model =
+						NewObject<UStaticMeshComponent>(this,
+							UStaticMeshComponent::StaticClass(), ModelKey);
+					Model->SetStaticMesh(DockMesh);
+					Model->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Model->SetCastShadow(false);
+					Model->SetupAttachment(RootComponent);
+					Model->RegisterComponent();
+					Model->SetWorldTransform(FTransform(FQuat::Identity,
+						PadCm + FVector(0.f, 0.f, 16.f), FVector(1.f)));
+					HaulerPadModels.FindOrAdd(Haul.RackStationId) = Model;
+				}
+			}
+		}
+		if (Pad != nullptr)
+		{
+			Pad->SetVisibility(true);
+		}
+		if (TObjectPtr<UStaticMeshComponent>* PadModel =
+			HaulerPadModels.Find(Haul.RackStationId))
+		{
+			if (*PadModel != nullptr)
+			{
+				(*PadModel)->SetVisibility(true);
+			}
+		}
+		// The pad pulses while the fleet says the hauler is on charge;
+		// a full battery sits dark. Same honesty as the crew docks.
+		if (TObjectPtr<UMaterialInstanceDynamic>* PadMID =
+			HaulerPadMIDs.Find(Haul.RackStationId))
+		{
+			if (*PadMID != nullptr)
+			{
+				const bool bOnCharge = Haul.Phase == ELBSpacecraftHaulPhase::Idle
+					&& (Haul.bCharging || Haul.Charge01 < 1.f);
+				const float Pulse = 0.55f + 0.45f * FMath::Sin(
+					AccentClockSeconds * 3.2f);
+				(*PadMID)->SetVectorParameterValue(TEXT("Color"), bOnCharge
+					? LBSpacecraftPalette::IndicatorWorking * Pulse
+					: LBSpacecraftPalette::IndicatorIdle);
+			}
+		}
 		TObjectPtr<UStaticMeshComponent>& Body =
 			HaulerBodies.FindOrAdd(Haul.RackStationId);
 		if (Body == nullptr)
@@ -7458,35 +7545,127 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		{
 			continue;
 		}
-		const float Alpha = DroneFleetAuthority->HaulTravelSeconds > 0.f
-			? FMath::Clamp(Haul.PhaseSeconds
-				/ DroneFleetAuthority->HaulTravelSeconds, 0.f, 1.f)
-			: 1.f;
-		const FVector RackCm =
-			Rack->WorldTransform.GetLocation() + FVector(0.f, 0.f, 560.f);
-		const FVector MachineCm = Machine->WorldTransform.GetLocation()
-			+ FVector(0.f, 0.f, 560.f);
-		const bool bOutbound =
-			Haul.Phase == ELBSpacecraftHaulPhase::ToMachine;
-		const FVector From = bOutbound ? RackCm : MachineCm;
-		const FVector To = bOutbound ? MachineCm : RackCm;
-		const FVector Where = FMath::Lerp(From, To,
-			FMath::SmoothStep(0.f, 1.f, Alpha));
-		// The hook: returning with cargo, the machine's component hangs
-		// under the hauler (owner: the parts the drones carry are the
-		// real models now). Fallback stays empty-hook, never invented.
+		// WHERE A LEG STARTS AND ENDS. A line station takes delivery at
+		// its kit dolly on the far flank; a machine at its buffer spot
+		// off its +X end; a store (rack, dock) at its own centre.
+		auto DropPointOf = [](const FLBSpacecraftStationRecord& Record)
+		{
+			const FLBSpacecraftStationDefinition* Definition =
+				ALBSpacecraftBuildAuthority::FindDefinition(
+					Record.DefinitionId);
+			if (Definition == nullptr)
+			{
+				return Record.WorldTransform.GetLocation();
+			}
+			const FVector Local = Definition->StageClassId
+				== FName(TEXT("LineStation"))
+				? FVector(0.f, -(Definition->FootprintCm.Y * 0.5f - 210.f),
+					0.f)
+				: FVector(Definition->FootprintCm.X * 0.5f + 120.f, 0.f, 0.f);
+			return Record.WorldTransform.TransformPosition(Local);
+		};
+		FVector Where = PadCm + FVector(0.f, 0.f, 70.f);
+		FRotator Facing = Home->WorldTransform.GetRotation().Rotator();
+		Facing.Pitch = 0.f;
+		Facing.Roll = 0.f;
+		if (Haul.Phase != ELBSpacecraftHaulPhase::Idle)
+		{
+			const bool bSourceAway = Source != nullptr && Source != Home;
+			FVector From = PadCm;
+			FVector To = PadCm;
+			switch (Haul.Phase)
+			{
+			case ELBSpacecraftHaulPhase::ToSource:
+				To = bSourceAway ? Source->WorldTransform.GetLocation()
+					: PadCm;
+				break;
+			case ELBSpacecraftHaulPhase::ToMachine:
+				From = Haul.Job == ELBSpacecraftHaulJob::DeliverInput
+					&& bSourceAway
+					? Source->WorldTransform.GetLocation() : PadCm;
+				To = Machine != nullptr ? DropPointOf(*Machine) : PadCm;
+				break;
+			case ELBSpacecraftHaulPhase::ToStore:
+				From = Machine != nullptr ? DropPointOf(*Machine) : PadCm;
+				To = PadCm;
+				break;
+			default:
+				break;
+			}
+			const float Alpha = DroneFleetAuthority->HaulTravelSeconds > 0.f
+				? FMath::Clamp(Haul.PhaseSeconds
+					/ DroneFleetAuthority->HaulTravelSeconds, 0.f, 1.f)
+				: 1.f;
+			// Lift, cruise, settle. The cruise runs at lane height so a
+			// leg never ploughs through a tower or the craft.
+			const FVector FromLow = From + FVector(0.f, 0.f, 120.f);
+			const FVector ToLow = To + FVector(0.f, 0.f, 120.f);
+			const FVector FromUp(From.X, From.Y, LaneZCm);
+			const FVector ToUp(To.X, To.Y, LaneZCm);
+			if (Alpha < LiftFraction)
+			{
+				Where = FMath::Lerp(FromLow, FromUp,
+					FMath::SmoothStep(0.f, 1.f, Alpha / LiftFraction));
+			}
+			else if (Alpha < 1.f - LiftFraction)
+			{
+				Where = FMath::Lerp(FromUp, ToUp, FMath::SmoothStep(0.f, 1.f,
+					(Alpha - LiftFraction) / (1.f - 2.f * LiftFraction)));
+			}
+			else
+			{
+				Where = FMath::Lerp(ToUp, ToLow, FMath::SmoothStep(0.f, 1.f,
+					(Alpha - (1.f - LiftFraction)) / LiftFraction));
+			}
+			const FVector Heading = ToUp - FromUp;
+			if (!Heading.IsNearlyZero(1.f))
+			{
+				Facing = Heading.Rotation();
+				Facing.Pitch = 0.f;
+				Facing.Roll = 0.f;
+			}
+		}
+		Body->SetWorldTransform(FTransform(Facing, Where, FVector(1.f)));
+		Body->SetVisibility(true);
+		// THE PART IN THE CLAW. The fleet's rule says when the hook is
+		// loaded; the real component mesh hangs there when one exists
+		// (the six line components do), a crate otherwise.
+		const bool bLoaded =
+			ALBSpacecraftDroneFleetAuthority::HaulIsLoaded(Haul);
+		UStaticMesh* CargoMesh = nullptr;
+		if (bLoaded)
+		{
+			FName CarryItem = Haul.CarryItemId;
+			if (Haul.Job == ELBSpacecraftHaulJob::CollectOutput
+				&& CraftingAuthority != nullptr)
+			{
+				CarryItem = CraftingAuthority->GetStationOutputItem(
+					Haul.MachineStationId);
+			}
+			CargoMesh = CarryItem.IsNone() ? nullptr
+				: TryGetStationMesh(CarryItem);
+			// A LINE COMPONENT RIDES AS ITS KIT PALLET (first close-up,
+			// 2026-09-02: the hull went by as a tan cube). The six
+			// Component.* keys are not promoted meshes; the pallet
+			// loads the dolly shows for that component are, and a
+			// pallet under a cargo drone is exactly what the dolly is
+			// waiting for. First candidate that resolves wins.
+			if (CargoMesh == nullptr && !CarryItem.IsNone())
+			{
+				TArray<FName> PalletCandidates;
+				GetKitPalletCandidates(CarryItem, PalletCandidates);
+				for (const FName& Candidate : PalletCandidates)
+				{
+					CargoMesh = TryGetStationMesh(Candidate);
+					if (CargoMesh != nullptr)
+					{
+						break;
+					}
+				}
+			}
+		}
 		TObjectPtr<UStaticMeshComponent>& Cargo =
 			HaulerCargos.FindOrAdd(Haul.RackStationId);
-		const bool bCarrying =
-			!bOutbound && Haul.CarryCount > 0;
-		UStaticMesh* CargoMesh = nullptr;
-		if (bCarrying && CraftingAuthority != nullptr)
-		{
-			const FName CarryItem = CraftingAuthority
-				->GetStationOutputItem(Haul.MachineStationId);
-			CargoMesh = CarryItem.IsNone()
-				? nullptr : TryGetStationMesh(CarryItem);
-		}
 		if (CargoMesh != nullptr)
 		{
 			if (Cargo == nullptr)
@@ -7504,23 +7683,18 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 				Cargo->SetStaticMesh(CargoMesh);
 			}
 			Cargo->SetVisibility(true);
-			Cargo->SetWorldLocation(Where - FVector(0.f, 0.f, 300.f));
+			Cargo->SetWorldLocationAndRotation(
+				Where - FVector(0.f, 0.f, 300.f), Facing);
 		}
 		else if (Cargo != nullptr)
 		{
 			Cargo->SetVisibility(false);
 		}
-		FRotator Facing = (To - From).Rotation();
-		Facing.Pitch = 0.f;
-		Body->SetWorldTransform(FTransform(Facing, Where, FVector(1.f)));
-		Body->SetVisibility(true);
-		// The slung crate rides only on the loaded leg home.
+		// The slung crate stands in when no real mesh does.
+		const bool bCrate = bLoaded && CargoMesh == nullptr;
 		TObjectPtr<UStaticMeshComponent>& CarryCrate =
 			HaulerCrates.FindOrAdd(Haul.RackStationId);
-		const bool bLoaded =
-			Haul.Phase == ELBSpacecraftHaulPhase::ToStore
-			&& Haul.CarryCount > 0;
-		if (CarryCrate == nullptr && bLoaded && Cube != nullptr)
+		if (CarryCrate == nullptr && bCrate && Cube != nullptr)
 		{
 			CarryCrate = NewObject<UStaticMeshComponent>(this,
 				UStaticMeshComponent::StaticClass());
@@ -7543,33 +7717,27 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		}
 		if (CarryCrate != nullptr)
 		{
-			CarryCrate->SetVisibility(bLoaded);
+			CarryCrate->SetVisibility(bCrate);
 		}
 	}
-	for (auto It = HaulerBodies.CreateIterator(); It; ++It)
+	// A hauler whose rack or dock is gone leaves the picture whole:
+	// body, cargo, crate, pad and pad model together (the audit of
+	// 2026-09-01 found a crate left hanging when only the body hid).
+	auto HideStale = [&LiveHaulers](auto& Map)
 	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
+		for (auto It = Map.CreateIterator(); It; ++It)
 		{
-			It.Value()->SetVisibility(false);
+			if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
+			{
+				It.Value()->SetVisibility(false);
+			}
 		}
-	}
-	for (auto It = HaulerCargos.CreateIterator(); It; ++It)
-	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
-		{
-			It.Value()->SetVisibility(false);
-		}
-	}
-	// The slung crate too (audit 2026-09-01): hiding the body does not
-	// propagate, so every completed haul left a tan crate hanging in
-	// mid-air at the rack until the next haul happened to reuse it.
-	for (auto It = HaulerCrates.CreateIterator(); It; ++It)
-	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
-		{
-			It.Value()->SetVisibility(false);
-		}
-	}
+	};
+	HideStale(HaulerBodies);
+	HideStale(HaulerCargos);
+	HideStale(HaulerCrates);
+	HideStale(HaulerPads);
+	HideStale(HaulerPadModels);
 }
 
 void ALBSpacecraftWIPPresentationActor::ClearUnitFittings(FName UnitId)

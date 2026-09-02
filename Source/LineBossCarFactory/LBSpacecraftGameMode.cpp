@@ -303,7 +303,7 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 		DroneFleet->TickFleet(SimDelta, CraftingAuthority,
 			PowerAuthority, Coordinator);
 		DroneFleet->TickHauls(SimDelta, CraftingAuthority,
-			InventoryAuthority, BuildAuthority);
+			InventoryAuthority, BuildAuthority, PowerAuthority);
 	}
 	if (PowerAuthority != nullptr && SimDelta > 0.f)
 	{
@@ -3958,7 +3958,7 @@ bool ALBSpacecraftGameMode::TickWholeSimStep(
 		// one haul's travel time. Anything on the sim clock belongs
 		// HERE; the actor tick is only the real-time path to this step.
 		InContext.DroneFleet->TickHauls(StepSeconds, InContext.Crafting,
-			InContext.Inventory, InContext.Build);
+			InContext.Inventory, InContext.Build, InContext.Power);
 	}
 	if (InContext.Power != nullptr)
 	{

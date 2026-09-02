@@ -1222,6 +1222,7 @@ private:
 	static constexpr int32 SpacecraftLiftStages = 3;
 
 	/** The hauler's under-slung component cargo, keyed like the body. */
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerCargos;
 
 	/** The SITE DRESSING (owner 2026-08-26 night: "can we get the floor
@@ -1364,8 +1365,21 @@ private:
 	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftTrackAuthority> TrackAuthority;
 	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> BufferCrates;
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerBodies;
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerCrates;
+	/** THE HAULER'S PAD at its home rack or dock (owner 2026-09-02:
+	 *  "ours will go to their dock and charge"): a status disc that
+	 *  pulses while the fleet says the hauler is charging, the charging
+	 *  dock model on it when the mesh is available, and the hauler
+	 *  itself sitting on it between runs instead of vanishing. */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerPads;
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerPadModels;
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UMaterialInstanceDynamic>> HaulerPadMIDs;
 
 	TSet<FName> StationMeshLoadFailed;
 
