@@ -1422,6 +1422,16 @@ private:
 
 	void RefreshStations();
 	void TickDepartures(float DeltaSeconds);
+	/** AMBIENT PATROL DRONES (owner: drones are co-stars, the factory
+	 *  must never look bare; the evening side-by-side, 2026-09-02: their
+	 *  crowd is workers everywhere, ours a crew per station and a still
+	 *  hall). Three drones fly slow loops over the line, presentation
+	 *  only. Built with the hall interior and shown with it. */
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AmbientDrones;
+	FVector AmbientLoopCentreCm = FVector::ZeroVector;
+	float AmbientLoopHalfLengthCm = 0.f;
+	void TickAmbientDrones(float DeltaSeconds);
 	void RefreshUnits();
 	/** A small additive glow sphere riding a parent component - the
 	 *  drones' nav strobes and work lights. */

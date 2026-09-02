@@ -8531,6 +8531,46 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 					}
 				}
 			}
+			// The patrol drones' loop follows the line.
+			AmbientLoopCentreCm = FVector(AxisX, (MinY + MaxY) * 0.5f, 0.f);
+			AmbientLoopHalfLengthCm = FMath::Max((MaxY - MinY) * 0.5f, 1500.f);
+			for (UStaticMeshComponent* Old : AmbientDrones)
+			{
+				if (Old != nullptr)
+				{
+					Old->DestroyComponent();
+				}
+			}
+			AmbientDrones.Reset();
+			UStaticMesh* PatrolMesh =
+				TryGetStationMesh(FName(TEXT("Drone.Assembly.Body")));
+			for (int32 Index = 0; Index < 3; ++Index)
+			{
+				const FName Key(*FString::Printf(TEXT("HallPatrolDrone%d"), Index));
+				UStaticMeshComponent* Drone = PatrolMesh != nullptr
+					? NewObject<UStaticMeshComponent>(this,
+						UStaticMeshComponent::StaticClass(), Key)
+					: MakeBlockComponent(Key,
+						LBSpacecraftWIPPresentationPrivate::SpacecraftDroneBody);
+				if (Drone == nullptr)
+				{
+					continue;
+				}
+				if (PatrolMesh != nullptr)
+				{
+					Drone->SetStaticMesh(PatrolMesh);
+					Drone->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Drone->SetCastShadow(true);
+					Drone->SetupAttachment(RootComponent);
+					Drone->RegisterComponent();
+				}
+				else
+				{
+					Drone->SetRelativeScale3D(FVector(0.9f, 0.9f, 0.26f));
+				}
+				AmbientDrones.Add(Drone);
+				HallInteriorPieces.Add(Drone);
+			}
 			// Racks run along the line every 6.4 m, 6 m long each.
 			for (float Y = MinY - 400.f; Y <= MaxY + 400.f; Y += 640.f)
 			{
@@ -10375,6 +10415,7 @@ void ALBSpacecraftWIPPresentationActor::Tick(float DeltaSeconds)
 	TickHallCrane(DeltaSeconds);
 	TickShellDeliveries(DeltaSeconds);
 	TickDepartures(DeltaSeconds);
+	TickAmbientDrones(DeltaSeconds);
 	TickAudioCues(DeltaSeconds);
 	TickTileStudio();
 	// LAST: the sweep rides whatever craft is under the scan, so it
@@ -10411,3 +10452,41 @@ static FAutoConsoleCommandWithWorldAndArgs LBLookSunCommand(
 	UE_LOG(LogTemp, Display, TEXT("LB.Look.Sun warmth %.2f -> (%.2f %.2f %.2f)"),
 		Warmth, Colour.R, Colour.G, Colour.B);
 }));
+
+void ALBSpacecraftWIPPresentationActor::TickAmbientDrones(float DeltaSeconds)
+{
+	(void)DeltaSeconds;
+	if (AmbientDrones.Num() == 0 || AmbientLoopHalfLengthCm <= 0.f)
+	{
+		return;
+	}
+	// Three slow loops over the line, offset in phase and height so
+	// they never bunch: a long figure along the line, a little across
+	// it, a bob, and the nose pointing where each is going.
+	for (int32 Index = 0; Index < AmbientDrones.Num(); ++Index)
+	{
+		UStaticMeshComponent* Drone = AmbientDrones[Index];
+		if (Drone == nullptr)
+		{
+			continue;
+		}
+		const float Phase = VisualTimeSeconds * 0.11f
+			+ Index * (2.f * PI / 3.f);
+		const float Along = FMath::Sin(Phase) * AmbientLoopHalfLengthCm;
+		const float Across = FMath::Sin(Phase * 2.f + Index) * 900.f
+			+ (Index - 1) * 700.f;
+		const float Height = 620.f + Index * 90.f
+			+ FMath::Sin(VisualTimeSeconds * 0.7f + Index) * 25.f;
+		const FVector At = AmbientLoopCentreCm
+			+ FVector(Across, Along, Height);
+		const float AheadPhase = Phase + 0.05f;
+		const FVector Ahead = AmbientLoopCentreCm + FVector(
+			FMath::Sin(AheadPhase * 2.f + Index) * 900.f + (Index - 1) * 700.f,
+			FMath::Sin(AheadPhase) * AmbientLoopHalfLengthCm, Height);
+		const FVector Motion = Ahead - At;
+		const float Yaw = Motion.SizeSquared2D() > 1.f
+			? FMath::RadiansToDegrees(FMath::Atan2(Motion.Y, Motion.X))
+			: Drone->GetComponentRotation().Yaw;
+		Drone->SetWorldLocationAndRotation(At, FRotator(0.f, Yaw, 0.f));
+	}
+}

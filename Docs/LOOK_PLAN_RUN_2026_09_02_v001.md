@@ -303,6 +303,16 @@ dark corridor band with hazard edges now runs under the whole line -
 paint, so nothing sits on it). What remains beside theirs: density, and
 that is the hall's size; and the crowd, which for us is drones.
 
+## Patrol drones (late evening)
+
+Three ambient drones fly slow loops over the line at 6 to 8 m, phase-
+offset, presentation only, built and shown with the hall interior - the
+crowd the side-by-side said we lack. On the frames they are small moving
+shapes at the play zoom (`patrol_drones_line_three_frames.png`) and a
+48-second station close-up caught no pass distinctly
+(`patrol_drones_station_close_no_pass_caught.png`). Kept, because motion
+is what the owner sees and I cannot; marked not proven on a frame.
+
 ## Status
 
 **Packaged playable, cycle 13** (`Builds/LookPlan_2026_09_02c`, BUILD
