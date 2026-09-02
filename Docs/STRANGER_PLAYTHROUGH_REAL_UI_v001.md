@@ -127,5 +127,7 @@ Nineteen findings in full: `scratchpad/stranger/findings.md`
 - The hub's own pale status strip (which had been unreadable, then a
   duplicate of the toast) is hidden; the toast carries hub messages.
 
-Status: validation-only for the fixes (PIE, this session); the
-packaged build has not been rebuilt with them yet.
+Status: the fixes are verified in PIE (this session) and the package
+at Builds/Overnight_2026_09_01 was rebuilt with them (cycle 9, BUILD
+SUCCESSFUL, 2026-09-02 01:33). The stranger path has not yet been
+replayed inside that package - PIE is the evidence so far.
