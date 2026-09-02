@@ -5998,7 +5998,21 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		const bool bScoutSixPart = Unit->RecipeId
 			== LBSpacecraftWIPPresentationPrivate::SpacecraftScoutRecipeId
 			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
-		const bool bCraftForm = bScoutSixPart
+		// THE CARGO WEARS THE SCOUT'S SIX-PART FORM AT 1.5x AS A BLOCKOUT
+		// (2026-09-03). Its own forms are Meshy-era and stay behind the
+		// blockout switch until a Design replacement lands (the owner's
+		// 2026-08-30 call, Docs/MESHY_BLOCKOUT_PUNCHLIST_v001.md), and
+		// the crate that stood in showed none of the ten kinds it now
+		// fits. The Scout craft is a promoted, Design-made model; at
+		// the Cargo's 1.5x envelope (owner-approved size) it is an
+		// honest stand-in, and the Cargo's four extra kinds attach to
+		// it as blockouts so their placement can be judged now. Read
+		// this as "blockout until the Cargo model is commissioned",
+		// never as the Cargo's look.
+		const bool bCargoOnScoutForm = Unit->RecipeId
+			== LBSpacecraftWIPPresentationPrivate::SpacecraftCargoRecipeId
+			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
+		const bool bCraftForm = bScoutSixPart || bCargoOnScoutForm
 			|| Unit->Stage >= ELBSpacecraftStage::Assembly;
 		UStaticMesh* Craft = nullptr;
 		if (bCraftForm)
@@ -6013,8 +6027,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			UStaticMesh* V2Electronics = nullptr;
 			UStaticMesh* V2Navigation = nullptr;
 			UStaticMesh* V2Interior = nullptr;
-			if (Unit->RecipeId == LBSpacecraftWIPPresentationPrivate
-					::SpacecraftScoutRecipeId
+			if ((Unit->RecipeId == LBSpacecraftWIPPresentationPrivate
+					::SpacecraftScoutRecipeId || bCargoOnScoutForm)
 				&& ResolveScoutV2Parts(Craft, V2Propulsion, V2Power,
 					V2Electronics, V2Navigation, V2Interior))
 			{
@@ -6247,7 +6261,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		// space (loading only Hull gives a bare airframe; loading all
 		// six gives the finished craft, per the modelling brief).
 		if (bCraftForm
-			&& Unit->RecipeId == SpacecraftScoutRecipeId)
+			&& (Unit->RecipeId == SpacecraftScoutRecipeId
+				|| bCargoOnScoutForm))
 		{
 			UStaticMesh* V2Hull = nullptr;
 			UStaticMesh* V2Propulsion = nullptr;
@@ -6334,6 +6349,83 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					V2Navigation, FName(TEXT("Node.Navigation")), true);
 				AttachIfFitted(ELBSpacecraftComponent::Interior,
 					V2Interior, FName(TEXT("Node.Interior")), false);
+				// THE CARGO'S FOUR, as hull-relative blockouts (owner
+				// 2026-09-02: every visible feature is a real component;
+				// blockout first when the model is missing). Hue-free so
+				// the livery stays the only colour on the craft; a real
+				// part replaces each the day it is modelled. Fractions of
+				// the hull's full size, nose +X: the bay under the belly,
+				// the collar on top amidships, twin pods aft on the
+				// flanks, plating low along both sides.
+				if (bCargoOnScoutForm && V2Hull != nullptr)
+				{
+					const FBoxSphereBounds HullBounds = V2Hull->GetBounds();
+					const FVector E = HullBounds.BoxExtent;
+					const FVector O = HullBounds.Origin;
+					struct FLBCargoBlock
+					{
+						FVector Centre;
+						FVector Size;
+						FLinearColor Tint;
+					};
+					const FLinearColor Pale(0.55f, 0.53f, 0.50f);
+					const FLinearColor Graphite(0.10f, 0.11f, 0.12f);
+					auto AttachBlockoutIfFitted = [&](
+						ELBSpacecraftComponent Kind, const TCHAR* Label,
+						const TArray<FLBCargoBlock>& Blocks)
+					{
+						if (Attached.Contains(Kind)
+							|| !Unit->ProducedComponents.Contains(Kind))
+						{
+							return;
+						}
+						for (int32 BlockIndex = 0; BlockIndex < Blocks.Num();
+							++BlockIndex)
+						{
+							const FLBCargoBlock& Block = Blocks[BlockIndex];
+							const FName BlockKey(*FString::Printf(
+								TEXT("%s_%s%d"), *Assignment.UnitId.ToString(),
+								Label, BlockIndex));
+							UStaticMeshComponent* Piece = MakeBlockComponent(
+								BlockKey, Block.Tint);
+							if (Piece == nullptr)
+							{
+								continue;
+							}
+							Piece->AttachToComponent(Component,
+								FAttachmentTransformRules::KeepRelativeTransform);
+							Piece->SetRelativeLocation(O + FVector(
+								Block.Centre.X * E.X * 2.f,
+								Block.Centre.Y * E.Y * 2.f,
+								Block.Centre.Z * E.Z * 2.f));
+							Piece->SetRelativeRotation(FRotator::ZeroRotator);
+							Piece->SetRelativeScale3D(FVector(
+								Block.Size.X * E.X * 2.f,
+								Block.Size.Y * E.Y * 2.f,
+								Block.Size.Z * E.Z * 2.f) / 100.f);
+							Parts.Add(Piece);
+						}
+						Attached.Add(Kind);
+					};
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::CargoBay,
+						TEXT("CargoBay"), { { FVector(-0.05f, 0.f, -0.32f),
+							FVector(0.40f, 0.55f, 0.22f), Pale } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::DockingCollar,
+						TEXT("DockingCollar"), { { FVector(0.05f, 0.f, 0.44f),
+							FVector(0.10f, 0.12f, 0.10f), Graphite } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::ThrusterPods,
+						TEXT("ThrusterPod"), {
+							{ FVector(-0.30f, 0.48f, 0.05f),
+								FVector(0.12f, 0.07f, 0.08f), Pale },
+							{ FVector(-0.30f, -0.48f, 0.05f),
+								FVector(0.12f, 0.07f, 0.08f), Pale } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::Shielding,
+						TEXT("Shielding"), {
+							{ FVector(0.05f, 0.47f, -0.08f),
+								FVector(0.55f, 0.02f, 0.22f), Graphite },
+							{ FVector(0.05f, -0.47f, -0.08f),
+								FVector(0.55f, 0.02f, 0.22f), Graphite } });
+				}
 			}
 		}
 		else if (BuildForm != nullptr
@@ -6841,6 +6933,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// Painting over: the crew leaves, the finish stays.
 				DestroySprayRig(*DoneRig);
 				UnitSprayRigs.Remove(Assignment.UnitId);
+			}
+			if (bCargoOnScoutForm)
+			{
+				// The stand-in at the Cargo's own envelope (1.5x the
+				// Scout, owner-approved 2026-08-25); the attached parts
+				// and blockouts are children and scale with it.
+				UnitTransform.SetScale3D(FVector(1.5f));
 			}
 			UnitTransform.AddToTranslation(FVector(0.f, 0.f, Lift));
 		}
