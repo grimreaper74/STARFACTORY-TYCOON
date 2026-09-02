@@ -4,6 +4,7 @@
 #include "Editor.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Framework/Application/SlateUser.h"
 #include "GenericPlatform/GenericWindow.h"
 #include "Input/Events.h"
 #include "Input/HittestGrid.h"
@@ -348,17 +349,41 @@ FString ULBSpacecraftDevToolset::SimulatePieClick(float X, float Y,
 	Pressed.Add(Key);
 	const FPointerEvent Down(0, 0, Abs, Abs, Pressed, Key, 0.f,
 		FModifierKeysState());
-	Slate.RoutePointerDownEvent(Path, Down);
+	const FReply DownReply = Slate.RoutePointerDownEvent(Path, Down);
+	// A button's press reply asks Slate to capture the pointer; the
+	// platform layer then calls Win32 SetCapture, which Windows revokes
+	// at once for a window that is not in the foreground - and the
+	// button's release checks HasMouseCapture before firing OnClicked.
+	// Re-assert the Slate-level captor here, OS not involved.
+	if (DownReply.GetMouseCaptor().IsValid() && Slate.GetUser(0).IsValid())
+	{
+		Slate.GetUser(0)->SetCursorCaptor(
+			DownReply.GetMouseCaptor().ToSharedRef(), Path);
+	}
+	const bool bCapturedAfterDown =
+		Slate.GetUser(0).IsValid() && Slate.GetUser(0)->HasAnyCapture();
 	const FPointerEvent Up(0, 0, Abs, Abs, TSet<FKey>(), Key, 0.f,
 		FModifierKeysState());
-	Slate.RoutePointerUpEvent(Path, Up);
+	const FReply UpReply = Slate.RoutePointerUpEvent(Path, Up);
 	// A game viewport captures the pointer on click; a synthetic click
 	// must not leave the REAL cursor confined to the PIE window while
 	// a person is using the machine.
 	Slate.ReleaseAllPointerCapture();
+	// Diagnostics: the widget types under the point, leaf first, so a
+	// click that lands on the wrong layer explains itself.
+	TArray<TSharedPtr<FJsonValue>> PathTypes;
+	for (int32 Index = Path.Widgets.Num() - 1; Index >= 0; --Index)
+	{
+		PathTypes.Add(MakeShared<FJsonValueString>(
+			Path.Widgets[Index].Widget->GetTypeAsString()));
+	}
 	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetBoolField(TEXT("success"), true);
 	Root->SetStringField(TEXT("button"), Key.ToString());
+	Root->SetBoolField(TEXT("downHandled"), DownReply.IsEventHandled());
+	Root->SetBoolField(TEXT("upHandled"), UpReply.IsEventHandled());
+	Root->SetBoolField(TEXT("capturedAfterDown"), bCapturedAfterDown);
+	Root->SetArrayField(TEXT("pathLeafFirst"), PathTypes);
 	Root->SetNumberField(TEXT("absoluteX"), Abs.X);
 	Root->SetNumberField(TEXT("absoluteY"), Abs.Y);
 	return WriteJson(Root);
