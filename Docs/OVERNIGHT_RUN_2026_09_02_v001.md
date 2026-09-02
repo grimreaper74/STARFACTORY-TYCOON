@@ -101,9 +101,16 @@ hoist so a crane-per-gap trip lifts its craft together.
 
 ## Status, honestly
 
-- Stranger fixes: **validation-only** in the editor (PIE, this session)
-  and green in the indexed suite; the package at
-  `Builds/Overnight_2026_09_01` (cycle 9) predates waves two and three.
-- Pulse line: **validation-only**, `Saved/Automation/PulseLine3_2026_09_02`
-  and `PulseCranes_2026_09_02` 138/138 each, seen in PIE frames
-  (`Saved/Audits/PulseLine_2026_09_02`), not yet packaged.
+- Stranger fixes: verified in PIE this session and green in the
+  indexed suite; packaged in cycle 10 (see below) but not replayed
+  there through the interface.
+- Pulse line: indexed suite green four times over
+  (`Saved/Automation/PulseLine3_2026_09_02` through
+  `NightEnd_2026_09_02`, 138/138 each), seen in PIE frames
+  (`Saved/Audits/PulseLine_2026_09_02`), and **packaged** in cycle 10
+  (`Builds/Overnight_2026_09_02`, BUILD SUCCESSFUL 03:19): the headless
+  journey in that exe delivered 2 of 3 craft through the pulse line in
+  900 sim seconds (`packaged_journey.log` in the audit folder). The
+  interface path was not replayed in the package; that is the one
+  thing the stranger fixes still lack.
+- Cycle 10 also carries every stranger fix of waves two and three.
