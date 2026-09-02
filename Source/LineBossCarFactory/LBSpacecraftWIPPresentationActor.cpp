@@ -5703,6 +5703,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 	// craft, and a stale carry would leave the gantry parked over a
 	// ship that is no longer there.
 	bCraftIsCarried = false;
+	CarriedCraftsCm.Reset();
 	if (Coordinator == nullptr || ProductionAuthority == nullptr
 		|| !Coordinator->IsConfigured())
 	{
@@ -6127,6 +6128,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			// can never drift off the ship it is holding.
 			CarriedCraftAtCm = Location;
 			bCraftIsCarried = true;
+			CarriedCraftsCm.Add(Location);
 		}
 
 		// Face along the line (owner playtest fix): moving units point
@@ -8649,26 +8651,32 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 
 void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 {
-	// THE NEAREST CRANE TAKES THE JOB. With a portal in every gap the
-	// craft is only ever crossing one of them, so the one whose park
-	// post is closest picks it up and the rest stay put. With a single
-	// crane this collapses to the old behaviour - that crane is always
-	// the nearest one.
-	if (HallCranes.Num() > 0)
+	// EVERY CRANE HAS A JOB OR GOES HOME. A pulse with a crane per gap
+	// lifts several craft in the same trip, so each craft in transit
+	// claims the nearest crane nobody else has claimed; with a single
+	// crane the craft go one after another and that crane does them
+	// all. Before the pulse line one crane chased one carried craft
+	// and the others stood still while their craft rose on nothing.
+	const int32 CraneCount = HallCranes.Num();
+	if (CraneCount == 0)
+	{
+		return;
+	}
+	TArray<int32> CraneJob;
+	CraneJob.Init(INDEX_NONE, CraneCount);
+	for (int32 Craft = 0; Craft < CarriedCraftsCm.Num(); ++Craft)
 	{
 		int32 Nearest = INDEX_NONE;
 		float Best = TNumericLimits<float>::Max();
-		const FVector LookAt = bCraftIsCarried
-			? CarriedCraftAtCm : HallCraneParkAtCm;
-		for (int32 Index = 0; Index < HallCranes.Num(); ++Index)
+		for (int32 Index = 0; Index < CraneCount; ++Index)
 		{
-			if (!HallCranes[Index].IsValid()
+			if (CraneJob[Index] != INDEX_NONE || !HallCranes[Index].IsValid()
 				|| !HallCraneParkCm.IsValidIndex(Index))
 			{
 				continue;
 			}
 			const float Distance = FVector::DistSquared2D(
-				HallCraneParkCm[Index], LookAt);
+				HallCraneParkCm[Index], CarriedCraftsCm[Craft]);
 			if (Distance < Best)
 			{
 				Best = Distance;
@@ -8677,128 +8685,118 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 		}
 		if (Nearest != INDEX_NONE)
 		{
-			HallCrane = HallCranes[Nearest];
-			HallCraneParkAtCm = HallCraneParkCm[Nearest];
-			bHallCraneAxisAlongY = HallCraneAxisAlongY.IsValidIndex(Nearest)
-				? HallCraneAxisAlongY[Nearest] : true;
-		}
-		// Everyone else goes home, each along its OWN leg's axis.
-		for (int32 Index = 0; Index < HallCranes.Num(); ++Index)
-		{
-			if (Index == Nearest || !HallCranes[Index].IsValid()
-				|| !HallCraneParkCm.IsValidIndex(Index))
-			{
-				continue;
-			}
-			UStaticMeshComponent* Idle = HallCranes[Index].Get();
-			const FVector IdleAt = Idle->GetComponentLocation();
-			const bool bIdleAlongY =
-				HallCraneAxisAlongY.IsValidIndex(Index)
-					? HallCraneAxisAlongY[Index] : true;
-			FVector Home = IdleAt;
-			if (bIdleAlongY)
-			{
-				Home.Y = FMath::FInterpConstantTo(IdleAt.Y,
-					HallCraneParkCm[Index].Y, DeltaSeconds,
-					FMath::Max(CraneTravelSpeedCmS, 1.f));
-			}
-			else
-			{
-				Home.X = FMath::FInterpConstantTo(IdleAt.X,
-					HallCraneParkCm[Index].X, DeltaSeconds,
-					FMath::Max(CraneTravelSpeedCmS, 1.f));
-			}
-			Idle->SetWorldLocation(Home);
+			CraneJob[Nearest] = Craft;
 		}
 	}
-	UStaticMeshComponent* Crane = HallCrane.Get();
-	if (Crane == nullptr)
-	{
-		return;
-	}
-	// A GANTRY RUNS ON RAILS, so only the along-leg axis moves -
-	// which axis that is belongs to the LEG the crane serves (owner
-	// 2026-09-01: the line is free-form now, not a +Y column).
-	const FVector At = Crane->GetComponentLocation();
-	const FVector Target =
-		bCraftIsCarried ? CarriedCraftAtCm : HallCraneParkAtCm;
-	// Constant speed, not an ease: a gantry accelerates hard and then
-	// runs flat, and an eased interp reads as floating.
-	FVector NewAt = At;
-	if (bHallCraneAxisAlongY)
-	{
-		NewAt.Y = FMath::FInterpConstantTo(At.Y, Target.Y,
-			DeltaSeconds, FMath::Max(CraneTravelSpeedCmS, 1.f));
-	}
-	else
-	{
-		NewAt.X = FMath::FInterpConstantTo(At.X, Target.X,
-			DeltaSeconds, FMath::Max(CraneTravelSpeedCmS, 1.f));
-	}
-	Crane->SetWorldLocation(NewAt);
 
-	// The hoist: a block riding the beam with two cables down to the
-	// load. Made once and repositioned - rebuilding components per tick
-	// is the churn the command panel already taught us not to do.
-	// THE AMBER LIVES HERE, and only here on the crane. The spec limits
-	// it to "arm segments, fitting heads and edge strips" - the small,
-	// moving, look-here parts - and puts every large surface on
-	// structure or pale housing instead. The hoist is the one piece of
-	// this crane that actually moves, so it is the one piece that earns
-	// the accent; the 20 m portal around it is structure and stays
-	// graphite.
-	const FLinearColor HoistTone = LBSpacecraftPalette::MachineAmber;
-	const FLinearColor CableTone = LBSpacecraftPalette::StructureGraphiteDark;
-	if (HallCraneHoist.Num() == 0)
+	// One hoist rig per crane, remade when the crane count changes
+	// (the hall rebuild resets HallCranes; stale rigs would hang in
+	// the air over cranes that no longer exist).
+	if (HallCraneHoists.Num() != CraneCount * 3)
 	{
-		if (UStaticMeshComponent* Block =
-			MakeBlockComponent(TEXT("CraneHoistBlock"), HoistTone))
+		for (UStaticMeshComponent* Old : HallCraneHoists)
 		{
-			HallCraneHoist.Add(Block);
+			if (Old != nullptr)
+			{
+				Old->DestroyComponent();
+			}
 		}
+		HallCraneHoists.Reset();
+		// THE AMBER LIVES HERE, and only here on the crane: the hoist
+		// is the one piece that moves, so it is the one piece that
+		// earns the accent; the portal around it is structure and
+		// stays graphite.
+		const FLinearColor HoistTone = LBSpacecraftPalette::MachineAmber;
+		const FLinearColor CableTone =
+			LBSpacecraftPalette::StructureGraphiteDark;
+		for (int32 Index = 0; Index < CraneCount; ++Index)
+		{
+			UStaticMeshComponent* Block = MakeBlockComponent(
+				FName(*FString::Printf(TEXT("CraneHoistBlock_%d"), Index)),
+				HoistTone);
+			UStaticMeshComponent* CableA = MakeBlockComponent(
+				FName(*FString::Printf(TEXT("CraneCable_%d_0"), Index)),
+				CableTone);
+			UStaticMeshComponent* CableB = MakeBlockComponent(
+				FName(*FString::Printf(TEXT("CraneCable_%d_1"), Index)),
+				CableTone);
+			HallCraneHoists.Add(Block);
+			HallCraneHoists.Add(CableA);
+			HallCraneHoists.Add(CableB);
+		}
+	}
+
+	for (int32 Index = 0; Index < CraneCount; ++Index)
+	{
+		UStaticMeshComponent* Crane = HallCranes[Index].Get();
+		if (Crane == nullptr || !HallCraneParkCm.IsValidIndex(Index))
+		{
+			continue;
+		}
+		const bool bAlongY = HallCraneAxisAlongY.IsValidIndex(Index)
+			? HallCraneAxisAlongY[Index] : true;
+		const bool bBusy = CraneJob[Index] != INDEX_NONE;
+		const FVector Load = bBusy
+			? CarriedCraftsCm[CraneJob[Index]] : HallCraneParkCm[Index];
+		// A GANTRY RUNS ON RAILS, so only the along-leg axis moves -
+		// constant speed, not an ease: a gantry accelerates hard and
+		// then runs flat, and an eased interp reads as floating.
+		const FVector At = Crane->GetComponentLocation();
+		FVector NewAt = At;
+		if (bAlongY)
+		{
+			NewAt.Y = FMath::FInterpConstantTo(At.Y, Load.Y, DeltaSeconds,
+				FMath::Max(CraneTravelSpeedCmS, 1.f));
+		}
+		else
+		{
+			NewAt.X = FMath::FInterpConstantTo(At.X, Load.X, DeltaSeconds,
+				FMath::Max(CraneTravelSpeedCmS, 1.f));
+		}
+		Crane->SetWorldLocation(NewAt);
+		if (Index == 0)
+		{
+			// Kept for anything that still reads the single-crane fields.
+			HallCrane = HallCranes[Index];
+			HallCraneParkAtCm = HallCraneParkCm[Index];
+			bHallCraneAxisAlongY = bAlongY;
+		}
+
+		// The hoist: a block riding the beam with two cables down to
+		// the load. The beam is near the top of the gantry's own bounds
+		// rather than a hardcoded height, so a replacement crane mesh
+		// does not leave the hoist hanging in mid-air. The trolley
+		// slides ACROSS the beam toward the load, so the hook's
+		// cross-axis coordinate is the craft's; the along-axis one is
+		// the crane's own travel.
+		const int32 Rig = Index * 3;
+		if (!HallCraneHoists.IsValidIndex(Rig + 2)
+			|| HallCraneHoists[Rig] == nullptr
+			|| HallCraneHoists[Rig + 1] == nullptr
+			|| HallCraneHoists[Rig + 2] == nullptr)
+		{
+			continue;
+		}
+		const float BeamZ = Crane->Bounds.Origin.Z
+			+ Crane->Bounds.BoxExtent.Z * 0.62f;
+		FVector Hook(NewAt.X, NewAt.Y, BeamZ - 220.f);
+		if (bBusy)
+		{
+			Hook = bAlongY
+				? FVector(Load.X, NewAt.Y, Load.Z + 210.f)
+				: FVector(NewAt.X, Load.Y, Load.Z + 210.f);
+		}
+		HallCraneHoists[Rig]->SetWorldTransform(FTransform(
+			FRotator::ZeroRotator, Hook, FVector(1.6f, 1.2f, 0.5f)));
+		const float Drop = FMath::Max(BeamZ - Hook.Z, 10.f);
 		for (int32 Cable = 0; Cable < 2; ++Cable)
 		{
-			if (UStaticMeshComponent* Line = MakeBlockComponent(
-				FName(*FString::Printf(TEXT("CraneCable_%d"), Cable)),
-				CableTone))
-			{
-				HallCraneHoist.Add(Line);
-			}
+			const float Side = Cable == 0 ? -60.f : 60.f;
+			HallCraneHoists[Rig + 1 + Cable]->SetWorldTransform(FTransform(
+				FRotator::ZeroRotator,
+				FVector(Hook.X + Side, Hook.Y, Hook.Z + Drop * 0.5f),
+				FVector(0.08f, 0.08f, Drop / 100.f)));
 		}
-	}
-	if (HallCraneHoist.Num() < 3)
-	{
-		return;
-	}
-
-	// The beam is near the top of the gantry's own bounds rather than a
-	// hardcoded height, so a replacement crane mesh does not leave the
-	// hoist hanging in mid-air.
-	const float BeamZ = Crane->Bounds.Origin.Z
-		+ Crane->Bounds.BoxExtent.Z * 0.62f;
-	// The trolley slides ACROSS the beam toward the load, so the hook's
-	// cross-axis coordinate is the craft's; the along-axis one is the
-	// crane's own travel.
-	FVector Hook(NewAt.X, NewAt.Y, BeamZ - 220.f);
-	if (bCraftIsCarried)
-	{
-		Hook = bHallCraneAxisAlongY
-			? FVector(CarriedCraftAtCm.X, NewAt.Y,
-				CarriedCraftAtCm.Z + 210.f)
-			: FVector(NewAt.X, CarriedCraftAtCm.Y,
-				CarriedCraftAtCm.Z + 210.f);
-	}
-
-	HallCraneHoist[0]->SetWorldTransform(FTransform(
-		FRotator::ZeroRotator, Hook, FVector(1.6f, 1.2f, 0.5f)));
-	const float Drop = FMath::Max(BeamZ - Hook.Z, 10.f);
-	for (int32 Cable = 0; Cable < 2; ++Cable)
-	{
-		const float Side = Cable == 0 ? -60.f : 60.f;
-		HallCraneHoist[Cable + 1]->SetWorldTransform(FTransform(
-			FRotator::ZeroRotator,
-			FVector(Hook.X + Side, Hook.Y, Hook.Z + Drop * 0.5f),
-			FVector(0.08f, 0.08f, Drop / 100.f)));
 	}
 }
 

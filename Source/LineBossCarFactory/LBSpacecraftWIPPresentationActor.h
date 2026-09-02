@@ -1082,6 +1082,15 @@ private:
 	/** Hoist block and its two cables, made once and repositioned. */
 	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoist;
 
+	/** One hoist rig (block + two cables, three entries) PER CRANE,
+	 *  flat, index = crane * 3. Rebuilt when the crane count changes. */
+	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoists;
+
+	/** EVERY craft in transit this frame, published by RefreshUnits.
+	 *  With a crane per gap a pulse carries several at once, and each
+	 *  crane takes the nearest unclaimed one (PULSE_LINE_DESIGN_v001). */
+	TArray<FVector> CarriedCraftsCm;
+
 	/** Where the crane must be, published by RefreshUnits - the one
 	 *  place that knows where a carried craft is. Deriving it a second
 	 *  time in the crane tick would let the two disagree, and the crane
