@@ -3556,7 +3556,34 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 			if (Visual->Crates.IsValidIndex(Drone)
 				&& Visual->Crates[Drone] != nullptr)
 			{
-				Visual->Crates[Drone]->SetVisibility(bCarrying);
+				// PHASE D (look plan): the sortie carries the ACTUAL
+				// PART - the mesh on the station's pallet - not a
+				// generic crate, so what flies onto the craft is what
+				// was lying beside it.
+				UStaticMeshComponent* Carried = Visual->Crates[Drone];
+				if (bCarrying)
+				{
+					UStaticMesh* PartMesh = nullptr;
+					if (const TArray<TObjectPtr<UStaticMeshComponent>>*
+						Stacks = StationStockStacks.Find(Record.StationId))
+					{
+						if (Stacks->Num() > 0 && (*Stacks)[0] != nullptr)
+						{
+							PartMesh = (*Stacks)[0]->GetStaticMesh();
+						}
+					}
+					if (PartMesh != nullptr
+						&& Carried->GetStaticMesh() != PartMesh)
+					{
+						Carried->SetStaticMesh(PartMesh);
+						Carried->EmptyOverrideMaterials();
+						// A pallet-sized section carried at a third of
+						// its size reads as a part in a claw.
+						Carried->SetRelativeScale3D(FVector(0.34f));
+						Carried->SetRelativeLocation(FVector(0.f, 0.f, -60.f));
+					}
+				}
+				Carried->SetVisibility(bCarrying);
 			}
 			// Sparks and lasers while working: beam from the drone
 			// belly to the work point, flickering weld flash, spark
@@ -5141,6 +5168,37 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 	// Built here but DRIVEN in the tick, because it is the one part of
 	// a work station that moves.
 	{
+		// PHASE C, BLOCKOUT (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md): a
+		// station is a machine, not a slab. ONE TOOL TOWER stands on the
+		// FAR flank across the line - pale housing, amber cap, a blue
+		// work-light strip on the face that looks at the craft, an amber
+		// arm reaching in low over the work - and nothing spans the
+		// line (the portal is not coming back). Far flank only: the
+		// first blockout put a tower on the near flank too and it stood
+		// between the camera and the craft, hiding the hero (frame,
+		// 2026-09-02). The camera sits at -X looking +X; a yaw-90
+		// station's local -Y is world +X, the far side.
+		{
+			const FLinearColor TowerTone = LBSpacecraftPalette::MachineHousingPale;
+			const FLinearColor TowerCap = LBSpacecraftPalette::MachineAmber;
+			const FLinearColor TowerFoot = LBSpacecraftPalette::StructureGraphite;
+			const FLinearColor TowerLight = LBSpacecraftPalette::IndicatorWorking;
+			const float FlankY = -(FootY * 0.5f - 130.f);
+			AddBlock(TEXT("TowerFoot"), 0, TowerFoot,
+				FVector(0.f, FlankY, 20.f), FVector(260.f, 220.f, 40.f));
+			AddBlock(TEXT("Tower"), 0, TowerTone,
+				FVector(0.f, FlankY, 300.f), FVector(200.f, 170.f, 520.f));
+			AddBlock(TEXT("TowerCap"), 0, TowerCap,
+				FVector(0.f, FlankY, 580.f), FVector(230.f, 200.f, 36.f));
+			// The strip faces the craft, on the inward (+Y local) face.
+			AddBlock(TEXT("TowerLight"), 0, TowerLight,
+				FVector(0.f, FlankY + 90.f, 330.f), FVector(140.f, 8.f, 380.f));
+			// Amber arm segment reaching in over the work, low.
+			AddBlock(TEXT("TowerArm"), 0, TowerCap,
+				FVector(0.f, FlankY + 250.f, 500.f), FVector(50.f, 330.f, 44.f));
+			AddBlock(TEXT("TowerArmHead"), 0, TowerFoot,
+				FVector(0.f, FlankY + 420.f, 470.f), FVector(90.f, 60.f, 90.f));
+		}
 		const FLinearColor RamTone = MachineAmber;
 		// The saddle the craft rests on reads DARK against the amber
 		// column, so the contact point is findable at a glance.

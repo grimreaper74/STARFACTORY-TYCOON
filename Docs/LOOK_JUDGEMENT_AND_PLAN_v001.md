@@ -116,6 +116,35 @@ step and a 10 m lane grid is painted on it (`phaseA_entry_lane_grid.png`,
 contrast and scale are on the floor; warmth is still short, and that is
 now a phase B question of what carries colour rather than a lighting one.
 
+## Phase B, first item (same day)
+
+The primer coat verified in a strong livery: a Coastal Rescue craft on
+station 5 in muted pink from the first station
+(`phaseB_primer_coat_pink_livery_station5.png`). Amber and blue: the tool
+tower below carries the amber cap and arm and the blue strip at a width
+that registers at the player's zoom.
+
+## Phase C, blockout (same day)
+
+One TOOL TOWER per station on the far flank - pale housing, amber cap, a
+blue strip facing the work, an amber arm low over it. The first blockout
+put a tower on both flanks and the near one stood between the camera and
+the craft (`phaseC_first_blockout_near_tower_hid_craft.png`); far flank
+only now (`phaseC_empty_line_tower_blockout.png`). Four models commissioned
+through the Meshy API from these proportions
+(`SourceAssets/Candidate/Spacecraft/StationDress_v010`, 80 credits: tower,
+wall rack, ceiling light bar, low tool cabinet) - previews only until
+their renders are judged and their size imposed at export.
+
+## Phase D, first pass (same day)
+
+Entering the hall lands on the first OCCUPIED station, expanded 9 m for
+its tower and crew, instead of the whole line's bounds
+(`phaseCD_hero_framing_tower_blockout.png`: the craft on its rams in the
+middle third of the free picture, the tower behind it). The sortie now
+carries the station's actual part mesh at a third of its size rather
+than a crate; not yet seen on a frame.
+
 ## What not to do
 
 - Do not chase asset count. One good station model beats six variants.

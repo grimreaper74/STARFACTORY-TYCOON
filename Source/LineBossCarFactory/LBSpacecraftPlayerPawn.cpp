@@ -9,6 +9,7 @@
 #include "LBGameUserSettings.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "LBSpacecraftRuntimeCoordinator.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "LBSpacecraftProductionAuthority.h"
@@ -871,7 +872,23 @@ void ALBSpacecraftPlayerPawn::FocusStation(FName StationId)
 	if (bInterior && EntryGameMode != nullptr
 		&& EntryGameMode->GetBuildAuthority() != nullptr)
 	{
+		// PHASE D, THE HERO (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md): when a
+		// craft is on the line, entering lands on the station it is at -
+		// the nearest occupied one - not on the whole line's bounds with
+		// the craft a thumbnail at one end. An empty line still frames
+		// the line.
+		TSet<FName> Occupied;
+		if (const ALBSpacecraftRuntimeCoordinator* EntryCoordinator =
+			EntryGameMode->GetCoordinator())
+		{
+			for (const FLBSpacecraftRuntimeAssignment& Assignment :
+				EntryCoordinator->GetAssignments())
+			{
+				Occupied.Add(Assignment.StationId);
+			}
+		}
 		FBox LineBounds(ForceInit);
+		FBox HeroBounds(ForceInit);
 		for (const FLBSpacecraftStationRecord& Line :
 			EntryGameMode->GetBuildAuthority()->GetStations())
 		{
@@ -887,6 +904,18 @@ void ALBSpacecraftPlayerPawn::FocusStation(FName StationId)
 				LineDefinition->FootprintCm.Y * 0.5f, 0.f);
 			LineBounds += At - Half;
 			LineBounds += At + Half;
+			if (Occupied.Contains(Line.StationId) && !HeroBounds.IsValid)
+			{
+				// The first occupied station in line order is the hero.
+				HeroBounds += At - Half;
+				HeroBounds += At + Half;
+			}
+		}
+		if (HeroBounds.IsValid)
+		{
+			// Frame the occupied station with room for its tower and
+			// crew, the craft in the middle third of the free picture.
+			LineBounds = HeroBounds.ExpandBy(FVector(900.f, 900.f, 0.f));
 		}
 		if (LineBounds.IsValid)
 		{
