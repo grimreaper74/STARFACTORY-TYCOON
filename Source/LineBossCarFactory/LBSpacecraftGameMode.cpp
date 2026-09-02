@@ -1410,8 +1410,15 @@ bool ALBSpacecraftGameMode::RelayTrackThroughStations(
 		// convention as the old cursor snap: a Y-running leg wears
 		// yaw 90.
 		FString AlignIgnored;
-		InBuild.AlignStationAxis(Line[Index]->StationId,
-			StationAxisAlongY[Index], AlignIgnored);
+		if (!InBuild.AlignStationAxis(Line[Index]->StationId,
+			StationAxisAlongY[Index], AlignIgnored))
+		{
+			// Kept quiet for the route, said out loud for the log: a
+			// station that cannot turn stands sideways to its craft.
+			UE_LOG(LogLBSpacecraft, Display,
+				TEXT("RELAY: %s keeps its yaw - %s"),
+				*Line[Index]->StationId.ToString(), *AlignIgnored);
+		}
 	}
 	// A commissioned factory re-routes immediately so the coordinator
 	// never ticks a route the track no longer matches.
@@ -1578,7 +1585,12 @@ bool ALBSpacecraftGameMode::SetupCanonicalLine(
 	// Tightened to the Car Manufacture density (owner 2026-08-26
 	// evening, "more like this"): gaps of ~4-6 m between stations
 	// instead of ~9-11. The build authority's overlap gate still rules.
-	const float Step = bMk2Line ? 2200.f : 1600.f;
+	// The pitch must clear the station's LONG side (1800 Mk1), because
+	// every fitting station turns that side along the line for the
+	// craft's length. At 1600 the turn overlapped the neighbour, the
+	// refusal was silent, and stations 2/4/6 stood sideways (owner
+	// 2026-09-02: "2 and 4 are sideways").
+	const float Step = bMk2Line ? 2600.f : 2000.f;
 	for (int32 Index = 0; Index < 5; ++Index)
 	{
 		const TCHAR* ClassId =

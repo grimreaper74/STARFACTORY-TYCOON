@@ -76,7 +76,15 @@ cards, cut from real captures.
    framed in the width the panel leaves free and its centre is shifted
    half the panel's share towards screen-left
    (`hall_entry_pivot_clear_of_panel.png`).
-6. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
+6. Ship livery thumbnails - **done 2026-09-02**: each contract card's
+   hull is shot in that customer's livery through the booth's own paint
+   material, one cached tile per colour (`contracts_cards_livery.png`).
+   The owner's note the same hour - "there's not much colour in the
+   game yet" - is right about the world and wrong about the chrome:
+   the ships carry the colour, and today a craft is graphite until the
+   booth. Next: the hull wears a primer coat of its livery from the
+   first station.
+7. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
    glyph beats a render: tabs, session, land.
 
 Every step is judged on a rendered frame before it is called done.

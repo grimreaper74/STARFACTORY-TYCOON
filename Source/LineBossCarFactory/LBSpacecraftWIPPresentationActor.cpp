@@ -359,30 +359,12 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 	// recipe. Bounds suggest both clear, but a bounding box cannot
 	// measure a gap; this wants an eyeball with a craft under it.
 	{
-		const TCHAR* LineMk1[] = { TEXT("MaterialProcessor"),
-			TEXT("HullFabricator"), TEXT("ComponentFabricator"),
-			TEXT("AssemblyRobot") };
-		for (const TCHAR* Id : LineMk1)
-		{
-			StationMeshes.Add(FName(Id),
-				TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
-					FString::Printf(
-						TEXT("%s/SM_LB_ST_AssemblyStation_v001")
-						TEXT(".SM_LB_ST_AssemblyStation_v001"),
-						StationMeshRoot))));
-		}
-		const TCHAR* LineMk2[] = { TEXT("MaterialProcessorMk2"),
-			TEXT("HullFabricatorMk2"), TEXT("ComponentFabricatorMk2"),
-			TEXT("AssemblyRobotMk2") };
-		for (const TCHAR* Id : LineMk2)
-		{
-			StationMeshes.Add(FName(Id),
-				TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
-					FString::Printf(
-						TEXT("%s/SM_LB_ST_AssemblyStationMk2_v001")
-						TEXT(".SM_LB_ST_AssemblyStationMk2_v001"),
-						StationMeshRoot))));
-		}
+		// NO PORTAL OVER THE LINE STATION (owner 2026-09-02: "do we
+		// need the arches in the assembly stations as the drones are
+		// doing the work"). No: the drones fit, the cranes move, and
+		// the frame only hid the craft from the camera. The station is
+		// its marked floor square and tool pillars; the three portal
+		// dresses that used to stack here are gone together.
 	}
 	// The two fabrication machines that took the part recipes off the
 	// line, the dock where bought goods arrive, and the storage silo.
@@ -438,9 +420,7 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 		// Owner's morning drop (2026-08-26): the assembly bay model
 		// (height-capped under 8 m) takes the pair off the SubAssembly
 		// stand-in.
-		{ TEXT("AssemblyRobot"), TEXT("SM_LB_ST_AssemblyBay_LOD0") },
-		{ TEXT("AssemblyRobotMk2"),
-			TEXT("SM_LB_ST_AssemblyBay_LOD0") } };
+		};
 	for (const auto& Dress : SharedDress)
 	{
 		StationMeshes.Add(FName(Dress.Key),
@@ -457,14 +437,6 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 	// stands ON the owner's marked floor square, not instead of it.
 	{
 		const TPair<const TCHAR*, const TCHAR*> ConceptDress[] = {
-			{ TEXT("MaterialProcessor"), TEXT("line_station_v001") },
-			{ TEXT("MaterialProcessorMk2"), TEXT("line_station_v001") },
-			{ TEXT("HullFabricator"), TEXT("line_station_v001") },
-			{ TEXT("HullFabricatorMk2"), TEXT("line_station_v001") },
-			{ TEXT("ComponentFabricator"), TEXT("line_station_v001") },
-			{ TEXT("ComponentFabricatorMk2"), TEXT("line_station_v001") },
-			{ TEXT("AssemblyRobot"), TEXT("line_station_v001") },
-			{ TEXT("AssemblyRobotMk2"), TEXT("line_station_v001") },
 			{ TEXT("Drone.CargoLift.Body"), TEXT("cargo_drone_v001") },
 			{ TEXT("Drone.Assembly.Body"), TEXT("assembly_drone_v001") },
 			{ TEXT("Drone.GroundLifter.Body"), TEXT("lifter_drone_v001") },
@@ -4582,8 +4554,11 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
 		const int32 Cap = InventoryAuthority->GetCapacityUnits(StoreId);
 		if (Used > 0 && Cap > 0)
 		{
+			// At most two stacks (owner 2026-09-02: "the first station
+			// is a mess with all the parts on pallets"): the stockpile
+			// says "stocked" or "nearly full", not "warehouse".
 			Wanted = FMath::Clamp(
-				FMath::RoundToInt(4.f * Used / (float)Cap), 1, 4);
+				FMath::RoundToInt(2.f * Used / (float)Cap), 1, 2);
 		}
 	}
 	// THE STATION'S OWN COMPONENT, not always hull (audit 2026-09-01:
@@ -4612,8 +4587,11 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
 	}
 	for (int32 Index = 0; Index < Wanted; ++Index)
 	{
+		// One pallet type per station, the middle of the pool - a row
+		// of nose, tube and tail sections read as scattered parts, not
+		// stock.
 		UStaticMesh* PalletMesh = PalletKeys.Num() > 0
-			? TryGetStationMesh(PalletKeys[Index % PalletKeys.Num()])
+			? TryGetStationMesh(PalletKeys[PalletKeys.Num() / 2])
 			: nullptr;
 		if (PalletMesh == nullptr)
 		{
@@ -6339,6 +6317,52 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					: nullptr;
 			const bool bInTheBooth = PaintDefinition != nullptr
 				&& PaintDefinition->bProcessStation;
+			// A PRIMER COAT FROM THE FIRST STATION (owner 2026-09-02:
+			// "there's not much colour in the game yet"). The ships are
+			// where the colour lives, and a craft used to be graphite
+			// for most of its life on the line. Now the hull wears its
+			// customer's colour, muted, from the moment it is set down,
+			// and the booth sweeps the full livery over it. The paint
+			// instance is made here once, whether or not the craft is
+			// in the booth; the material's PrimerColor had never been
+			// set by anything.
+			// Applied to whatever form the unit wears - the build forms
+			// during assembly reset their material when they change,
+			// so the instance is re-set whenever it has been lost.
+			if (Component->GetStaticMesh() != nullptr
+				&& !UnitPaintMIDs.Contains(Assignment.UnitId))
+			{
+				if (UMaterialInterface* PaintBase =
+					LoadObject<UMaterialInterface>(nullptr,
+						SpacecraftPaintMaterialPath))
+				{
+					UMaterialInstanceDynamic* PrimerMID =
+						UMaterialInstanceDynamic::Create(PaintBase, Component);
+					const FLinearColor Livery =
+						FLBSpacecraftCustomerCatalogue::LiveryForRecipe(
+							ProductionAuthority->GetContracts(), Unit->RecipeId);
+					PrimerMID->SetVectorParameterValue(TEXT("PaintColor"),
+						Livery);
+					PrimerMID->SetVectorParameterValue(TEXT("PrimerColor"),
+						FMath::Lerp(Livery,
+							FLinearColor(0.55f, 0.55f, 0.56f), 0.5f));
+					// The front far behind the tail: nothing painted
+					// yet, the whole hull in primer.
+					PrimerMID->SetScalarParameterValue(TEXT("PaintFrontX"),
+						-1.0e9f);
+					Component->SetMaterial(0, PrimerMID);
+					UnitPaintMIDs.Add(Assignment.UnitId, PrimerMID);
+				}
+			}
+			if (TObjectPtr<UMaterialInstanceDynamic>* WornPaint =
+				UnitPaintMIDs.Find(Assignment.UnitId))
+			{
+				if (*WornPaint != nullptr
+					&& Component->GetMaterial(0) != *WornPaint)
+				{
+					Component->SetMaterial(0, *WornPaint);
+				}
+			}
 			if (bInTheBooth && Craft != nullptr)
 			{
 				float PaintProgress = 0.f;
@@ -8994,8 +9018,16 @@ void ALBSpacecraftWIPPresentationActor::EnsureTileStudio()
 }
 
 UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
-	FName DefinitionId)
+	FName DefinitionId, const FLinearColor* Livery)
 {
+	const bool bPainted = Livery != nullptr
+		&& DefinitionId == FName(TEXT("Craft.Chassis"));
+	if (bPainted)
+	{
+		// One tile per livery, keyed by the colour.
+		DefinitionId = FName(*FString::Printf(TEXT("Craft.Chassis#%s"),
+			*Livery->ToFColor(true).ToHex()));
+	}
 	if (TObjectPtr<UTextureRenderTarget2D>* Known =
 		DefinitionTiles.Find(DefinitionId))
 	{
@@ -9004,7 +9036,7 @@ UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
 	// "Craft.Chassis" is the ship itself (the contract cards wear it);
 	// everything else is a station definition.
 	UStaticMesh* Mesh = nullptr;
-	if (DefinitionId == FName(TEXT("Craft.Chassis")))
+	if (bPainted || DefinitionId == FName(TEXT("Craft.Chassis")))
 	{
 		// The Scout V2 hull - the mesh the line actually builds on -
 		// not the gated placeholder chassis (blank card, 2026-09-02).
@@ -9042,6 +9074,11 @@ UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
 	Pending.DefinitionId = DefinitionId;
 	Pending.Mesh = Mesh;
 	Pending.Target = Target;
+	Pending.bPainted = bPainted;
+	if (bPainted)
+	{
+		Pending.Livery = *Livery;
+	}
 	PendingTiles.Add(Pending);
 	return Target;
 }
@@ -9060,6 +9097,22 @@ void ALBSpacecraftWIPPresentationActor::TickTileStudio()
 		// three-quarter view slightly above: the same shot for every
 		// tile so the menu reads as one set.
 		TileSubject->SetStaticMesh(Job.Mesh);
+		TileSubject->EmptyOverrideMaterials();
+		if (Job.bPainted)
+		{
+			// The booth's own paint material, fully painted, in the
+			// customer's colour - the same look the craft leaves in.
+			if (UMaterialInterface* PaintBase =
+				LoadObject<UMaterialInterface>(nullptr,
+					LBSpacecraftWIPPresentationPrivate::SpacecraftPaintMaterialPath))
+			{
+				UMaterialInstanceDynamic* Paint =
+					UMaterialInstanceDynamic::Create(PaintBase, TileSubject);
+				Paint->SetVectorParameterValue(TEXT("PaintColor"), Job.Livery);
+				Paint->SetScalarParameterValue(TEXT("PaintFrontX"), 1.0e9f);
+				TileSubject->SetMaterial(0, Paint);
+			}
+		}
 		TileSubject->SetRelativeScale3D(FVector(1.f));
 		const FBoxSphereBounds Bounds = Job.Mesh->GetBounds();
 		const FVector StudioAt(-600000.f, -600000.f, -80000.f);

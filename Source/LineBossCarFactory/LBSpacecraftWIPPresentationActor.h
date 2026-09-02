@@ -1366,7 +1366,11 @@ private:
 	// icons. Returns nullptr when the definition has no mesh (the
 	// caller falls back to a caption), never a wrong picture. ----
 public:
-	class UTextureRenderTarget2D* GetDefinitionTile(FName DefinitionId);
+	/** With a livery, "Craft.Chassis" is shot in the customer's paint -
+	 *  colour belongs to the ships, so a contract card shows the craft
+	 *  the way that customer will fly it. Cached per colour. */
+	class UTextureRenderTarget2D* GetDefinitionTile(FName DefinitionId,
+		const FLinearColor* Livery = nullptr);
 
 private:
 	TMap<FName, TObjectPtr<class UTextureRenderTarget2D>> DefinitionTiles;
@@ -1383,6 +1387,8 @@ private:
 		FName DefinitionId;
 		TObjectPtr<UStaticMesh> Mesh;
 		TObjectPtr<class UTextureRenderTarget2D> Target;
+		bool bPainted = false;
+		FLinearColor Livery = FLinearColor::White;
 		int32 FramesPosed = -1;
 	};
 	TArray<FLBSpacecraftPendingTile> PendingTiles;

@@ -2098,7 +2098,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					GameMode->GetPresenter())
 				{
 					Craft = Presenter->GetDefinitionTile(
-						FName(TEXT("Craft.Chassis")));
+						FName(TEXT("Craft.Chassis")), &Offer.LiveryColour);
 				}
 				AddOfferCard(Offer, HeldLedger->GetSimSeconds(), Craft);
 			}
