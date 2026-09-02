@@ -125,3 +125,13 @@ hoist so a crane-per-gap trip lifts its craft together.
   morning. The placement toast (F11/F20) came after it and is
   editor-validated only; the NEXT objective line (F36) is in both
   cycles.
+- **The interface replay in the package did not happen.** Launching
+  the cycle-11 exe with real input raised a Windows Firewall prompt
+  ("allow public and private networks to access this app", publisher
+  Line Boss) that sat over the game from its first frame; every
+  scripted click and key went to that dialog. I did not answer it -
+  a security prompt is yours to answer - and killed the game instead.
+  When you first run the new build it will ask again; after that, the
+  Win32 replay (`scratchpad/stranger/packaged_replay11.ps1`) can run.
+  Two of those prompts (one per new package) are still open on the
+  desktop as I write this; they are yours.
