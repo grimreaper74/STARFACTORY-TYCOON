@@ -845,6 +845,45 @@ void ALBSpacecraftPlayerPawn::FocusStation(FName StationId)
 		bInterior ? Definition->InteriorFloorCm : Definition->FootprintCm,
 		/*MarginRatio=*/bInterior ? 1.15f : 2.6f, ZoomMinCm,
 		bInterior ? SiteMapZoomCeilingCm() : ZoomMaxCm);
+	// THE HERO IS THE CRAFT (Docs/UI_DIRECTION_v001.md). Once a line
+	// stands inside the hall, entering lands on the LINE - the stations
+	// and the craft under the cranes - not on 160 m of empty floor with
+	// the factory a thin strip in the middle (every audited frame,
+	// 2026-09-02). An empty hall keeps the whole-floor frame, which is
+	// where a first-timer has to place things.
+	ALBSpacecraftGameMode* EntryGameMode = GetSpacecraftGameMode();
+	if (bInterior && EntryGameMode != nullptr
+		&& EntryGameMode->GetBuildAuthority() != nullptr)
+	{
+		FBox LineBounds(ForceInit);
+		for (const FLBSpacecraftStationRecord& Line :
+			EntryGameMode->GetBuildAuthority()->GetStations())
+		{
+			const FLBSpacecraftStationDefinition* LineDefinition =
+				ALBSpacecraftBuildAuthority::FindDefinition(Line.DefinitionId);
+			if (LineDefinition == nullptr
+				|| LineDefinition->StageClassId != FName(TEXT("LineStation")))
+			{
+				continue;
+			}
+			const FVector At = Line.WorldTransform.GetLocation();
+			const FVector Half(LineDefinition->FootprintCm.X * 0.5f,
+				LineDefinition->FootprintCm.Y * 0.5f, 0.f);
+			LineBounds += At - Half;
+			LineBounds += At + Half;
+		}
+		if (LineBounds.IsValid)
+		{
+			FVector LinePivot = LineBounds.GetCenter();
+			LinePivot.Z = 0.f;
+			SetActorLocation(LinePivot);
+			const FVector Size = LineBounds.GetSize();
+			DesiredZoomCm = ComputeFramingZoomCm(
+				FVector2D(FMath::Max(Size.X, 3000.f),
+					FMath::Max(Size.Y, 3000.f)),
+				/*MarginRatio=*/1.35f, ZoomMinCm, SiteMapZoomCeilingCm());
+		}
+	}
 	FocusedBuildingId = StationId;
 	bSiteMapView = false;
 	LastActionText = FText::Format(

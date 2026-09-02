@@ -8965,8 +8965,11 @@ void ALBSpacecraftWIPPresentationActor::EnsureTileStudio()
 	TileSubject->SetupAttachment(RootComponent);
 	TileSubject->SetRelativeLocation(StudioAt);
 	TileSubject->RegisterComponent();
+	// A GRAPHITE backdrop, not the panel tone: the pale housings and
+	// white booth vanished against a pale ground (first tiles, same
+	// day). Structure.Graphite #4A4D50 in linear.
 	TileBackdrop = MakeBlockComponent(TEXT("TileBackdrop"),
-		FLinearColor(0.016f, 0.015f, 0.014f)); // Panel.BgRaised, linear
+		FLinearColor(0.068f, 0.075f, 0.082f));
 	if (TileBackdrop != nullptr)
 	{
 		TileBackdrop->SetCastShadow(false);
@@ -9012,7 +9015,7 @@ UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
 	}
 	UTextureRenderTarget2D* Target = NewObject<UTextureRenderTarget2D>(this);
 	Target->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
-	Target->ClearColor = FLinearColor(0.016f, 0.015f, 0.014f, 1.f);
+	Target->ClearColor = FLinearColor(0.068f, 0.075f, 0.082f, 1.f);
 	Target->InitAutoFormat(352, 192);
 	Target->UpdateResourceImmediate(true);
 	// Handed back at once (the tile draws the backdrop until the shot
@@ -9046,10 +9049,12 @@ void ALBSpacecraftWIPPresentationActor::TickTileStudio()
 		const FVector Centre = StudioAt + FVector(0.f, 0.f, Bounds.BoxExtent.Z);
 		TileSubject->SetRelativeLocation(Centre - Bounds.Origin);
 		const float Radius = FMath::Max(Bounds.SphereRadius, 100.f);
+		// Framed tight: the sphere radius over-estimates a long low
+		// machine, so 0.82 of the textbook distance fills the tile.
 		const float Distance = Radius
 			/ FMath::Tan(FMath::DegreesToRadians(TileCapture->FOVAngle * 0.5f))
-			* 1.15f;
-		const FRotator Look(-24.f, 35.f, 0.f);
+			* 0.82f;
+		const FRotator Look(-26.f, 38.f, 0.f);
 		TileCapture->SetRelativeLocation(Centre - Look.Vector() * Distance);
 		TileCapture->SetRelativeRotation(Look);
 		TileCapture->TextureTarget = Job.Target;

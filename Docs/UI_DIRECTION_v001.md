@@ -60,7 +60,10 @@ cards, cut from real captures.
    parts-to-buy line and an Accept button; the six parts as picture
    tiles with "order the missing parts".
 4. Top bar as labelled gauges (word, number, meter; speed as buttons).
-5. Camera lands on the craft on entering the hall.
+5. Camera lands on the craft on entering the hall - **done 2026-09-02**
+   (the line's bounds, margin 1.35; an empty hall keeps the floor frame).
+   Left over: the panel covers the head of the line; shift the pivot by
+   the panel width.
 6. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
    glyph beats a render: tabs, session, land.
 
