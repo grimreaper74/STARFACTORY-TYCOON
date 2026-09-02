@@ -6,6 +6,8 @@
 #include "Framework/Application/SlateApplication.h"
 #include "GenericPlatform/GenericWindow.h"
 #include "Input/Events.h"
+#include "Input/HittestGrid.h"
+#include "Layout/WidgetPath.h"
 #include "InputCoreTypes.h"
 #include "Slate/SceneViewport.h"
 #include "TimerManager.h"
@@ -256,13 +258,25 @@ namespace LBSpacecraftDevToolsetPrivate
 			EFocusCause::SetDirectly);
 	}
 
-	TSharedPtr<FGenericWindow> NativeWindowOf(
-		const TSharedRef<SViewport>& Widget)
+	/** The widget path under an absolute position, built from the PIE
+	 *  window's own hit-test grid. FSlateApplication::ProcessMouseButton*
+	 *  consults the REAL OS cursor to pick the window, so with a person's
+	 *  mouse elsewhere a synthetic press is silently dropped (hover
+	 *  worked, clicks did not - first playthrough attempt). Routing to
+	 *  a path we locate ourselves sidesteps that entirely. */
+	FWidgetPath PathUnder(const TSharedRef<SViewport>& Widget,
+		const FVector2D& Abs)
 	{
 		TSharedPtr<SWindow> Window =
 			FSlateApplication::Get().FindWidgetWindow(Widget);
-		return Window.IsValid() ? Window->GetNativeWindow()
-			: TSharedPtr<FGenericWindow>();
+		if (!Window.IsValid())
+		{
+			return FWidgetPath();
+		}
+		TArray<FWidgetAndPointer> Bubble = Window->GetHittestGrid()
+			.GetBubblePath(Abs, FSlateApplication::Get().GetCursorRadius(),
+				false, 0);
+		return FWidgetPath(Bubble);
 	}
 }
 
@@ -325,14 +339,19 @@ FString ULBSpacecraftDevToolset::SimulatePieClick(float X, float Y,
 	const FPointerEvent Move(0, 0, Abs, Slate.GetCursorPos(), TSet<FKey>(),
 		EKeys::Invalid, 0.f, FModifierKeysState());
 	Slate.ProcessMouseMoveEvent(Move);
+	const FWidgetPath Path = PathUnder(Ref, Abs);
+	if (!Path.IsValid())
+	{
+		return FailJson(TEXT("Nothing under that point in the PIE window."));
+	}
 	TSet<FKey> Pressed;
 	Pressed.Add(Key);
 	const FPointerEvent Down(0, 0, Abs, Abs, Pressed, Key, 0.f,
 		FModifierKeysState());
-	Slate.ProcessMouseButtonDownEvent(NativeWindowOf(Ref), Down);
+	Slate.RoutePointerDownEvent(Path, Down);
 	const FPointerEvent Up(0, 0, Abs, Abs, TSet<FKey>(), Key, 0.f,
 		FModifierKeysState());
-	Slate.ProcessMouseButtonUpEvent(Up);
+	Slate.RoutePointerUpEvent(Path, Up);
 	// A game viewport captures the pointer on click; a synthetic click
 	// must not leave the REAL cursor confined to the PIE window while
 	// a person is using the machine.
@@ -362,7 +381,12 @@ FString ULBSpacecraftDevToolset::SimulatePieWheel(float X, float Y,
 	Slate.ProcessMouseMoveEvent(Move);
 	const FPointerEvent Wheel(0, 0, Abs, Abs, TSet<FKey>(),
 		EKeys::MouseWheelAxis, Delta, FModifierKeysState());
-	Slate.ProcessMouseWheelOrGestureEvent(Wheel, nullptr);
+	const FWidgetPath Path = PathUnder(Ref, Abs);
+	if (!Path.IsValid())
+	{
+		return FailJson(TEXT("Nothing under that point in the PIE window."));
+	}
+	Slate.RouteMouseWheelOrGestureEvent(Path, Wheel, nullptr);
 	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetBoolField(TEXT("success"), true);
 	Root->SetNumberField(TEXT("delta"), Delta);
