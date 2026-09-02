@@ -3083,7 +3083,11 @@ void ULBSpacecraftCommandPanelWidget::AddHeldContractCard(
 	{
 		Clock = FormatTimeRemaining(Contract.DeadlineSimSeconds - SimSeconds);
 	}
-	AddLine((Buyer != nullptr ? Buyer->DisplayName : FString())
+	// A contract with no customer on record (a direct order, or one the
+	// dev commands minted) still gets a name on its card rather than a
+	// blank before the clock (frame, 2026-09-02).
+	AddLine((Buyer != nullptr ? Buyer->DisplayName
+			: LOCTEXT("HeldDirect", "Direct order").ToString())
 		+ (Clock.IsEmpty() ? FString() : TEXT("  \u00B7  ") + Clock), 11,
 		bLate ? SpacecraftPanelWarn : SpacecraftPanelSubText);
 	AddLine(FText::Format(LOCTEXT("HeldWhat", "{0}  {1}/{2}  {3} each"),
