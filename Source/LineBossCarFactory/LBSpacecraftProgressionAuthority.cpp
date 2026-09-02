@@ -68,8 +68,8 @@ FString ALBSpacecraftProgressionAuthority::DescribeLock(
 	// contract phrase "UNLOCKS AFTER DELIVERY" is load-bearing - a
 	// transport test greps for it.
 	return FString::Printf(
-		TEXT("%s UNLOCKS AFTER DELIVERY %d (%d done)"),
-		What, Needed, CreditedDeliveries);
+		TEXT("UNLOCKS AFTER DELIVERY %d: %s (%d done)"),
+		Needed, What, CreditedDeliveries);
 }
 
 FIntPoint ALBSpacecraftProgressionAuthority::BayForPointCm(

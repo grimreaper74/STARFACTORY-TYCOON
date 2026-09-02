@@ -39,3 +39,22 @@ Crane travel loop, crane lift and set-down, drone work loop, order
 arrives (lorry), contract accepted, ship departs, refusal, ambient hall.
 The UI pack covers accepted/refusal/clicks; the crane, drone, lorry,
 departure and ambience come from the Sonniss folders once catalogued.
+
+## Picks from the catalogue (347 files, 127 vendors), not yet promoted
+
+| Need | File (vendor) |
+|---|---|
+| Crane travel loop | `MACHInd_Crane Onboard Ride Squeaks Motors_CW.wav` (Victor Ermakov, Ship Repair Factory) |
+| Crane lift / set-down | `MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav` (Epic Stock Media, HD Lock and Mechanism) |
+| Drone work loop | `ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav` (Epic Stock Media) or the Sonik Sound Library toy quadcopter file |
+| Order arrives (lorry) | `VEHFrght_Freight Truck Pass By 22_SNDBTS_PB-TTC2.wav` (SoundBits) |
+| Contract accepted | `Interface Accept Glassy Snap.wav` (Cinematic Sound Design) or the UI pack `ok_*` |
+| Ship departs | `AEROJet_Blast Off Clean_344 Audio_Air Designed.wav` (344 Audio) |
+| Refusal | `Interface Deny Low Fat Dark.wav` (Cinematic Sound Design) or the UI pack `cancel_*` |
+| Ambient hall | `AMBInd_Factory Hall Busy Alarm Machines Voices_CW.wav` (carries voices and an alarm - may be too busy) or `Dark Industrial Ambience.wav` (Cinematic Sound Design, Sci-Fi Drones) |
+
+Promotion means: copy the WAV into `SourceAssets/Audio/Promoted/`, import as a
+SoundWave under `Content/LineBoss/Audio/`, one manifest row with sha256 each,
+and a MetaSound or cue that the code actually plays. Until a cue is heard in a
+packaged run the status stays **source candidate**.
+

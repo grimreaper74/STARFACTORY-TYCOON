@@ -149,3 +149,30 @@ hoist so a crane-per-gap trip lifts its craft together.
   stranger fixes and the pulse line are therefore **packaged
   playable** for the scripted line in cycle 11; the removal
   confirmation and the placement toast remain editor-only.
+
+## 3. The morning after: wave four from the packaged frames
+
+Twelve auditing agents read the cycle-11 package frames as first-timers
+(two workflows, every report refuted by a second agent; none refuted).
+Their backlog is F37-F45 in the stranger doc. Fixed and verified in PIE
+the same morning (`Saved/Audits/StrangerWave4_2026_09_02`):
+
+- **F37** - on the site map FIRST STEPS now opens with "Enter the ship
+  factory - click it on the map", and the objectives panel rebuilds
+  when the view changes.
+- **F38** - a site building that already stands is not offered again.
+- **Objectives read as a to-do list**: open steps bright, done steps
+  dim with a tick. They were the other way round, which every reader
+  decoded as "nothing done". (Two of my own slips on the way: the tick
+  glyph as a raw character in the source, and an FString compare that
+  ignores case, so no line ever counted as a task.)
+- The unlock notice reads "UNLOCKS AFTER DELIVERY 1: CONVEYOR BELTS",
+  the top bar's contract and line status are body-white instead of
+  heading grey, "Buying N kW" is no longer in the refusal red, and the
+  panel list has a blank tail so its last row scrolls clear of the
+  edge.
+- The site-map first step ticks only on a LINE station, so the
+  pre-placed hall no longer counts as "stations placed".
+
+Audio arrived the same morning: see Docs/AUDIO_INTAKE_2026_09_02_v001.md.
+

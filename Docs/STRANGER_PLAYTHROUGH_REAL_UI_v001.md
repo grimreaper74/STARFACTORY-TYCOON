@@ -230,3 +230,17 @@ first-timer would still trip on. Not yet fixed:
 | F44 | low | "Floor Pan" (a car-body term) and "MAKE-VS-BUY" (procurement jargon) in the import list; "dirty" work and "bay" are never defined |
 | F45 | low | The gameplay debugger is reachable in the packaged build on the apostrophe key (found by the replay, not by a player) |
 
+Same morning: **F38 fixed** (a site building that already stands is
+no longer listed; verified in PIE, the site list shows only the power
+plant), **F37 fixed** (on the site map, before any line station exists,
+FIRST STEPS opens with "Enter the ship factory - click it on the map";
+the objectives panel now rebuilds when the view changes), the
+objectives' done/open brightness swapped to a to-do list with ticks,
+the unlock notice reworded, the top-bar status brightened, buying
+power taken out of the refusal red, and the panel given a blank tail
+(`Saved/Audits/StrangerWave4_2026_09_02`). F42's
+"stale" claim is wrong on inspection: the Conveyor belts unlock gates
+the parts-factory belt routes between machines, not the line, which
+never had a working belt; the name stands, though the objective could
+say what it opens.
+

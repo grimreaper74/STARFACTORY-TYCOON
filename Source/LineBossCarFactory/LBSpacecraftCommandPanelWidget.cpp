@@ -8,6 +8,7 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
+#include "Components/Spacer.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
@@ -1149,6 +1150,29 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			{
 				continue;
 			}
+			// A SITE BUILDING THAT ALREADY STANDS IS NOT ON OFFER. The
+			// site map has one spot per building, so "Ship factory
+			// 250,000 cr" beside a hall wearing ENTER read as a second
+			// one, or as the first not yet owned (packaged-frame audit,
+			// 2026-09-02, F38). Only what can be built now is listed
+			// (owner 2026-08-28).
+			if (bOnSiteMap && GameMode->GetBuildAuthority() != nullptr)
+			{
+				bool bStands = false;
+				for (const FLBSpacecraftStationRecord& Record :
+					GameMode->GetBuildAuthority()->GetStations())
+				{
+					if (Record.DefinitionId == Definition.DefinitionId)
+					{
+						bStands = true;
+						break;
+					}
+				}
+				if (bStands)
+				{
+					continue;
+				}
+			}
 			FString GateReason;
 			if (PlacementGate
 				&& !PlacementGate(Definition.DefinitionId, GateReason))
@@ -1898,6 +1922,15 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		}
 		break;
 	}
+	}
+	// A BLANK TAIL so the last row can scroll clear of the bottom edge:
+	// the viewport clipped the final row mid-glyph in every packaged
+	// frame (audit, 2026-09-02), which read as a list cut off.
+	if (USpacer* Tail = WidgetTree->ConstructWidget<USpacer>(
+		USpacer::StaticClass()))
+	{
+		Tail->SetSize(FVector2D(1.f, 48.f));
+		ContentBox->AddChildToVerticalBox(Tail);
 	}
 }
 

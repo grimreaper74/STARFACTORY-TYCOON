@@ -11,6 +11,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "LBSpacecraftPlayerPawn.h"
 #include "LBSpacecraftInventoryAuthority.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftProgressionAuthority.h"
@@ -39,9 +40,9 @@ namespace LBSpacecraftObjectivesPrivate
 	const FLinearColor SpacecraftObjectivesBackground =
 		SpacecraftObjectivesToken(TEXT("#1B1B1B"), 0.94f);
 	const FLinearColor SpacecraftObjectiveOpen =
-		SpacecraftObjectivesToken(TEXT("#918D8B"));   // Text.Dim
+		SpacecraftObjectivesToken(TEXT("#EDEDEC"));   // Text.Body - to do
 	const FLinearColor SpacecraftObjectiveDone =
-		SpacecraftObjectivesToken(TEXT("#EDEDEC"));   // Text.Body
+		SpacecraftObjectivesToken(TEXT("#918D8B"));   // Text.Dim - done
 }
 
 FString ULBSpacecraftObjectivesWidget::BuildObjectiveLine(
@@ -49,7 +50,7 @@ FString ULBSpacecraftObjectivesWidget::BuildObjectiveLine(
 {
 	if (Delivered >= Needed)
 	{
-		return FString::Printf(TEXT("✓ %s"), *UnlockName);
+		return FString::Printf(TEXT("\u2713 %s"), *UnlockName);
 	}
 	return FString::Printf(TEXT("%d/%d · %s"),
 		FMath::Clamp(Delivered, 0, Needed), Needed, *UnlockName);
@@ -96,8 +97,21 @@ void ULBSpacecraftObjectivesWidget::AddLine(const FString& Text,
 	using namespace LBSpacecraftObjectivesPrivate;
 	UTextBlock* Block = WidgetTree->ConstructWidget<UTextBlock>(
 		UTextBlock::StaticClass());
-	Block->SetText(FText::FromString(Text));
-	Block->SetColorAndOpacity(FSlateColor(bDone
+	// A DONE STEP WEARS A TICK. Bright-versus-dim alone was decoded
+	// both ways by twelve auditing readers of the packaged frames
+	// (2026-09-02): the bright lines looked like open tasks. Headings
+	// (the FIRST STEPS label, the tier names) pass bDone=true too, so
+	// only lines that read as a task get the glyph.
+	// FString's != ignores case, so "Place" != "PLACE" is FALSE and
+	// every line read as a heading (nothing ticked, first try).
+	const bool bTaskLine = !Text.IsEmpty()
+		&& !Text.Equals(Text.ToUpper(), ESearchCase::CaseSensitive);
+	Block->SetText(FText::FromString(bDone && bTaskLine
+		? FString(TEXT("\u2713 ")) + Text : Text));
+	// And the brightness is a TO-DO list: an open step is bright (the
+	// thing to do next), a done step is dim and ticked; headings stay
+	// bright. It used to be the other way round.
+	Block->SetColorAndOpacity(FSlateColor(bDone && bTaskLine
 		? SpacecraftObjectiveDone : SpacecraftObjectiveOpen));
 	FSlateFontInfo Font = Block->GetFont();
 	Font.Size = 13;
@@ -151,6 +165,15 @@ void ULBSpacecraftObjectivesWidget::NativeTick(
 		Revision += FString::Printf(TEXT(";t%d"),
 			TrackAuthority->GetPieces().Num());
 	}
+	// The view is part of the revision: the site-map step below is
+	// shown or hidden by where the player is, and a rebuild keyed on
+	// authorities alone never noticed the pawn leave or enter the map.
+	if (const ALBSpacecraftPlayerPawn* ViewPawn =
+		Cast<ALBSpacecraftPlayerPawn>(GetOwningPlayerPawn()))
+	{
+		Revision += FString::Printf(TEXT(";v%d"),
+			ViewPawn->IsSiteMapView() ? 1 : 0);
+	}
 	if (Revision == LastRevision)
 	{
 		return;
@@ -181,8 +204,28 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 	// the player later has zero stations or contracts again.
 	if (Delivered <= 0)
 	{
-		const bool bHasStation = GameMode->GetBuildAuthority() != nullptr
-			&& GameMode->GetBuildAuthority()->GetStations().Num() > 0;
+		// LINE stations only. The ship factory hall is a station record
+		// too, so a fresh site with its pre-placed hall counted as
+		// "stations placed", which hid the enter-the-factory step and
+		// ticked the first step before the player had done anything
+		// (packaged-frame audit, 2026-09-02).
+		bool bHasStation = false;
+		if (GameMode->GetBuildAuthority() != nullptr)
+		{
+			for (const FLBSpacecraftStationRecord& Record :
+				GameMode->GetBuildAuthority()->GetStations())
+			{
+				const FLBSpacecraftStationDefinition* Definition =
+					ALBSpacecraftBuildAuthority::FindDefinition(
+						Record.DefinitionId);
+				if (Definition != nullptr
+					&& Definition->StageClassId == FName(TEXT("LineStation")))
+				{
+					bHasStation = true;
+					break;
+				}
+			}
+		}
 		const bool bCommissioned = GameMode->GetBuildAuthority() != nullptr
 			&& GameMode->GetBuildAuthority()->IsCommissioned();
 		bool bHasAcceptedContract = false;
@@ -245,6 +288,20 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 			&& GameMode->GetInventoryAuthority()->HasAnyStock();
 		const bool bHasAnyDrone = bAllLineCrewed;
 		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
+		// ON THE SITE MAP the first thing to do is go inside. The bold
+		// step read "Place assembly stations" on a screen where nothing
+		// can be placed, and the only cue was the footer (packaged-frame
+		// audit, 2026-09-02, F37). This line stands until the player
+		// has entered the hall once and placed a station.
+		const ALBSpacecraftPlayerPawn* ViewPawn =
+			Cast<ALBSpacecraftPlayerPawn>(GetOwningPlayerPawn());
+		if (ViewPawn != nullptr && ViewPawn->IsSiteMapView()
+			&& !bHasStation)
+		{
+			AddLine(LOCTEXT("StepEnter",
+				"Enter the ship factory - click it on the map")
+				.ToString(), false);
+		}
 		AddLine(LOCTEXT("StepStation",
 			"Place assembly stations - the track connects them")
 			.ToString(), bHasStation);

@@ -385,10 +385,13 @@ void ULBSpacecraftTopBarWidget::NativeOnInitialized()
 		CashBlock->SetFont(CashFont);
 	}
 	MakeBarDivider(Box);
-	ContractBlock = MakeBarText(Box, SpacecraftBarInfo, 0.f);
+	// The contract and the line state are the two things the player
+	// most needs; in heading grey beside pure-white numerals they read
+	// as disabled (packaged-frame audit, 2026-09-02). Body white.
+	ContractBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
 	ClockBlock = MakeBarText(Box, SpacecraftBarStatus, 24.f);
 	MakeBarDivider(Box);
-	LineBlock = MakeBarText(Box, SpacecraftBarInfo, 0.f);
+	LineBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
 	MakeBarDivider(Box);
 	PowerBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
 	// The power GAUGE (owner 2026-08-26: "it has a gauge"): a slim
@@ -495,9 +498,12 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	{
 		using namespace LBSpacecraftTopBarPrivate;
 		TradeBlock->SetText(FText::FromString(Snapshot.PowerTradeText));
+		// Buying grid power is a cost, not a refusal: the palette keeps
+		// #EC3013 for refusals alone, and red here read as an error on
+		// a line that was running normally (audit, 2026-09-02).
 		TradeBlock->SetColorAndOpacity(FSlateColor(
 			Snapshot.PowerTradeText.StartsWith(TEXT("BUYING"))
-				? SpacecraftBarWarn : SpacecraftBarInfo));
+				? SpacecraftBarStatus : SpacecraftBarInfo));
 	}
 	if (PowerGauge != nullptr)
 	{
