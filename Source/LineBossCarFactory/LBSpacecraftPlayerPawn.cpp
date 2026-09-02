@@ -9,6 +9,8 @@
 #include "LBGameUserSettings.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "LBSpacecraftProductionAuthority.h"
+#include "LBSpacecraftTopBarWidget.h"
 #include "LBSpacecraftInputMap.h"
 #include "LBSpacecraftProgressionAuthority.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -673,8 +675,39 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 			StationId, Reason, GameMode->GetProductionAuthority(),
 			GameMode->GetProgression()))
 		{
+			// NAME, MONEY LEFT, AND WHAT THE CREW WILL COST (stranger
+			// F11: the toast read "PLACED AssemblyRobot-003"; F20:
+			// four stations left 125,000 cr, not enough to crew them,
+			// and nothing had warned). A line station says what its
+			// two drones will cost against the cash that remains.
+			const FString PlacedName = PlacingDefinition != nullptr
+				? PlacingDefinition->DisplayName : StationId.ToString();
+			FString CrewNote;
+			if (PlacingDefinition != nullptr
+				&& PlacingDefinition->StageClassId
+					== FName(TEXT("LineStation"))
+				&& GameMode->GetProductionAuthority() != nullptr)
+			{
+				const FLBSpacecraftDroneKind* Assembly =
+					GameMode->GetBuildAuthority()->FindDroneKind(
+						FName(TEXT("Assembly")));
+				const int64 Left =
+					GameMode->GetProductionAuthority()->GetCashPence();
+				const int64 CrewCost = Assembly != nullptr
+					? Assembly->CostPence * 2 : 0;
+				CrewNote = FText::Format(LOCTEXT("PlacedCrewNote",
+					" - {0} left; two drones for it cost {1}{2}"),
+					FText::FromString(
+						ULBSpacecraftTopBarWidget::FormatCurrency(Left)),
+					FText::FromString(
+						ULBSpacecraftTopBarWidget::FormatCurrency(CrewCost)),
+					FText::FromString(Left < CrewCost
+						? TEXT(" - NOT ENOUGH TO CREW IT") : TEXT("")))
+					.ToString();
+			}
 			LastActionText = FText::Format(LOCTEXT("Placed",
-				"PLACED {0}"), FText::FromName(StationId)).ToString();
+				"PLACED {0}{1}"), FText::FromString(PlacedName),
+				FText::FromString(CrewNote)).ToString();
 			// A NEW SHIP FACTORY COMES WITH ITS STARTING LOADOUT
 			// (owner 2026-08-28): one assembly station crewed by one
 			// of each drone, commissioned, with the whole build
@@ -715,8 +748,9 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 					{
 						LastActionText = FText::Format(LOCTEXT(
 							"PlacedAndConnected",
-							"PLACED {0} - THE LINE CONNECTED ITSELF"),
-							FText::FromName(StationId)).ToString();
+							"PLACED {0} - THE LINE CONNECTED ITSELF{1}"),
+							FText::FromString(PlacedName),
+							FText::FromString(CrewNote)).ToString();
 					}
 				}
 				else

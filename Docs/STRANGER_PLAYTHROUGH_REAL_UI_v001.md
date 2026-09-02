@@ -173,7 +173,10 @@ orders, build and sale were all done through the real interface.
 
 F35 is fixed by filtering Withdrawn offers out of the held list. F36
 is fixed by a NEXT line in the objectives panel whenever no accepted
-order is left to build.
+order is left to build. F20 (and the placement toast's id leak, F11)
+by the toast itself: "PLACED Assembly station Mk1 - THE LINE
+CONNECTED ITSELF - 125,000 cr left; two drones for it cost 24,000",
+with "NOT ENOUGH TO CREW IT" appended when the money is not there.
 F34 and F31 are fixed together in the panel: the six ship components
 now head the import section under their own label, sub-parts follow,
 and orders in flight are listed AFTER the buttons (as "ON ORDER",

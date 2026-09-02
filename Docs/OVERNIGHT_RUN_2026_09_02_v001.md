@@ -38,8 +38,12 @@ What stood between the line and its first ship, in order found:
   "NEXT: accept a contract - the line is idle" or "... N finished
   ship(s) sell the moment one is taken" whenever no accepted order is
   left to build.
-- **Open:** F20 (budget warning), F5/F9/F12 (site hit-testing, door
-  cue), and a confirmation for refund-bearing removals.
+- **F20 (med).** Four stations left 125,000 cr, not enough to crew
+  them, and nothing warned. **Fixed** (last build): the placement toast
+  names the station, the cash left and what two drones for it cost,
+  and says NOT ENOUGH TO CREW IT when that is so.
+- **Open:** F5/F9/F12 (site hit-testing, door cue) and a confirmation
+  for refund-bearing removals.
 
 Two toolset additions made the run possible: `ProbePieWidgetAt(X,Y)`
 reports the widget and label under a point before a click (a rendered
@@ -114,3 +118,10 @@ hoist so a crane-per-gap trip lifts its craft together.
   interface path was not replayed in the package; that is the one
   thing the stranger fixes still lack.
 - Cycle 10 also carries every stranger fix of waves two and three.
+- **Cycle 11** (`Builds/Overnight_2026_09_02b`, BUILD SUCCESSFUL ~03:30)
+  adds the relayed dev track, so BuildLine in the exe stands its
+  cranes between the stations. Its headless journey again delivered
+  2 of 3 craft in 900 sim seconds. This is the build to open in the
+  morning. The placement toast (F11/F20) came after it and is
+  editor-validated only; the NEXT objective line (F36) is in both
+  cycles.
