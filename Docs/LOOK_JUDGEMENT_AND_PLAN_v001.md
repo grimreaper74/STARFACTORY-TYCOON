@@ -102,10 +102,12 @@ concrete with the traffic lanes painted pale, and the sun casts contact
 shadows. Frames: `phaseA_entry_exposure_locked.png`,
 `phaseA_station1_exposure_locked.png`. The floor reads as concrete with
 texture, the stations and hazard edges stand off it, hull sections read pale
-on mid, shadows have depth. Still cool-blue overall: the plan's "warmer key"
-is deliberately NOT done yet - the palette adoption rejected a warm sun on
-measured grounds (it pushes every albedo toward the amber arc). A mild warm
-sun is the next frame to judge, against that evidence.
+on mid, shadows have depth. The warm key was then put to the owner as
+three frames of the same view at sun warmth 0, 0.5 and 1 (console
+`LB.Look.Sun`, `warmth_ab_sun_0_05_1.png`); he chose 1 - "yeah I agree
+with the car manufacturer feel" - and that is the default now,
+superseding the palette adoption's neutral-sun argument. The sky fill
+stays cool so pale hull and pale ground still separate.
 
 **Second pass, same day.** The floor sample had not moved when the slab
 tone changed because the site's outdoor paving tiles stand proud of the

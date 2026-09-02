@@ -183,6 +183,13 @@ first ship lands inside ten. The remaining overhead is per-stop: crane
 trips and admission waits between the six stations, roughly 100 s of the
 360. Evidence: `pacing_first_ship.txt`, both runs.
 
+## The warmth decision
+
+Shown the A/B frames, the owner chose warmth 1: "yeah I agree with the
+car manufacturer feel". The key light is warm by default now (the
+console lever stays for future A/Bs); the palette adoption's neutral-sun
+paragraph is superseded by that decision and says so in the presenter.
+
 ## Status
 
 **Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD

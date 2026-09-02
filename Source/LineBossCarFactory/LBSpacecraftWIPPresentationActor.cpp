@@ -9794,13 +9794,14 @@ void ALBSpacecraftWIPPresentationActor::ApplySceneLighting()
 		if (UDirectionalLightComponent* Sun =
 			Cast<UDirectionalLightComponent>(It->GetLightComponent()))
 		{
-			// Phase A (2026-09-02): a MILD warm key, judged on a frame
-			// against the adoption note above. With exposure locked at
-			// the scene's level the frame came out cool-blue from the
-			// sky fill alone; this is the smallest warmth that reads,
-			// and the sky fill stays cool so pale hull and pale ground
-			// still separate.
-			Sun->SetLightColor(FLinearColor(1.0f, 0.965f, 0.915f));
+			// THE WARM KEY IS THE OWNER'S DECISION (2026-09-02). Shown
+			// the same view at warmth 0, 0.5 and 1 (LB.Look.Sun), he
+			// chose 1: "yeah I agree with the car manufacturer feel".
+			// That supersedes the neutral-sun argument above. The sky
+			// fill stays cool so pale hull and pale ground still
+			// separate; if the amber-arc problem shows on a frame it is
+			// raised with him, not quietly reverted.
+			Sun->SetLightColor(FLinearColor(1.0f, 0.86f, 0.70f));
 			// Phase A: contact shadows, so a pallet, a drone and a hull
 			// section sit ON the floor instead of floating in the same
 			// value as it. Screen-space length, a small fraction.
