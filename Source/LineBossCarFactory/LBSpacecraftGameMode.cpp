@@ -1484,83 +1484,25 @@ bool ALBSpacecraftGameMode::LayLineTrack(FString& TrackReason)
 			}
 		}
 	}
-		// THE STATIONS FIRST, THEN TRACK SIZED TO THEM. This used
-		// to lay a fixed seven-piece list holding four straights
-		// and attach one station per straight - which silently
-		// removed the ENTIRE track the moment the line grew past
-		// four stations. Going to six (owner, 2026-08-29) tripped
-		// exactly that, and the symptom was not a missing track: it
-		// was LOAD REFUSED, because a saved line whose stations are
-		// attached to nothing fails restore validation. A save you
-		// cannot load is worse than no save button at all.
-		//
-		// The route is the ground truth here. The canonical build
-		// carries MORE line-class stations than the route uses
-		// (base plus Mk2 marks), and the coordinator was configured
-		// without the track just before this, so its route says
-		// which stations actually need a node.
-		TArray<FName> LineStations;
-		for (const FLBSpacecraftRouteStep& Step :
-		Coordinator->GetRoute())
-		{
-		if (LineStations.Num() == 0
-			|| LineStations.Last() != Step.StationId)
-		{
-			LineStations.AddUnique(Step.StationId);
-		}
-		}
-
-		FName PieceId;
-		if (!TrackAuthority->StartLine(
-		FTransform(FRotator(0.f, 90.f, 0.f),
-			FVector(2400.f, -7000.f, 0.f)), PieceId, TrackReason))
-		{
+	// THE SAME ROUTER THE PLAYER USES (2026-09-02). This used to lay a
+	// "show track" - a fixed run at X=2400 with one straight per
+	// station plus a turn each way, kept to put every piece variant on
+	// screen - and attach the stations, which stand at X=0, to straights
+	// twenty-four metres away. Nothing in the simulation minded: the
+	// route only needs the node ORDER. The hall did: its crane rails
+	// follow the laid pieces, so every gantry the scripted line had
+	// stood at the head end in a 4 m cluster over no station at all,
+	// and the first night of the pulse line was diagnosed against
+	// that. The manual track is gone (owner 2026-09-01); the relay
+	// that commissioning runs lays the track under the stations, and
+	// the dev line now gets exactly what the player gets.
+	if (BuildAuthority == nullptr)
+	{
+		TrackReason = TEXT("No build authority to relay through");
 		return false;
-		}
-		// One straight per station that needs a node, then a turn
-		// each way and the cap - the turns are kept because they
-		// put every authored piece variant on screen and prove the
-		// turn mirrors, which was the point of the demo track.
-		TArray<ELBSpacecraftTrackPiece> ShowPieces;
-		for (int32 Node = 0; Node < LineStations.Num(); ++Node)
-		{
-		ShowPieces.Add(ELBSpacecraftTrackPiece::Straight);
-		}
-		ShowPieces.Add(ELBSpacecraftTrackPiece::TurnLeft);
-		ShowPieces.Add(ELBSpacecraftTrackPiece::Straight);
-		ShowPieces.Add(ELBSpacecraftTrackPiece::TurnRight);
-		ShowPieces.Add(ELBSpacecraftTrackPiece::End);
-		TArray<FName> StraightPieces;
-		for (ELBSpacecraftTrackPiece ShowPiece : ShowPieces)
-		{
-		if (!TrackAuthority->ExtendLine(ShowPiece, PieceId,
-			TrackReason))
-		{
-			// Out of track nodes or off the floor. Say which,
-			// and leave the partial track rather than silently
-			// binning it - a short track is visible and
-			// diagnosable; a vanished one is neither.
-			TrackReason = FString::Printf(
-				TEXT("SHOW TRACK STOPPED AT %d/%d PIECES: %s"),
-				StraightPieces.Num(), ShowPieces.Num(),
-				*TrackReason);
-			return false;
-		}
-		if (ShowPiece == ELBSpacecraftTrackPiece::Straight)
-		{
-			StraightPieces.Add(PieceId);
-		}
-		}
-		for (int32 Node = 0; Node < LineStations.Num(); ++Node)
-		{
-		if (!TrackAuthority->AttachStationNode(
-			LineStations[Node], StraightPieces[Node],
-			BuildAuthority, TrackReason))
-		{
-			return false;
-		}
-		}
-		return true;
+	}
+	return RelayTrackThroughStations(*BuildAuthority, *TrackAuthority,
+		Coordinator, ProductionAuthority, TrackReason);
 }
 
 bool ALBSpacecraftGameMode::SetupCanonicalLine(

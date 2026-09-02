@@ -191,9 +191,8 @@ its craft together (`Saved/Automation/PulseCranes_2026_09_02`,
 138/138). A third commit rebuilds the hall interior when the crane
 count changes, so a bought crane appears at once. **Validation-only**
 until the cycle-10 package lands; step 4 (both crane models on
-camera, side by side) is still to do, and it is blocked by a placement
-fault found at 05:40: on the scripted BuildLine layout every crane
-portal stands at the head end of the hall 4 m apart, because the rail
-legs follow the laid track pieces and those do not sit under the
-stations there. The pulse and the carry are unaffected; the cranes
-stand in the wrong place. First presenter task next.
+camera, side by side) is still to do. A placement fault found on the
+way - every crane portal at the head end 4 m apart on the scripted
+line - turned out to be the dev command laying a legacy show track
+away from the stations; it now relays through the stations like
+commissioning does, and the portals stand between the stations.

@@ -81,16 +81,16 @@ Design: Docs/PULSE_LINE_DESIGN_v001.md. Built tonight:
   and `RuntimeCoordinator.MoreCranesMakeAShorterPulse` (one crane per
   gap delivers sooner than one crane; the cap refuses one more).
 
-**Known visual gap, found at 05:40 and NOT fixed:** on the scripted
-BuildLine layout the five bought crane portals all stand at the head
-end of the hall, 4 m apart, not over the station gaps. The rail legs
-are derived from the laid track pieces, and on that layout the pieces
-carrying station nodes sit in a short run rather than under the
-stations, so the parks follow the pieces. The crane count, purchase
-and the pulse itself are unaffected (the craft ride regardless); the
-cranes just stand in the wrong place. This predates tonight (the
-single crane stood there too) and is the first thing to look at in
-the presenter.
+**A placement fault, found and fixed the same night.** On the scripted
+BuildLine layout every crane portal stood at the head end 4 m apart.
+The status tool was taught to dump the track pieces, which showed the
+dev command laying a legacy "show track" at X=2400 and attaching the
+stations at X=0 to it; the hall's crane rails follow the laid pieces.
+`LayLineTrack` now calls the same relay commissioning uses, and the
+portals stand between the stations (`cranes_over_gaps.png` in the
+audit folder). The player-built line was never affected - its track
+was always relaid - so this was a dev-command fault that had been
+misdiagnosed as a presenter one.
 
 Seen in PIE (`Saved/Audits/PulseLine_2026_09_02`): the top bar reads
 "Line running - 2 craft, 1 done and waiting for the pulse", then every

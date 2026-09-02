@@ -144,6 +144,9 @@ FString ULBSpacecraftDevToolset::GetSpacecraftFactoryStatus()
 				Record.DefinitionId.ToString());
 			S->SetNumberField(TEXT("drones"),
 				Record.InstalledDroneTypes.Num());
+			S->SetNumberField(TEXT("x"), Record.WorldTransform.GetLocation().X);
+			S->SetNumberField(TEXT("y"), Record.WorldTransform.GetLocation().Y);
+			S->SetNumberField(TEXT("yaw"), Record.WorldTransform.Rotator().Yaw);
 			Stations.Add(MakeShared<FJsonValueObject>(S));
 		}
 		Root->SetArrayField(TEXT("stations"), Stations);
@@ -208,6 +211,23 @@ FString ULBSpacecraftDevToolset::GetSpacecraftFactoryStatus()
 	{
 		Root->SetNumberField(TEXT("trackPieces"),
 			Track->GetPieces().Num());
+		// Every laid piece - the crane placement fault of 2026-09-02 needed
+		// to know where the node pieces actually sit.
+		{
+			TArray<TSharedPtr<FJsonValue>> Pieces;
+			for (const FLBSpacecraftTrackPieceRecord& Piece : Track->GetPieces())
+			{
+				const TSharedRef<FJsonObject> P = MakeShared<FJsonObject>();
+				const FVector At = Piece.WorldTransform.GetLocation();
+				P->SetNumberField(TEXT("x"), At.X);
+				P->SetNumberField(TEXT("y"), At.Y);
+				P->SetNumberField(TEXT("yaw"), Piece.WorldTransform.Rotator().Yaw);
+				P->SetNumberField(TEXT("type"), static_cast<int32>(Piece.PieceType));
+				P->SetStringField(TEXT("node"), Piece.NodeStationId.ToString());
+				Pieces.Add(MakeShared<FJsonValueObject>(P));
+			}
+			Root->SetArrayField(TEXT("pieces"), Pieces);
+		}
 	}
 	if (ALBSpacecraftPowerAuthority* Power = GameMode->GetPowerAuthority())
 	{
