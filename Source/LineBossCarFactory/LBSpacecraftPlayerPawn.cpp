@@ -501,18 +501,33 @@ FName ALBSpacecraftPlayerPawn::FindStationUnderCursor() const
 	{
 		return NAME_None;
 	}
+	// SMALLEST FOOTPRINT WINS. The hall is placed first and its 260 m
+	// footprint contains every point on its floor, so first-match
+	// returned the hall for every click on a station inside it - the
+	// stranger playthrough (2026-09-02) could not select a single
+	// station, and the one time it "selected" something it was the
+	// hall with Remove station under the cursor. Same rule the site
+	// hub uses for its overlapping rectangles.
+	FName Best = NAME_None;
+	float BestArea = TNumericLimits<float>::Max();
 	for (const FLBSpacecraftStationRecord& Record :
 		GameMode->GetBuildAuthority()->GetStations())
 	{
 		const FLBSpacecraftStationDefinition* Definition =
 			ALBSpacecraftBuildAuthority::FindDefinition(Record.DefinitionId);
-		if (Definition != nullptr && StationContainsPoint(
+		if (Definition == nullptr || !StationContainsPoint(
 			Record.WorldTransform, Definition->FootprintCm, FloorPoint))
 		{
-			return Record.StationId;
+			continue;
+		}
+		const float Area = Definition->FootprintCm.X * Definition->FootprintCm.Y;
+		if (Area < BestArea)
+		{
+			BestArea = Area;
+			Best = Record.StationId;
 		}
 	}
-	return NAME_None;
+	return Best;
 }
 
 void ALBSpacecraftPlayerPawn::SetPlacementDefinition(FName DefinitionId)
