@@ -210,3 +210,23 @@ Fixed and verified in PIE this wave: F2b (offers first), F22
 F25, F26, F27, F28 (3x deadline until the first delivery). Open: F20
 (a budget warning before the fourth station) and F5/F9/F12 from the
 first wave.
+
+## Wave four backlog (2026-09-02 morning, from twelve auditing agents on the packaged frames)
+
+Two parallel audits read the cycle-11 package frames at full resolution,
+each report refuted by a second agent; none were refuted. Beyond
+confirming the fixes above in the shipped exe, they logged what a
+first-timer would still trip on. Not yet fixed:
+
+| # | Severity | Finding |
+|---|---|---|
+| F37 | med | On the site map the top bar says "Build the line" and the bold objective says "Place assembly stations", but nothing on that screen can do either; the only cue is the footer |
+| F38 | med | The site BUILD list offers "Ship factory 250,000 cr" while the ship factory already stands on the map with ENTER on it; reads as a second one, or as not yet owned |
+| F39 | low | The power plant is buyable two ways at once - the panel row and the on-map "+ BUY 200,000 cr" badge - with nothing saying they are the same purchase |
+| F40 | low | Nine padlocks carry no name, price or unlock condition; one padlock sits on the empty parking apron |
+| F41 | low | Top-bar abbreviations "PWR 0/800 kW", "RSC 0 pts 0/6", "REP T1 0 pts" and "(keys 1 / 2 / 4)" are unexplained; PWR shows 800 kW before any power plant is bought |
+| F42 | low | The objectives box mixes steps, unlock counters ("0/1 Conveyor belts") and plain stats ("Land: 64 bays") with no sub-headings; "Conveyor belts" is a stale name now the crane moves the craft |
+| F43 | low | Contract offers have no visible Accept affordance - "Accept" sits mid-sentence in a wrapped text block |
+| F44 | low | "Floor Pan" (a car-body term) and "MAKE-VS-BUY" (procurement jargon) in the import list; "dirty" work and "bay" are never defined |
+| F45 | low | The gameplay debugger is reachable in the packaged build on the apostrophe key (found by the replay, not by a player) |
+
