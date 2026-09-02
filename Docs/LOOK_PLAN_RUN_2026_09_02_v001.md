@@ -129,4 +129,18 @@ Shipping, and not fixed here.
 
 ## Status
 
-Filled in when the second package finishes.
+**Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD
+SUCCESSFUL, 2.9 GB archive). The packaged replay with real OS input
+(`Saved/Audits/LookPlan_Package12b_2026_09_02/`: thirteen frames over 3 m
+48 s of sim time, the UAT tail and both scripts) ran the dev line, the
+Contracts tab with the three livery cards, the Build tab, and the running
+line with racks, towers and the dark floor, and the packaged log holds no
+fatal error. The audio crash of cycle 12 is not reproduced. `Film.sav`
+is copied into the package's own SaveGames folder by the replay script.
+
+Not covered by the replay: the player's own hall entry (the replay uses
+the dev Enter with an explicit zoom, which framed the hall's west edge
+rather than the line's centre), the primer coat in the package (the
+dev-started craft carries a white livery), and any run longer than four
+minutes. The Windows Firewall prompt appears once for the new build path;
+the replay dismisses it with Cancel, which changes no setting.
