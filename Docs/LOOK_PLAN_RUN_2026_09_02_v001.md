@@ -265,9 +265,41 @@ flames lit, shadow on the paving (`departure_taxi_arrives_at_strip_start.png`,
 `departure_slowed_taxi_and_sprint.png`, six frames across the run). The
 test that waits for a departure to finish waits 14 s instead of 8.
 
+## The evening, in order (after "keep improving")
+
+Each landed as its own commit with a frame and a green suite:
+
+1. Warm key as the default (the owner's choice from the A/B frames).
+2. The Scout's cycle seconds retuned 440 to 255; first ship at 360 s of
+   sim on the dev line, was 552.
+3. Tidy pass: tighter entry framing, the fitting station's build tile,
+   the storage rack's real mesh and its footprint turned to face the
+   camera, kit crate lids in tan, light bars over the line.
+4. Nothing sits on the line: docks, slot pads, cable runs, dolly and
+   stockpile moved from the pad's ends to its flanks.
+5. The hull comes together at the first station, along the craft's axis,
+   centred on its slot, with no second set of sections on the dolly.
+6. The research tab as picture tiles; contracts you hold as cards.
+7. The runway reads (dark deck, framed strip) and the departure taxis to
+   the strip's start and sprints down it slowly enough to watch.
+
+Cycle 13 (`Builds/LookPlan_2026_09_02c`) packages all of it; the status
+line below says whether it completed.
+
 ## Status
 
-**Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD
+**Packaged playable, cycle 13** (`Builds/LookPlan_2026_09_02c`, BUILD
+SUCCESSFUL). The packaged replay with real OS input
+(`Saved/Audits/LookPlan_Package13_2026_09_02/`: thirteen frames over 3 m
+48 s of sim, the UAT tail and both scripts) ran the dev line, the
+Contracts tab with the livery cards and a held-contract card, the Build
+tab and the running line - warm key, dark floor, racks, towers, the hull
+coming together at station 1 - and the packaged log holds no fatal error.
+`Film.sav` rides in the package's SaveGames. Same caveats as 12b: the
+replay uses the dev Enter with an explicit zoom, which frames the hall's
+west edge rather than the line's centre.
+
+Earlier that day: **cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD
 SUCCESSFUL, 2.9 GB archive). The packaged replay with real OS input
 (`Saved/Audits/LookPlan_Package12b_2026_09_02/`: thirteen frames over 3 m
 48 s of sim time, the UAT tail and both scripts) ran the dev line, the
