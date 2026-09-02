@@ -44,6 +44,22 @@ ALBSpacecraftPlayerPawn::ALBSpacecraftPlayerPawn()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom);
 	Camera->SetFieldOfView(48.f);
+	// Phase A of the look plan (2026-09-02): the audited frames were
+	// overexposed, every value pushed to the top of the range. The HDR
+	// visualiser showed why: the map locks exposure at EV100 0.0 while
+	// the lit scene averages EV100 4.45, so every pale surface sits
+	// four stops over. A bias could not reach that. The exposure is
+	// locked here instead, at the scene's own level, so the value
+	// ladder the palette was graded to is what reaches the screen.
+	Camera->PostProcessSettings.bOverride_AutoExposureMinBrightness = true;
+	Camera->PostProcessSettings.bOverride_AutoExposureMaxBrightness = true;
+	// This project does not use the extended luminance range, so these
+	// are LINEAR multipliers, not EV100: 2^4.4 lands on the metered
+	// scene (the visualiser read 4.2 back as EV 2.1).
+	Camera->PostProcessSettings.AutoExposureMinBrightness = 21.f;
+	Camera->PostProcessSettings.AutoExposureMaxBrightness = 21.f;
+	Camera->PostProcessSettings.bOverride_AutoExposureBias = true;
+	Camera->PostProcessSettings.AutoExposureBias = 0.f;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 

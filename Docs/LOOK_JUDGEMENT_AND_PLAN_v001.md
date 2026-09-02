@@ -90,6 +90,23 @@ frame the line so the hall's edges are on screen.
 flashes at the fitting point, the departure. The owner is the only one who
 sees the game move, so his frame-with-a-note reports are the gate here.
 
+## Phase A, first pass (same day)
+
+The HDR visualiser found the real fault under "no value contrast": the map
+locks exposure at EV100 0.0 while the lit scene averages EV100 4.45, so
+every surface sat four stops over and even a dark floor clipped to white
+(`phaseA_hdr_readout_before.png`). The player camera now locks exposure at
+the scene's level (linear multiplier 21, read back as EV 4.4 -
+`phaseA_hdr_readout_after.png`), the interior slab and zones drop to a dark
+concrete with the traffic lanes painted pale, and the sun casts contact
+shadows. Frames: `phaseA_entry_exposure_locked.png`,
+`phaseA_station1_exposure_locked.png`. The floor reads as concrete with
+texture, the stations and hazard edges stand off it, hull sections read pale
+on mid, shadows have depth. Still cool-blue overall: the plan's "warmer key"
+is deliberately NOT done yet - the palette adoption rejected a warm sun on
+measured grounds (it pushes every albedo toward the amber arc). A mild warm
+sun is the next frame to judge, against that evidence.
+
 ## What not to do
 
 - Do not chase asset count. One good station model beats six variants.

@@ -232,6 +232,19 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// it reads as the spine. Palette hazard backing #23211F in linear.
 	const FLinearColor SpacecraftConveyorBed(0.017f, 0.016f, 0.014f);
 	const FLinearColor SpacecraftCrateColour = LBSpacecraftPalette::CrateTan; // delivered crates - a second, different crate tone
+	// PHASE A OF THE LOOK PLAN (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md,
+	// owner "start on A", 2026-09-02): VALUE CONTRAST. Every frame
+	// judged that day had floor, pad, pallet, hull and wall in one band
+	// of pale grey. The interior floor drops to a dark concrete so the
+	// pale machines, pallets and craft stand off it, the way both
+	// reference games' floors work. Candidates, not palette tokens yet:
+	// they become Floor.Concrete.Dark in the spec once a frame is judged.
+	// Measured on the first phase A frame: a blue-leaning dark tone
+	// (#65686E) read cool under a white sun and still cool under a warm
+	// one, floor sampling 139/145/153. The concrete family is warm (hue
+	// 38, like Floor.Concrete), so the dark floor is too.
+	const FLinearColor SpacecraftFloorDark(0.152f, 0.143f, 0.130f);   // ~#6D6A64
+	const FLinearColor SpacecraftFloorZone(0.196f, 0.186f, 0.170f);   // ~#7A776F
 	const FLinearColor SpacecraftBeamColour(0.4f, 0.85f, 1.f);
 	const FLinearColor SpacecraftWeldColour(1.f, 0.92f, 0.7f);
 	const FLinearColor SpacecraftSparkColour(1.f, 0.6f, 0.15f);
@@ -8250,9 +8263,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		// concrete so the zones read as swept, worked areas rather than
 		// as grey paint - the governing palette rule still applies, and
 		// no world surface may be both bright and saturated.
-		const FLinearColor ZoneStorage(0.585f, 0.570f, 0.540f);
-		const FLinearColor ZoneStaging(0.646f, 0.628f, 0.592f);
-		const FLinearColor ZoneTraffic(0.694f, 0.674f, 0.638f);
+		// Phase A: the zones sit a step above the dark slab, and the
+		// traffic lanes at the ends are PAINTED PALE - a walkway reads
+		// as paint on dark concrete, never as a lighter grey on grey.
+		const FLinearColor ZoneStorage =
+			LBSpacecraftWIPPresentationPrivate::SpacecraftFloorZone;
+		const FLinearColor ZoneStaging =
+			LBSpacecraftWIPPresentationPrivate::SpacecraftFloorZone;
+		const FLinearColor ZoneTraffic = LBSpacecraftPalette::FloorConcrete;
 		const FLinearColor HazardTone(0.79f, 0.63f, 0.11f);
 		const float HalfX = Floor.X * 0.5f;
 		const float HalfY = Floor.Y * 0.5f;
@@ -8265,7 +8283,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		// single controlled surface; the zone paint above (22-30 cm)
 		// still reads.
 		Flat(TEXT("CleanSlab"), 0,
-			FLinearColor(0.59f, 0.565f, 0.52f),
+			LBSpacecraftWIPPresentationPrivate::SpacecraftFloorDark,
 			FVector(HallAt.X, HallAt.Y, 14.f),
 			FVector(Floor.X - 80.f, Floor.Y - 80.f, 4.f));
 
@@ -8603,7 +8621,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	// with it. RefreshSiteDressing cannot do it - it runs once, behind a
 	// latch, before any building exists.
 	{
-		const FLinearColor SlabTone = LBSpacecraftPalette::FloorConcrete; // interior slab
+		const FLinearColor SlabTone =
+			LBSpacecraftWIPPresentationPrivate::SpacecraftFloorDark; // interior slab, phase A
 		const FName SlabKey(*FString::Printf(TEXT("HallSlab_%s"),
 			*Hall->StationId.ToString()));
 		if (UStaticMeshComponent* Slab =
@@ -8616,6 +8635,37 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 				FVector(HallAt.X, HallAt.Y, 6.f),
 				FVector(Floor.X / 100.f, Floor.Y / 100.f, 0.10f)));
 			HallInteriorPieces.Add(Slab);
+		}
+		// THE SITE'S PAVING STOPS AT THE HALL WALL. The site dressing
+		// tiles the whole plot before any building exists, and its
+		// tiles stand proud of this slab, so every phase A frame of the
+		// interior was showing the OUTDOOR paving (the floor sample did
+		// not move by one value when the slab's tone changed,
+		// 2026-09-02). The tiles under the hall's footprint go, once;
+		// the hall brings its own floor.
+		if (SiteFloorTiles != nullptr)
+		{
+			TArray<int32> Under;
+			const int32 Count = SiteFloorTiles->GetInstanceCount();
+			for (int32 Index = 0; Index < Count; ++Index)
+			{
+				FTransform TileAt;
+				if (SiteFloorTiles->GetInstanceTransform(Index, TileAt, true)
+					&& FMath::Abs(TileAt.GetLocation().X - HallAt.X)
+						< Floor.X * 0.5f
+					&& FMath::Abs(TileAt.GetLocation().Y - HallAt.Y)
+						< Floor.Y * 0.5f)
+				{
+					Under.Add(Index);
+				}
+			}
+			if (Under.Num() > 0)
+			{
+				SiteFloorTiles->RemoveInstances(Under);
+				UE_LOG(LogLBSpacecraftPresenter, Display,
+					TEXT("SPACECRAFT PRESENTER: %d site tiles lifted from ")
+					TEXT("under the hall"), Under.Num());
+			}
 		}
 	}
 
@@ -9501,7 +9551,18 @@ void ALBSpacecraftWIPPresentationActor::ApplySceneLighting()
 		if (UDirectionalLightComponent* Sun =
 			Cast<UDirectionalLightComponent>(It->GetLightComponent()))
 		{
-			Sun->SetLightColor(FLinearColor::White);
+			// Phase A (2026-09-02): a MILD warm key, judged on a frame
+			// against the adoption note above. With exposure locked at
+			// the scene's level the frame came out cool-blue from the
+			// sky fill alone; this is the smallest warmth that reads,
+			// and the sky fill stays cool so pale hull and pale ground
+			// still separate.
+			Sun->SetLightColor(FLinearColor(1.0f, 0.965f, 0.915f));
+			// Phase A: contact shadows, so a pallet, a drone and a hull
+			// section sit ON the floor instead of floating in the same
+			// value as it. Screen-space length, a small fraction.
+			Sun->ContactShadowLength = 0.03f;
+			Sun->MarkRenderStateDirty();
 			// High overcast daylight, fixed. The spec puts the sun at
 			// 62 degrees and never overhead: a 90-degree sun kills the
 			// silhouette read from above, which is the only read this
