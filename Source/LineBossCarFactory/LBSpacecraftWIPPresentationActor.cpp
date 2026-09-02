@@ -3639,6 +3639,21 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 							PartMesh = (*Stacks)[0]->GetStaticMesh();
 						}
 					}
+					if (PartMesh == nullptr
+						&& Record.AllocatedComponents.Num() > 0)
+					{
+						// No stock stack on show (frames, 2026-09-02: the
+						// crew flew with a plain cube): the station's own
+						// kit pallet for its first allocated part.
+						TArray<FName> PalletKeys;
+						GetKitPalletCandidates(Record.AllocatedComponents[0],
+							PalletKeys);
+						if (PalletKeys.Num() > 0)
+						{
+							PartMesh = TryGetStationMesh(
+								PalletKeys[PalletKeys.Num() / 2]);
+						}
+					}
 					if (PartMesh != nullptr
 						&& Carried->GetStaticMesh() != PartMesh)
 					{

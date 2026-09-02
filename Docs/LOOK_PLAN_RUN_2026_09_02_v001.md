@@ -111,7 +111,12 @@ once the deadline followed the retune.
   carrying a load to the hull, the crane taking the craft on in the
   seventh). The load is the crate fallback, not the pallet part: that
   station showed no stock stack for the carry to copy. The real-part
-  carry is coded and tested but still not seen.
+  carry is coded and tested but still not seen. A later pass added a
+  fallback to the station's own kit pallet when no stock stack shows;
+  the load on the tether is still a small pale block at the play zoom
+  (`phaseD_sortie_load_station2.png`), which may be the pallet mesh at a
+  third of its size or the crate - the frame cannot tell them apart, so
+  this stays not proven.
 - The tool tower reads mostly as its top from the play camera; whether a
   lower-angle silhouette is worth a camera change is a question for the
   owner, not something this pass decided.
