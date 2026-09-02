@@ -1104,6 +1104,8 @@ private:
 	 *  craft is in transit. */
 	void TickHallCrane(float DeltaSeconds);
 	int32 HallInteriorStationCount = -1;
+	/** Cranes the hall was last built with (see HallInteriorStationCount). */
+	int32 HallInteriorCraneCount = -1;
 
 	/** THE SITE SCENERY (owner 2026-08-28: "see if there's any
 	 *  sceneries or anything in fab or download... needs to be a full

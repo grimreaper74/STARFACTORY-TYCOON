@@ -7837,11 +7837,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			LineStations.Add(&Record);
 		}
 	}
-	if (LineStations.Num() == HallInteriorStationCount)
+	// Rebuilt when the LINE changes - or the CRANE COUNT: a bought
+	// crane must appear on the rails at once, not at the next station
+	// placement (PULSE_LINE_DESIGN_v001, 2026-09-02).
+	const int32 CraneCountNow = BuildAuthority != nullptr
+		? BuildAuthority->GetCraneCount() : 1;
+	if (LineStations.Num() == HallInteriorStationCount
+		&& CraneCountNow == HallInteriorCraneCount)
 	{
 		return;
 	}
 	HallInteriorStationCount = LineStations.Num();
+	HallInteriorCraneCount = CraneCountNow;
 	for (UStaticMeshComponent* Piece : HallInteriorPieces)
 	{
 		if (Piece != nullptr)

@@ -33,9 +33,13 @@ What stood between the line and its first ship, in order found:
 - **F30, F33 (low).** Order toast names the item and the wait; the top
   bar shows "SCOUT-01 LATE 0/1" instead of "No contract" beside a
   held late order.
-- **Open:** F36 (after the first delivery nothing suggests the next
-  move), F20 (budget warning), F5/F9/F12 (site hit-testing, door cue),
-  and a confirmation for refund-bearing removals.
+- **F36 (low).** After the first delivery nothing suggested the next
+  move. **Fixed** (last build of the night): the objectives panel says
+  "NEXT: accept a contract - the line is idle" or "... N finished
+  ship(s) sell the moment one is taken" whenever no accepted order is
+  left to build.
+- **Open:** F20 (budget warning), F5/F9/F12 (site hit-testing, door
+  cue), and a confirmation for refund-bearing removals.
 
 Two toolset additions made the run possible: `ProbePieWidgetAt(X,Y)`
 reports the widget and label under a point before a click (a rendered
@@ -77,10 +81,23 @@ Design: Docs/PULSE_LINE_DESIGN_v001.md. Built tonight:
   and `RuntimeCoordinator.MoreCranesMakeAShorterPulse` (one crane per
   gap delivers sooner than one crane; the cap refuses one more).
 
-Not done tonight: the hall's crane meshes still animate ONE crane to
-the one carried craft; with a crane per gap the other cranes stand
-still while their craft rise. That is the next presenter task. No
-packaged build carries the pulse line yet - see the status line below.
+**Known visual gap, found at 05:40 and NOT fixed:** on the scripted
+BuildLine layout the five bought crane portals all stand at the head
+end of the hall, 4 m apart, not over the station gaps. The rail legs
+are derived from the laid track pieces, and on that layout the pieces
+carrying station nodes sit in a short run rather than under the
+stations, so the parks follow the pieces. The crane count, purchase
+and the pulse itself are unaffected (the craft ride regardless); the
+cranes just stand in the wrong place. This predates tonight (the
+single crane stood there too) and is the first thing to look at in
+the presenter.
+
+Seen in PIE (`Saved/Audits/PulseLine_2026_09_02`): the top bar reads
+"Line running - 2 craft, 1 done and waiting for the pulse", then every
+craft on the line changes station in the same status sample and a
+new one enters at the head; `pulse_sheet.png` shows the four frames
+around one pulse. A second commit (299d957) gives every crane its own
+hoist so a crane-per-gap trip lifts its craft together.
 
 ## Status, honestly
 
@@ -88,4 +105,5 @@ packaged build carries the pulse line yet - see the status line below.
   and green in the indexed suite; the package at
   `Builds/Overnight_2026_09_01` (cycle 9) predates waves two and three.
 - Pulse line: **validation-only**, `Saved/Automation/PulseLine3_2026_09_02`
-  138/138, not yet seen in a rendered frame at the time of this line.
+  and `PulseCranes_2026_09_02` 138/138 each, seen in PIE frames
+  (`Saved/Audits/PulseLine_2026_09_02`), not yet packaged.

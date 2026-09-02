@@ -264,6 +264,36 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		AddLine(LOCTEXT("StepDeliver", "Deliver your first ship")
 			.ToString(), false);
 	}
+	// AFTER THE FIRST SHIP the steps retire, and the stranger run
+	// (2026-09-02, F36) found nothing then named the next move while
+	// the line sat idle with the offer board below the fold. One line,
+	// only while it applies: no accepted order left to build.
+	if (Delivered > 0 && GameMode->GetProductionAuthority() != nullptr)
+	{
+		const ALBSpacecraftProductionAuthority* Ledger =
+			GameMode->GetProductionAuthority();
+		bool bAnyOpenOrder = false;
+		for (const FLBSpacecraftContract& Contract : Ledger->GetContracts())
+		{
+			if (Contract.State == ELBSpacecraftContractState::Accepted
+				&& Contract.DispatchedCount < Contract.Quantity)
+			{
+				bAnyOpenOrder = true;
+				break;
+			}
+		}
+		if (!bAnyOpenOrder)
+		{
+			const int32 Stock = Ledger->GetStockedCraftCount();
+			AddLine(Stock > 0
+				? FText::Format(LOCTEXT("NextSellStock",
+					"NEXT: accept a contract - {0} finished ship(s) sell the moment one is taken"),
+					Stock).ToString()
+				: LOCTEXT("NextAccept",
+					"NEXT: accept a contract - the line is idle (Contracts tab)")
+					.ToString(), false);
+		}
+	}
 	struct FLBSpacecraftObjectiveRow
 	{
 		int32 Needed;

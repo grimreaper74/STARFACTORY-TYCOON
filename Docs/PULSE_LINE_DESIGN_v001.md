@@ -135,19 +135,28 @@ so with one crane the craft move one after another under the single
 gantry, and with a crane per gap they all rise and travel together.
 `TickHallCrane` drives every owned crane, each to its assigned craft.
 
-## Tests to write before the switch
+## Tests (as written, which differ from the first list)
 
-- `RuntimeCoordinator.PulseWaitsForTheSlowestStation`: two units,
-  one fast and one slow station; the fast unit is `bStopComplete`
-  and does not move until the slow one is.
-- `RuntimeCoordinator.OneCraneMovesCraftInSeries`: three craft, one
-  crane: the move phase is three trips long; three cranes: one.
-- `RuntimeCoordinator.AStarvedStationHoldsOnlyItself`: a unit with
-  no parts holds through a pulse; the others advance.
-- `SaveLoad.PulseStateRoundTrips` and the v7 refusal.
+- `RuntimeCoordinator.PulseMovesCraftTogether`: three craft on the
+  rig line; a finished station is seen holding its craft while
+  another craft is mid-stop; every station change lands on a pulse
+  tick; all three deliver.
+- `RuntimeCoordinator.MoreCranesMakeAShorterPulse`: the same run with
+  one crane and with a crane per gap (bought through BuyGantryCrane up
+  to the cap, then refused with "one per gap"); the per-gap line
+  delivers sooner. The pulse count is deliberately not pinned.
+- `Logistics.ADeliveryDockCarriesBoughtPartsToTheLine` (same night,
+  stranger F32) is unrelated to the pulse but shares the commit
+  window.
+- Not written: a dedicated starved-station test (the behaviour is
+  covered by the existing starvation path in TryAdvanceAssignment and
+  by PulseMovesCraftTogether not deadlocking), and a v8 save round
+  trip beyond the existing `SaveLoad.MidFlightRoundTripRestoresExactly`,
+  which now carries the pulse fields through `Runtime` wholesale.
 - The existing `CraftFlowsOnCycleTimesToDispatch` "no station holds
-  two units" pin stays; its "at least the summed cycle times" bound
-  still holds (a pulse line is never faster than a serial one).
+  two units" pin and its "at least the summed cycle times" bound both
+  still hold; `ManualHoverTestHoldsCraft` holds because the line's end
+  is not a crane move.
 
 ## Order of work
 
@@ -173,8 +182,18 @@ shifts when the head admits the next craft.
 
 Evidence: `Saved/Automation/PulseLine3_2026_09_02` (138/138), with
 `RuntimeCoordinator.PulseMovesCraftTogether` and
-`RuntimeCoordinator.MoreCranesMakeAShorterPulse` new. **Validation-
-only**: no packaged build carries it, and step 4 (both crane models on
-camera) is still to do. Known gap: the hall animates one crane to the
-one carried craft; the other owned cranes stand still during a
-shared trip.
+`RuntimeCoordinator.MoreCranesMakeAShorterPulse` new. Seen in PIE at
+commit 87e8edd (`Saved/Audits/PulseLine_2026_09_02`: the top bar reads
+"1 done and waiting for the pulse", then every craft on the line
+changes station in the same sample and a new one enters). Commit
+299d957 then gave every crane its own hoist so a shared trip lifts
+its craft together (`Saved/Automation/PulseCranes_2026_09_02`,
+138/138). A third commit rebuilds the hall interior when the crane
+count changes, so a bought crane appears at once. **Validation-only**
+until the cycle-10 package lands; step 4 (both crane models on
+camera, side by side) is still to do, and it is blocked by a placement
+fault found at 05:40: on the scripted BuildLine layout every crane
+portal stands at the head end of the hall 4 m apart, because the rail
+legs follow the laid track pieces and those do not sit under the
+stations there. The pulse and the carry are unaffected; the cranes
+stand in the wrong place. First presenter task next.

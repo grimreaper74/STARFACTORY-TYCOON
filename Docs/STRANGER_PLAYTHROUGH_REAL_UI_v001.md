@@ -171,7 +171,9 @@ fresh x1 offer was accepted: cash 95,593 -> 257,593, "Ships delivered:
 1". Site map, hall, stations, crews, dock, commissioning, contract,
 orders, build and sale were all done through the real interface.
 
-F35 is fixed by filtering Withdrawn offers out of the held list.
+F35 is fixed by filtering Withdrawn offers out of the held list. F36
+is fixed by a NEXT line in the objectives panel whenever no accepted
+order is left to build.
 F34 and F31 are fixed together in the panel: the six ship components
 now head the import section under their own label, sub-parts follow,
 and orders in flight are listed AFTER the buttons (as "ON ORDER",
