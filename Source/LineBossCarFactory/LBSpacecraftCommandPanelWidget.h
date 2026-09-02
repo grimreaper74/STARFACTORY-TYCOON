@@ -186,6 +186,12 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** A CONTRACT YOU HOLD as a small card: the customer's livery as a
+	 *  swatch, customer and craft, a bar of craft delivered against
+	 *  ordered, and the clock as a chip. The old text line
+	 *  (BuildHeldContractLine) stays for the tests and the log. */
+	void AddHeldContractCard(const FLBSpacecraftContract& Contract,
+		double SimSeconds);
 	/** A CONTRACT CARD: the ship's picture, who wants it, one big
 	 *  number, the clock, and ACCEPT. The whole card is the button. */
 	ULBSpacecraftTaggedButton* AddOfferCard(

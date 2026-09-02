@@ -9,6 +9,7 @@
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
 #include "Components/ProgressBar.h"
+#include "Components/SizeBox.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "LBSpacecraftWIPPresentationActor.h"
@@ -1960,8 +1961,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						"CONTRACTS YOU HOLD").ToString());
 					bAnyHeld = true;
 				}
-				AddSectionLabel(BuildHeldContractLine(Held,
-					HeldLedger->GetSimSeconds()));
+				AddHeldContractCard(Held, HeldLedger->GetSimSeconds());
 			}
 		}
 		// ---- REFIT WORK ----
@@ -3030,6 +3030,89 @@ FString ULBSpacecraftCommandPanelWidget::BuildOfferButtonLabel(
 			Whole)),
 		FText::FromString(Clock),
 		FText::FromString(Who)).ToString();
+}
+
+void ULBSpacecraftCommandPanelWidget::AddHeldContractCard(
+	const FLBSpacecraftContract& Contract, double SimSeconds)
+{
+	using namespace LBSpacecraftCommandPanelPrivate;
+	UBorder* Card = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
+	Card->SetBrushColor(SpacecraftPanelButton);
+	Card->SetPadding(FMargin(8.f, 6.f));
+	UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(
+		UHorizontalBox::StaticClass());
+	// The livery swatch: colour belongs to the ships, and this is the
+	// one place in the panel a customer's colour stands on its own.
+	UBorder* Swatch = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
+	Swatch->SetBrushColor(Contract.LiveryColour);
+	Swatch->SetPadding(FMargin(0.f));
+	USizeBox* SwatchSize = WidgetTree->ConstructWidget<USizeBox>(
+		USizeBox::StaticClass());
+	SwatchSize->SetWidthOverride(10.f);
+	SwatchSize->SetHeightOverride(46.f);
+	SwatchSize->AddChild(Swatch);
+	if (UHorizontalBoxSlot* SwatchSlot = Row->AddChildToHorizontalBox(SwatchSize))
+	{
+		SwatchSlot->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+		SwatchSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	UVerticalBox* Lines = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	auto AddLine = [&](const FString& Text, int32 Size,
+		const FLinearColor& Colour)
+	{
+		UTextBlock* Block = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		Block->SetText(FText::FromString(Text));
+		Block->SetAutoWrapText(true);
+		Block->SetColorAndOpacity(FSlateColor(Colour));
+		FSlateFontInfo Font = Block->GetFont();
+		Font.Size = Size;
+		Block->SetFont(Font);
+		Lines->AddChildToVerticalBox(Block);
+	};
+	const FLBSpacecraftCustomer* Buyer =
+		FLBSpacecraftCustomerCatalogue::FindCustomer(Contract.CustomerId);
+	const bool bLate = Contract.State == ELBSpacecraftContractState::Expired;
+	FString Clock;
+	if (bLate)
+	{
+		Clock = LOCTEXT("HeldExpired", "Late").ToString();
+	}
+	else if (Contract.DeadlineSimSeconds > 0.0)
+	{
+		Clock = FormatTimeRemaining(Contract.DeadlineSimSeconds - SimSeconds);
+	}
+	AddLine((Buyer != nullptr ? Buyer->DisplayName : FString())
+		+ (Clock.IsEmpty() ? FString() : TEXT("  \u00B7  ") + Clock), 11,
+		bLate ? SpacecraftPanelWarn : SpacecraftPanelSubText);
+	AddLine(FText::Format(LOCTEXT("HeldWhat", "{0}  {1}/{2}  {3} each"),
+		FText::FromName(Contract.RecipeId), Contract.DispatchedCount,
+		Contract.Quantity,
+		FText::FromString(ULBSpacecraftTopBarWidget::FormatCurrency(
+			Contract.PricePerUnitPence))).ToString(), 13, SpacecraftPanelText);
+	// The bar: delivered against ordered.
+	UProgressBar* Bar = WidgetTree->ConstructWidget<UProgressBar>(
+		UProgressBar::StaticClass());
+	Bar->SetPercent(Contract.Quantity > 0
+		? FMath::Clamp(static_cast<float>(Contract.DispatchedCount)
+			/ static_cast<float>(Contract.Quantity), 0.f, 1.f)
+		: 0.f);
+	Bar->SetFillColorAndOpacity(bLate ? SpacecraftPanelWarn : SpacecraftPanelText);
+	if (UVerticalBoxSlot* BarSlot = Lines->AddChildToVerticalBox(Bar))
+	{
+		BarSlot->SetPadding(FMargin(0.f, 4.f, 0.f, 0.f));
+	}
+	if (UHorizontalBoxSlot* LinesSlot = Row->AddChildToHorizontalBox(Lines))
+	{
+		LinesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		LinesSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	Card->SetContent(Row);
+	if (UVerticalBoxSlot* CardSlot = ContentBox->AddChildToVerticalBox(Card))
+	{
+		CardSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+	}
 }
 
 ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddOfferCard(

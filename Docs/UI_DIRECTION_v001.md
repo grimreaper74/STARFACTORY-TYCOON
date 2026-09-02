@@ -90,7 +90,11 @@ cards, cut from real captures.
    node it waits for; red only where a node is affordable-but-short,
    never for "later"; a Mk2 family without a model wears the Mk1
    picture). Frames `Saved/Audits/UITiles_2026_09_02/research_tiles*.png`.
-8. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
+8. Contracts you hold as cards - **done 2026-09-02** (livery swatch,
+   customer and clock, craft and count and price, a bar of delivered
+   against ordered; the text line stays for the tests). Frame
+   `Saved/Audits/UITiles_2026_09_02/held_contract_cards.png`.
+9. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
    glyph beats a render: tabs, session, land.
 
 Every step is judged on a rendered frame before it is called done.
