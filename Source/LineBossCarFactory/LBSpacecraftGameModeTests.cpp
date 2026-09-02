@@ -361,7 +361,9 @@ bool FLBSpacecraftFlightPresentationTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("full pelt covers the factory length and exits"),
 		EndSprint.Y < -26000.f);
 
-	for (int32 Tick = 0; Tick < 8; ++Tick)
+	// 14 ticks, was 8: the departure runs 11.5 s since the 2026-09-02
+	// slow-down (4.5 s chicane, 7 s sprint), so a viewer can see it.
+	for (int32 Tick = 0; Tick < 14; ++Tick)
 	{
 		Presenter->Tick(1.0f);
 	}

@@ -255,9 +255,15 @@ tinted asphalt-dark now with dark shoulders above the paving (the deck
 block first went in at floor height and was buried under the site tiles,
 the hall slab's lesson again), and the runway camera frames the strip
 itself, 140 m, centred on it (`departure_runway_after_dark_deck.png`).
-The runway test's part count moves from 85 to 86 for the deck. Not seen
-yet: the craft on the strip during its sprint; the eight-second capture
-cadence missed it, and that is a capture problem, not a scene one.
+The runway test's part count moves from 85 to 86 for the deck. The craft
+was then found never to cross the strip at all: the departure started
+from the dispatch position, slid sideways to the runway's X and sprinted
+from wherever it stood, in 4.8 s. It now taxis to the strip's START
+during a 4.5 s chicane (a new approach term in the departure maths, zero
+by default so the pinned tests hold) and sprints 7 s down the runway,
+flames lit, shadow on the paving (`departure_taxi_arrives_at_strip_start.png`,
+`departure_slowed_taxi_and_sprint.png`, six frames across the run). The
+test that waits for a departure to finish waits 14 s instead of 8.
 
 ## Status
 

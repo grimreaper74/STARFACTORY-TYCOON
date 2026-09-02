@@ -7098,7 +7098,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 FVector ALBSpacecraftWIPPresentationActor::ComputeDepartureOffsetCm(
 	float ElapsedSeconds, float InChicaneSeconds, float InChicaneWidthCm,
 	float InSprintSeconds, float InSprintDistanceCm, float InClimbCm,
-	float InLateralTargetCm)
+	float InLateralTargetCm, float InApproachYCm)
 {
 	const float Total = InChicaneSeconds + InSprintSeconds;
 	const float T = FMath::Clamp(ElapsedSeconds, 0.f, Total);
@@ -7114,7 +7114,11 @@ FVector ALBSpacecraftWIPPresentationActor::ComputeDepartureOffsetCm(
 		// runway centreline before the sprint - it just does it as a
 		// smooth, direct slide rather than a showy S-curve.
 		Offset.X = InLateralTargetCm * FMath::SmoothStep(0.f, 1.f, A);
-		Offset.Y = -ChicaneRunCm * A;
+		// The approach term (0 by default, so the maths is unchanged
+		// for callers without it) taxis the craft along Y to the
+		// strip's start during the chicane (2026-09-02).
+		Offset.Y = -ChicaneRunCm * A
+			+ InApproachYCm * FMath::SmoothStep(0.f, 1.f, A);
 		Offset.Z = InClimbCm * 0.25f * A;
 		return Offset;
 	}
@@ -7123,7 +7127,7 @@ FVector ALBSpacecraftWIPPresentationActor::ComputeDepartureOffsetCm(
 		? FMath::Clamp((T - InChicaneSeconds) / InSprintSeconds, 0.f, 1.f)
 		: 1.f;
 	Offset.X = InLateralTargetCm;
-	Offset.Y = -(ChicaneRunCm + InSprintDistanceCm * U * U);
+	Offset.Y = -(ChicaneRunCm + InSprintDistanceCm * U * U) + InApproachYCm;
 	Offset.Z = InClimbCm * (0.25f + 0.75f * U);
 	return Offset;
 }
@@ -7141,10 +7145,14 @@ void ALBSpacecraftWIPPresentationActor::TickDepartures(float DeltaSeconds)
 			continue;
 		}
 		Departure.ElapsedSeconds += DeltaSeconds;
+		// The chicane ends at the strip's start, whatever the craft's
+		// dispatch position: the sprint then runs down the runway.
+		const float ApproachYCm = (SiteRunwayStartYCm + ChicaneWidthCm * 2.5f)
+			- Departure.StartLocation.Y;
 		const FVector Offset = ComputeDepartureOffsetCm(
 			Departure.ElapsedSeconds, ChicaneSeconds, ChicaneWidthCm,
 			SprintSeconds, SprintDistanceCm, DepartureClimbCm,
-			SiteRunwayXCm - Departure.StartLocation.X);
+			SiteRunwayXCm - Departure.StartLocation.X, ApproachYCm);
 		Departure.Component->SetWorldLocation(
 			Departure.StartLocation + Offset);
 		// NO BANKING (owner, 2026-08-30: lose the cinematic) - the taxi
@@ -7158,7 +7166,7 @@ void ALBSpacecraftWIPPresentationActor::TickDepartures(float DeltaSeconds)
 				Departure.ElapsedSeconds + 0.05f, ChicaneSeconds,
 				ChicaneWidthCm, SprintSeconds, SprintDistanceCm,
 				DepartureClimbCm,
-				SiteRunwayXCm - Departure.StartLocation.X);
+				SiteRunwayXCm - Departure.StartLocation.X, ApproachYCm);
 		const FVector Motion = Ahead
 			- Departure.Component->GetComponentLocation();
 		float FaceYaw = -90.f + SpacecraftCraftNoseYawOffsetDeg;

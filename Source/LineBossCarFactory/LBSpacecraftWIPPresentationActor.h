@@ -127,13 +127,17 @@ public:
 	 *  craft flies a CHICANE (one S-weave), then goes full pelt down the
 	 *  length of the factory (the line's -Y axis) and exits. */
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
-	float ChicaneSeconds = 2.2f;
+	// 4.5 and 7 (were 2.2 and 2.6, 2026-09-02): a 4.8-second departure
+	// was over before a viewer could find the craft, and the runway is
+	// the payoff shot. The chicane now also taxis the craft to the
+	// strip's start, so the sprint runs down the runway.
+	float ChicaneSeconds = 4.5f;
 
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float ChicaneWidthCm = 900.f;
 
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
-	float SprintSeconds = 2.6f;
+	float SprintSeconds = 7.0f;
 
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float SprintDistanceCm = 26000.f;
@@ -578,7 +582,8 @@ public:
 	static FVector ComputeDepartureOffsetCm(float ElapsedSeconds,
 		float InChicaneSeconds, float InChicaneWidthCm,
 		float InSprintSeconds, float InSprintDistanceCm,
-		float InClimbCm, float InLateralTargetCm = 0.f);
+		float InClimbCm, float InLateralTargetCm = 0.f,
+		float InApproachYCm = 0.f);
 	/** TRICYCLE landing gear anchors in the craft's LOCAL frame, from
 	 *  its mesh bounds: one nose leg well forward on the centreline and
 	 *  two mains just aft of centre, all on the belly plane. Derived
