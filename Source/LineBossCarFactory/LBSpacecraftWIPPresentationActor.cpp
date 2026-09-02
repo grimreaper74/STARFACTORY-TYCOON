@@ -404,6 +404,26 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
 			TEXT("%s/SM_LB_ST_SubAssemblyHall_v003")
 			TEXT(".SM_LB_ST_SubAssemblyHall_v003"), StationMeshRoot))));
+	// STATION DRESS (look plan phases C and E, 2026-09-02): the four
+	// Meshy models commissioned from the same day's blockout, imported
+	// at declared sizes (Saved/Audits/Spacecraft/station_dress_import
+	// _v001.json). Geometry only; the presenter tints per role.
+	{
+		const TCHAR* DressRoot =
+			TEXT("/Game/LineBoss/Candidates/Spacecraft/StationDress_v001");
+		const TPair<const TCHAR*, const TCHAR*> Dress[] = {
+			{ TEXT("Station.ToolTower"), TEXT("SM_LB_ST_ToolTower_v001") },
+			{ TEXT("Station.ToolCabinet"), TEXT("SM_LB_ST_ToolCabinet_v001") },
+			{ TEXT("Hall.WallRack"), TEXT("SM_LB_ST_WallRack_v001") },
+			{ TEXT("Hall.LightBar"), TEXT("SM_LB_ST_LightBar_v001") } };
+		for (const auto& Entry : Dress)
+		{
+			StationMeshes.Add(FName(Entry.Key),
+				TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
+					FString::Printf(TEXT("%s/%s.%s"), DressRoot,
+						Entry.Value, Entry.Value))));
+		}
+	}
 	// The smelter that took the raw-to-stock recipes off the line.
 	StationMeshes.Add(FName(TEXT("Smelter")),
 		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
@@ -768,7 +788,11 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		// floor/wall quality. The gate's default-deny had silently
 		// killed RefreshSiteDressing in every build since it went up;
 		// the packaged journey finally made the fallback visible.
-		|| DefinitionId.ToString().StartsWith(TEXT("Site."));
+		|| DefinitionId.ToString().StartsWith(TEXT("Site."))
+		// The station dress and hall fill (look plan phases C and E,
+		// 2026-09-02): imported with sizes verified, so promoted.
+		|| DefinitionId.ToString().StartsWith(TEXT("Station."))
+		|| DefinitionId.ToString().StartsWith(TEXT("Hall."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -5168,36 +5192,87 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 	// Built here but DRIVEN in the tick, because it is the one part of
 	// a work station that moves.
 	{
-		// PHASE C, BLOCKOUT (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md): a
-		// station is a machine, not a slab. ONE TOOL TOWER stands on the
-		// FAR flank across the line - pale housing, amber cap, a blue
-		// work-light strip on the face that looks at the craft, an amber
-		// arm reaching in low over the work - and nothing spans the
-		// line (the portal is not coming back). Far flank only: the
-		// first blockout put a tower on the near flank too and it stood
-		// between the camera and the craft, hiding the hero (frame,
-		// 2026-09-02). The camera sits at -X looking +X; a yaw-90
-		// station's local -Y is world +X, the far side.
+		// PHASE C (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md): a station is a
+		// machine, not a slab. ONE TOOL TOWER on the FAR flank across
+		// the line - never between the camera and the craft (the first
+		// blockout's near tower hid the hero) - and a LOW cabinet on
+		// the near flank that hides nothing. The Meshy models
+		// (StationDress_v001) dress both when they load; the code
+		// blockout stands in when they do not. The camera sits at -X
+		// looking +X; a yaw-90 station's local -Y is world +X, far.
 		{
 			const FLinearColor TowerTone = LBSpacecraftPalette::MachineHousingPale;
 			const FLinearColor TowerCap = LBSpacecraftPalette::MachineAmber;
 			const FLinearColor TowerFoot = LBSpacecraftPalette::StructureGraphite;
 			const FLinearColor TowerLight = LBSpacecraftPalette::IndicatorWorking;
 			const float FlankY = -(FootY * 0.5f - 130.f);
-			AddBlock(TEXT("TowerFoot"), 0, TowerFoot,
-				FVector(0.f, FlankY, 20.f), FVector(260.f, 220.f, 40.f));
-			AddBlock(TEXT("Tower"), 0, TowerTone,
-				FVector(0.f, FlankY, 300.f), FVector(200.f, 170.f, 520.f));
-			AddBlock(TEXT("TowerCap"), 0, TowerCap,
-				FVector(0.f, FlankY, 580.f), FVector(230.f, 200.f, 36.f));
-			// The strip faces the craft, on the inward (+Y local) face.
-			AddBlock(TEXT("TowerLight"), 0, TowerLight,
-				FVector(0.f, FlankY + 90.f, 330.f), FVector(140.f, 8.f, 380.f));
-			// Amber arm segment reaching in over the work, low.
-			AddBlock(TEXT("TowerArm"), 0, TowerCap,
-				FVector(0.f, FlankY + 250.f, 500.f), FVector(50.f, 330.f, 44.f));
-			AddBlock(TEXT("TowerArmHead"), 0, TowerFoot,
-				FVector(0.f, FlankY + 420.f, 470.f), FVector(90.f, 60.f, 90.f));
+			auto PlaceDress = [&](const TCHAR* Part, UStaticMesh* Mesh,
+				const FVector& LocalAt, float LocalYawDeg,
+				const FLinearColor& Tint)
+			{
+				const FName Key(*FString::Printf(TEXT("%s_LF_%s"),
+					*Record.StationId.ToString(), Part));
+				UStaticMeshComponent* Piece = NewObject<UStaticMeshComponent>(
+					this, UStaticMeshComponent::StaticClass(), Key);
+				Piece->SetStaticMesh(Mesh);
+				Piece->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Piece->SetCastShadow(true);
+				Piece->SetupAttachment(RootComponent);
+				Piece->RegisterComponent();
+				// The surface family tints through BaseTint; a material
+				// without the parameter simply stays graphite.
+				if (UMaterialInterface* Base = Piece->GetMaterial(0))
+				{
+					UMaterialInstanceDynamic* Tinted =
+						UMaterialInstanceDynamic::Create(Base, Piece);
+					Tinted->SetVectorParameterValue(TEXT("BaseTint"), Tint);
+					for (int32 Slot = 0; Slot < Piece->GetNumMaterials(); ++Slot)
+					{
+						Piece->SetMaterial(Slot, Tinted);
+					}
+				}
+				FTransform T = Where;
+				T.AddToTranslation(Where.GetRotation().RotateVector(LocalAt));
+				T.SetRotation(Where.GetRotation()
+					* FRotator(0.f, LocalYawDeg, 0.f).Quaternion());
+				T.SetScale3D(FVector::OneVector);
+				Piece->SetWorldTransform(T);
+				Frame.Parts.Add(Piece);
+			};
+			if (UStaticMesh* TowerMesh =
+				TryGetStationMesh(FName(TEXT("Station.ToolTower"))))
+			{
+				// Its arm face looks at the craft (local +Y).
+				PlaceDress(TEXT("ToolTower"), TowerMesh,
+					FVector(0.f, FlankY, 0.f), 90.f, TowerTone);
+				AddBlock(TEXT("TowerCap"), 0, TowerCap,
+					FVector(0.f, FlankY, 572.f), FVector(180.f, 150.f, 24.f));
+				AddBlock(TEXT("TowerLight"), 0, TowerLight,
+					FVector(0.f, FlankY + 68.f, 330.f), FVector(90.f, 6.f, 360.f));
+			}
+			else
+			{
+				AddBlock(TEXT("TowerFoot"), 0, TowerFoot,
+					FVector(0.f, FlankY, 20.f), FVector(260.f, 220.f, 40.f));
+				AddBlock(TEXT("Tower"), 0, TowerTone,
+					FVector(0.f, FlankY, 300.f), FVector(200.f, 170.f, 520.f));
+				AddBlock(TEXT("TowerCap"), 0, TowerCap,
+					FVector(0.f, FlankY, 580.f), FVector(230.f, 200.f, 36.f));
+				AddBlock(TEXT("TowerLight"), 0, TowerLight,
+					FVector(0.f, FlankY + 90.f, 330.f), FVector(140.f, 8.f, 380.f));
+				AddBlock(TEXT("TowerArm"), 0, TowerCap,
+					FVector(0.f, FlankY + 250.f, 500.f), FVector(50.f, 330.f, 44.f));
+				AddBlock(TEXT("TowerArmHead"), 0, TowerFoot,
+					FVector(0.f, FlankY + 420.f, 470.f), FVector(90.f, 60.f, 90.f));
+			}
+			if (UStaticMesh* CabinetMesh =
+				TryGetStationMesh(FName(TEXT("Station.ToolCabinet"))))
+			{
+				// Near flank, off to one side of the crew docks, low.
+				PlaceDress(TEXT("ToolCabinet"), CabinetMesh,
+					FVector(FootX * 0.28f, FootY * 0.5f - 80.f, 0.f), -90.f,
+					TowerTone);
+			}
 		}
 		const FLinearColor RamTone = MachineAmber;
 		// The saddle the craft rests on reads DARK against the amber
@@ -8212,6 +8287,88 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	// stay - they draw the room's boundary without blocking the view.
 	Trusses = nullptr;
 	Lights = nullptr;
+	// PHASE E, FILL THE FRAME (look plan, 2026-09-02). The hall is 260 m
+	// by 180 m and the entry frame covers the middle 120 m, so anything
+	// on the walls is off screen; the fill has to live BESIDE THE LINE.
+	// Behind each station (far side, past the tower) a run of PALLET
+	// RACKS; in front, further out so a 3 m rack never covers the pad
+	// from a camera pitched 35 degrees, a second run; and LIGHT BARS
+	// hang in a row behind the line at 9 m, where they sit above the
+	// craft on screen and never between the camera and it. All three
+	// are Meshy models from the same day's commission; absent, the
+	// hall draws without them.
+	{
+		UInstancedStaticMeshComponent* Racks = nullptr;
+		ShellInstances(TEXT("HallRacks"),
+			TryGetStationMesh(FName(TEXT("Hall.WallRack"))), Racks);
+		UInstancedStaticMeshComponent* Bars = nullptr;
+		ShellInstances(TEXT("HallLightBars"),
+			TryGetStationMesh(FName(TEXT("Hall.LightBar"))), Bars);
+		if (LineStations.Num() > 0 && (Racks != nullptr || Bars != nullptr))
+		{
+			float MinY = TNumericLimits<float>::Max();
+			float MaxY = TNumericLimits<float>::Lowest();
+			float AxisX = 0.f;
+			for (const FLBSpacecraftStationRecord* Line : LineStations)
+			{
+				const FVector At = Line->WorldTransform.GetLocation();
+				MinY = FMath::Min(MinY, At.Y);
+				MaxY = FMath::Max(MaxY, At.Y);
+				AxisX = At.X;
+			}
+			// Racks run along the line every 6.4 m, 6 m long each.
+			for (float Y = MinY - 400.f; Y <= MaxY + 400.f; Y += 640.f)
+			{
+				if (Racks != nullptr)
+				{
+					Racks->AddInstance(FTransform(FRotator(0.f, 90.f, 0.f),
+						FVector(AxisX + 2100.f, Y, 0.f)), true);
+					Racks->AddInstance(FTransform(FRotator(0.f, -90.f, 0.f),
+						FVector(AxisX - 2600.f, Y, 0.f)), true);
+				}
+			}
+			for (float Y = MinY; Y <= MaxY + 200.f; Y += 900.f)
+			{
+				if (Bars != nullptr)
+				{
+					Bars->AddInstance(FTransform(FRotator(0.f, 90.f, 0.f),
+						FVector(AxisX + 1500.f, Y, 900.f)), true);
+				}
+			}
+		}
+		// Graphite on a dark floor merges (frame, 2026-09-02): the racks
+		// take Crate.Tan - they are crates on frames - and the light
+		// bars the working-indicator white, the closest a non-emissive
+		// surface gets to reading lit under the locked exposure.
+		auto Tint = [](UInstancedStaticMeshComponent* Piece,
+			const FLinearColor& Tone)
+		{
+			if (Piece == nullptr)
+			{
+				return;
+			}
+			if (UMaterialInterface* Base = Piece->GetMaterial(0))
+			{
+				UMaterialInstanceDynamic* Tinted =
+					UMaterialInstanceDynamic::Create(Base, Piece);
+				Tinted->SetVectorParameterValue(TEXT("BaseTint"), Tone);
+				for (int32 Slot = 0; Slot < Piece->GetNumMaterials(); ++Slot)
+				{
+					Piece->SetMaterial(Slot, Tinted);
+				}
+			}
+		};
+		Tint(Racks, LBSpacecraftPalette::CrateTan);
+		Tint(Bars, LBSpacecraftPalette::IndicatorWorking);
+		if (Racks != nullptr)
+		{
+			HallInteriorPieces.Add(Racks);
+		}
+		if (Bars != nullptr)
+		{
+			HallInteriorPieces.Add(Bars);
+		}
+	}
 	if (Trusses != nullptr && LineStations.Num() > 0)
 	{
 		constexpr float TrussHeightCm = 1240.f;

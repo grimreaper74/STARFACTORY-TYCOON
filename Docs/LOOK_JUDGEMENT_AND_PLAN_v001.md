@@ -136,6 +136,36 @@ through the Meshy API from these proportions
 wall rack, ceiling light bar, low tool cabinet) - previews only until
 their renders are judged and their size imposed at export.
 
+**Second pass.** The four drops judged on a Blender contact sheet
+(`phaseC_meshy_v010_contact_sheet.png`: tower upright with arm and light
+slot, rack with crates, light bar with brackets, cabinet taller than asked
+and corrected by its export height), exported at declared sizes and
+imported with Nanite, every size verified within 3 %
+(`Saved/Audits/Spacecraft/station_dress_import_v001.json`). The tower
+model now stands on every station's far flank with an amber cap and blue
+strip added in code, the cabinet on the near flank
+(`phaseC_meshy_towers_entry.png`, `phaseC_meshy_tower_close.png`). From
+the play camera the tower reads mostly as its top; a silhouette from a
+lower angle is not something this camera can show.
+
+## Phase E, first pass (same day)
+
+The hall is 260 m by 180 m and the entry frame covers the middle 120 m, so
+racks on the walls and lights over the storage zones - the first placement
+- were simply off screen. The fill lives beside the line instead: pallet
+racks behind the towers and further out in front, light bars in a row
+behind the line at 9 m where they sit above the craft on screen. Judged on
+the next frame.
+
+**Second pass.** The four keys had to be promoted past the presenter's
+blockout gate (an allow-list by name; the log's "station mesh bound" lines
+are the proof they load). On the floor: racks in Crate.Tan in two runs
+along the line, light bars in indicator white in a row behind it at 9 m,
+towers on every far flank (`phaseE_tinted_racks_lightbars_entry.png`,
+`phaseE_hero_with_fill.png`). Beside the morning's judgement frame this is
+a different picture: the frame is full, the floor has scale, the craft is
+the biggest thing at its station.
+
 ## Phase D, first pass (same day)
 
 Entering the hall lands on the first OCCUPIED station, expanded 9 m for
@@ -144,6 +174,16 @@ its tower and crew, instead of the whole line's bounds
 middle third of the free picture, the tower behind it). The sortie now
 carries the station's actual part mesh at a third of its size rather
 than a crate; not yet seen on a frame.
+
+## Phase F, what was done and what is the owner's
+
+Motion already existed - crane trips, sortie flights, the fitting bursts,
+the departure - and phases A to E made it visible. What this phase adds
+is the film-ready state: a save with a running line and two coloured
+contracts accepted, and a packaged build (cycle 12,
+`Builds/LookPlan_2026_09_02`) so the owner can play and record. Filming
+is his: a third of what the concept form judges is a player using the
+interface, and only he sees the game move.
 
 ## What not to do
 
