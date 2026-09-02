@@ -8,6 +8,7 @@
 #include "LBSpacecraftPlayerPawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/TextRenderComponent.h"
 #include "Sound/SoundBase.h"
 #include "LBSpacecraftTransportAuthority.h"
@@ -6681,6 +6682,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				StrippedHullSections.Remove(It.Key());
 			}
 			Departing.Add(Departure);
+			PlayWorldCue(FName(TEXT("ShipDeparts")), Component != nullptr
+				? Component->GetComponentLocation() : FVector::ZeroVector);
 		}
 		else if (Component != nullptr)
 		{
@@ -8733,6 +8736,19 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 		}
 	}
 
+	if (HallCraneAudio.Num() != CraneCount)
+	{
+		for (UAudioComponent* Old : HallCraneAudio)
+		{
+			if (Old != nullptr)
+			{
+				Old->Stop();
+				Old->DestroyComponent();
+			}
+		}
+		HallCraneAudio.Init(nullptr, CraneCount);
+		HallCraneWasBusy.Init(false, CraneCount);
+	}
 	for (int32 Index = 0; Index < CraneCount; ++Index)
 	{
 		UStaticMeshComponent* Crane = HallCranes[Index].Get();
@@ -8743,6 +8759,40 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 		const bool bAlongY = HallCraneAxisAlongY.IsValidIndex(Index)
 			? HallCraneAxisAlongY[Index] : true;
 		const bool bBusy = CraneJob[Index] != INDEX_NONE;
+		// THE CRANE IS HEARD: a travel loop while it has a job, a
+		// set-down clunk when the job ends.
+		if (bBusy && HallCraneAudio[Index] == nullptr)
+		{
+			if (USoundBase* Travel = SoundFor(FName(TEXT("CraneTravel"))))
+			{
+				HallCraneAudio[Index] =
+					LBSpacecraftWIPPresentationPrivate::SpacecraftMakeRotorAudio(
+						this, Crane, FName(*FString::Printf(
+							TEXT("CraneTravelAudio_%d"), Index)),
+						Travel, 2500.f, 6000.f);
+			}
+		}
+		if (HallCraneAudio[Index] != nullptr)
+		{
+			if (bBusy && !HallCraneAudio[Index]->IsPlaying())
+			{
+				HallCraneAudio[Index]->Play();
+			}
+			else if (!bBusy && HallCraneAudio[Index]->IsPlaying())
+			{
+				HallCraneAudio[Index]->Stop();
+			}
+		}
+		if (HallCraneWasBusy.IsValidIndex(Index)
+			&& HallCraneWasBusy[Index] && !bBusy)
+		{
+			PlayWorldCue(FName(TEXT("CraneSetDown")),
+				Crane->GetComponentLocation());
+		}
+		if (HallCraneWasBusy.IsValidIndex(Index))
+		{
+			HallCraneWasBusy[Index] = bBusy;
+		}
 		const FVector Load = bBusy
 			? CarriedCraftsCm[CraneJob[Index]] : HallCraneParkCm[Index];
 		// A GANTRY RUNS ON RAILS, so only the along-leg axis moves -
@@ -8804,6 +8854,96 @@ void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
 				FVector(Hook.X + Side, Hook.Y, Hook.Z + Drop * 0.5f),
 				FVector(0.08f, 0.08f, Drop / 100.f)));
 		}
+	}
+}
+
+USoundBase* ALBSpacecraftWIPPresentationActor::SoundFor(FName CueRole)
+{
+	if (TObjectPtr<USoundBase>* Known = SoundByRole.Find(CueRole))
+	{
+		return Known->Get();
+	}
+	// Loaded by path on first use. A missing wave is a silent cue, not
+	// a crash, and it is logged once so the silence has a name.
+	const FString Path = FString::Printf(
+		TEXT("/Game/LineBoss/Audio/LB_%s_v001.LB_%s_v001"),
+		*CueRole.ToString(), *CueRole.ToString());
+	USoundBase* Sound = LoadObject<USoundBase>(nullptr, *Path);
+	if (Sound == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SOUND %s not found at %s"),
+			*CueRole.ToString(), *Path);
+	}
+	SoundByRole.Add(CueRole, Sound);
+	return Sound;
+}
+
+void ALBSpacecraftWIPPresentationActor::PlayWorldCue(FName CueRole,
+	const FVector& AtCm)
+{
+	USoundBase* Sound = SoundFor(CueRole);
+	if (Sound == nullptr)
+	{
+		return;
+	}
+	UGameplayStatics::PlaySoundAtLocation(this, Sound, AtCm);
+	UE_LOG(LogTemp, Display, TEXT("SOUND %s at (%.0f, %.0f)"),
+		*CueRole.ToString(), AtCm.X, AtCm.Y);
+}
+
+void ALBSpacecraftWIPPresentationActor::TickAudioCues(float DeltaSeconds)
+{
+	(void)DeltaSeconds;
+	// ROOM TONE while the view is inside a building; the site map is
+	// outdoors and quiet.
+	const bool bInside = ShellViewPawn.IsValid()
+		&& !ShellViewPawn->IsSiteMapView();
+	if (bInside && HallAmbienceAudio == nullptr)
+	{
+		if (USoundBase* Ambience = SoundFor(FName(TEXT("HallAmbience"))))
+		{
+			HallAmbienceAudio = UGameplayStatics::CreateSound2D(this,
+				Ambience, 0.6f, 1.f, 0.f, nullptr, /*bPersistAcrossLevelTransition=*/false,
+				/*bAutoDestroy=*/false);
+			if (HallAmbienceAudio != nullptr)
+			{
+				HallAmbienceAudio->Play();
+				UE_LOG(LogTemp, Display, TEXT("SOUND HallAmbience on"));
+			}
+		}
+	}
+	else if (HallAmbienceAudio != nullptr)
+	{
+		if (bInside && !HallAmbienceAudio->IsPlaying())
+		{
+			HallAmbienceAudio->Play();
+		}
+		else if (!bInside && HallAmbienceAudio->IsPlaying())
+		{
+			HallAmbienceAudio->Stop();
+			UE_LOG(LogTemp, Display, TEXT("SOUND HallAmbience off"));
+		}
+	}
+	// A LORRY LANDS: the pending-order count dropped, so goods arrived
+	// at the dock. The count is the authority's; the sound is ours.
+	if (InventoryAuthority != nullptr)
+	{
+		const int32 Pending = InventoryAuthority->GetPendingOrders().Num();
+		if (LastPendingOrderCount > Pending && BuildAuthority != nullptr)
+		{
+			FVector DockAt = FVector::ZeroVector;
+			for (const FLBSpacecraftStationRecord& Record :
+				BuildAuthority->GetStations())
+			{
+				if (Record.DefinitionId == FName(TEXT("DeliveryDock")))
+				{
+					DockAt = Record.WorldTransform.GetLocation();
+					break;
+				}
+			}
+			PlayWorldCue(FName(TEXT("LorryArrives")), DockAt);
+		}
+		LastPendingOrderCount = Pending;
 	}
 }
 
@@ -9491,6 +9631,7 @@ void ALBSpacecraftWIPPresentationActor::Tick(float DeltaSeconds)
 	TickHallCrane(DeltaSeconds);
 	TickShellDeliveries(DeltaSeconds);
 	TickDepartures(DeltaSeconds);
+	TickAudioCues(DeltaSeconds);
 	// LAST: the sweep rides whatever craft is under the scan, so it
 	// reads the unit visuals only after RefreshUnits has placed them.
 	RefreshInspectionSweep();

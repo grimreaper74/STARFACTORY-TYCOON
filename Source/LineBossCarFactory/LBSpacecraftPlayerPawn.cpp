@@ -9,6 +9,8 @@
 #include "LBGameUserSettings.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftTopBarWidget.h"
 #include "LBSpacecraftInputMap.h"
@@ -761,8 +763,15 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 		}
 		else
 		{
-			// The fail-closed reason IS the player feedback.
+			// The fail-closed reason IS the player feedback - and it is
+			// heard as well as read.
 			LastActionText = Reason;
+			if (USoundBase* Refusal = LoadObject<USoundBase>(nullptr,
+				TEXT("/Game/LineBoss/Audio/LB_Refusal_v001.LB_Refusal_v001")))
+			{
+				UGameplayStatics::PlaySound2D(this, Refusal);
+				UE_LOG(LogTemp, Display, TEXT("SOUND Refusal (placement)"));
+			}
 		}
 		return;
 	}

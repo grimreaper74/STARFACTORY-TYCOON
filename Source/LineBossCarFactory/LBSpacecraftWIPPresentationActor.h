@@ -1103,6 +1103,28 @@ private:
 	/** Moves the gantry along the line and hangs its hoist on whatever
 	 *  craft is in transit. */
 	void TickHallCrane(float DeltaSeconds);
+
+	// ---- THE FACTORY'S VOICE (Docs/AUDIO_INTAKE_2026_09_02_v001.md) ----
+	// The module had no audio at all until 2026-09-02. Every cue here is
+	// soft-loaded by path from /Game/LineBoss/Audio, so a build without
+	// the waves still cooks and runs, only silent. The presenter plays
+	// WORLD cues (it is the one place that knows where things are);
+	// interface cues live with the panel and the pawn.
+	/** One looping crane-travel component per crane, index for index
+	 *  with HallCranes; started while the crane has a job. */
+	TArray<TObjectPtr<UAudioComponent>> HallCraneAudio;
+	/** Whether each crane was busy last frame - the set-down one-shot
+	 *  fires on the busy-to-idle edge. */
+	TArray<bool> HallCraneWasBusy;
+	/** The hall's room tone, playing whenever the view is inside. */
+	TObjectPtr<UAudioComponent> HallAmbienceAudio;
+	/** Pending order count last frame; a drop means a lorry landed. */
+	int32 LastPendingOrderCount = -1;
+	/** Sounds by role, loaded on first use. */
+	TMap<FName, TObjectPtr<USoundBase>> SoundByRole;
+	USoundBase* SoundFor(FName CueRole);
+	void PlayWorldCue(FName CueRole, const FVector& AtCm);
+	void TickAudioCues(float DeltaSeconds);
 	int32 HallInteriorStationCount = -1;
 	/** Cranes the hall was last built with (see HallInteriorStationCount). */
 	int32 HallInteriorCraneCount = -1;

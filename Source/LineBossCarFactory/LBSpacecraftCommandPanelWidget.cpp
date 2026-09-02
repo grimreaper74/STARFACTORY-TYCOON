@@ -22,6 +22,8 @@
 #include "LBSpacecraftProductionTypes.h"
 #include "LBSpacecraftPlayerPawn.h"
 #include "LBSpacecraftTopBarWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "Components/Image.h"
 #include "Engine/Texture2D.h"
@@ -159,6 +161,21 @@ namespace LBSpacecraftCommandPanelPrivate
 	 *  than the opening bankroll left after building a line (stranger
 	 *  playthrough, 2026-09-02: 598,000 cr needed, 324,000 held).
 	 *  Components import one at a time; raw parts stay in fives. */
+	/** An interface cue by role (LB_<Role>_v001 under /Game/LineBoss/
+	 *  Audio), soft-loaded so a build without the wave stays silent
+	 *  rather than broken. */
+	void SpacecraftPlayInterfaceCue(const UObject* WorldContext, FName Role)
+	{
+		const FString Path = FString::Printf(
+			TEXT("/Game/LineBoss/Audio/LB_%s_v001.LB_%s_v001"),
+			*Role.ToString(), *Role.ToString());
+		if (USoundBase* Sound = LoadObject<USoundBase>(nullptr, *Path))
+		{
+			UGameplayStatics::PlaySound2D(WorldContext, Sound);
+			UE_LOG(LogTemp, Display, TEXT("SOUND %s"), *Role.ToString());
+		}
+	}
+
 	int32 ImportBundleFor(FName ItemId)
 	{
 		return ItemId.ToString().StartsWith(TEXT("Component.")) ? 1 : 5;
@@ -2507,6 +2524,8 @@ void ULBSpacecraftCommandPanelWidget::HandleCommission(FName Unused)
 	if (!GameMode->GetBuildAuthority()->CommissionFactory(Reason))
 	{
 		PanelActionText = Reason;
+		LBSpacecraftCommandPanelPrivate::SpacecraftPlayInterfaceCue(this,
+			FName(TEXT("Refusal")));
 		return;
 	}
 	if (GameMode->GetCoordinator()->ConfigureFromAuthorities(
@@ -2583,6 +2602,8 @@ void ULBSpacecraftCommandPanelWidget::HandleAcceptOffer(FName ContractId)
 	if (GameMode->GetProductionAuthority()->AcceptContract(ContractId,
 		Reason))
 	{
+		LBSpacecraftCommandPanelPrivate::SpacecraftPlayInterfaceCue(this,
+			FName(TEXT("ContractAccepted")));
 		PanelActionText = FText::Format(
 			LOCTEXT("OfferAccepted", "Contract accepted: {0}"),
 			FText::FromString(Shown)).ToString();
