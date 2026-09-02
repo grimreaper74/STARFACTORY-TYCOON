@@ -57,3 +57,6 @@ Packaged/
 
 # Downloaded third-party assets (owner, 2026-09-02): archives and extractions, gigabytes, manifests beside them
 /assets downloads/
+
+# Upstream VibeUE clone (437 MB, unmodified) - kept out of history
+/Plugins/VibeUE/
