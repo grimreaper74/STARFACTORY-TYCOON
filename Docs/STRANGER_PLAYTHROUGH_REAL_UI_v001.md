@@ -114,6 +114,18 @@ Nineteen findings in full: `scratchpad/stranger/findings.md`
 - Confirmation for any refund-bearing removal (F17's cousin for
   ordinary stations).
 
-Status of this doc's claims: validation-only. The fixes built and the
-suite passed; nobody has re-run the stranger path against them yet —
-that re-run is the next thing to do with the same tools.
+## Re-run against the fixes (same tools, same session)
+
+- Site map now shows "ENTER" on the ship factory and "BUY 200,000 cr"
+  under the "+" (frame r02).
+- First click on the "+" quotes in the toast and spends nothing;
+  a second click 1.5 s later buys and says so (r08; cash 900,000 ->
+  700,000 only on the second click).
+- With the hall selected, the panel wraps its header and offers no
+  "Remove station" (r06).
+- Two placements from the same row bought the same item twice (r05).
+- The hub's own pale status strip (which had been unreadable, then a
+  duplicate of the toast) is hidden; the toast carries hub messages.
+
+Status: validation-only for the fixes (PIE, this session); the
+packaged build has not been rebuilt with them yet.

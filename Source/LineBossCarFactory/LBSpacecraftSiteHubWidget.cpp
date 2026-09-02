@@ -544,6 +544,11 @@ void ULBSpacecraftSiteHubWidget::RebuildContent()
 		UTextBlock::StaticClass(), FName(TEXT("SiteHubStatus")));
 	StatusText->SetColorAndOpacity(FSlateColor(
 		FLinearColor(0.93f, 0.93f, 0.92f, 1.f)));
+	// Kept as the message sink the click handler writes to, but not
+	// shown: pale text on the beige ground was unreadable for short
+	// messages and a duplicate of the toast for long ones once the hub
+	// started speaking through the pawn (2026-09-02).
+	StatusText->SetVisibility(ESlateVisibility::Collapsed);
 	if (UCanvasPanelSlot* CanvasSlot = Root->AddChildToCanvas(StatusText))
 	{
 		CanvasSlot->SetAnchors(FAnchors(0.02f, 0.94f, 0.98f, 0.99f));

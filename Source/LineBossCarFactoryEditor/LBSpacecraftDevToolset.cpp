@@ -335,12 +335,23 @@ FString ULBSpacecraftDevToolset::SimulatePieClick(float X, float Y,
 	const FKey Key = ButtonKey(Button);
 	FSlateApplication& Slate = FSlateApplication::Get();
 	FocusViewport(Ref);
-	// Move first so hover state and the game's cached cursor position
-	// (what GetHitResultUnderCursor reads) agree with where we press.
-	const FPointerEvent Move(0, 0, Abs, Slate.GetCursorPos(), TSet<FKey>(),
+	// LEAVE, THEN ENTER. After a click fires, Slate queues a synthesized
+	// mouse move at the REAL cursor - a person's mouse elsewhere on the
+	// desktop - which un-hovers the button; a later move back to the
+	// same synthetic point is treated as no movement, so hover never
+	// returns and SButton's release refuses to click (second hub click
+	// silently dropped, 2026-09-02). Step off-window first so the move
+	// to the target is a genuine enter.
+	const FVector2D Away(-4096.f, -4096.f);
+	const FPointerEvent Leave(0, 0, Away, Slate.GetCursorPos(),
+		TSet<FKey>(), EKeys::Invalid, 0.f, FModifierKeysState());
+	Slate.ProcessMouseMoveEvent(Leave);
+	const FPointerEvent Move(0, 0, Abs, Away, TSet<FKey>(),
 		EKeys::Invalid, 0.f, FModifierKeysState());
 	Slate.ProcessMouseMoveEvent(Move);
 	const FWidgetPath Path = PathUnder(Ref, Abs);
+	const bool bHoveredBeforeDown = Path.IsValid()
+		&& Path.Widgets.Last().Widget->IsHovered();
 	if (!Path.IsValid())
 	{
 		return FailJson(TEXT("Nothing under that point in the PIE window."));
@@ -383,6 +394,7 @@ FString ULBSpacecraftDevToolset::SimulatePieClick(float X, float Y,
 	Root->SetBoolField(TEXT("downHandled"), DownReply.IsEventHandled());
 	Root->SetBoolField(TEXT("upHandled"), UpReply.IsEventHandled());
 	Root->SetBoolField(TEXT("capturedAfterDown"), bCapturedAfterDown);
+	Root->SetBoolField(TEXT("hoveredBeforeDown"), bHoveredBeforeDown);
 	Root->SetArrayField(TEXT("pathLeafFirst"), PathTypes);
 	Root->SetNumberField(TEXT("absoluteX"), Abs.X);
 	Root->SetNumberField(TEXT("absoluteY"), Abs.Y);
