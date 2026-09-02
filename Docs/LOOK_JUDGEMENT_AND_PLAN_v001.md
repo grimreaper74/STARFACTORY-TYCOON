@@ -107,6 +107,15 @@ is deliberately NOT done yet - the palette adoption rejected a warm sun on
 measured grounds (it pushes every albedo toward the amber arc). A mild warm
 sun is the next frame to judge, against that evidence.
 
+**Second pass, same day.** The floor sample had not moved when the slab
+tone changed because the site's outdoor paving tiles stand proud of the
+hall's slab; the hall now lifts the 468 tiles under its footprint and its
+own floor shows. That first read as a void (82/82/83), so the tone came up a
+step and a 10 m lane grid is painted on it (`phaseA_entry_lane_grid.png`,
+`phaseA_station1_lane_grid.png`, floor now 95/96/99). Phase A stops here:
+contrast and scale are on the floor; warmth is still short, and that is
+now a phase B question of what carries colour rather than a lighting one.
+
 ## What not to do
 
 - Do not chase asset count. One good station model beats six variants.

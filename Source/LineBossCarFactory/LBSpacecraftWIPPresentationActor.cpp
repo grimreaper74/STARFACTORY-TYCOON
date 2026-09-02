@@ -243,8 +243,11 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// (#65686E) read cool under a white sun and still cool under a warm
 	// one, floor sampling 139/145/153. The concrete family is warm (hue
 	// 38, like Floor.Concrete), so the dark floor is too.
-	const FLinearColor SpacecraftFloorDark(0.152f, 0.143f, 0.130f);   // ~#6D6A64
-	const FLinearColor SpacecraftFloorZone(0.196f, 0.186f, 0.170f);   // ~#7A776F
+	// Lifted a step after the first frame with the hall's own floor:
+	// at #6D6A64 the interior sampled 82/82/83 and read as a void.
+	const FLinearColor SpacecraftFloorDark(0.205f, 0.194f, 0.178f);   // ~#7C7972
+	const FLinearColor SpacecraftFloorZone(0.262f, 0.250f, 0.230f);   // ~#8B887F
+	const FLinearColor SpacecraftFloorLine(0.361f, 0.346f, 0.320f);   // ~#A19D96, lane grid
 	const FLinearColor SpacecraftBeamColour(0.4f, 0.85f, 1.f);
 	const FLinearColor SpacecraftWeldColour(1.f, 0.92f, 0.7f);
 	const FLinearColor SpacecraftSparkColour(1.f, 0.6f, 0.15f);
@@ -8288,6 +8291,25 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			FVector(Floor.X - 80.f, Floor.Y - 80.f, 4.f));
 
 		// The storage half of the hall, west of the line.
+		// A LANE GRID every 10 m (Car Manufacture's floor language: dark
+		// concrete with painted lines). Thin but not a pinstripe: 16 cm
+		// at this camera reads; the earlier 4-6 cm attempts did not.
+		{
+			using namespace LBSpacecraftWIPPresentationPrivate;
+			int32 Line = 0;
+			for (float X = -HalfX + 1000.f; X < HalfX - 500.f; X += 1000.f)
+			{
+				Flat(TEXT("LaneX"), Line++, SpacecraftFloorLine,
+					FVector(HallAt.X + X, HallAt.Y, 18.f),
+					FVector(16.f, Floor.Y - 160.f, 2.f));
+			}
+			for (float Y = -HalfY + 1000.f; Y < HalfY - 500.f; Y += 1000.f)
+			{
+				Flat(TEXT("LaneY"), Line++, SpacecraftFloorLine,
+					FVector(HallAt.X, HallAt.Y + Y, 18.f),
+					FVector(Floor.X - 160.f, 16.f, 2.f));
+			}
+		}
 		Flat(TEXT("ZoneStorage"), 0, ZoneStorage,
 			FVector(HallAt.X - HalfX + 3600.f, HallAt.Y, 22.f),
 			FVector(6400.f, Floor.Y - 2400.f, 6.f));
