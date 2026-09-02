@@ -89,9 +89,18 @@ silhouette, no colour, exposure four stops over.
 
 ## Tests
 
-`Automation RunTests LineBoss.Spacecraft`, 116 pass / 0 fail on every
-build of the afternoon: `Saved/Automation/PhaseA*_2026_09_02` (seven
-runs), `PhaseC1`, `PhaseCD`, `PhaseCE`, `PhaseE`, `PhaseE2`, `PhaseE3`.
+`Automation RunTests LineBoss.Spacecraft`: 138 tests, all Success, 0
+failed, on every build of the day (`Saved/Automation/PhaseA*_2026_09_02`,
+`PhaseC1`, `PhaseCD`, `PhaseCE`, `PhaseE`, `PhaseE2`, `PhaseE3`,
+`AudioGC`, `AudioGC2`, `Hazard`, `Pacing2`). A correction to the day's
+commit messages, which quoted the report's `succeeded` counter as
+"116/116": that counter excludes tests that pass with a logged warning
+(22 of them, 24 after the pacing retune, which makes two more tests log
+"no contract demands a craft" because the faster line finishes its order
+sooner). The honest figure is 138 pass, 0 fail throughout; the one red
+run, `Pacing_2026_09_02` (1 fail), was the stranded-craft test whose
+planted deadline no longer fell inside the build time, and it went green
+once the deadline followed the retune.
 
 ## Not proven
 
