@@ -9001,7 +9001,24 @@ UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
 	{
 		return Known->Get();
 	}
-	UStaticMesh* Mesh = TryGetStationMesh(DefinitionId);
+	// "Craft.Chassis" is the ship itself (the contract cards wear it);
+	// everything else is a station definition.
+	UStaticMesh* Mesh = nullptr;
+	if (DefinitionId == FName(TEXT("Craft.Chassis")))
+	{
+		// The Scout V2 hull - the mesh the line actually builds on -
+		// not the gated placeholder chassis (blank card, 2026-09-02).
+		UStaticMesh* Hull = nullptr; UStaticMesh* Propulsion = nullptr;
+		UStaticMesh* Power = nullptr; UStaticMesh* Electronics = nullptr;
+		UStaticMesh* Navigation = nullptr; UStaticMesh* Interior = nullptr;
+		ResolveScoutV2Parts(Hull, Propulsion, Power, Electronics,
+			Navigation, Interior);
+		Mesh = Hull != nullptr ? Hull : ResolveChassisMesh();
+	}
+	else
+	{
+		Mesh = TryGetStationMesh(DefinitionId);
+	}
 	if (Mesh == nullptr)
 	{
 		DefinitionTiles.Add(DefinitionId, nullptr);

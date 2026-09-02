@@ -186,6 +186,13 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** A CONTRACT CARD: the ship's picture, who wants it, one big
+	 *  number, the clock, and ACCEPT. The whole card is the button. */
+	ULBSpacecraftTaggedButton* AddOfferCard(
+		const struct FLBSpacecraftContract& Offer, double SimSeconds,
+		class UTexture* Picture);
+	/** Orders one of every component the next ship still lacks. */
+	void HandleOrderMissingParts(FName Unused);
 	/** ONE FRAME OF THE LINE FILMSTRIP: the station's render, its number
 	 *  and task, a progress bar and a state chip (Working / Done -
 	 *  waiting for the pulse / Idle). Clicking it selects the station. */

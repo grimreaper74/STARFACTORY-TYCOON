@@ -57,9 +57,14 @@ cards, cut from real captures.
 2. The line as a filmstrip of station thumbnails with bars and chips -
    **done 2026-09-02** (render, number and task, parts, bar, chip, one
    compact take/give pair per gap). The floor tags are unchanged so far.
-3. Contracts as ship cards with the customer, one big number, a
-   parts-to-buy line and an Accept button; the six parts as picture
-   tiles with "order the missing parts".
+3. Contracts as ship cards and the parts as tiles - **done 2026-09-02**
+   (customer and clock, the Scout V2 hull render, one big number with
+   the per-craft price as a caption, ACCEPT; the six parts as icon
+   tiles above the raw-materials shop with "Order the N missing
+   parts"). Frames in `Saved/Audits/UITiles_2026_09_02/contracts_*`.
+   First pass faults caught on the frame: the accept glyph was not in
+   the font, the 44 px icons were stretched to the tile, and the
+   gated placeholder chassis gave a blank picture.
 4. Top bar as labelled gauges (word, number, meter; speed as buttons).
 5. Camera lands on the craft on entering the hall - **done 2026-09-02**
    (the line's bounds, margin 1.35; an empty hall keeps the floor frame).

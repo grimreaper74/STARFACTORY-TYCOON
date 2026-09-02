@@ -620,22 +620,32 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTileButton(
 	UOverlay* PictureBox = WidgetTree->ConstructWidget<UOverlay>(
 		UOverlay::StaticClass());
 	UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+	// A RENDER fills the tile; an ICON (a small Texture2D, the part
+	// glyphs) sits centred at its own size - stretched to the tile the
+	// 44 px glyphs came out as blurred blocks (first cards, 2026-09-02).
+	const bool bIcon = Picture != nullptr && Picture->IsA<UTexture2D>();
+	const FVector2D PictureSize = bIcon
+		? FVector2D(52.f, 52.f) : FVector2D(176.f, 96.f);
 	if (Picture != nullptr)
 	{
 		FSlateBrush Brush;
 		Brush.SetResourceObject(Picture);
-		Brush.ImageSize = FVector2D(176.f, 96.f);
+		Brush.ImageSize = PictureSize;
 		Image->SetBrush(Brush);
 	}
 	else
 	{
 		Image->SetColorAndOpacity(FLinearColor(0.02f, 0.02f, 0.02f, 1.f));
 	}
-	Image->SetDesiredSizeOverride(FVector2D(176.f, 96.f));
+	Image->SetDesiredSizeOverride(PictureSize);
 	if (UOverlaySlot* ImageSlot = PictureBox->AddChildToOverlay(Image))
 	{
-		ImageSlot->SetHorizontalAlignment(HAlign_Fill);
-		ImageSlot->SetVerticalAlignment(VAlign_Fill);
+		ImageSlot->SetHorizontalAlignment(bIcon ? HAlign_Center : HAlign_Fill);
+		ImageSlot->SetVerticalAlignment(bIcon ? VAlign_Center : VAlign_Fill);
+		if (bIcon)
+		{
+			ImageSlot->SetPadding(FMargin(0.f, 14.f));
+		}
 	}
 	if (!Badge.IsEmpty())
 	{
@@ -2083,10 +2093,14 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					continue;
 				}
 				bAnyOffer = true;
-				AddTaggedButton(BuildOfferButtonLabel(Offer,
-					HeldLedger->GetSimSeconds()),
-					Offer.ContractId,
-					[this](FName InTag) { HandleAcceptOffer(InTag); });
+				UTexture* Craft = nullptr;
+				if (ALBSpacecraftWIPPresentationActor* Presenter =
+					GameMode->GetPresenter())
+				{
+					Craft = Presenter->GetDefinitionTile(
+						FName(TEXT("Craft.Chassis")));
+				}
+				AddOfferCard(Offer, HeldLedger->GetSimSeconds(), Craft);
 			}
 			if (!bAnyOffer)
 			{
@@ -2098,6 +2112,88 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		// wheel notches down this tab still showed imports - the offer
 		// board, the tab's namesake, was unreachable). Offers, held
 		// work and stock first; raw materials and imports below.
+		// PARTS FOR THE NEXT SHIP, AS PICTURES (owner 2026-09-02): the
+		// six components as icon tiles, ready ones counted, missing
+		// ones priced, one button that orders whatever is missing.
+		{
+			AddSectionLabel(LOCTEXT("SectionPartsNext",
+				"PARTS FOR THE NEXT SHIP").ToString());
+			const int64 PartsCash = GameMode->GetProductionAuthority() != nullptr
+				? GameMode->GetProductionAuthority()->GetCashPence() : 0;
+			TArray<FName> Components;
+			FLBSpacecraftRecipe PartsRecipe;
+			if (FLBSpacecraftProductionCatalog::FindRecipe(LineRecipeId(),
+				PartsRecipe))
+			{
+				for (const FName& ItemId :
+					FLBSpacecraftProductionCatalog::FixingSequenceItemIds(
+						PartsRecipe))
+				{
+					Components.AddUnique(ItemId);
+				}
+			}
+			UUniformGridPanel* PartGrid =
+				WidgetTree->ConstructWidget<UUniformGridPanel>(
+					UUniformGridPanel::StaticClass());
+			PartGrid->SetSlotPadding(FMargin(3.f));
+			if (UVerticalBoxSlot* GridSlot =
+				ContentBox->AddChildToVerticalBox(PartGrid))
+			{
+				GridSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+			}
+			int64 MissingCost = 0;
+			int32 Missing = 0;
+			int32 PartIndex = 0;
+			for (const FName& ItemId : Components)
+			{
+				const FLBSpacecraftItemDefinition* Item =
+					FLBSpacecraftItemCatalogue::FindItem(ItemId);
+				if (Item == nullptr)
+				{
+					continue;
+				}
+				int32 Held = 0;
+				if (GameMode->GetInventoryAuthority() != nullptr)
+				{
+					for (const FName& StoreId :
+						GameMode->GetInventoryAuthority()->GetStoreIds())
+					{
+						Held += GameMode->GetInventoryAuthority()->GetQuantity(
+							StoreId, ItemId);
+					}
+				}
+				const int64 Price =
+					FLBSpacecraftItemCatalogue::GetItemImportPricePence(ItemId);
+				if (Held <= 0 && Price > 0)
+				{
+					MissingCost += Price;
+					++Missing;
+				}
+				FString Short = Item->DisplayName;
+				Short.RemoveFromEnd(TEXT(" Component"));
+				const FString Sub = Held > 0
+					? FText::Format(LOCTEXT("PartReady", "{0} ready"),
+						FText::AsNumber(Held)).ToString()
+					: ULBSpacecraftTopBarWidget::FormatCurrency(Price);
+				UTexture* Icon = LBSpacecraftCommandPanelPrivate::
+					SpacecraftPanelIconForTag(ItemId);
+				ULBSpacecraftTaggedButton* Tile = AddTileButton(PartGrid,
+					PartIndex++, Short, Sub, ItemId,
+					[this](FName InTag) { HandleImport(InTag); }, Icon,
+					Held <= 0 && Price > PartsCash, Held > 0, FString());
+				(void)Tile;
+			}
+			if (Missing > 0)
+			{
+				AddTaggedButton(FText::Format(LOCTEXT("OrderMissing",
+					"Order the {0} missing part(s)  ({1})"),
+					FText::AsNumber(Missing),
+					FText::FromString(ULBSpacecraftTopBarWidget::FormatCurrency(
+						MissingCost))).ToString(), NAME_None,
+					[this](FName InTag) { HandleOrderMissingParts(InTag); },
+					FString(), MissingCost > PartsCash, true);
+			}
+		}
 		AddSectionLabel(
 			LOCTEXT("SectionSupply", "SUPPLY - BUY RAW MATERIALS")
 				.ToString());
@@ -2135,9 +2231,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		// actually fits, which sat at the very bottom; two of the six
 		// orders then landed on neighbouring rows. Sub-parts follow
 		// under their own heading.
-		AddSectionLabel(LOCTEXT("SectionImportComponents",
-			"IMPORT SHIP COMPONENTS - what the line fits").ToString());
-		for (int32 Pass = 0; Pass < 2; ++Pass)
+		for (int32 Pass = 1; Pass < 2; ++Pass)
 		{
 			if (Pass == 1)
 			{
@@ -2858,6 +2952,138 @@ FString ULBSpacecraftCommandPanelWidget::BuildOfferButtonLabel(
 			Whole)),
 		FText::FromString(Clock),
 		FText::FromString(Who)).ToString();
+}
+
+ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddOfferCard(
+	const FLBSpacecraftContract& Offer, double SimSeconds, UTexture* Picture)
+{
+	using namespace LBSpacecraftCommandPanelPrivate;
+	ULBSpacecraftTaggedButton* Button =
+		WidgetTree->ConstructWidget<ULBSpacecraftTaggedButton>(
+			ULBSpacecraftTaggedButton::StaticClass());
+	Button->Tag = Offer.ContractId;
+	Button->OnTagClicked = [this](FName InTag) { HandleAcceptOffer(InTag); };
+	Button->Arm();
+	Button->SetStyle(SpacecraftPanelButtonStyle(false));
+	UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(
+		UHorizontalBox::StaticClass());
+	UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+	if (Picture != nullptr)
+	{
+		FSlateBrush Brush;
+		Brush.SetResourceObject(Picture);
+		Brush.ImageSize = FVector2D(110.f, 70.f);
+		Image->SetBrush(Brush);
+	}
+	else
+	{
+		Image->SetColorAndOpacity(FLinearColor(0.02f, 0.02f, 0.02f, 1.f));
+	}
+	Image->SetDesiredSizeOverride(FVector2D(110.f, 70.f));
+	if (UHorizontalBoxSlot* ImageSlot = Row->AddChildToHorizontalBox(Image))
+	{
+		ImageSlot->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+		ImageSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	UVerticalBox* Lines = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	const auto AddText = [this, Lines](const FString& Text, int32 Size,
+		const FLinearColor& Colour)
+	{
+		UTextBlock* Block = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		Block->SetText(FText::FromString(Text));
+		Block->SetAutoWrapText(true);
+		Block->SetColorAndOpacity(FSlateColor(Colour));
+		FSlateFontInfo Font = Block->GetFont();
+		Font.Size = Size;
+		Block->SetFont(Font);
+		Lines->AddChildToVerticalBox(Block);
+	};
+	const FLBSpacecraftCustomer* Customer =
+		FLBSpacecraftCustomerCatalogue::FindCustomer(Offer.CustomerId);
+	const FString Clock = Offer.DeadlineSimSeconds > 0.0
+		? FormatTimeRemaining(Offer.DeadlineSimSeconds - SimSeconds)
+		: FString();
+	AddText((Customer != nullptr ? Customer->DisplayName : FString())
+		+ (Clock.IsEmpty() ? FString() : TEXT("  ·  ") + Clock), 11,
+		SpacecraftPanelSubText);
+	AddText(FText::Format(LOCTEXT("OfferWhat", "{0}  x{1}"),
+		FText::FromName(Offer.RecipeId), Offer.Quantity).ToString(), 14,
+		SpacecraftPanelText);
+	const int64 Whole = Offer.PricePerUnitPence
+		* static_cast<int64>(FMath::Max(Offer.Quantity, 0));
+	AddText(ULBSpacecraftTopBarWidget::FormatCurrency(Whole), 18,
+		FLinearColor::White);
+	if (Offer.Quantity > 1)
+	{
+		// One big number; the per-craft price is a caption under it
+		// (inline it wrapped the card, 2026-09-02).
+		AddText(FText::Format(LOCTEXT("OfferEach", "{0} each"),
+			FText::FromString(ULBSpacecraftTopBarWidget::FormatCurrency(
+				Offer.PricePerUnitPence))).ToString(), 11,
+			SpacecraftPanelSubText);
+	}
+	AddText(LOCTEXT("OfferAccept", "ACCEPT  »").ToString(), 11,
+		SpacecraftPanelText);
+	if (UHorizontalBoxSlot* LinesSlot = Row->AddChildToHorizontalBox(Lines))
+	{
+		LinesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		LinesSlot->SetVerticalAlignment(VAlign_Center);
+	}
+	Button->AddChild(Row);
+	if (UVerticalBoxSlot* ButtonSlot =
+		ContentBox->AddChildToVerticalBox(Button))
+	{
+		ButtonSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+	}
+	return Button;
+}
+
+void ULBSpacecraftCommandPanelWidget::HandleOrderMissingParts(FName Unused)
+{
+	(void)Unused;
+	if (GameMode == nullptr || GameMode->GetInventoryAuthority() == nullptr)
+	{
+		return;
+	}
+	FLBSpacecraftRecipe PartsRecipe;
+	if (!FLBSpacecraftProductionCatalog::FindRecipe(LineRecipeId(),
+		PartsRecipe))
+	{
+		return;
+	}
+	TArray<FName> Components;
+	for (const FName& ItemId :
+		FLBSpacecraftProductionCatalog::FixingSequenceItemIds(PartsRecipe))
+	{
+		Components.AddUnique(ItemId);
+	}
+	int32 Ordered = 0;
+	for (const FName& ItemId : Components)
+	{
+		int32 Held = 0;
+		for (const FName& StoreId :
+			GameMode->GetInventoryAuthority()->GetStoreIds())
+		{
+			Held += GameMode->GetInventoryAuthority()->GetQuantity(StoreId,
+				ItemId);
+		}
+		if (Held <= 0)
+		{
+			// One order each through the same path as a tile click, so
+			// every refusal (no dock, no money) is the one the player
+			// would have read ordering by hand.
+			HandleImport(ItemId);
+			++Ordered;
+		}
+	}
+	if (Ordered > 1)
+	{
+		PanelActionText = FText::Format(LOCTEXT("OrderedMissing",
+			"Ordered {0} parts - each arrives in about 30 s"),
+			FText::AsNumber(Ordered)).ToString();
+	}
 }
 
 void ULBSpacecraftCommandPanelWidget::HandleAcceptOffer(FName ContractId)
