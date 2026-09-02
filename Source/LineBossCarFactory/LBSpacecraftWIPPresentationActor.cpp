@@ -1886,6 +1886,28 @@ void ALBSpacecraftWIPPresentationActor::TickRunways(float DeltaSeconds)
 				NewRunway.Parts.Add(Component);
 				return Component;
 			};
+			// A DARK DECK under everything (look plan, 2026-09-02): white
+			// paint on pale site paving was invisible, and the departing
+			// craft - the payoff shot of the whole loop - was a speck on
+			// a blank field. Asphalt-dark, the hall floor's warm family,
+			// with shoulders, so the paint and the craft read.
+			{
+				const FName DeckKey(*FString::Printf(TEXT("%s_Deck"),
+					*RecordStationId.ToString()));
+				if (UStaticMeshComponent* Deck = MakeBlockComponent(DeckKey,
+					FLinearColor(0.115f, 0.108f, 0.098f)))
+				{
+					// Above the site's paving tiles, or it is buried like
+					// the hall slab was: the shoulders show beside the
+					// strip, the strip itself is tinted dark below.
+					Deck->SetWorldTransform(FTransform(FQuat::Identity,
+						FVector(SiteRunwayXCm, StartY - RunwayLengthCm * 0.5f,
+							16.f),
+						FVector((RunwayWidthCm + 400.f) / 100.f,
+							(RunwayLengthCm + 600.f) / 100.f, 0.04f)));
+					NewRunway.Parts.Add(Deck);
+				}
+			}
 			// The runway deck: five tileable strip sections (owner's
 			// evening drop 2026-08-26) laid end to end; the painted
 			// lines remain the honest fallback without the content.
@@ -1912,6 +1934,22 @@ void ALBSpacecraftWIPPresentationActor::TickRunways(float DeltaSeconds)
 								StartY - StripLen * Section
 									- StripLen * 0.5f, 0.f),
 							FVector::OneVector));
+						// The strip's deck goes DARK (asphalt): pale strip
+						// on pale paving was invisible from the runway
+						// camera, and the departing craft a speck.
+						for (int32 Slot = 0; Slot < Strip->GetNumMaterials(); ++Slot)
+						{
+							if (UMaterialInterface* Base = Strip->GetMaterial(Slot))
+							{
+								UMaterialInstanceDynamic* Dark =
+									UMaterialInstanceDynamic::Create(Base, Strip);
+								Dark->SetVectorParameterValue(TEXT("BaseTint"),
+									FLinearColor(0.115f, 0.108f, 0.098f));
+								Dark->SetVectorParameterValue(TEXT("Color"),
+									FLinearColor(0.115f, 0.108f, 0.098f));
+								Strip->SetMaterial(Slot, Dark);
+							}
+						}
 						NewRunway.Parts.Add(Strip);
 					}
 				}

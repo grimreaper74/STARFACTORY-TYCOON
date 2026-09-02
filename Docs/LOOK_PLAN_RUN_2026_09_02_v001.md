@@ -246,6 +246,19 @@ The dolly then still carried its own set of hull section pallets beside
 the craft's, two hulls in the picture; the hull is not a pallet on the
 dolly any more (`hull_sections_one_set_dolly_without_hull.png`).
 
+## The runway, the payoff shot (evening)
+
+The departure is the loop's payoff and its frame was the weakest in the
+game: a pale strip on pale paving, invisible, the departing craft a speck
+in a 300 m frame (`departure_runway_before.png`). The strip's deck is
+tinted asphalt-dark now with dark shoulders above the paving (the deck
+block first went in at floor height and was buried under the site tiles,
+the hall slab's lesson again), and the runway camera frames the strip
+itself, 140 m, centred on it (`departure_runway_after_dark_deck.png`).
+The runway test's part count moves from 85 to 86 for the deck. Not seen
+yet: the craft on the strip during its sprint; the eight-second capture
+cadence missed it, and that is a capture problem, not a scene one.
+
 ## Status
 
 **Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD

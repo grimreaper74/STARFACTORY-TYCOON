@@ -1000,8 +1000,12 @@ void ALBSpacecraftPlayerPawn::FocusRunway()
 	// run in frame. The first attempt sat 60 m short of it and framed a
 	// district building instead - a camera that has to be lucky to
 	// catch the shot is not a camera for the game's signature moment.
-	SetActorLocation(FVector(RunwayX, -3500.f, 0.f));
-	DesiredZoomCm = ComputeFramingZoomCm(FVector2D(30000.f, 30000.f),
+	// The strip runs 100 m from its start toward -Y; its middle, a
+	// little toward the site, is the pivot (look plan, 2026-09-02).
+	SetActorLocation(FVector(RunwayX + 400.f, -3500.f - 5000.f, 0.f));
+	// 140 m square, not 300: the departing craft is the payoff shot and
+	// was a speck on a blank field at the wider frame.
+	DesiredZoomCm = ComputeFramingZoomCm(FVector2D(14000.f, 14000.f),
 		/*MarginRatio=*/1.0f, ZoomMinCm, SiteMapZoomCeilingCm());
 	FocusedBuildingId = NAME_None;
 	bSiteMapView = false;

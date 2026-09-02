@@ -1450,7 +1450,10 @@ bool FLBSpacecraftRunwayTest::RunTest(const FString& Parameters)
 		// restored the authored path and the count came back to exactly
 		// the 85 this ledger always described. If this fails at 107
 		// again, the site kit stopped loading - fix THAT, not the pin.
-		Presenter->GetRunwayPartCount(RigId), 85);
+		// 86 since 2026-09-02: the dark deck under the strip is a part
+		// (white paint on pale paving was invisible from the runway
+		// camera).
+		Presenter->GetRunwayPartCount(RigId), 86);
 	Presenter->Tick(0.1f);
 	TestEqual(TEXT("site furniture survives every station"),
 		Presenter->GetRunwayCount(), 1);
