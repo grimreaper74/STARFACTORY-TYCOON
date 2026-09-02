@@ -2957,17 +2957,16 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 				// them all visible and reads like a crew at their
 				// stations - and drones are the co-stars, so a station
 				// that hides most of its own is the wrong picture.
-				const float SideX = (Drone % 2 == 0) ? 1.f : -1.f;
-				const int32 Rank = Drone / 2;
-				const int32 RanksPerSide =
-					FMath::Max((DroneCount + 1) / 2, 1);
-				const float Along = RanksPerSide > 1
-					? -0.34f + 0.68f * static_cast<float>(Rank)
-						/ static_cast<float>(RanksPerSide - 1)
+				// One row of docks along the NEAR flank, outside the
+				// pad edge, spread along the line - never at the pad's
+				// ends, which are the track (owner 2026-09-02).
+				const float Along = DroneCount > 1
+					? -0.36f + 0.72f * static_cast<float>(Drone)
+						/ static_cast<float>(DroneCount - 1)
 					: 0.f;
 				const FVector DockLocal(
-					SideX * (Definition->FootprintCm.X * 0.5f + 170.f),
-					Along * Definition->FootprintCm.Y,
+					Along * Definition->FootprintCm.X,
+					Definition->FootprintCm.Y * 0.5f + 170.f,
 					0.f);
 				const FVector DockWorld =
 					Station.TransformPosition(DockLocal);
@@ -4723,15 +4722,16 @@ void ALBSpacecraftWIPPresentationActor::RefreshStationStockpile(
 			Stack->EmptyOverrideMaterials();
 		}
 		const FVector Base = Record.WorldTransform.GetLocation();
-		const float SideX = -(Definition.FootprintCm.X * 0.5f - 200.f);
-		const float RowY = (Index - (Wanted - 1) * 0.5f) * 240.f;
+		// Beyond the far flank, never at the pad's ends (the track).
+		const float OutY = -(Definition.FootprintCm.Y * 0.5f + 320.f);
+		const float RowX = (Index - (Wanted - 1) * 0.5f) * 300.f;
 		// IN THE STATION'S FRAME, not world axes (audit 2026-09-01):
 		// stations take their yaw from the track now, and a world-axis
 		// flank put the pallets ON the track for any rotated station.
 		const FQuat StationYaw = Record.WorldTransform.GetRotation();
 		Stack->SetWorldLocationAndRotation(
-			Base + StationYaw.RotateVector(FVector(SideX, RowY, 0.f)),
-			StationYaw * FRotator(0.f, 90.f, 0.f).Quaternion());
+			Base + StationYaw.RotateVector(FVector(RowX, OutY, 0.f)),
+			StationYaw);
 	}
 }
 
@@ -5072,6 +5072,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			FTransform T = Where;
 			T.AddToTranslation(Where.GetRotation().RotateVector(
 				LocalCentre));
+			T.SetRotation(T.GetRotation()
+				* FQuat(FRotator(0.f, 90.f, 0.f)));
 			PalletComp->SetWorldTransform(T);
 			Frame.Parts.Add(PalletComp);
 			return true;
@@ -5111,7 +5113,11 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			PalletComp->RegisterComponent();
 			FTransform T = Where;
 			T.AddToTranslation(Where.GetRotation().RotateVector(
-				LocalCentre + FVector(0.f, PieceCentreY, 0.f)));
+				LocalCentre + FVector(PieceCentreY, 0.f, 0.f)));
+			// The sections lie along the line on the far flank; the
+			// pallet meshes were modelled lying along local Y.
+			T.SetRotation(T.GetRotation()
+				* FQuat(FRotator(0.f, 90.f, 0.f)));
 			PalletComp->SetWorldTransform(T);
 			Frame.Parts.Add(PalletComp);
 		}
@@ -5134,6 +5140,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 	// their way. Literals still, because MakeBlockComponent paints a
 	// dynamic instance rather than taking a material - but literals
 	// that MATCH the palette instead of ignoring it.
+	// NOTHING SITS ON THE LINE (owner 2026-09-02: "make sure nothing
+	// blocks the line like drone charging docks etc"). A station's long
+	// side runs along the line, so its ±X ends ARE the track corridor.
+	// Everything that serves the station lives on the FLANKS: the near
+	// flank (+Y local, the camera side, low things only) takes the crew
+	// docks, slot pads, cable runs and cabinet; the far flank (-Y) takes
+	// the tool tower at its upstream corner and the kit dolly along the
+	// rest; the stockpile stands beyond the far flank.
 	const FLinearColor MachineAmber = LBSpacecraftPalette::MachineAmber; // machine accent, was V 0.94 against a 0.66 ceiling
 	const FLinearColor PadTone(0.46f, 0.45f, 0.43f);
 	// Safety yellow, not the old dull orange: the references use
@@ -5196,11 +5210,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 		{
 			const int32 SlotIndex = Side * 4 + Slot;
 			const bool bFilled = SlotIndex < Record.InstalledDrones;
-			const float PadY = -FootY * 0.5f
-				+ FootY * (Slot + 0.5f) / 4.f;
+			// Eight slot pads in ONE row along the near flank, not four
+			// at each end of the pad (the ends are the track).
+			(void)SideSign;
+			const float SlotAlongX = -FootX * 0.5f + 120.f
+				+ (FootX - 240.f) * (SlotIndex + 0.5f) / 8.f;
 			AddBlock(TEXT("Dock"), SlotIndex,
 				bFilled ? SlotLit : SlotDark,
-				FVector(SideSign * (FootX * 0.5f - 130.f), PadY, 10.f),
+				FVector(SlotAlongX, FootY * 0.5f - 110.f, 10.f),
 				FVector(150.f, 150.f, 6.f));
 		}
 	}
@@ -5231,6 +5248,9 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			const FLinearColor TowerFoot = LBSpacecraftPalette::StructureGraphite;
 			const FLinearColor TowerLight = LBSpacecraftPalette::IndicatorWorking;
 			const float FlankY = -(FootY * 0.5f - 130.f);
+			// Upstream far corner, so the kit dolly can run along the
+			// rest of the far flank without meeting it.
+			const float TowerX = -(FootX * 0.5f - 230.f);
 			auto PlaceDress = [&](const TCHAR* Part, UStaticMesh* Mesh,
 				const FVector& LocalAt, float LocalYawDeg,
 				const FLinearColor& Tint)
@@ -5269,26 +5289,26 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			{
 				// Its arm face looks at the craft (local +Y).
 				PlaceDress(TEXT("ToolTower"), TowerMesh,
-					FVector(0.f, FlankY, 0.f), 90.f, TowerTone);
+					FVector(TowerX, FlankY, 0.f), 90.f, TowerTone);
 				AddBlock(TEXT("TowerCap"), 0, TowerCap,
-					FVector(0.f, FlankY, 572.f), FVector(180.f, 150.f, 24.f));
+					FVector(TowerX, FlankY, 572.f), FVector(180.f, 150.f, 24.f));
 				AddBlock(TEXT("TowerLight"), 0, TowerLight,
-					FVector(0.f, FlankY + 68.f, 330.f), FVector(90.f, 6.f, 360.f));
+					FVector(TowerX, FlankY + 68.f, 330.f), FVector(90.f, 6.f, 360.f));
 			}
 			else
 			{
 				AddBlock(TEXT("TowerFoot"), 0, TowerFoot,
-					FVector(0.f, FlankY, 20.f), FVector(260.f, 220.f, 40.f));
+					FVector(TowerX, FlankY, 20.f), FVector(260.f, 220.f, 40.f));
 				AddBlock(TEXT("Tower"), 0, TowerTone,
-					FVector(0.f, FlankY, 300.f), FVector(200.f, 170.f, 520.f));
+					FVector(TowerX, FlankY, 300.f), FVector(200.f, 170.f, 520.f));
 				AddBlock(TEXT("TowerCap"), 0, TowerCap,
-					FVector(0.f, FlankY, 580.f), FVector(230.f, 200.f, 36.f));
+					FVector(TowerX, FlankY, 580.f), FVector(230.f, 200.f, 36.f));
 				AddBlock(TEXT("TowerLight"), 0, TowerLight,
-					FVector(0.f, FlankY + 90.f, 330.f), FVector(140.f, 8.f, 380.f));
+					FVector(TowerX, FlankY + 90.f, 330.f), FVector(140.f, 8.f, 380.f));
 				AddBlock(TEXT("TowerArm"), 0, TowerCap,
-					FVector(0.f, FlankY + 250.f, 500.f), FVector(50.f, 330.f, 44.f));
+					FVector(TowerX, FlankY + 250.f, 500.f), FVector(50.f, 330.f, 44.f));
 				AddBlock(TEXT("TowerArmHead"), 0, TowerFoot,
-					FVector(0.f, FlankY + 420.f, 470.f), FVector(90.f, 60.f, 90.f));
+					FVector(TowerX, FlankY + 420.f, 470.f), FVector(90.f, 60.f, 90.f));
 			}
 			if (UStaticMesh* CabinetMesh =
 				TryGetStationMesh(FName(TEXT("Station.ToolCabinet"))))
@@ -5446,10 +5466,11 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 		// sitting on one.
 		for (int32 Run = 0; Run < 2; ++Run)
 		{
+			// Along the near flank's edge, one each side of centre.
 			AddBlock(TEXT("CableRun"), Run, CableTone,
-				FVector(-FootX * 0.5f + 150.f,
-					-FootY * 0.25f + FootY * 0.5f * Run, 22.f),
-				FVector(70.f, FootY * 0.42f, 26.f));
+				FVector(-FootX * 0.25f + FootX * 0.5f * Run,
+					FootY * 0.5f - 30.f, 22.f),
+				FVector(FootX * 0.42f, 70.f, 26.f));
 		}
 		// THE KIT DOLLY, in place of three bins that were the same
 		// three bins whatever the station held. One bay per component
@@ -5502,7 +5523,9 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 		}
 		if (SkidMesh != nullptr && Kit.Num() > 0)
 		{
-			const float SkidX = FootX * 0.5f - 210.f;
+			// Along the FAR flank (inside the pad edge), bays spread
+			// along the line, downstream of the tower's corner.
+			const float SkidFlankY = -(FootY * 0.5f - 210.f);
 			const float BaySpacing = 340.f;
 			for (int32 Bay = 0; Bay < Kit.Num(); ++Bay)
 			{
@@ -5516,14 +5539,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 				Skid->SetupAttachment(RootComponent);
 				Skid->RegisterComponent();
 				FTransform T = Where;
-				const float AlongY =
-					(Bay - (Kit.Num() - 1) * 0.5f) * BaySpacing;
+				const float AlongX = 260.f
+					+ (Bay - (Kit.Num() - 1) * 0.5f) * BaySpacing;
 				T.AddToTranslation(Where.GetRotation().RotateVector(
-					FVector(SkidX, AlongY, 0.f)));
-				// Yawed 90 degrees: the model runs long on ITS x, and
-				// the dolly bay runs long on the station's y.
-				T.SetRotation(T.GetRotation()
-					* FQuat(FRotator(0.f, 90.f, 0.f)));
+					FVector(AlongX, SkidFlankY, 0.f)));
+				// No yaw now: the model runs long on ITS x and the bay
+				// runs along the station's x (the line) on the far flank.
+				T.SetRotation(T.GetRotation());
 				T.SetScale3D(FVector(1.f));
 				Skid->SetWorldTransform(T);
 				Frame.Parts.Add(Skid);
@@ -5538,7 +5560,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 				if (HasKitComponent(Record.StationId, Kit[Bay]))
 				{
 					AddKitPallets(Kit[Bay], Bay,
-						FVector(SkidX, AlongY, 55.f));
+						FVector(AlongX, SkidFlankY, 55.f));
 				}
 			}
 			// The mesh carries its own crates, so the data-driven crate
@@ -5562,31 +5584,33 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 		// there. An empty dolly would read as a shortage.
 		if (!bSkidPlaced && Kit.Num() > 0)
 		{
-			const float DollyX = FootX * 0.5f - 210.f;
+			// Along the far flank, downstream of the tower's corner.
+			const float DollyY = -(FootY * 0.5f - 210.f);
+			const float DollyX0 = 260.f;
 			// Sized to its contents, so a one-component station gets a
 			// short dolly and a two-component station a long one.
 			const float BayLenY = 340.f;
 			const float DeckLenY = BayLenY * static_cast<float>(Kit.Num());
 			AddBlock(TEXT("DollyDeck"), 0, DeckTone,
-				FVector(DollyX, 0.f, 46.f),
-				FVector(270.f, DeckLenY, 18.f));
+				FVector(DollyX0, DollyY, 46.f),
+				FVector(DeckLenY, 270.f, 18.f));
 			// Four wheels and a drawbar, so it reads as a thing that
 			// was WHEELED here rather than a box that lives there.
 			for (int32 Wheel = 0; Wheel < 4; ++Wheel)
 			{
 				AddBlock(TEXT("DollyWheel"), Wheel, WheelTone,
-					FVector(DollyX + ((Wheel % 2 == 0) ? -110.f : 110.f),
-						((Wheel / 2 == 0) ? -1.f : 1.f)
-							* (DeckLenY * 0.5f - 60.f), 20.f),
+					FVector(DollyX0 + ((Wheel / 2 == 0) ? -1.f : 1.f)
+							* (DeckLenY * 0.5f - 60.f),
+						DollyY + ((Wheel % 2 == 0) ? -110.f : 110.f), 20.f),
 					FVector(52.f, 52.f, 40.f));
 			}
 			AddBlock(TEXT("DollyBar"), 0, WheelTone,
-				FVector(DollyX, DeckLenY * 0.5f + 70.f, 40.f),
-				FVector(40.f, 150.f, 16.f));
+				FVector(DollyX0 + DeckLenY * 0.5f + 70.f, DollyY, 40.f),
+				FVector(150.f, 40.f, 16.f));
 
 			for (int32 Bay = 0; Bay < Kit.Num(); ++Bay)
 			{
-				const float BayY = -DeckLenY * 0.5f + BayLenY * 0.5f
+				const float BayX = DollyX0 - DeckLenY * 0.5f + BayLenY * 0.5f
 					+ BayLenY * static_cast<float>(Bay);
 				const bool bHeld =
 					HasKitComponent(Record.StationId, Kit[Bay]);
@@ -5608,7 +5632,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 					if (bHeld)
 					{
 						AddKitPallets(Kit[Bay], Bay,
-							FVector(DollyX, BayY, 55.f));
+							FVector(BayX, DollyY, 55.f));
 					}
 					continue;
 				}
@@ -5623,10 +5647,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 					// of rows overlapped and four crates rendered as
 					// two slabs - the dolly looked loaded but could not
 					// be counted.
-					const float SlotX = DollyX
-						+ ((Crate % 2 == 0) ? -64.f : 64.f);
-					const float SlotY = BayY
+					const float SlotX = BayX
 						+ ((Crate / 2 == 0) ? -76.f : 76.f);
+					const float SlotY = DollyY
+						+ ((Crate % 2 == 0) ? -64.f : 64.f);
 					const int32 Key = Bay * 8 + Crate;
 					// THE CRADLE IS ALWAYS DRAWN, loaded or not. The
 					// first cut drew a flat dark plate for an empty

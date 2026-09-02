@@ -215,6 +215,27 @@ a lot better before the filming". So, off the current frame:
 - Frames: `tidy_entry_tiles_station.png`, `storage_rack_tile_and_floor.png`,
   `tidy_rack_facing_camera_bars_over_line.png`.
 
+## Nothing sits on the line (owner, same evening)
+
+"Make sure nothing blocks the line like drone charging docks etc." Once
+every fitting station turned its long side along the line, the service
+furniture laid out at the pad's ends - the crew's charging docks, the
+eight slot pads, the cable runs, the kit dolly, the stockpile stacks -
+stood in the track corridor between stations. All of it moved to the
+flanks: the near flank (camera side, low things only) takes the docks in
+a row outside the pad edge, the slot pads in a row inside it, the cable
+runs and the cabinet; the far flank takes the tool tower at its upstream
+corner and the kit dolly along the rest, with the hull sections lying
+along the line; the stockpile stands beyond the far flank. Pallet meshes
+turn a quarter to lie along the new axis. The rule is on record for
+every future station-side element. Frame:
+`nothing_on_the_line_flanks.png` (entry, a station gap, the rack).
+
+Seen on the same frame and left for the next pass: at the FIRST station
+the craft is invisible until its hull is fitted (the build-form ladder is
+gated and the six-part form needs the hull), so for one stop the hero is
+absent while its sections lie on the dolly beside it.
+
 ## Status
 
 **Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD
