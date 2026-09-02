@@ -231,10 +231,17 @@ turn a quarter to lie along the new axis. The rule is on record for
 every future station-side element. Frame:
 `nothing_on_the_line_flanks.png` (entry, a station gap, the rack).
 
-Seen on the same frame and left for the next pass: at the FIRST station
-the craft is invisible until its hull is fitted (the build-form ladder is
-gated and the six-part form needs the hull), so for one stop the hero is
-absent while its sections lie on the dolly beside it.
+Seen on the same frame and done next: at the FIRST station the craft had
+no hull yet and its loose sections lay still. Those sections turned out to
+be the craft's own "stripped hull" (a 2026-08-30 feature), not the dolly
+pallets; they now start the stop spread apart along the craft's axis and
+close up nose-to-aft as the stop progresses, and the real hull takes over
+the instant it is fitted. The first pass laid them along local Y, which
+put the loose hull ACROSS the line
+(`hull_sections_closing_across_the_line_first_pass.png`); the assembled
+hull runs along local X with the nose at -X, so the sections do too now
+(`hull_sections_close_up_over_first_stop.png`, six frames ten seconds
+apart). A dead first attempt that animated dolly pallets was removed.
 
 ## Status
 

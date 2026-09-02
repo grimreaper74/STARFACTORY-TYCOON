@@ -6075,8 +6075,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						Section->AttachToComponent(Component,
 							FAttachmentTransformRules::
 								KeepRelativeTransform);
-						Section->SetRelativeLocation(FVector(0.f,
-							SectionCentresCm[Index], 0.f));
+						// Along the craft's OWN axis (local X, nose at -X),
+						// where the assembled hull will stand - not across
+						// it, which put the loose hull across the line
+						// (frame, 2026-09-02). The section meshes are
+						// modelled lying along Y, hence the quarter turn.
+						Section->SetRelativeLocationAndRotation(
+							FVector(SectionCentresCm[Index], 0.f, 0.f),
+							FRotator(0.f, 90.f, 0.f));
 						Section->RegisterComponent();
 						Sections.Add(Section);
 					}
@@ -6084,6 +6090,48 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						MoveTemp(Sections));
 				}
 				Component->SetVisibility(false);
+				// THE HULL COMES TOGETHER (look plan, 2026-09-02): the
+				// loose sections start the stop spread apart along the
+				// craft's axis and close up nose-to-aft as the stop
+				// progresses, so the first station shows a hull being
+				// built rather than parts lying still; the real hull
+				// takes over the instant it is fitted.
+				if (TArray<TObjectPtr<UStaticMeshComponent>>* Loose =
+					StrippedHullSections.Find(Assignment.UnitId))
+				{
+					float StopProgress = 0.f;
+					if (Coordinator != nullptr)
+					{
+						Coordinator->GetUnitCycleProgress(Assignment.UnitId,
+							StopProgress);
+					}
+					TArray<float> LengthsCm;
+					for (UStaticMeshComponent* Section : *Loose)
+					{
+						LengthsCm.Add(Section != nullptr
+							&& Section->GetStaticMesh() != nullptr
+							? Section->GetStaticMesh()->GetBounds().BoxExtent.Y
+								* 2.f
+							: 0.f);
+					}
+					TArray<float> CentresCm;
+					ComputeSequentialLayoutCentresCm(LengthsCm, CentresCm);
+					const int32 Count = Loose->Num();
+					const float Closed = FMath::SmoothStep(0.f, 1.f,
+						FMath::Clamp(StopProgress, 0.f, 1.f));
+					for (int32 Index = 0; Index < Count; ++Index)
+					{
+						UStaticMeshComponent* Section = (*Loose)[Index];
+						if (Section == nullptr || !CentresCm.IsValidIndex(Index))
+						{
+							continue;
+						}
+						const float Spread = (Index - (Count - 1) * 0.5f)
+							* 260.f * (1.f - Closed);
+						Section->SetRelativeLocation(
+							FVector(CentresCm[Index] + Spread, 0.f, 0.f));
+					}
+				}
 			}
 			else if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
 				StrippedHullSections.Find(Assignment.UnitId))
