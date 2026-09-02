@@ -177,6 +177,10 @@ order is left to build. F20 (and the placement toast's id leak, F11)
 by the toast itself: "PLACED Assembly station Mk1 - THE LINE
 CONNECTED ITSELF - 125,000 cr left; two drones for it cost 24,000",
 with "NOT ENOUGH TO CREW IT" appended when the money is not there.
+Removing an ordinary station now takes two clicks: the first quotes
+"REMOVE Assembly station Mk1 3 - refunds 120,000 cr? CLICK REMOVE
+AGAIN TO CONFIRM" and arms an eight-second window, the second
+removes (F17's cousin from the first wave's open list).
 F34 and F31 are fixed together in the panel: the six ship components
 now head the import section under their own label, sub-parts follow,
 and orders in flight are listed AFTER the buttons (as "ON ORDER",

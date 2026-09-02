@@ -186,6 +186,10 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** Two-click removal: the station quoted on the first click and the
+	 *  moment it was, so a second click within eight seconds removes. */
+	FName PendingRemoveStation;
+	double PendingRemoveStamp = 0.0;
 	/** One more gantry crane on the rails (the pace of the pulse). */
 	void HandleBuyCrane();
 	void HandleSelectRecipe(FName RecipeId);

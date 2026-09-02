@@ -42,8 +42,13 @@ What stood between the line and its first ship, in order found:
   them, and nothing warned. **Fixed** (last build): the placement toast
   names the station, the cash left and what two drones for it cost,
   and says NOT ENOUGH TO CREW IT when that is so.
-- **Open:** F5/F9/F12 (site hit-testing, door cue) and a confirmation
-  for refund-bearing removals.
+- **Removal confirmation** (first wave's open list): removing a
+  station is two clicks now, the first quoting the refund ("REMOVE
+  Assembly station Mk1 5 - refunds 120,000 cr? CLICK REMOVE AGAIN TO
+  CONFIRM"), with an eight-second window that re-arms if it lapses.
+  Verified in PIE (`Saved/Audits/StrangerWave3_2026_09_02`); not in
+  either package.
+- **Open:** F5/F9/F12 (site hit-testing, door cue).
 
 Two toolset additions made the run possible: `ProbePieWidgetAt(X,Y)`
 reports the widget and label under a point before a click (a rendered

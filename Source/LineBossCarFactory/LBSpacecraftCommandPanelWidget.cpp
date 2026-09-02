@@ -2385,6 +2385,43 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 	const FString Shown =
 		LBSpacecraftCommandPanelPrivate::SpacecraftPrettifyStationIds(
 			StationId.ToString(), GameMode->GetBuildAuthority());
+	// ASK ONCE, THEN DO IT. One click used to delete a station and
+	// refund it with no way back (the stranger deleted the ship
+	// factory that way, 2026-09-02; the hall is refused now, but an
+	// ordinary station still vanished on a mis-click). The first
+	// click quotes the refund and arms an eight-second window, the
+	// same shape as the site map's purchase; a second click within
+	// it removes. Any other station resets the window.
+	const double Now = FPlatformTime::Seconds();
+	if (PendingRemoveStation != StationId
+		|| Now - PendingRemoveStamp > 8.0)
+	{
+		PendingRemoveStation = StationId;
+		PendingRemoveStamp = Now;
+		FString Refund;
+		if (const FLBSpacecraftStationRecord* Record =
+			GameMode->GetBuildAuthority()->FindStation(StationId))
+		{
+			if (const FLBSpacecraftStationDefinition* Definition =
+				ALBSpacecraftBuildAuthority::FindDefinition(
+					Record->DefinitionId))
+			{
+				Refund = FString::Printf(TEXT(" - refunds %s"),
+					*ULBSpacecraftTopBarWidget::FormatCurrency(
+						Definition->CostPence));
+			}
+		}
+		PanelActionText = FText::Format(LOCTEXT("RemoveConfirm",
+			"REMOVE {0}{1}? CLICK REMOVE AGAIN TO CONFIRM"),
+			FText::FromString(Shown), FText::FromString(Refund)).ToString();
+		// A re-arm after the window lapsed repeats the SAME words, and
+		// the strip's ageing rule reads unchanged text as already seen
+		// and lets the sim alert cover it (seen in PIE, 2026-09-02).
+		// Forget the last composition so the question shows afresh.
+		ToastLastComposed.Reset();
+		return;
+	}
+	PendingRemoveStation = NAME_None;
 	FString Reason;
 	if (ALBSpacecraftGameMode::RemoveStationPowered(
 		*GameMode->GetBuildAuthority(), *GameMode->GetPowerAuthority(),
@@ -2399,6 +2436,10 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 		if (Pawn != nullptr)
 		{
 			Pawn->ClearSelectedStation();
+			// The pawn's last line still read "SELECTED AssemblyRobot-005"
+			// - the station is gone, so its id no longer prettifies.
+			// Replace it with the removal.
+			Pawn->SetLastActionText(PanelActionText);
 		}
 		// The line re-routes around the gap (owner 2026-09-01: the
 		// track connects itself). A relay refusal is reported but the
