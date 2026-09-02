@@ -106,7 +106,12 @@ once the deadline followed the retune.
 
 - The primer coat and the hero framing are seen in PIE, not yet in the
   packaged build.
-- The sortie's carried part has not been seen on a frame.
+- The sortie IS on a frame now (`phaseD_sorties_station3_eight_frames.png`:
+  eight frames at station 3 with a craft in work, a drone on its tether
+  carrying a load to the hull, the crane taking the craft on in the
+  seventh). The load is the crate fallback, not the pallet part: that
+  station showed no stock stack for the carry to copy. The real-part
+  carry is coded and tested but still not seen.
 - The tool tower reads mostly as its top from the play camera; whether a
   lower-angle silhouette is worth a camera change is a question for the
   owner, not something this pass decided.
