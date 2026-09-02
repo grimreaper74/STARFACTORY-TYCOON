@@ -84,7 +84,13 @@ cards, cut from real captures.
    the ships carry the colour, and today a craft is graphite until the
    booth. Next: the hull wears a primer coat of its livery from the
    first station.
-7. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
+7. Research as picture tiles - **done 2026-09-02** (the last wall of
+   text in the panel: each node wears the render of the first machine
+   it opens, a badge with how many, a two-line caption of price and the
+   node it waits for; red only where a node is affordable-but-short,
+   never for "later"; a Mk2 family without a model wears the Mk1
+   picture). Frames `Saved/Audits/UITiles_2026_09_02/research_tiles*.png`.
+8. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
    glyph beats a render: tabs, session, land.
 
 Every step is judged on a rendered frame before it is called done.

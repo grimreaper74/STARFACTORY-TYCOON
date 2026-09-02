@@ -681,6 +681,9 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTileButton(
 		UTextBlock* SubText = WidgetTree->ConstructWidget<UTextBlock>(
 			UTextBlock::StaticClass());
 		SubText->SetText(FText::FromString(Sub));
+		// Wrapped: a long caption ("after Robotic Sub-Assembly") ran
+		// into the next tile (research tab frame, 2026-09-02).
+		SubText->SetAutoWrapText(true);
 		SubText->SetColorAndOpacity(FSlateColor(
 			bSubWarn ? SpacecraftPanelWarn : SpacecraftPanelSubText));
 		FSlateFontInfo SubFont = SubText->GetFont();
@@ -2303,19 +2306,94 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			: LOCTEXT("SectionResearch", "RESEARCH").ToString());
 		const int32 Banked =
 			Research != nullptr ? Research->GetPoints() : 0;
+		// PICTURE TILES, like the build menu (UI direction: pictures
+		// first, words as captions; this was the last wall of text in
+		// the panel, 2026-09-02). Each node wears the render of the
+		// first machine it opens, a badge with how many it opens, and
+		// under it the price, "Unlocked", or the node it waits for.
+		UUniformGridPanel* Grid =
+			WidgetTree->ConstructWidget<UUniformGridPanel>(
+				UUniformGridPanel::StaticClass());
+		Grid->SetSlotPadding(FMargin(3.f));
+		if (UVerticalBoxSlot* GridSlot =
+			ContentBox->AddChildToVerticalBox(Grid))
+		{
+			GridSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+		}
+		int32 TileIndex = 0;
 		for (const FLBSpacecraftResearchNode& Node :
 			FLBSpacecraftResearchCatalogue::GetNodeTable())
 		{
 			const bool bUnlocked = Research != nullptr
 				&& Research->IsNodeUnlocked(Node.NodeId);
-			const FString Sub = bUnlocked
-				? LOCTEXT("ResearchDone", "Unlocked").ToString()
-				: FText::Format(LOCTEXT("ResearchPts", "{0} pts"),
+			// The node it still waits for, if any: a locked
+			// prerequisite is the honest reason the tile refuses.
+			FString Waiting;
+			for (const FName& Needed : Node.Prerequisites)
+			{
+				if (Research != nullptr && !Research->IsNodeUnlocked(Needed))
+				{
+					const FLBSpacecraftResearchNode* NeededNode =
+						FLBSpacecraftResearchCatalogue::FindNode(Needed);
+					Waiting = NeededNode != nullptr
+						? NeededNode->DisplayName : Needed.ToString();
+					break;
+				}
+			}
+			FString Sub;
+			if (bUnlocked)
+			{
+				Sub = LOCTEXT("ResearchDone", "Unlocked").ToString();
+			}
+			else if (!Waiting.IsEmpty())
+			{
+				// Two lines: the price, then what it waits for; on one
+				// line the caption ran off the tile (frame, 2026-09-02).
+				Sub = FText::Format(LOCTEXT("ResearchAfter",
+					"{0} pts\nafter {1}"), Node.CostPoints,
+					FText::FromString(Waiting)).ToString();
+			}
+			else
+			{
+				Sub = FText::Format(LOCTEXT("ResearchPts", "{0} pts"),
 					Node.CostPoints).ToString();
-			ULBSpacecraftTaggedButton* Button = AddTaggedButton(
-				Node.DisplayName, Node.NodeId,
+			}
+			UTexture* Picture = nullptr;
+			if (ALBSpacecraftWIPPresentationActor* Presenter =
+				GameMode != nullptr ? GameMode->GetPresenter() : nullptr)
+			{
+				for (const FName& Opens : Node.UnlockedStationClasses)
+				{
+					Picture = Presenter->GetDefinitionTile(Opens);
+					if (Picture == nullptr)
+					{
+						// A Mk2 family without its own model wears the
+						// Mk1 picture rather than a blank tile.
+						FString Base = Opens.ToString();
+						if (Base.RemoveFromEnd(TEXT("Mk2")))
+						{
+							Picture = Presenter->GetDefinitionTile(FName(*Base));
+						}
+					}
+					if (Picture != nullptr)
+					{
+						break;
+					}
+				}
+			}
+			ULBSpacecraftTaggedButton* Button = AddTileButton(Grid,
+				TileIndex++, Node.DisplayName, Sub, Node.NodeId,
 				[this](FName InTag) { HandleResearch(InTag); },
-				Sub, !bUnlocked && Node.CostPoints > Banked, bUnlocked);
+				Picture,
+				// Red is for a refusal: a node you could take now but
+				// cannot afford. One that waits on another node is
+				// simply later, and reads dim.
+				!bUnlocked && Waiting.IsEmpty() && Node.CostPoints > Banked,
+				bUnlocked,
+				Node.UnlockedStationClasses.Num() > 1
+					? FString::Printf(TEXT("x%d"),
+						Node.UnlockedStationClasses.Num())
+					: FString());
 			Button->SetIsEnabled(!bUnlocked);
 		}
 		break;
