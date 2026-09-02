@@ -8,6 +8,7 @@
 #include "LBSpacecraftPlayerPawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/AudioComponent.h"
+#include "HAL/IConsoleManager.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -5138,16 +5139,21 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 	// camera; these are 70 cm and alternate with the pad tone so they
 	// carry the striped look at a distance rather than needing a
 	// texture nobody has authored yet.
-	const float BandCm = 70.f;
+	// The bay outline, WIDER and a little higher off the pad (the
+	// side-by-side against Car Manufacture, 2026-09-02: their yellow bay
+	// tape is bright and wide, ours read dim under the locked exposure).
+	// Same palette token - Hazard is exempt from the saturation ceiling
+	// - just more of it, lifted clear of the pad's own shadow.
+	const float BandCm = 100.f;
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
 		const float SideSign = Side == 0 ? -1.f : 1.f;
 		AddBlock(TEXT("BorderX"), Side, BorderOrange,
-			FVector(SideSign * (FootX * 0.5f - BandCm * 0.5f), 0.f, 9.f),
-			FVector(BandCm, FootY, 3.f));
+			FVector(SideSign * (FootX * 0.5f - BandCm * 0.5f), 0.f, 12.f),
+			FVector(BandCm, FootY, 4.f));
 		AddBlock(TEXT("BorderY"), Side, BorderOrange,
-			FVector(0.f, SideSign * (FootY * 0.5f - BandCm * 0.5f), 9.f),
-			FVector(FootX, BandCm, 3.f));
+			FVector(0.f, SideSign * (FootY * 0.5f - BandCm * 0.5f), 12.f),
+			FVector(FootX, BandCm, 4.f));
 		// The dark half of the stripe: five dashes along each band, so
 		// the edge reads as hazard tape and not as a plain orange line.
 		for (int32 Dash = 0; Dash < 5; ++Dash)
@@ -10151,3 +10157,33 @@ void ALBSpacecraftWIPPresentationActor::Tick(float DeltaSeconds)
 	// reads the unit visuals only after RefreshUnits has placed them.
 	RefreshInspectionSweep();
 }
+
+// LB.Look.Sun <warmth 0..1>: the A/B lever for the one look decision that
+// is the owner's, not mine (2026-09-02). 0 is the palette adoption's
+// neutral white sun; 1 is a frankly warm key. Presentation only, nothing
+// saved, so two frames of the same view can be put in front of him.
+static FAutoConsoleCommandWithWorldAndArgs LBLookSunCommand(
+	TEXT("LB.Look.Sun"),
+	TEXT("Sun warmth for A/B frames: 0 neutral white, 1 warm. Args: [warmth]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+		[](const TArray<FString>& Args, UWorld* World)
+{
+	if (World == nullptr)
+	{
+		return;
+	}
+	const float Warmth = FMath::Clamp(
+		Args.Num() > 0 ? FCString::Atof(*Args[0]) : 0.5f, 0.f, 1.f);
+	const FLinearColor Colour = FMath::Lerp(FLinearColor::White,
+		FLinearColor(1.0f, 0.86f, 0.70f), Warmth);
+	for (TActorIterator<ADirectionalLight> It(World); It; ++It)
+	{
+		if (UDirectionalLightComponent* Sun =
+			Cast<UDirectionalLightComponent>(It->GetLightComponent()))
+		{
+			Sun->SetLightColor(Colour);
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("LB.Look.Sun warmth %.2f -> (%.2f %.2f %.2f)"),
+		Warmth, Colour.R, Colour.G, Colour.B);
+}));

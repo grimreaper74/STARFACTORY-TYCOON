@@ -3974,8 +3974,11 @@ bool FLBSpacecraftStrandedCraftTest::RunTest(const FString& Parameters)
 	Order.Quantity = 1;
 	Order.PricePerUnitPence = 15000000;
 	// A deadline it will miss WHILE THE CRAFT IS STILL ON THE LINE -
-	// deadlines are new, and this is the case they create.
-	Order.DeadlineSimSeconds = 400.0;
+	// deadlines are new, and this is the case they create. 150 s: the
+	// Scout's line work is 255 s since the 2026-09-02 retune (it was
+	// 440 and the deadline 400), and the case only exists if the clock
+	// runs out before the craft is off the line.
+	Order.DeadlineSimSeconds = 150.0;
 	TestTrue(TEXT("offered"), Rig.Production->OfferContract(Order, Reason));
 	TestTrue(TEXT("accepted"),
 		Rig.Production->AcceptContract(Order.ContractId, Reason));

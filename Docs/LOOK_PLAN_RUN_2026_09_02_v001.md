@@ -127,6 +127,48 @@ The first replay also showed the Development build's "LIGHTING NEEDS TO BE
 REBUILT (1 unbuilt object)" banner - cosmetic in Development, hidden in
 Shipping, and not fixed here.
 
+## The side-by-side, done after all (evening)
+
+Our hero frame beside a Car Manufacture store screenshot
+(`Saved/Audits/LineLook_2026_09_02/side_by_side_car_manufacture_vs_ours.png`;
+the reference is viewed for judgement only and is not reproduced in the
+docs). What theirs has that ours still lacks, in order:
+
+1. **Warmth.** Their floor is a warm tan; ours reads cool grey under the
+   neutral sun. The A/B frames (`warmth_ab_sun_0_05_1.png`, console
+   `LB.Look.Sun 0..1`) show that a warmth of 1 gets the floor to a warm
+   79/75/68 sample; the decision is the owner's against the palette's
+   neutral-sun evidence.
+2. **Saturated product.** Their cars are vivid red, blue and orange in
+   every frame; our craft is white unless a coloured contract is running.
+   The livery system exists; the demo state must carry coloured contracts
+   (`Film.sav` does).
+3. **Density.** Fifteen stations, people and machines in their frame
+   against our five stations in a hall built for far more. The fill
+   beside the line helps; the hall's size is a fixture decision on record.
+4. **Hazard tape.** Their yellow bay outlines are bright and wide; ours
+   are dim under the locked exposure. Cheap to widen and lift.
+
+## Pacing, measured
+
+Dev line, parts pre-stocked, sim time from Start to Dispatched on one
+craft, at 4x wall speed (`Saved/Audits/LineLook_2026_09_02/pacing_first_ship.txt`):
+intake reached at 12 s, material processing 116 s, hull fabrication
+192 s, component fabrication 268 s, assembly staging 348 s, assembly
+424 s, testing 472 s, dispatched 552 s. Nine minutes of sim for one craft,
+of which the visible line work (assembly) is 48 s and the test 80 s; the
+five OFF-LINE stages before the line take 400 s while nothing the player
+can see happens. That is the first-ten-minutes problem in one number.
+
+**Retuned the same evening.** The Scout's nominal cycle seconds drop from
+440 to 255 (12/25/50/40/18/65/45; the Cargo keeps its heavier numbers),
+the coordinator test's cycle total follows. Same measurement afterwards:
+dispatched at 360 s of sim instead of 552 - six minutes for a first craft
+on the dev line, so with the player's own building and buying time a
+first ship lands inside ten. The remaining overhead is per-stop: crane
+trips and admission waits between the six stations, roughly 100 s of the
+360. Evidence: `pacing_first_ship.txt`, both runs.
+
 ## Status
 
 **Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD

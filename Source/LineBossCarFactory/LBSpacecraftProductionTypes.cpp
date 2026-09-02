@@ -800,14 +800,24 @@ const TArray<FLBSpacecraftRecipe>& FLBSpacecraftProductionCatalog::CanonicalReci
 			ELBSpacecraftComponent::Navigation, ELBSpacecraftComponent::Interior };
 		Scout.FixingOrder = SharedFixingOrder;
 		Scout.AccessBlocks = SharedAccessBlocks;
+		// RETUNED 2026-09-02 for the first ten minutes (the look plan's
+		// pacing measurement, Docs/LOOK_PLAN_RUN_2026_09_02_v001.md): the
+		// six pre-test stages ARE the six station stops, timed by these
+		// numbers spread over the stations, and at 380 s of line work a
+		// first Scout took 552 s of sim from start to dispatch - nine
+		// minutes with the hero standing still. Line work is 210 s now,
+		// the test 45: a first ship in about five minutes of sim, which
+		// with the player's own building time lands inside ten. The
+		// Cargo keeps its numbers; it is the second tier and meant to
+		// feel heavier.
 		Scout.NominalCycleSeconds = {
-			{ ELBSpacecraftStage::MaterialIntake, 20.f },
-			{ ELBSpacecraftStage::MaterialProcessing, 45.f },
-			{ ELBSpacecraftStage::HullFabrication, 90.f },
-			{ ELBSpacecraftStage::ComponentFabrication, 75.f },
-			{ ELBSpacecraftStage::AssemblyStaging, 30.f },
-			{ ELBSpacecraftStage::Assembly, 120.f },
-			{ ELBSpacecraftStage::Testing, 60.f } };
+			{ ELBSpacecraftStage::MaterialIntake, 12.f },
+			{ ELBSpacecraftStage::MaterialProcessing, 25.f },
+			{ ELBSpacecraftStage::HullFabrication, 50.f },
+			{ ELBSpacecraftStage::ComponentFabrication, 40.f },
+			{ ELBSpacecraftStage::AssemblyStaging, 18.f },
+			{ ELBSpacecraftStage::Assembly, 65.f },
+			{ ELBSpacecraftStage::Testing, 45.f } };
 		// RETUNED 2026-08-27 with the hundred-part catalogue. Parts are
 		// counted per fitted instance now (owner: "car manufacturer has
 		// each light and each seat"), so a Scout's bill of materials

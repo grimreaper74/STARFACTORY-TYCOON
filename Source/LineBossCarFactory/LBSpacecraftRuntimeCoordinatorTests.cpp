@@ -139,8 +139,11 @@ namespace LBSpacecraftRuntimeCoordinatorTestsPrivate
 		return Rig.Production->AcceptContract(FName(ContractId), OutReason);
 	}
 
-	// Scout-01 cycle total: 20+45+90+75+30+120+60 = 440 sim seconds.
-	constexpr double ScoutTotalCycleSeconds = 440.0;
+	// Scout-01 cycle total: 12+25+50+40+18+65+45 = 255 sim seconds
+	// (retuned 2026-09-02 for a first ship inside five minutes of sim;
+	// it was 440). The property under test is unchanged: the line does
+	// the recipe's whole work however finely it is split.
+	constexpr double ScoutTotalCycleSeconds = 255.0;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftAnyLineLengthTest,
