@@ -397,10 +397,13 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
 			TEXT("%s/SM_LB_ST_DeliveryDock_v001")
 			TEXT(".SM_LB_ST_DeliveryDock_v001"), StationMeshRoot))));
+	// The storage rack wears the Meshy pallet rack (2026-09-02): the
+	// silo mesh this pointed at never existed on disk, so the rack was a
+	// blockout on the floor and a blank tile in the build menu.
 	StationMeshes.Add(FName(TEXT("StorageRack")),
-		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
-			TEXT("%s/SM_LB_ST_StorageSilo_v001")
-			TEXT(".SM_LB_ST_StorageSilo_v001"), StationMeshRoot))));
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
+			TEXT("/Game/LineBoss/Candidates/Spacecraft/StationDress_v001")
+			TEXT("/SM_LB_ST_WallRack_v001.SM_LB_ST_WallRack_v001"))));
 	StationMeshes.Add(FName(TEXT("SubAssemblyHall")),
 		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
 			TEXT("%s/SM_LB_ST_SubAssemblyHall_v003")
@@ -793,7 +796,9 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		// The station dress and hall fill (look plan phases C and E,
 		// 2026-09-02): imported with sizes verified, so promoted.
 		|| DefinitionId.ToString().StartsWith(TEXT("Station."))
-		|| DefinitionId.ToString().StartsWith(TEXT("Hall."));
+		|| DefinitionId.ToString().StartsWith(TEXT("Hall."))
+		// The storage rack wears the same imported pallet rack (2026-09-02).
+		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -4374,15 +4379,29 @@ void ALBSpacecraftWIPPresentationActor::RefreshStations()
 			}
 			const FVector MeshSize =
 				RealMesh->GetBounds().BoxExtent * 2.0;
+			// A LONG mesh lies along the footprint's long side: the
+			// pallet rack (6 m by 1 m) stood end-on across its bay
+			// otherwise (frame, 2026-09-02). Quarter turn when the
+			// footprint and the mesh disagree about which axis is long.
+			const bool bQuarterTurn = Definition != nullptr
+				&& ((Definition->FootprintCm.X >= Definition->FootprintCm.Y)
+					!= (MeshSize.X >= MeshSize.Y));
+			const float MeshAlongX = bQuarterTurn ? MeshSize.Y : MeshSize.X;
+			const float MeshAlongY = bQuarterTurn ? MeshSize.X : MeshSize.Y;
 			float Fit = 1.f;
 			if (Definition != nullptr
-				&& MeshSize.X > 1.f && MeshSize.Y > 1.f)
+				&& MeshAlongX > 1.f && MeshAlongY > 1.f)
 			{
 				Fit = FMath::Min(
-					Definition->FootprintCm.X / MeshSize.X,
-					Definition->FootprintCm.Y / MeshSize.Y);
+					Definition->FootprintCm.X / MeshAlongX,
+					Definition->FootprintCm.Y / MeshAlongY);
 			}
 			FTransform MeshTransform = Record.WorldTransform;
+			if (bQuarterTurn)
+			{
+				MeshTransform.SetRotation(Record.WorldTransform.GetRotation()
+					* FRotator(0.f, 90.f, 0.f).Quaternion());
+			}
 			MeshTransform.SetScale3D(FVector(
 				Fit * SpacecraftStationDressFit(Record.DefinitionId)));
 			Component->SetWorldTransform(MeshTransform);
@@ -5630,10 +5649,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 					}
 					if (bHeld)
 					{
-						AddBlock(TEXT("KitCrate"), Key, CrateTone,
+						// From the play camera a crate is its LID, so the
+						// lid takes Crate.Tan and the body the dark; the
+						// other way round the kit read as four black
+						// blocks on the pad (frame, 2026-09-02).
+						AddBlock(TEXT("KitCrate"), Key, CrateLid,
 							FVector(SlotX, SlotY, 104.f),
 							FVector(98.f, 98.f, 76.f));
-						AddBlock(TEXT("KitCrateLid"), Key, CrateLid,
+						AddBlock(TEXT("KitCrateLid"), Key, CrateTone,
 							FVector(SlotX, SlotY, 145.f),
 							FVector(106.f, 106.f, 10.f));
 					}
@@ -8333,12 +8356,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 						FVector(AxisX - 2600.f, Y, 0.f)), true);
 				}
 			}
-			for (float Y = MinY; Y <= MaxY + 200.f; Y += 900.f)
+			// The light bars hang OVER THE LINE at 11.5 m, every 18 m.
+			// From a camera pitched 35 degrees a bar that high projects
+			// 16 m behind the line on screen, above the far racks, so
+			// it never covers the craft; a bar over the far flank at 9 m
+			// was the first thing in front of anything the player
+			// looked at on that side (frame, 2026-09-02).
+			for (float Y = MinY; Y <= MaxY + 200.f; Y += 1800.f)
 			{
 				if (Bars != nullptr)
 				{
 					Bars->AddInstance(FTransform(FRotator(0.f, 90.f, 0.f),
-						FVector(AxisX + 1500.f, Y, 900.f)), true);
+						FVector(AxisX, Y, 1150.f)), true);
 				}
 			}
 		}
@@ -9365,6 +9394,14 @@ UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
 	else
 	{
 		Mesh = TryGetStationMesh(DefinitionId);
+		if (Mesh == nullptr
+			&& DefinitionId.ToString().StartsWith(TEXT("AssemblyRobot")))
+		{
+			// The fitting station's portal dress went by decision
+			// (2026-09-02); its picture is the tool tower that stands
+			// on it, so the build menu is not a blank tile.
+			Mesh = TryGetStationMesh(FName(TEXT("Station.ToolTower")));
+		}
 	}
 	if (Mesh == nullptr)
 	{

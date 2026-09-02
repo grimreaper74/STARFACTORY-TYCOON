@@ -190,6 +190,31 @@ car manufacturer feel". The key light is warm by default now (the
 console lever stays for future A/Bs); the palette adoption's neutral-sun
 paragraph is superseded by that decision and says so in the presenter.
 
+## The evening's tidy pass ("keep improving")
+
+Owner, offered a fresh package: "no just keep improving, it's got to be
+a lot better before the filming". So, off the current frame:
+
+- Hall entry framing margin 1.35 to 1.2, so the racks and light bars sit
+  at the picture's edges instead of bare floor.
+- The fitting station's build-menu tile was blank once its portal went;
+  it shows its tool tower now. The storage rack's tile was blank because
+  the silo mesh it pointed at never existed on disk; it wears the Meshy
+  pallet rack, promoted past the allow-list, and the rack lies along its
+  bay's long side (long dressing meshes take a quarter turn when the
+  footprint and the mesh disagree about which axis is long).
+- Kit crates read as black blocks from the play camera because the lid
+  was the dark tone; lid and body swapped.
+- The storage rack's footprint turns from 10 by 6 to 6 by 10 so a rack
+  placed at the default yaw presents its long side to the camera; the
+  light bars move from the far flank at 9 m to directly over the line at
+  11.5 m every 18 m, where a 35-degree camera projects them 16 m behind
+  the line on screen and they never sit between the camera and anything
+  (on the far flank they were the first thing in front of a watched
+  rack).
+- Frames: `tidy_entry_tiles_station.png`, `storage_rack_tile_and_floor.png`,
+  `tidy_rack_facing_camera_bars_over_line.png`.
+
 ## Status
 
 **Packaged playable, cycle 12b** (`Builds/LookPlan_2026_09_02b`, BUILD

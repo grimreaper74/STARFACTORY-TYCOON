@@ -386,7 +386,10 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			FLBSpacecraftStationDefinition StorageRack;
 			StorageRack.DefinitionId = FName(TEXT("StorageRack"));
 			StorageRack.DisplayName = TEXT("Storage rack Mk1");
-			StorageRack.FootprintCm = FVector2D(1000.f, 600.f);
+			// 6 m deep by 10 m wide (was 10 by 6): a rack placed at the
+			// default yaw now presents its long side to the camera at
+			// -X instead of standing end-on (frame, 2026-09-02).
+			StorageRack.FootprintCm = FVector2D(600.f, 1000.f);
 			StorageRack.CostPence = 2000000;
 			StorageRack.MaxCraftEnvelopeCm = FVector::ZeroVector;
 			StorageRack.StorageCapacityUnits = 2000;

@@ -937,10 +937,13 @@ void ALBSpacecraftPlayerPawn::FocusStation(FName StationId)
 				}
 			}
 			const FVector Size = LineBounds.GetSize();
+			// Margin 1.2, was 1.35: with racks and light bars beside the
+			// line (look plan phase E) the tighter frame puts the fill at
+			// the picture's edges instead of bare floor (2026-09-02).
 			DesiredZoomCm = ComputeFramingZoomCm(
 				FVector2D(FMath::Max(Size.X, 3000.f) / (1.f - PanelFraction),
 					FMath::Max(Size.Y, 3000.f)),
-				/*MarginRatio=*/1.35f, ZoomMinCm, SiteMapZoomCeilingCm());
+				/*MarginRatio=*/1.2f, ZoomMinCm, SiteMapZoomCeilingCm());
 			const float FramedWidthCm = 2.f * DesiredZoomCm
 				* FMath::Tan(FMath::DegreesToRadians(GetCameraFovDeg() * 0.5f));
 			FVector ScreenRight = CameraBoom != nullptr
