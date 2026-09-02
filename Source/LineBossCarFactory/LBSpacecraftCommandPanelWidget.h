@@ -186,6 +186,13 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** A PICTURE TILE (owner 2026-09-02: the interface is pictures, not
+	 *  rows): a rendered thumbnail of the thing, its name and its price
+	 *  as captions, the whole tile the button. Two per row. */
+	ULBSpacecraftTaggedButton* AddTileButton(class UUniformGridPanel* Grid,
+		int32 Index, const FString& Label, const FString& Sub, FName InTag,
+		TFunction<void(FName)> Handler, class UTexture* Picture,
+		bool bSubWarn, bool bArmed, const FString& Badge);
 	/** Two-click removal: the station quoted on the first click and the
 	 *  moment it was, so a second click within eight seconds removes. */
 	FName PendingRemoveStation;

@@ -8,6 +8,12 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/ScrollBox.h"
+#include "LBSpacecraftWIPPresentationActor.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Components/OverlaySlot.h"
+#include "Components/Overlay.h"
+#include "Components/UniformGridSlot.h"
+#include "Components/UniformGridPanel.h"
 #include "Components/Spacer.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -586,6 +592,98 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTaggedButton(
 		ContentBox->AddChildToVerticalBox(Button))
 	{
 		ButtonSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+	}
+	return Button;
+}
+
+ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTileButton(
+	UUniformGridPanel* Grid, int32 Index, const FString& Label,
+	const FString& Sub, FName InTag, TFunction<void(FName)> Handler,
+	UTexture* Picture, bool bSubWarn, bool bArmed, const FString& Badge)
+{
+	using namespace LBSpacecraftCommandPanelPrivate;
+	ULBSpacecraftTaggedButton* Button =
+		WidgetTree->ConstructWidget<ULBSpacecraftTaggedButton>(
+			ULBSpacecraftTaggedButton::StaticClass());
+	Button->Tag = InTag;
+	Button->OnTagClicked = MoveTemp(Handler);
+	Button->Arm();
+	Button->SetStyle(SpacecraftPanelButtonStyle(bArmed));
+	UVerticalBox* Column = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	// The picture, 96 px tall, the whole tile width. A definition
+	// without a render keeps the space and says so quietly, so the
+	// grid never reflows when art arrives.
+	UOverlay* PictureBox = WidgetTree->ConstructWidget<UOverlay>(
+		UOverlay::StaticClass());
+	UImage* Image = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+	if (Picture != nullptr)
+	{
+		FSlateBrush Brush;
+		Brush.SetResourceObject(Picture);
+		Brush.ImageSize = FVector2D(176.f, 96.f);
+		Image->SetBrush(Brush);
+	}
+	else
+	{
+		Image->SetColorAndOpacity(FLinearColor(0.02f, 0.02f, 0.02f, 1.f));
+	}
+	Image->SetDesiredSizeOverride(FVector2D(176.f, 96.f));
+	if (UOverlaySlot* ImageSlot = PictureBox->AddChildToOverlay(Image))
+	{
+		ImageSlot->SetHorizontalAlignment(HAlign_Fill);
+		ImageSlot->SetVerticalAlignment(VAlign_Fill);
+	}
+	if (!Badge.IsEmpty())
+	{
+		UTextBlock* BadgeText = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		BadgeText->SetText(FText::FromString(Badge));
+		BadgeText->SetColorAndOpacity(FSlateColor(SpacecraftPanelText));
+		FSlateFontInfo BadgeFont = BadgeText->GetFont();
+		BadgeFont.Size = 11;
+		BadgeText->SetFont(BadgeFont);
+		if (UOverlaySlot* BadgeSlot = PictureBox->AddChildToOverlay(BadgeText))
+		{
+			BadgeSlot->SetHorizontalAlignment(HAlign_Left);
+			BadgeSlot->SetVerticalAlignment(VAlign_Top);
+			BadgeSlot->SetPadding(FMargin(6.f, 4.f));
+		}
+	}
+	Column->AddChildToVerticalBox(PictureBox);
+	UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(
+		UTextBlock::StaticClass());
+	Text->SetText(FText::FromString(Label));
+	Text->SetAutoWrapText(true);
+	Text->SetColorAndOpacity(FSlateColor(SpacecraftPanelText));
+	FSlateFontInfo Font = Text->GetFont();
+	Font.Size = 13;
+	Text->SetFont(Font);
+	if (UVerticalBoxSlot* TextSlot = Column->AddChildToVerticalBox(Text))
+	{
+		TextSlot->SetPadding(FMargin(6.f, 5.f, 6.f, 0.f));
+	}
+	if (!Sub.IsEmpty())
+	{
+		UTextBlock* SubText = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		SubText->SetText(FText::FromString(Sub));
+		SubText->SetColorAndOpacity(FSlateColor(
+			bSubWarn ? SpacecraftPanelWarn : SpacecraftPanelSubText));
+		FSlateFontInfo SubFont = SubText->GetFont();
+		SubFont.Size = 12;
+		SubText->SetFont(SubFont);
+		if (UVerticalBoxSlot* SubSlot = Column->AddChildToVerticalBox(SubText))
+		{
+			SubSlot->SetPadding(FMargin(6.f, 1.f, 6.f, 6.f));
+		}
+	}
+	Button->AddChild(Column);
+	if (UUniformGridSlot* TileSlot = Grid->AddChildToUniformGrid(Button,
+		Index / 2, Index % 2))
+	{
+		TileSlot->SetHorizontalAlignment(HAlign_Fill);
+		TileSlot->SetVerticalAlignment(VAlign_Fill);
 	}
 	return Button;
 }
@@ -1210,6 +1308,20 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				continue;
 			}
 			AddSectionLabel(Group.Title.ToString());
+			// PICTURE TILES, two per row (owner 2026-09-02: "car
+			// manufacture is more pictures"). The thumbnail is the
+			// definition's own mesh shot in the presenter's tile
+			// studio; a definition with no mesh gets a caption tile.
+			UUniformGridPanel* Grid =
+				WidgetTree->ConstructWidget<UUniformGridPanel>(
+					UUniformGridPanel::StaticClass());
+			Grid->SetSlotPadding(FMargin(3.f));
+			if (UVerticalBoxSlot* GridSlot =
+				ContentBox->AddChildToVerticalBox(Grid))
+			{
+				GridSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+			}
+			int32 TileIndex = 0;
 			for (const FLBSpacecraftStationDefinition* Definition :
 				Group.Entries)
 			{
@@ -1225,11 +1337,31 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					Sub += FString::Printf(TEXT("   +%d kW"),
 						Definition->PowerSupplyKw);
 				}
-				AddTaggedButton(Definition->DisplayName,
+				// How many already stand: the count badge.
+				int32 Owned = 0;
+				if (GameMode->GetBuildAuthority() != nullptr)
+				{
+					for (const FLBSpacecraftStationRecord& Record :
+						GameMode->GetBuildAuthority()->GetStations())
+					{
+						Owned += Record.DefinitionId
+							== Definition->DefinitionId ? 1 : 0;
+					}
+				}
+				UTexture* Picture = nullptr;
+				if (ALBSpacecraftWIPPresentationActor* Presenter =
+					GameMode->GetPresenter())
+				{
+					Picture = Presenter->GetDefinitionTile(
+						Definition->DefinitionId);
+				}
+				AddTileButton(Grid, TileIndex++, Definition->DisplayName, Sub,
 					Definition->DefinitionId,
 					[this](FName InTag) { HandleBuildStation(InTag); },
-					Sub, Definition->CostPence > Cash,
-					Definition->DefinitionId == Armed);
+					Picture, Definition->CostPence > Cash,
+					Definition->DefinitionId == Armed,
+					Owned > 0 ? FString::Printf(TEXT("x%d"), Owned)
+						: FString());
 			}
 		}
 		// THE CRANES (PULSE_LINE_DESIGN_v001). One comes with the hall;

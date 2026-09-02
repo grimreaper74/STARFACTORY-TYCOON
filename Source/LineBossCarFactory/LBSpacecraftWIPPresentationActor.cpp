@@ -8,6 +8,8 @@
 #include "LBSpacecraftPlayerPawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/AudioComponent.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextRenderComponent.h"
 #include "Sound/SoundBase.h"
@@ -8947,6 +8949,123 @@ void ALBSpacecraftWIPPresentationActor::TickAudioCues(float DeltaSeconds)
 	}
 }
 
+void ALBSpacecraftWIPPresentationActor::EnsureTileStudio()
+{
+	if (TileCapture != nullptr && TileSubject != nullptr)
+	{
+		return;
+	}
+	// Far below and beside the site: nothing else is drawn there, and
+	// the capture uses a show-only list so nothing else could be.
+	const FVector StudioAt(-600000.f, -600000.f, -80000.f);
+	TileSubject = NewObject<UStaticMeshComponent>(this,
+		UStaticMeshComponent::StaticClass(), TEXT("TileSubject"));
+	TileSubject->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TileSubject->SetCastShadow(false);
+	TileSubject->SetupAttachment(RootComponent);
+	TileSubject->SetRelativeLocation(StudioAt);
+	TileSubject->RegisterComponent();
+	TileBackdrop = MakeBlockComponent(TEXT("TileBackdrop"),
+		FLinearColor(0.016f, 0.015f, 0.014f)); // Panel.BgRaised, linear
+	if (TileBackdrop != nullptr)
+	{
+		TileBackdrop->SetCastShadow(false);
+		TileBackdrop->SetRelativeLocation(StudioAt + FVector(0.f, 0.f, -60.f));
+		TileBackdrop->SetRelativeScale3D(FVector(400.f, 400.f, 1.f));
+	}
+	TileCapture = NewObject<USceneCaptureComponent2D>(this,
+		USceneCaptureComponent2D::StaticClass(), TEXT("TileCapture"));
+	TileCapture->SetupAttachment(RootComponent);
+	TileCapture->RegisterComponent();
+	TileCapture->bCaptureEveryFrame = false;
+	TileCapture->bCaptureOnMovement = false;
+	TileCapture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	TileCapture->PrimitiveRenderMode =
+		ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	TileCapture->ShowOnlyComponents.Add(TileSubject);
+	if (TileBackdrop != nullptr)
+	{
+		TileCapture->ShowOnlyComponents.Add(TileBackdrop);
+	}
+	TileCapture->FOVAngle = 28.f;
+}
+
+UTextureRenderTarget2D* ALBSpacecraftWIPPresentationActor::GetDefinitionTile(
+	FName DefinitionId)
+{
+	if (TObjectPtr<UTextureRenderTarget2D>* Known =
+		DefinitionTiles.Find(DefinitionId))
+	{
+		return Known->Get();
+	}
+	UStaticMesh* Mesh = TryGetStationMesh(DefinitionId);
+	if (Mesh == nullptr)
+	{
+		DefinitionTiles.Add(DefinitionId, nullptr);
+		return nullptr;
+	}
+	EnsureTileStudio();
+	if (TileCapture == nullptr || TileSubject == nullptr)
+	{
+		DefinitionTiles.Add(DefinitionId, nullptr);
+		return nullptr;
+	}
+	UTextureRenderTarget2D* Target = NewObject<UTextureRenderTarget2D>(this);
+	Target->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
+	Target->ClearColor = FLinearColor(0.016f, 0.015f, 0.014f, 1.f);
+	Target->InitAutoFormat(352, 192);
+	Target->UpdateResourceImmediate(true);
+	// Handed back at once (the tile draws the backdrop until the shot
+	// lands a couple of frames later), queued for the studio tick.
+	DefinitionTiles.Add(DefinitionId, Target);
+	FLBSpacecraftPendingTile Pending;
+	Pending.DefinitionId = DefinitionId;
+	Pending.Mesh = Mesh;
+	Pending.Target = Target;
+	PendingTiles.Add(Pending);
+	return Target;
+}
+
+void ALBSpacecraftWIPPresentationActor::TickTileStudio()
+{
+	if (PendingTiles.Num() == 0 || TileCapture == nullptr
+		|| TileSubject == nullptr)
+	{
+		return;
+	}
+	FLBSpacecraftPendingTile& Job = PendingTiles[0];
+	if (Job.FramesPosed < 0)
+	{
+		// POSE. Sit the mesh on the backdrop, frame its bounds from a
+		// three-quarter view slightly above: the same shot for every
+		// tile so the menu reads as one set.
+		TileSubject->SetStaticMesh(Job.Mesh);
+		TileSubject->SetRelativeScale3D(FVector(1.f));
+		const FBoxSphereBounds Bounds = Job.Mesh->GetBounds();
+		const FVector StudioAt(-600000.f, -600000.f, -80000.f);
+		const FVector Centre = StudioAt + FVector(0.f, 0.f, Bounds.BoxExtent.Z);
+		TileSubject->SetRelativeLocation(Centre - Bounds.Origin);
+		const float Radius = FMath::Max(Bounds.SphereRadius, 100.f);
+		const float Distance = Radius
+			/ FMath::Tan(FMath::DegreesToRadians(TileCapture->FOVAngle * 0.5f))
+			* 1.15f;
+		const FRotator Look(-24.f, 35.f, 0.f);
+		TileCapture->SetRelativeLocation(Centre - Look.Vector() * Distance);
+		TileCapture->SetRelativeRotation(Look);
+		TileCapture->TextureTarget = Job.Target;
+		Job.FramesPosed = 0;
+		return;
+	}
+	if (++Job.FramesPosed < 2)
+	{
+		return;
+	}
+	TileCapture->CaptureScene();
+	UE_LOG(LogTemp, Display, TEXT("TILE %s captured from %s"),
+		*Job.DefinitionId.ToString(), *Job.Mesh->GetName());
+	PendingTiles.RemoveAt(0);
+}
+
 bool ALBSpacecraftWIPPresentationActor::HasKitComponent(
 	FName StationId, FName ComponentId) const
 {
@@ -9632,6 +9751,7 @@ void ALBSpacecraftWIPPresentationActor::Tick(float DeltaSeconds)
 	TickShellDeliveries(DeltaSeconds);
 	TickDepartures(DeltaSeconds);
 	TickAudioCues(DeltaSeconds);
+	TickTileStudio();
 	// LAST: the sweep rides whatever craft is under the scan, so it
 	// reads the unit visuals only after RefreshUnits has placed them.
 	RefreshInspectionSweep();

@@ -1357,6 +1357,38 @@ private:
 	/** The loaded real mesh for a definition, or nullptr (logged once). */
 	UStaticMesh* TryGetStationMesh(FName DefinitionId);
 
+	// ---- THE TILE STUDIO (owner 2026-09-02: "car manufacture is more
+	// pictures"). A photo booth far from the site: the definition's own
+	// mesh on a plain backdrop, one fixed three-quarter camera, one
+	// capture into a small render target, cached for the session. The
+	// build menu draws these instead of words, and because it is the
+	// real mesh the tiles follow the art without anyone re-exporting
+	// icons. Returns nullptr when the definition has no mesh (the
+	// caller falls back to a caption), never a wrong picture. ----
+public:
+	class UTextureRenderTarget2D* GetDefinitionTile(FName DefinitionId);
+
+private:
+	TMap<FName, TObjectPtr<class UTextureRenderTarget2D>> DefinitionTiles;
+	TObjectPtr<class USceneCaptureComponent2D> TileCapture;
+	TObjectPtr<UStaticMeshComponent> TileSubject;
+	TObjectPtr<UStaticMeshComponent> TileBackdrop;
+	void EnsureTileStudio();
+	/** A tile waits two frames between posing the mesh and taking the
+	 *  shot: a capture in the same frame as SetStaticMesh photographs
+	 *  the backdrop alone, because the render proxy does not exist
+	 *  yet (blank tiles, first try). One pose per frame. */
+	struct FLBSpacecraftPendingTile
+	{
+		FName DefinitionId;
+		TObjectPtr<UStaticMesh> Mesh;
+		TObjectPtr<class UTextureRenderTarget2D> Target;
+		int32 FramesPosed = -1;
+	};
+	TArray<FLBSpacecraftPendingTile> PendingTiles;
+	void TickTileStudio();
+private:
+
 	UPROPERTY()
 	TArray<FLBSpacecraftDepartingVisual> Departing;
 
