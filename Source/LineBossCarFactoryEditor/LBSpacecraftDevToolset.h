@@ -69,6 +69,16 @@ public:
 	static FString SimulatePieClick(float X, float Y,
 		const FString& Button = TEXT("Left"));
 
+	/** What a click at viewport-local X,Y would land on, WITHOUT
+	 *  clicking: the hit-test path leaf-first, each widget's type, its
+	 *  absolute top/bottom, and the text of any text block on the
+	 *  path or directly inside the leaf's button. Built for the
+	 *  2026-09-02 mystery of a click that bought the row BELOW the one
+	 *  the frame showed under the pointer. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString ProbePieWidgetAt(float X, float Y);
+
 	/** Moves the synthetic pointer to viewport-local coordinates
 	 *  without clicking - hover states, and the placement ghost. */
 	UFUNCTION(BlueprintCallable, meta = (AICallable),

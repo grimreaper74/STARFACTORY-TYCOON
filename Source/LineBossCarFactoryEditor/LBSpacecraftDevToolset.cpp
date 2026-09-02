@@ -13,10 +13,12 @@
 #include "Slate/SceneViewport.h"
 #include "TimerManager.h"
 #include "Widgets/SViewport.h"
+#include "Widgets/Text/STextBlock.h"
 #include "Widgets/SWindow.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "LBSpacecraftInventoryAuthority.h"
 #include "LBSpacecraftPowerAuthority.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftProgressionAuthority.h"
@@ -145,6 +147,45 @@ FString ULBSpacecraftDevToolset::GetSpacecraftFactoryStatus()
 			Stations.Add(MakeShared<FJsonValueObject>(S));
 		}
 		Root->SetArrayField(TEXT("stations"), Stations);
+	}
+	// Every store with its stacks: the 2026-09-02 stranger run needed
+	// "what is actually at the dock" twice and the status print only
+	// gave unit totals.
+	if (const ALBSpacecraftInventoryAuthority* Inventory =
+		GameMode->GetInventoryAuthority())
+	{
+		TArray<TSharedPtr<FJsonValue>> Stores;
+		for (const FName& StoreId : Inventory->GetStoreIds())
+		{
+			const TSharedRef<FJsonObject> Store = MakeShared<FJsonObject>();
+			Store->SetStringField(TEXT("storeId"), StoreId.ToString());
+			Store->SetNumberField(TEXT("usedUnits"),
+				Inventory->GetUsedUnits(StoreId));
+			Store->SetNumberField(TEXT("capacityUnits"),
+				Inventory->GetCapacityUnits(StoreId));
+			TArray<TSharedPtr<FJsonValue>> Stacks;
+			// Through the public quantity query per catalogue item; the
+			// stack list itself is the authority's private state.
+			for (const FLBSpacecraftItemDefinition& Item :
+				FLBSpacecraftItemCatalogue::GetItemTable())
+			{
+				const int32 Count =
+					Inventory->GetQuantity(StoreId, Item.ItemId);
+				if (Count <= 0)
+				{
+					continue;
+				}
+				const TSharedRef<FJsonObject> Entry =
+					MakeShared<FJsonObject>();
+				Entry->SetStringField(TEXT("itemId"),
+					Item.ItemId.ToString());
+				Entry->SetNumberField(TEXT("count"), Count);
+				Stacks.Add(MakeShared<FJsonValueObject>(Entry));
+			}
+			Store->SetArrayField(TEXT("stacks"), Stacks);
+			Stores.Add(MakeShared<FJsonValueObject>(Store));
+		}
+		Root->SetArrayField(TEXT("stores"), Stores);
 	}
 	if (ALBSpacecraftRuntimeCoordinator* Coordinator =
 		GameMode->GetCoordinator())
@@ -300,6 +341,86 @@ FString ULBSpacecraftDevToolset::GetPieViewportInfo()
 	Root->SetNumberField(TEXT("dpiScale"), Geo.Scale);
 	Root->SetNumberField(TEXT("absoluteX"), Geo.GetAbsolutePosition().X);
 	Root->SetNumberField(TEXT("absoluteY"), Geo.GetAbsolutePosition().Y);
+	return WriteJson(Root);
+}
+
+namespace LBSpacecraftDevToolsetPrivate
+{
+	/** First text found under a widget, depth-first (a button's label). */
+	FString FirstTextUnder(const TSharedRef<SWidget>& Widget, int32 Depth)
+	{
+		if (Widget->GetTypeAsString() == TEXT("STextBlock"))
+		{
+			return StaticCastSharedRef<STextBlock>(Widget)->GetText()
+				.ToString();
+		}
+		if (Depth > 8)
+		{
+			return FString();
+		}
+		FChildren* Children = Widget->GetChildren();
+		if (Children == nullptr)
+		{
+			return FString();
+		}
+		for (int32 Index = 0; Index < Children->Num(); ++Index)
+		{
+			const FString Found = FirstTextUnder(
+				Children->GetChildAt(Index), Depth + 1);
+			if (!Found.IsEmpty())
+			{
+				return Found;
+			}
+		}
+		return FString();
+	}
+}
+
+FString ULBSpacecraftDevToolset::ProbePieWidgetAt(float X, float Y)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	TSharedPtr<SViewport> Widget = FindPieViewportWidget();
+	if (!Widget.IsValid())
+	{
+		return NoViewportJson();
+	}
+	const TSharedRef<SViewport> Ref = Widget.ToSharedRef();
+	const FVector2D Abs = ToAbsolute(Ref, X, Y);
+	const FWidgetPath Path = PathUnder(Ref, Abs);
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetNumberField(TEXT("absoluteX"), Abs.X);
+	Root->SetNumberField(TEXT("absoluteY"), Abs.Y);
+	TArray<TSharedPtr<FJsonValue>> Entries;
+	FString ButtonLabel;
+	for (int32 Index = Path.Widgets.Num() - 1; Index >= 0; --Index)
+	{
+		const FArrangedWidget& Arranged = Path.Widgets[Index];
+		const TSharedRef<FJsonObject> Entry = MakeShared<FJsonObject>();
+		Entry->SetStringField(TEXT("type"),
+			Arranged.Widget->GetTypeAsString());
+		const FGeometry& Geo = Arranged.Geometry;
+		Entry->SetNumberField(TEXT("top"), Geo.GetAbsolutePosition().Y);
+		Entry->SetNumberField(TEXT("bottom"), Geo.GetAbsolutePosition().Y
+			+ Geo.GetAbsoluteSize().Y);
+		Entry->SetNumberField(TEXT("left"), Geo.GetAbsolutePosition().X);
+		if (Arranged.Widget->GetTypeAsString() == TEXT("STextBlock"))
+		{
+			Entry->SetStringField(TEXT("text"),
+				StaticCastSharedRef<STextBlock>(Arranged.Widget)
+					->GetText().ToString());
+		}
+		if (ButtonLabel.IsEmpty()
+			&& Arranged.Widget->GetTypeAsString() == TEXT("SButton"))
+		{
+			ButtonLabel = FirstTextUnder(Arranged.Widget, 0);
+		}
+		Entries.Add(MakeShared<FJsonValueObject>(Entry));
+	}
+	Root->SetArrayField(TEXT("pathLeafFirst"), Entries);
+	Root->SetStringField(TEXT("buttonLabel"), ButtonLabel);
+	// The hovered widget's label, for comparison with the path: these
+	// two disagreeing is exactly the fault being chased.
 	return WriteJson(Root);
 }
 

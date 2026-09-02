@@ -189,6 +189,7 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 		// The oldest accepted contract with demand left is "the" contract;
 		// otherwise the newest completed one is shown as done.
 		const FLBSpacecraftContract* Active = nullptr;
+		const FLBSpacecraftContract* Late = nullptr;
 		const FLBSpacecraftContract* LastComplete = nullptr;
 		for (const FLBSpacecraftContract& Contract :
 			InProduction->GetContracts())
@@ -198,6 +199,15 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 				&& Active == nullptr)
 			{
 				Active = &Contract;
+			}
+			// An order taken on and missed still shows - "No contract"
+			// beside a held contract marked Late read as a contradiction
+			// (stranger playthrough, 2026-09-02).
+			if (Contract.State == ELBSpacecraftContractState::Expired
+				&& Contract.DispatchedCount < Contract.Quantity
+				&& Late == nullptr)
+			{
+				Late = &Contract;
 			}
 			if (Contract.State == ELBSpacecraftContractState::Complete)
 			{
@@ -210,6 +220,13 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 				LOCTEXT("ContractProgress", "{0}  {1}/{2}"),
 				FText::FromName(Active->RecipeId),
 				Active->DispatchedCount, Active->Quantity).ToString();
+		}
+		else if (Late != nullptr)
+		{
+			Snapshot.ContractText = FText::Format(
+				LOCTEXT("ContractLate", "{0}  LATE {1}/{2}"),
+				FText::FromName(Late->RecipeId),
+				Late->DispatchedCount, Late->Quantity).ToString();
 		}
 		else if (LastComplete != nullptr)
 		{

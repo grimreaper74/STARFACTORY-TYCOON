@@ -1,0 +1,163 @@
+# The pulse line, v001 (2026-09-02)
+
+Owner, 2026-09-01 evening: "after your happy with this can you do the
+pulse line or before if its better?" This is the design that the
+implementation follows. It rests on three decisions already taken:
+
+- The line uses **military-aircraft PULSE mechanics** with Car
+  Manufacture interaction (owner, 2026-08-28): a craft occupies a
+  station, the work takes its stop time, and nothing releases work
+  that is not finished.
+- The craft is **lifted between stations by a portal gantry crane on
+  full-length floor rails** (2026-08-28, orientation corrected
+  2026-08-29). The conveyor is decoration.
+- **How many cranes is OPEN** (owner, 2026-08-29: "1 crane does all
+  work, will have to test each"). Both "one crane per gap" and "one
+  crane for the line" must be playable so they can be compared.
+
+## What the line does today, and why it is not a pulse line
+
+`ALBSpacecraftRuntimeCoordinator::TickProduction` accrues a cycle
+timer per unit and advances each unit **on its own clock** the moment
+its stop is over and the next station is free (furthest-first). Up to
+one craft per station can be mid-line, all moving independently.
+There is no pulse, no crane in the simulation, and the presenter
+slides each craft for the last 20% of *its own* cycle. The gantry
+count is a console variable (`LB.Spacecraft.CranePerGap`) consumed
+only by the hall decoration.
+
+An independent-advance line is a continuously-moving car line with
+the belt removed. The stop times are right; the release rule is not.
+
+## The pulse
+
+A **pulse** is the moment every craft on the line moves one station
+forward together, and a fresh craft enters the head station.
+
+1. Every occupied station runs its stop. A unit's `CycleElapsedSeconds`
+   fills as now. A station whose unit is done **holds** its craft; it
+   does not release it.
+2. When **every** unit on the line has finished its stop (and any
+   in-place rework is over), the line is *pulse-ready*. The slowest
+   station sets the pace, which is exactly the aircraft rule.
+3. The pulse is a **crane move phase** with a duration. The cranes
+   carry craft from the tail backwards: the unit at the last station
+   dispatches (or parks in Testing, as today), then each craft is
+   lifted one station forward. A craft in the move phase is *in
+   transit*: its station is the destination, its timer is zero, and
+   the presenter draws it under the crane.
+4. When the move phase ends, a new unit is admitted at the head if a
+   contract demands one and the WIP cap allows, and every station's
+   stop starts again.
+
+Component consumption, defect accrual, rework and the hover test keep
+their current places in `TryAdvanceAssignment`; only the *release*
+rule changes from "my stop is over and the next station is free" to
+"the line pulsed".
+
+### The cranes are the pace of the pulse
+
+The move phase lasts
+
+    ceil(craft to move / cranes) x CraneTripSeconds
+
+so one crane on a four-craft line makes four trips in series and the
+pulse takes four times as long as with one crane per gap. That is the
+throughput constraint the owner named as a real upgrade axis, and it
+is what makes the comparison he asked for a matter of building
+cranes rather than flipping a cvar:
+
+- **Gantry crane** becomes a purchasable line item in the BUILD tab
+  (`GantryCrane`, cost to be tuned, no floor footprint - it rides the
+  rails that the hall already lays full-length). The count is capped
+  at `stations - 1`; the first crane is part of commissioning a line
+  (a line with no crane cannot pulse, and the refusal says so).
+- `LB.Spacecraft.CranePerGap` is retired. The presenter spawns one
+  crane mesh per crane owned and animates each along the rails during
+  the move phase.
+
+### What the player sees
+
+- Top bar: `Line pulsing - 3 craft` during a stop, and `PULSE` with a
+  progress bar during the move phase.
+- Station panel: each line station shows `Done - waiting for the
+  pulse` once its stop is over, so a player can see which station is
+  the slow one and split its fitting order (the SPLIT the recipe
+  already exposes).
+- Crane row in BUILD: `Gantry crane (1 of 3)  +1 lets two craft move
+  at once`.
+
+## Simulation changes
+
+`FLBSpacecraftRuntimeState` grows a line-level pulse record:
+
+    ELBSpacecraftLinePhase Phase;        // Stopped, Moving
+    float PhaseElapsedSeconds;           // move-phase progress
+    int32 PulseCount;                    // for the HUD and tests
+
+`FLBSpacecraftRuntimeAssignment` gains `bStopComplete` (the station
+has finished and holds the craft). Save schema bumps to v8; a v7 save
+is refused as today (no migration).
+
+`ValidateRuntime` keeps "two units occupy one station" and adds:
+`Phase == Moving` requires at least one assignment, and no
+assignment may be `bStopComplete` while `Moving`.
+
+`TickProduction` becomes:
+
+    accrue every unit's stop; mark bStopComplete when full
+    if Phase == Stopped and every unit is complete (rework done):
+        Phase = Moving; PhaseElapsedSeconds = 0
+    if Phase == Moving:
+        PhaseElapsedSeconds += dt
+        if PhaseElapsedSeconds >= MoveSeconds(cranes, units):
+            advance every unit tail-first (TryAdvanceAssignment);
+            a refusal (missing parts, occupied) holds THAT unit only
+            and the pulse still completes for the rest
+            admit a new unit at the head
+            Phase = Stopped
+    else (Stopped): nothing moves
+
+A held unit whose refusal is "insufficient resources" is the same
+starvation stall as today and reads the same way; the rest of the
+line is not punished for it beyond waiting on the next pulse.
+
+## Presentation
+
+`RefreshUnits` stops sliding on per-unit `Progress01` and asks the
+coordinator for the line phase. During `Moving`, unit k's carry
+interval within the phase is
+
+    [trip(k) * CraneTripSeconds, (trip(k) + 1) * CraneTripSeconds)
+    where trip(k) = floor(order(k) / cranes), order tail-first
+
+so with one crane the craft move one after another under the single
+gantry, and with a crane per gap they all rise and travel together.
+`TickHallCrane` drives every owned crane, each to its assigned craft.
+
+## Tests to write before the switch
+
+- `RuntimeCoordinator.PulseWaitsForTheSlowestStation`: two units,
+  one fast and one slow station; the fast unit is `bStopComplete`
+  and does not move until the slow one is.
+- `RuntimeCoordinator.OneCraneMovesCraftInSeries`: three craft, one
+  crane: the move phase is three trips long; three cranes: one.
+- `RuntimeCoordinator.AStarvedStationHoldsOnlyItself`: a unit with
+  no parts holds through a pulse; the others advance.
+- `SaveLoad.PulseStateRoundTrips` and the v7 refusal.
+- The existing `CraftFlowsOnCycleTimesToDispatch` "no station holds
+  two units" pin stays; its "at least the summed cycle times" bound
+  still holds (a pulse line is never faster than a serial one).
+
+## Order of work
+
+1. Sim: phase record, `bStopComplete`, the new tick, crane count read
+   from the build authority (a `GantryCrane` line item), schema v8,
+   tests green.
+2. HUD and panel text.
+3. Presenter: shared-phase carry and per-crane animation.
+4. Packaged run with both crane models captured on camera for the
+   owner's comparison, recorded in an audit receipt.
+
+Status of this document: **Planned**. Nothing below the design has
+been built as of its writing.

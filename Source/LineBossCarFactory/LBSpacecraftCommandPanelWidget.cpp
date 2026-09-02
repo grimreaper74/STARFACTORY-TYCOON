@@ -1561,9 +1561,13 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				HeldLedger->GetContracts())
 			{
 				// Offered contracts belong to the board below, not
-				// to the work you have taken on.
+				// to the work you have taken on - and a WITHDRAWN one
+				// is an offer nobody took. Three of those sat under
+				// CONTRACTS YOU HOLD marked "Building ... Late" for a
+				// stranger who had accepted exactly one (2026-09-02).
 				if (Held.State == ELBSpacecraftContractState::Complete
-					|| Held.State == ELBSpacecraftContractState::Offered)
+					|| Held.State == ELBSpacecraftContractState::Offered
+					|| Held.State == ELBSpacecraftContractState::Withdrawn)
 				{
 					continue;
 				}
@@ -1756,42 +1760,73 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						UnitPrice * Lot))).ToString(), Item.ItemId,
 				[this](FName InTag) { HandleOrder(InTag); });
 		}
-		if (GameMode->GetInventoryAuthority() != nullptr)
+		// THE SHIP'S OWN COMPONENTS FIRST. The stranger (2026-09-02)
+		// scrolled ~100 sub-part rows to reach the six things the line
+		// actually fits, which sat at the very bottom; two of the six
+		// orders then landed on neighbouring rows. Sub-parts follow
+		// under their own heading.
+		AddSectionLabel(LOCTEXT("SectionImportComponents",
+			"IMPORT SHIP COMPONENTS - what the line fits").ToString());
+		for (int32 Pass = 0; Pass < 2; ++Pass)
 		{
+			if (Pass == 1)
+			{
+				AddSectionLabel(LOCTEXT("SectionImport",
+					"IMPORT SUB-PARTS (MAKE-VS-BUY)").ToString());
+			}
+			for (const FLBSpacecraftItemDefinition& Item :
+				FLBSpacecraftItemCatalogue::GetItemTable())
+			{
+				const bool bComponent = Item.Category
+					== ELBSpacecraftItemCategory::AssembledComponent;
+				if (bComponent != (Pass == 0))
+				{
+					continue;
+				}
+				const int64 ImportPrice =
+					FLBSpacecraftItemCatalogue::GetItemImportPricePence(
+						Item.ItemId);
+				if (ImportPrice <= 0)
+				{
+					continue;
+				}
+				const int32 Bundle = LBSpacecraftCommandPanelPrivate::ImportBundleFor(Item.ItemId);
+				AddTaggedButton(FText::Format(
+					LOCTEXT("ImportButton", "Import {2}x {0}  ({1})"),
+					FText::FromString(Item.DisplayName),
+					FText::FromString(
+						ULBSpacecraftTopBarWidget::FormatCurrency(
+							ImportPrice * Bundle)),
+					FText::AsNumber(Bundle)).ToString(), Item.ItemId,
+					[this](FName InTag) { HandleImport(InTag); });
+			}
+		}
+		// Orders in flight go AFTER the buttons. They used to be
+		// inserted above the import list, so every order grew the
+		// content above the scrolled region and the rows moved ~25 px
+		// under the cursor - the next click bought the neighbour (F31,
+		// 2026-09-02). The toast already says what was ordered.
+		if (GameMode->GetInventoryAuthority() != nullptr
+			&& GameMode->GetInventoryAuthority()->GetPendingOrders().Num()
+				> 0)
+		{
+			AddSectionLabel(LOCTEXT("SectionOnOrder", "ON ORDER").ToString());
 			for (const FLBSpacecraftResourceOrder& Order :
 				GameMode->GetInventoryAuthority()->GetPendingOrders())
 			{
 				const double Remaining = Order.ArrivesAtSeconds
 					- GameMode->GetInventoryAuthority()
 						->GetOrderClockSeconds();
+				const FLBSpacecraftItemDefinition* Item =
+					FLBSpacecraftItemCatalogue::FindItem(Order.ItemId);
 				AddSectionLabel(FText::Format(
 					LOCTEXT("PendingOrder", "{0} x{1} - arriving in {2}s"),
-					FText::FromName(Order.ItemId), Order.Count,
+					FText::FromString(Item != nullptr ? Item->DisplayName
+						: Order.ItemId.ToString()),
+					Order.Count,
 					FMath::Max(0,
 						static_cast<int32>(Remaining))).ToString());
 			}
-		}
-		AddSectionLabel(LOCTEXT("SectionImport",
-			"IMPORT PARTS (MAKE-VS-BUY)").ToString());
-		for (const FLBSpacecraftItemDefinition& Item :
-			FLBSpacecraftItemCatalogue::GetItemTable())
-		{
-			const int64 ImportPrice =
-				FLBSpacecraftItemCatalogue::GetItemImportPricePence(
-					Item.ItemId);
-			if (ImportPrice <= 0)
-			{
-				continue;
-			}
-			const int32 Bundle = LBSpacecraftCommandPanelPrivate::ImportBundleFor(Item.ItemId);
-			AddTaggedButton(FText::Format(
-				LOCTEXT("ImportButton", "Import {2}x {0}  ({1})"),
-				FText::FromString(Item.DisplayName),
-				FText::FromString(
-					ULBSpacecraftTopBarWidget::FormatCurrency(
-						ImportPrice * Bundle)),
-				FText::AsNumber(Bundle)).ToString(), Item.ItemId,
-				[this](FName InTag) { HandleImport(InTag); });
 		}
 		break;
 	}

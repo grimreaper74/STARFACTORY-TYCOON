@@ -156,6 +156,28 @@ folder), the severe ones first:
 | F30 | low | Order toast: "ORDER ORD-0003 PLACED - ARRIVING SOON" - id, no item, no time |
 | F31 | med | Content above the import list changes height after an order, so the rows shift ~25 px under the cursor and neighbouring clicks miss |
 | F32 | severe | Bought parts never left the delivery dock: only a STORAGE RACK had a hauler drone, and nothing on screen had named a rack. The stall toast then said "none in the factory; order more" while five components sat 24 units deep at the dock |
+| F33 | low | Top bar read "No contract" beside a held contract the panel marked Late |
+| F34 | high | The six ship components sat at the bottom of a ~100-row import list (145 wheel notches down); the stranger's earlier five orders were all neighbouring rows of the ones meant |
+| F35 | severe | CONTRACTS YOU HOLD listed three contracts the stranger never accepted, each "Building 0/4 ... Late": lapsed (Withdrawn) offers were not filtered out of the held list |
+| F36 | low | After the first delivery the FIRST STEPS block disappears and nothing suggests the next move; "Line idle" plus the offer board carries it, but only just |
+
+**The loop closed at 02:58.** With the dock hauling, the six components
+ordered by probing each row's label first (the probe tool
+`ProbePieWidgetAt` was added for exactly that), the ship went
+MaterialIntake -> ComponentFabrication -> Testing -> Dispatched in
+about ninety seconds at 4x, sat as "1 IN STOCK (accept a contract to
+sell)" because the first contract had lapsed, and sold the moment a
+fresh x1 offer was accepted: cash 95,593 -> 257,593, "Ships delivered:
+1". Site map, hall, stations, crews, dock, commissioning, contract,
+orders, build and sale were all done through the real interface.
+
+F35 is fixed by filtering Withdrawn offers out of the held list.
+F34 and F31 are fixed together in the panel: the six ship components
+now head the import section under their own label, sub-parts follow,
+and orders in flight are listed AFTER the buttons (as "ON ORDER",
+with item names) instead of being inserted above them, which is what
+had been shifting the rows under the cursor. F33: the top bar shows
+"SCOUT-01  LATE 0/1" for a missed order that still has ships owed.
 
 F32 is the one that would have ended a stranger's evening: the loop
 "build stations, dock, hire, commission, accept, order" was complete
