@@ -657,6 +657,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<ALBSpacecraftProductionAuthority> ProductionAuthority;
 
+	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftInventoryAuthority> InventoryAuthority;
 
 	UPROPERTY()
@@ -1112,15 +1113,24 @@ private:
 	// interface cues live with the panel and the pawn.
 	/** One looping crane-travel component per crane, index for index
 	 *  with HallCranes; started while the crane has a job. */
+	// UPROPERTY on every one of these (packaged crash, 2026-09-02, cycle
+	// 12: EXCEPTION_ACCESS_VIOLATION in FAudioDevice::PlaySoundAtLocation
+	// under PlayWorldCue from TickHallCrane). The same family as the
+	// mesh-cache purge: the editor keeps assets alive, the packaged
+	// game's garbage collector does not, and an unreflected TObjectPtr
+	// hands the audio device a freed sound.
+	UPROPERTY()
 	TArray<TObjectPtr<UAudioComponent>> HallCraneAudio;
 	/** Whether each crane was busy last frame - the set-down one-shot
 	 *  fires on the busy-to-idle edge. */
 	TArray<bool> HallCraneWasBusy;
 	/** The hall's room tone, playing whenever the view is inside. */
+	UPROPERTY()
 	TObjectPtr<UAudioComponent> HallAmbienceAudio;
 	/** Pending order count last frame; a drop means a lorry landed. */
 	int32 LastPendingOrderCount = -1;
 	/** Sounds by role, loaded on first use. */
+	UPROPERTY()
 	TMap<FName, TObjectPtr<USoundBase>> SoundByRole;
 	USoundBase* SoundFor(FName CueRole);
 	void PlayWorldCue(FName CueRole, const FVector& AtCm);
@@ -1373,6 +1383,10 @@ public:
 		const FLinearColor* Livery = nullptr);
 
 private:
+	// Reflected: the render targets have no other owner, and an
+	// unreflected cache is exactly what the packaged game's collector
+	// purges (the audio crash of cycle 12).
+	UPROPERTY()
 	TMap<FName, TObjectPtr<class UTextureRenderTarget2D>> DefinitionTiles;
 	TObjectPtr<class USceneCaptureComponent2D> TileCapture;
 	TObjectPtr<UStaticMeshComponent> TileSubject;

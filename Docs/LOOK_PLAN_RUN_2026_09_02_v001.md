@@ -1,0 +1,132 @@
+# The look plan, run through: phases A to F (2026-09-02, v001)
+
+The owner approved `Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md` at midday, said
+"start on A", and on leaving for work: "can you finish all 6 phases
+please" and "use meshy api if you need anything making that you cant do
+yourself". This is the record of that afternoon: what each phase did, what
+the frames show, what the tests cover, and what is not proven. Every claim
+below points at a file.
+
+## Where it started
+
+Two frames at 11:30 (`Saved/Audits/LineLook_2026_09_02/judgement_*.png`):
+pale on pale, four fifths bare floor, the craft a thumbnail, no station
+silhouette, no colour, exposure four stops over.
+
+## Phase A - contrast and warmth
+
+- Cause found under "no value contrast": the map locks exposure at EV100
+  0.0 while the lit scene averages 4.45. The player camera now locks
+  exposure at the scene's level (linear multiplier 21; this project does
+  not use the extended luminance range, so the first attempt at "4.2"
+  read back as EV 2.1). `phaseA_hdr_readout_before.png` / `_after.png`.
+- The interior floor never changed tone because the site's outdoor paving
+  tiles stand proud of the hall's slab; the hall now lifts the 468 tiles
+  under its footprint and its own floor shows.
+- Floor a step lighter than the first "void" reading, a 10 m lane grid of
+  16 cm lines, pale traffic lanes, mild warm sun, contact shadows.
+- Frames: `phaseA_entry_lane_grid.png`, `phaseA_station1_lane_grid.png`.
+- Commits d9ea1af, 1302bf1.
+
+## Phase B - colour where the palette allows it
+
+- The primer coat verified in a strong livery: a Coastal Rescue craft in
+  muted pink from the first station (`phaseB_primer_coat_pink_livery_station5.png`).
+- Amber and blue carried by the tool tower (cap, arm, strip) and the racks
+  in Crate.Tan; the interface stays hue-free.
+- Commit 892e7b2.
+
+## Phase C - station presence
+
+- Blockout first: one tool tower per station on the FAR flank. The first
+  blockout put one on both flanks and the near tower hid the craft
+  (`phaseC_first_blockout_near_tower_hid_craft.png`).
+- Four models commissioned through the Meshy API from the blockout's
+  proportions (`Scripts/submit_meshy_station_dress_v010.ps1`; v009 refused
+  itself at the 800-character prompt cap before spending; 80 credits,
+  4/4 succeeded; contact sheet `phaseC_meshy_v010_contact_sheet.png`),
+  exported at declared sizes (`Tools/export_meshy_glb_v001.py`) and
+  imported with Nanite, every size verified within 3 %
+  (`Saved/Audits/Spacecraft/station_dress_import_v001.json`).
+- The keys had to be promoted past the presenter's allow-list gate before
+  any of them appeared; the log's "station mesh bound" lines prove all
+  four load.
+- Frames: `phaseC_meshy_towers_entry.png`, `phaseC_meshy_tower_promoted_station.png`.
+- Commits 892e7b2, e85b97c.
+
+## Phase D - the hero
+
+- Entering the hall lands on the first OCCUPIED station, expanded 9 m for
+  its tower and crew; the craft sits on its rams in the middle third of
+  the free picture (`phaseCD_hero_framing_tower_blockout.png`,
+  `phaseE_hero_with_fill.png`).
+- The sortie carries the station's actual part mesh at a third of its
+  size rather than a crate. Coded and tested; not yet seen on a frame.
+- Commit 892e7b2.
+
+## Phase E - fill the frame
+
+- First placement (racks on the walls, lights over the storage zones) was
+  off screen: the hall is 260 m by 180 m and the entry frame covers the
+  middle 120 m. The fill lives beside the line now: racks in Crate.Tan in
+  two runs along it, light bars in indicator white in a row behind it at
+  9 m, where they sit above the craft on screen and never between the
+  camera and it.
+- Frames: `phaseE_tinted_racks_lightbars_entry.png`, `phaseE_hero_with_fill.png`.
+- Commit e85b97c.
+
+## Phase F - motion, then film
+
+- Motion already existed (crane trips, sorties, fitting bursts, the
+  departure); A to E made it visible.
+- Film-ready state: `Saved/SaveGames/Film.sav` - a running line with the
+  Coastal Rescue and Deep Reach contracts accepted and three craft in
+  work. Copy it into the packaged game's save folder to start there.
+- Packaged build: cycle 12, `Builds/LookPlan_2026_09_02` (see the status
+  line at the end of this document for whether it completed).
+- Filming is the owner's: a third of what the concept form judges is a
+  player using the interface, and only he sees the game move.
+
+## Tests
+
+`Automation RunTests LineBoss.Spacecraft`, 116 pass / 0 fail on every
+build of the afternoon: `Saved/Automation/PhaseA*_2026_09_02` (seven
+runs), `PhaseC1`, `PhaseCD`, `PhaseCE`, `PhaseE`, `PhaseE2`, `PhaseE3`.
+
+## Not proven
+
+- The primer coat and the hero framing are seen in PIE, not yet in the
+  packaged build.
+- The sortie's carried part has not been seen on a frame.
+- The tool tower reads mostly as its top from the play camera; whether a
+  lower-angle silhouette is worth a camera change is a question for the
+  owner, not something this pass decided.
+- Warmth is still short of Car Manufacture's; the palette's neutral-sun
+  evidence was respected and only a mild warm key applied.
+- No frame was judged beside a reference screenshot side by side; each was
+  judged against the morning's judgement frame. That is a weaker bar than
+  the plan set.
+
+## The packaged crash, and its fix
+
+Cycle 12's first package (`Builds/LookPlan_2026_09_02`, BUILD SUCCESSFUL)
+crashed about a minute into the replay: EXCEPTION_ACCESS_VIOLATION in
+FAudioDevice::PlaySoundAtLocation under PlayWorldCue from TickHallCrane
+(`Builds/LookPlan_2026_09_02/Windows/LineBossCarFactory/Saved/Logs/
+LineBossCarFactory-backup-2026.09.02-13.17.48.log` and the log after it).
+The cause is the same family as the mesh-cache purge of 2026-09-01: the
+presenter's sound cache (`SoundByRole`) and its two audio component
+handles carried no UPROPERTY, the editor kept the sounds alive, the
+packaged game's garbage collector did not, and the audio device was handed
+a freed sound. All three are reflected now; the suite run for that build is
+`Saved/Automation/AudioGC_2026_09_02`. The lesson is the one already on
+record: every cached UObject pointer in the presenter is a UPROPERTY, no
+exceptions, and only a packaged soak finds the ones that are not.
+
+The first replay also showed the Development build's "LIGHTING NEEDS TO BE
+REBUILT (1 unbuilt object)" banner - cosmetic in Development, hidden in
+Shipping, and not fixed here.
+
+## Status
+
+Filled in when the second package finishes.
