@@ -244,16 +244,19 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 		// A line that stops must SAY so. Every hold reason used to be
 		// computed and dropped, so the factory could sit frozen with
 		// nothing on screen to explain it.
-		RaiseSimAlert(Coordinator->GetLastHoldReason());
 		// AND A LINE THAT REFUSES TO START (audit 2026-09-01): the
 		// start refusal - a contract the route cannot service, an
 		// occupied head - went to the log only, and a stranger with an
 		// accepted contract stared at "LINE IDLE" with no explanation
 		// in any widget.
-		if (Coordinator->GetLastHoldReason().IsEmpty())
-		{
-			RaiseSimAlert(Coordinator->GetLastStartRefusal());
-		}
+		// BUT NOT WHILE IT RUNS (stranger run, 2026-09-02): with their
+		// one ship in build, the strip read "No accepted contract
+		// demand for this recipe" - the refusal to start a SECOND
+		// ship - and a resolved hold ("a drone is on its way") would
+		// otherwise have stayed on screen. See LineAlertFor.
+		ApplyLineAlert(LineAlertFor(Coordinator->GetLastHoldReason(),
+			Coordinator->GetLastStartRefusal(),
+			Coordinator->GetAssignments().Num()));
 	}
 	// AN ACCEPTED CONTRACT EXPIRING IS AN EVENT, NOT A STATE (overnight
 	// stranger run, 2026-09-01: the deadline lapsed mid-rework and the
@@ -1000,6 +1003,34 @@ void ALBSpacecraftGameMode::RaiseSimAlert(const FString& Alert)
 	// something, not the engine reporting a fault, and a warning here
 	// makes every suite that trips it "succeeded with warnings".
 	UE_LOG(LogLBSpacecraft, Display, TEXT("SPACECRAFT ALERT: %s"), *Alert);
+}
+
+FString ALBSpacecraftGameMode::LineAlertFor(const FString& HoldReason,
+	const FString& StartRefusal, int32 UnitsInFlight)
+{
+	if (!HoldReason.IsEmpty())
+	{
+		return HoldReason;
+	}
+	return UnitsInFlight > 0 ? FString() : StartRefusal;
+}
+
+void ALBSpacecraftGameMode::ApplyLineAlert(const FString& LineAlert)
+{
+	if (!LineAlert.IsEmpty())
+	{
+		RaiseSimAlert(LineAlert);
+	}
+	else if (!LastLineAlertText.IsEmpty()
+		&& SimAlertText == LastLineAlertText)
+	{
+		// The line's own complaint, now resolved: a hold that lifted, a
+		// refusal answered by a contract. Nothing else is touched.
+		SimAlertText.Reset();
+		UE_LOG(LogLBSpacecraft, Display,
+			TEXT("SPACECRAFT ALERT cleared: %s"), *LastLineAlertText);
+	}
+	LastLineAlertText = LineAlert;
 }
 
 FString ALBSpacecraftGameMode::BuildBufferStallAlert(FName StationId,

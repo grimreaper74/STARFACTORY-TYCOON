@@ -602,6 +602,33 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 	{
 		return;
 	}
+	// A CLICK ON A STATION IS A CLICK ON A STATION (stranger run through
+	// the real panel, 2026-09-02). The build tile stays armed after a
+	// drop so the next station chains, and the stranger's click on a
+	// placed station to crew it became a placement that could never
+	// succeed - "Too close to AssemblyRobot-003 - leave a gap" - with
+	// nothing selected and no hire rows. Open floor still places;
+	// something already built selects itself and puts the tile down.
+	// The hall does not count as "built" here: its footprint IS the
+	// floor, and a floor click inside it must keep placing.
+	bool bStoppedPlacing = false;
+	if (!PlacementDefinitionId.IsNone()
+		&& GameMode->GetBuildAuthority() != nullptr)
+	{
+		const FName Under = FindStationUnderCursor();
+		const FLBSpacecraftStationRecord* UnderRecord = Under.IsNone()
+			? nullptr : GameMode->GetBuildAuthority()->FindStation(Under);
+		const FLBSpacecraftStationDefinition* UnderDefinition =
+			UnderRecord != nullptr
+				? ALBSpacecraftBuildAuthority::FindDefinition(
+					UnderRecord->DefinitionId)
+				: nullptr;
+		if (UnderDefinition != nullptr && !UnderDefinition->bSiteBuilding)
+		{
+			SetPlacementDefinition(NAME_None);
+			bStoppedPlacing = true;
+		}
+	}
 	if (!PlacementDefinitionId.IsNone())
 	{
 		FVector FloorPoint;
@@ -709,9 +736,13 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 					== FName(TEXT("LineStation"))
 				&& GameMode->GetProductionAuthority() != nullptr)
 			{
+				// The booth's crew is Spray drones, not Assembly ones -
+				// the note quoted 24,000 for a booth whose two sprayers
+				// cost 28,000 (stranger run, 2026-09-02).
 				const FLBSpacecraftDroneKind* Assembly =
 					GameMode->GetBuildAuthority()->FindDroneKind(
-						FName(TEXT("Assembly")));
+						FName(PlacingDefinition->bProcessStation
+							? TEXT("Spray") : TEXT("Assembly")));
 				const int64 Left =
 					GameMode->GetProductionAuthority()->GetCashPence();
 				const int64 CrewCost = Assembly != nullptr
@@ -798,8 +829,10 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 	SelectedStationId = FindStationUnderCursor();
 	if (!SelectedStationId.IsNone())
 	{
-		LastActionText = FText::Format(LOCTEXT("Selected",
-			"SELECTED {0}"),
+		LastActionText = FText::Format(bStoppedPlacing
+			? LOCTEXT("SelectedStoppedPlacing",
+				"SELECTED {0} - placing stopped")
+			: LOCTEXT("Selected", "SELECTED {0}"),
 			FText::FromName(SelectedStationId)).ToString();
 		// Clicking a BUILDING enters it: the camera flies to frame it
 		// and the panel - which already scopes to the selection - shows
@@ -822,7 +855,16 @@ void ALBSpacecraftPlayerPawn::PrimaryClick()
 		// exists (owner 2026-08-28: "click on it to enter then build
 		// factory") - a placed ship factory is the doorway from the
 		// world map into the floor you build on.
-		if (Definition != nullptr
+		// NOT THE BUILDING YOU ARE STANDING IN (stranger run through the
+		// real panel, 2026-09-02): inside the hall, every click on open
+		// floor selects the hall - that is how the build catalogue comes
+		// back - and each one flew the camera back to the entry framing.
+		// Placing a station, clicking the floor for the catalogue, and
+		// the view had jumped three times. Selecting the building the
+		// camera is already inside only selects it.
+		const bool bAlreadyInside = !bSiteMapView
+			&& SelectedStationId == FocusedBuildingId;
+		if (Definition != nullptr && !bAlreadyInside
 			&& (Definition->SlotCount > 0 || Definition->bSiteBuilding))
 		{
 			FocusStation(SelectedStationId);

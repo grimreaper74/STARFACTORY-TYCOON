@@ -341,3 +341,82 @@ rather than the line's centre), the primer coat in the package (the
 dev-started craft carries a white livery), and any run longer than four
 minutes. The Windows Firewall prompt appears once for the new build path;
 the replay dismisses it with Cancel, which changes no setting.
+
+## Stranger run through the real panel (evening, 2026-09-02)
+
+A first-time player's path, driven through the shipped interface only
+(PIE at 1600x900, clicks simulated through the dev toolset at the
+panel's own coordinates, no `LB.Spacecraft.*` build or start commands):
+site map -> click the ship factory -> three assembly stations by hand ->
+drones at each -> delivery dock -> commission -> spray booth (after the
+refusal named it) -> spray drones -> accept the 162,000 cr Orbital Survey
+Board offer -> order the six missing parts -> watch. The ship was built,
+dispatched and credited: cash 190,368 -> 352,345 cr, "Ships delivered: 1",
+the objectives retired to "NEXT: accept a contract - the line is idle".
+Frames in `Saved/Audits/StrangerRun_2026_09_02/` (st_07 the empty hall
+with three stations, st_10 the dock placed, st_11 the commission
+refusal, st_19 the booth placed, st_24 the contract held, st_27 the line
+running, st_29 after delivery).
+
+Faults a stranger hit, and what changed:
+
+1. **The build tile stays armed after a drop**, so the click on a station
+   to crew it was a placement attempt that could never succeed - the toast
+   read "Too close to AssemblyRobot-003 - leave a gap" and nothing was
+   selected. Now an armed click on something already built selects it and
+   drops the tile ("SELECTED AssemblyRobot-003 - placing stopped"); open
+   floor still places, and the hall's own floor still counts as open floor.
+   `LBSpacecraftPlayerPawn.cpp`, `PrimaryClick`.
+2. **FIRST STEPS never mentioned the spray booth**, and "Commission the
+   factory" refused with "The line has no spray booth". The list now has
+   "Add a spray booth to the line - every craft leaves in the customer's
+   livery", ticked when a process station stands. `LBSpacecraftObjectivesWidget.cpp`.
+3. **Every click on open floor flew the camera back to the entry framing.**
+   Inside the hall the floor click is how the build catalogue comes back
+   (it selects the hall), and each one re-entered the hall. Selecting the
+   building the camera is already inside no longer moves it. Same file.
+4. **The alert strip read "No accepted contract demand for this recipe"
+   for the whole build of the one accepted ship** - the queue refusing to
+   start a second. The line's start refusal is shown only while nothing is
+   on the line, and a lifted hold or an answered refusal clears the strip
+   instead of lingering; a stalled machine's complaint is not the line's
+   to clear. `LBSpacecraftGameMode::LineAlertFor` / `ApplyLineAlert`, with
+   a unit test (`LineBoss.Spacecraft.GameMode.ARunningLineDoesNotComplainAboutStartingAnother`).
+5. **Parts on their way were offered for sale again**: with four of six
+   landed the button read "Order the 2 missing part(s)" while the lorry
+   was thirty seconds out; and after delivery the grid went straight back
+   to "Order the 6 missing part(s)" for a ship no contract demanded. A
+   pending order now shows "on its way" and is not missing, and without
+   accepted demand the button gives way to "No contract demands another
+   ship - accept one, then order its parts". `LBSpacecraftCommandPanelWidget.cpp`.
+6. **The placement toast costed a booth's crew as Assembly drones**
+   (24,000 for two sprayers that cost 28,000). Fixed in the same pawn
+   change.
+
+Not faults, but noted: the whole offer card is the accept button (fine
+for a mouse, invisible to a probe); the panel's scrollbar jumps to the
+click rather than paging; the placement ghost is a plain blue box; and
+"Watch" for a dev command enters the station rather than framing it.
+
+Verification of the six changes: see the status line below this section,
+written after the rebuild and the second run.
+
+**Verification (same evening, after the rebuild).** Suite
+`LineBoss.Spacecraft`: 139 of 139 Success, indexed at
+`Saved/Automation/StrangerFixes_2026_09_02/index.json` (the new
+line-alert test included). A second run through the real panel
+(`Saved/Audits/StrangerRun_2026_09_02/run2.log`, frames `r2_*`):
+fix 1 - the armed click on a station read "SELECTED Assembly station
+Mk1 4 - placing stopped" and the hire rows came up (`r2_02_toast.png`);
+fix 2 - the booth line stands in FIRST STEPS (`r2_04_obj.png`); fix 3 -
+two floor clicks at the same screen point mapped to the same world
+point, so the camera stayed put; fix 5 - the grid read "on its way" for
+the two parts still in transit with no order button (`r2_05_panel.png`).
+That run's booth step missed (a stray power-plant purchase from a
+mis-timed first click shifted the station ids and left the stranger
+short of the booth's price), so fix 4 was proven on the dev line instead
+(`run3.log`): the strip was empty from acceptance through Dispatched and
+read "No contract demands a craft" only while idle; and the no-demand
+caption was proven on an unstocked dev line (`r4_01_panel.png`). Not
+proven: the full stranger path end to end in one unbroken second run;
+the packaged build (all of this is PIE).

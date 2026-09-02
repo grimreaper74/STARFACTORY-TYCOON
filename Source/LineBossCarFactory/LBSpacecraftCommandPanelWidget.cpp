@@ -2144,6 +2144,36 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			{
 				GridSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
 			}
+			// IS THERE A NEXT SHIP? (stranger run through the real panel,
+			// 2026-09-02): the first ship delivered, its one-craft
+			// contract closed, and the grid went straight back to
+			// "Order the 6 missing part(s)" for a ship nobody had
+			// ordered. Accepted demand not yet covered by a craft in
+			// flight is what makes the order button honest.
+			bool bNextShipDemanded = false;
+			if (GameMode->GetProductionAuthority() != nullptr)
+			{
+				int32 Remaining = 0;
+				for (const FLBSpacecraftContract& Contract :
+					GameMode->GetProductionAuthority()->GetContracts())
+				{
+					if (Contract.State == ELBSpacecraftContractState::Accepted
+						&& Contract.RecipeId == LineRecipeId())
+					{
+						Remaining += Contract.Quantity - Contract.DispatchedCount;
+					}
+				}
+				for (const FLBSpacecraftUnitState& Unit :
+					GameMode->GetProductionAuthority()->GetUnits())
+				{
+					if (Unit.RecipeId == LineRecipeId()
+						&& Unit.Stage != ELBSpacecraftStage::Dispatched)
+					{
+						--Remaining;
+					}
+				}
+				bNextShipDemanded = Remaining > 0;
+			}
 			int64 MissingCost = 0;
 			int32 Missing = 0;
 			int32 PartIndex = 0;
@@ -2165,9 +2195,25 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 							StoreId, ItemId);
 					}
 				}
+				// ALREADY ON ITS WAY IS NOT MISSING (same run): four of six
+				// ordered parts had landed and the button offered to
+				// order the other two again while their lorry was still
+				// thirty seconds out.
+				int32 OnItsWay = 0;
+				if (GameMode->GetInventoryAuthority() != nullptr)
+				{
+					for (const FLBSpacecraftResourceOrder& Order :
+						GameMode->GetInventoryAuthority()->GetPendingOrders())
+					{
+						if (Order.ItemId == ItemId)
+						{
+							OnItsWay += Order.Count;
+						}
+					}
+				}
 				const int64 Price =
 					FLBSpacecraftItemCatalogue::GetItemImportPricePence(ItemId);
-				if (Held <= 0 && Price > 0)
+				if (Held <= 0 && OnItsWay <= 0 && Price > 0)
 				{
 					MissingCost += Price;
 					++Missing;
@@ -2177,16 +2223,19 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				const FString Sub = Held > 0
 					? FText::Format(LOCTEXT("PartReady", "{0} ready"),
 						FText::AsNumber(Held)).ToString()
-					: ULBSpacecraftTopBarWidget::FormatCurrency(Price);
+					: OnItsWay > 0
+						? LOCTEXT("PartOnItsWay", "on its way").ToString()
+						: ULBSpacecraftTopBarWidget::FormatCurrency(Price);
 				UTexture* Icon = LBSpacecraftCommandPanelPrivate::
 					SpacecraftPanelIconForTag(ItemId);
 				ULBSpacecraftTaggedButton* Tile = AddTileButton(PartGrid,
 					PartIndex++, Short, Sub, ItemId,
 					[this](FName InTag) { HandleImport(InTag); }, Icon,
-					Held <= 0 && Price > PartsCash, Held > 0, FString());
+					Held <= 0 && OnItsWay <= 0 && Price > PartsCash, Held > 0,
+					FString());
 				(void)Tile;
 			}
-			if (Missing > 0)
+			if (Missing > 0 && bNextShipDemanded)
 			{
 				AddTaggedButton(FText::Format(LOCTEXT("OrderMissing",
 					"Order the {0} missing part(s)  ({1})"),
@@ -2195,6 +2244,24 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						MissingCost))).ToString(), NAME_None,
 					[this](FName InTag) { HandleOrderMissingParts(InTag); },
 					FString(), MissingCost > PartsCash, true);
+			}
+			else if (Missing > 0)
+			{
+				UTextBlock* NoNext = WidgetTree->ConstructWidget<UTextBlock>(
+					UTextBlock::StaticClass());
+				NoNext->SetText(LOCTEXT("NoNextShip",
+					"No contract demands another ship - accept one, then order its parts"));
+				NoNext->SetAutoWrapText(true);
+				NoNext->SetColorAndOpacity(FSlateColor(
+					LBSpacecraftCommandPanelPrivate::SpacecraftPanelSubText));
+				FSlateFontInfo NoNextFont = NoNext->GetFont();
+				NoNextFont.Size = 11;
+				NoNext->SetFont(NoNextFont);
+				if (UVerticalBoxSlot* NoNextSlot =
+					ContentBox->AddChildToVerticalBox(NoNext))
+				{
+					NoNextSlot->SetPadding(FMargin(4.f, 6.f, 4.f, 2.f));
+				}
 			}
 		}
 		AddSectionLabel(

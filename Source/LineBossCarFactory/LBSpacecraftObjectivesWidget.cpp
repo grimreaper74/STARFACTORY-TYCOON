@@ -257,6 +257,12 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		// first contract to the clock learning both from a stall toast.
 		bool bAllLineCrewed = false;
 		bool bHasDock = false;
+		// THE BOOTH IS A TAUGHT STEP (stranger run through the real
+		// panel, 2026-09-02): three crewed stations and a dock ticked
+		// every line here, and "Commission the factory" refused with
+		// "The line has no spray booth". The list had set the player
+		// up to fail the step it was pointing at.
+		bool bHasBooth = false;
 		if (GameMode->GetBuildAuthority() != nullptr)
 		{
 			int32 LineStations = 0;
@@ -281,6 +287,8 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 				}
 				bHasDock |= Record.DefinitionId
 					== FName(TEXT("DeliveryDock"));
+				bHasBooth |= !Definition->StageClassId.IsNone()
+					&& Definition->bProcessStation;
 			}
 			bAllLineCrewed = LineStations > 0 && Uncrewed == 0;
 		}
@@ -305,6 +313,9 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		AddLine(LOCTEXT("StepStation",
 			"Place assembly stations - the track connects them")
 			.ToString(), bHasStation);
+		AddLine(LOCTEXT("StepBooth",
+			"Add a spray booth to the line - every craft leaves in the customer's livery")
+			.ToString(), bHasBooth);
 		AddLine(LOCTEXT("StepCrew",
 			"Hire drones at every station - uncrewed work is dirty")
 			.ToString(), bHasAnyDrone);

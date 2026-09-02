@@ -501,4 +501,48 @@ bool FLBSpacecraftBufferStallAlertTest::RunTest(const FString& Parameters)
 // where IMPLEMENT_SIMPLE_AUTOMATION_TEST has nothing to expand to.
 // Latent rather than broken, because this project does not build
 // Shipping today.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftLineAlertWhileRunningTest,
+	"LineBoss.Spacecraft.GameMode.ARunningLineDoesNotComplainAboutStartingAnother",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftLineAlertWhileRunningTest::RunTest(const FString& Parameters)
+{
+	// Stranger run through the real panel (2026-09-02): with their one
+	// accepted ship in build, the alert strip read "No accepted
+	// contract demand for this recipe" - the queue refusing to start a
+	// SECOND ship - for the whole build.
+	const FString Refusal = TEXT("No accepted contract demand for this recipe");
+	const FString Hold = TEXT("Insufficient resources: a drone is on its way");
+	TestEqual(TEXT("an idle line's start refusal is the alert"),
+		ALBSpacecraftGameMode::LineAlertFor(FString(), Refusal, 0), Refusal);
+	TestTrue(TEXT("a running line's start refusal is not"),
+		ALBSpacecraftGameMode::LineAlertFor(FString(), Refusal, 1).IsEmpty());
+	TestEqual(TEXT("a hold is the alert whether or not craft are in flight"),
+		ALBSpacecraftGameMode::LineAlertFor(Hold, Refusal, 1), Hold);
+
+	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
+		FName(TEXT("LBSpacecraftLineAlertWorld")));
+	ALBSpacecraftGameMode* GameMode =
+		World->SpawnActor<ALBSpacecraftGameMode>();
+	GameMode->ApplyLineAlert(Refusal);
+	TestEqual(TEXT("the idle refusal is carried"),
+		GameMode->GetSimAlert(), Refusal);
+	GameMode->ApplyLineAlert(FString());
+	TestTrue(TEXT("and clears once the line has nothing to say"),
+		GameMode->GetSimAlert().IsEmpty());
+	// A resolved hold clears the same way ...
+	GameMode->ApplyLineAlert(Hold);
+	GameMode->ApplyLineAlert(FString());
+	TestTrue(TEXT("a lifted hold leaves the strip"),
+		GameMode->GetSimAlert().IsEmpty());
+	// ... but another source's complaint is not the line's to clear.
+	const FString Stalled = TEXT("MILL-001 HAS STOPPED - BUILD A STORAGE RACK");
+	GameMode->RaiseSimAlert(Stalled);
+	GameMode->ApplyLineAlert(FString());
+	TestEqual(TEXT("a stalled machine's complaint stays"),
+		GameMode->GetSimAlert(), Stalled);
+	World->DestroyWorld(false);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
