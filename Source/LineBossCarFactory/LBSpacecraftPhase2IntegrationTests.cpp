@@ -1261,13 +1261,13 @@ bool FLBSpacecraftCargoDemandTest::RunTest(const FString& Parameters)
 			ALBSpacecraftGameMode::StartRecipeContract(*Rig.Production,
 				FName(TEXT("CARGO-01")), 1, Reason));
 		int32 Guard = 0;
-		while (Rig.Production->GetRevenuePence() < 36000000 && Guard++ < 400)
+		while (Rig.Production->GetRevenuePence() < 44000000 && Guard++ < 400)
 		{
 			TestTrue(TEXT("tick runs"),
 				Rig.Coordinator->TickProduction(5.0, Reason));
 		}
 		TestEqual(TEXT("the Cargo craft settled at the Cargo price"),
-			Rig.Production->GetRevenuePence(), (int64)36000000);
+			Rig.Production->GetRevenuePence(), (int64)44000000);
 		TestTrue(TEXT("a CARGO unit was built"),
 			Rig.Production->GetUnits().Num() > 0
 			&& Rig.Production->GetUnits()[0].RecipeId

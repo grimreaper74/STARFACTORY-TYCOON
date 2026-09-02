@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "LBSpacecraftInventoryAuthority.h"
+#include "LBSpacecraftProductionTypes.h"
 
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
@@ -18,7 +19,7 @@ bool FLBSpacecraftItemCatalogueTest::RunTest(const FString& Parameters)
 	// 131 = 9 raw + 16 processed + 100 parts + 6 components (the
 	// hundred-part catalogue, 2026-08-27).
 	TestEqual(TEXT("Phase-2 table carries 131 items"),
-		FLBSpacecraftItemCatalogue::GetItemTable().Num(), 135);
+		FLBSpacecraftItemCatalogue::GetItemTable().Num(), 139);
 	TestNull(TEXT("unknown ids resolve to nothing"),
 		FLBSpacecraftItemCatalogue::FindItem(FName(TEXT("Raw.Unobtainium"))));
 	// The assembled-component rows mirror the six-slot BOM one-to-one.
@@ -37,7 +38,8 @@ bool FLBSpacecraftItemCatalogueTest::RunTest(const FString& Parameters)
 		}
 	}
 	TestTrue(TEXT("out-of-range BOM index yields NAME_None"),
-		FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(6).IsNone());
+		FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
+			LBSpacecraftComponentKindCount).IsNone());
 	return true;
 }
 

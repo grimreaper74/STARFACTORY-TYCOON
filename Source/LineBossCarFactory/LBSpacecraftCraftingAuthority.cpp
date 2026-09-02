@@ -593,6 +593,28 @@ namespace LBSpacecraftCraftingPrivate
 			{S(TEXT("Part.SeatingSet"), 1), S(TEXT("Part.CabinTrimSet"), 1),
 				S(TEXT("Part.LifeSupportSet"), 1), S(TEXT("Part.CabinFitSet"), 1)},
 			{S(TEXT("Component.Interior"), 1)}, 20.0));
+		// THE CARGO TIER'S FOUR (2026-09-02): the same robot joins them
+		// from parts the catalogue already prices - a bay from bulkheads,
+		// floor pans, hull sections and doors; a collar from doors, a
+		// hatch, connectors, ribs and the docking sensors; pods from RCS
+		// thrusters, valves, lines, actuators and small tanks; plating
+		// from heat-shield tiles, radiator panels, backing bulkheads and ribs.
+		Table.Add(MakeCraftingRecipe(TEXT("Recipe.Component.CargoBay"),
+			TEXT("Join Cargo Bay Component"), TEXT("SubAssemblyRobot"),
+			{S(TEXT("Part.BulkheadPanel"), 6), S(TEXT("Part.FloorPan"), 4), S(TEXT("Part.HullSection"), 2), S(TEXT("Part.AccessHatch"), 2), S(TEXT("Part.PressureDoor"), 2)},
+			{S(TEXT("Component.CargoBay"), 1)}, 28.0));
+		Table.Add(MakeCraftingRecipe(TEXT("Recipe.Component.DockingCollar"),
+			TEXT("Join Docking Collar Component"), TEXT("SubAssemblyRobot"),
+			{S(TEXT("Part.PressureDoor"), 2), S(TEXT("Part.AccessHatch"), 1), S(TEXT("Part.ConnectorBlock"), 4), S(TEXT("Part.FrameRib"), 4), S(TEXT("Part.RangingLaser"), 1), S(TEXT("Part.BeaconLight"), 2)},
+			{S(TEXT("Component.DockingCollar"), 1)}, 22.0));
+		Table.Add(MakeCraftingRecipe(TEXT("Recipe.Component.ThrusterPods"),
+			TEXT("Join Thruster Pods Component"), TEXT("SubAssemblyRobot"),
+			{S(TEXT("Part.RcsThruster"), 8), S(TEXT("Part.ValveBlock"), 4), S(TEXT("Part.FuelLine"), 6), S(TEXT("Part.GimbalActuator"), 4), S(TEXT("Part.FuelTank"), 2)},
+			{S(TEXT("Component.ThrusterPods"), 1)}, 26.0));
+		Table.Add(MakeCraftingRecipe(TEXT("Recipe.Component.Shielding"),
+			TEXT("Join Shielding Component"), TEXT("SubAssemblyRobot"),
+			{S(TEXT("Part.HeatShieldTile"), 24), S(TEXT("Part.RadiatorPanel"), 4), S(TEXT("Part.BulkheadPanel"), 2), S(TEXT("Part.FrameRib"), 4)},
+			{S(TEXT("Component.Shielding"), 1)}, 24.0));
 		return Table;
 	}
 }

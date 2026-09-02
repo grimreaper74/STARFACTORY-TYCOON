@@ -661,17 +661,35 @@ bool FLBSpacecraftRefitPricingTest::RunTest(const FString& Parameters)
 	// credited with that rung's output, and is NOT paying to have it
 	// done again. Off by one here either hands over a free component
 	// or charges for one never received.
+	FLBSpacecraftRecipe ScoutRecipe;
+	TestTrue(TEXT("Scout-01 resolves for the refit bounds"),
+		Catalog::FindRecipe(FName(TEXT("SCOUT-01")), ScoutRecipe));
 	TArray<ELBSpacecraftComponent> Earned;
 	Catalog::ComponentsEarnedBy(
-		ELBSpacecraftStage::ComponentFabrication, Earned);
+		ELBSpacecraftStage::ComponentFabrication, Earned, &ScoutRecipe);
 	TestEqual(TEXT("component fabrication leaves the craft complete"),
 		Earned.Num(), 6);
 
 	TArray<ELBSpacecraftComponent> Refitted;
 	Catalog::ComponentsRefittedFrom(
-		ELBSpacecraftStage::HullFabrication, Refitted);
+		ELBSpacecraftStage::HullFabrication, Refitted, &ScoutRecipe);
 	TestEqual(TEXT("entering at hull re-fits the five non-hull parts"),
 		Refitted.Num(), 5);
+	// The Cargo's bounds are its own ten kinds (2026-09-02), and a
+	// Scout is never priced for them.
+	FLBSpacecraftRecipe CargoRecipe;
+	TestTrue(TEXT("Cargo-01 resolves for the refit bounds"),
+		Catalog::FindRecipe(FName(TEXT("CARGO-01")), CargoRecipe));
+	TArray<ELBSpacecraftComponent> CargoEarned;
+	Catalog::ComponentsEarnedBy(
+		ELBSpacecraftStage::ComponentFabrication, CargoEarned, &CargoRecipe);
+	TestEqual(TEXT("a Cargo leaves fabrication with ten kinds"),
+		CargoEarned.Num(), 10);
+	TArray<ELBSpacecraftComponent> CargoRefitted;
+	Catalog::ComponentsRefittedFrom(
+		ELBSpacecraftStage::HullFabrication, CargoRefitted, &CargoRecipe);
+	TestEqual(TEXT("a Cargo entering at hull re-fits nine"),
+		CargoRefitted.Num(), 9);
 	TestFalse(TEXT("and does NOT re-fit the hull it arrived with"),
 		Refitted.Contains(ELBSpacecraftComponent::Hull));
 

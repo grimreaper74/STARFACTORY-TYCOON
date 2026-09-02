@@ -7765,14 +7765,26 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 	{
 		return;
 	}
-	// Route progress reveals the six components one by one; the pipe
-	// and cable runs arrive with the fifth (the hull closes soon after).
+	// THE RECIPE SAYS HOW MANY (2026-09-02): the reveal used to count to
+	// a fixed six; the Cargo carries ten kinds now, so the sequence and
+	// its length come from the recipe, in its own fixing order.
+	FLBSpacecraftRecipe FitRecipe;
+	TArray<FName> FitSequence;
+	if (FLBSpacecraftProductionCatalog::FindRecipe(
+		FName(bCargoRecipe ? TEXT("CARGO-01") : TEXT("SCOUT-01")), FitRecipe))
+	{
+		FitSequence =
+			FLBSpacecraftProductionCatalog::FixingSequenceItemIds(FitRecipe);
+	}
+	const int32 KindCount = FitSequence.Num();
+	// Route progress reveals the components one by one; the pipe and
+	// cable runs arrive with the fifth (the hull closes soon after).
 	const float Progress = RouteCount > 1
 		? static_cast<float>(RouteIndex) / (RouteCount - 1) : 0.f;
-	// Seven reveals: the six components, then the canopy glass - the
-	// last thing fitted before the hull closes (owner 2026-08-26).
+	// Kinds plus one: every component, then the canopy glass - the last
+	// thing fitted before the hull closes (owner 2026-08-26).
 	const int32 Reveal = FMath::Clamp(
-		FMath::CeilToInt(Progress * 7.f), 0, 7);
+		FMath::CeilToInt(Progress * (KindCount + 1)), 0, KindCount + 1);
 	FLBSpacecraftUnitFittings& Fittings = UnitFittings.FindOrAdd(UnitId);
 	if (Fittings.RevealedCount == Reveal)
 	{
@@ -7791,48 +7803,112 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 	{
 		return;
 	}
-
 	const FBoxSphereBounds HullBounds =
 		UnitComponent->GetStaticMesh()->GetBounds();
 	const FVector E = HullBounds.BoxExtent;   // hull half-size, local
 	const FVector O = HullBounds.Origin;
-	// Sockets in hull-local space, nose +X: engine aft, power behind
-	// the middle, hull stack amidships, electronics forward, nav at
-	// the nose, cockpit interior front-top.
-	const TPair<const TCHAR*, FVector> Sockets[] = {
-		{ TEXT("Component.Propulsion"),
-			FVector(-0.55f, 0.f, 0.18f) },
-		{ TEXT("Component.Power"), FVector(-0.25f, 0.15f, 0.15f) },
-		{ TEXT("Component.Hull"), FVector(-0.05f, -0.3f, 0.12f) },
-		{ TEXT("Component.Electronics"),
-			FVector(0.2f, 0.3f, 0.15f) },
-		{ TEXT("Component.Navigation"), FVector(0.55f, 0.f, 0.2f) },
-		{ TEXT("Component.Interior"), FVector(0.3f, -0.15f, 0.3f) } };
-
+	// Sockets in hull-local space as fractions of the full size, nose
+	// +X: engine aft, power behind the middle, hull stack amidships,
+	// electronics forward, nav at the nose, cockpit interior front-top;
+	// the Cargo's bay under the belly, its collar on top, its pods aft
+	// on the flanks, its plating low along both sides.
+	static const TMap<FName, FVector> SocketByKey = {
+		{ FName(TEXT("Component.Propulsion")), FVector(-0.55f, 0.f, 0.18f) },
+		{ FName(TEXT("Component.Power")), FVector(-0.25f, 0.15f, 0.15f) },
+		{ FName(TEXT("Component.Hull")), FVector(-0.05f, -0.3f, 0.12f) },
+		{ FName(TEXT("Component.Electronics")), FVector(0.2f, 0.3f, 0.15f) },
+		{ FName(TEXT("Component.Navigation")), FVector(0.55f, 0.f, 0.2f) },
+		{ FName(TEXT("Component.Interior")), FVector(0.3f, -0.15f, 0.3f) },
+		{ FName(TEXT("Component.CargoBay")), FVector(-0.05f, 0.f, -0.32f) },
+		{ FName(TEXT("Component.DockingCollar")), FVector(0.05f, 0.f, 0.44f) },
+		{ FName(TEXT("Component.ThrusterPods")), FVector(-0.30f, 0.48f, 0.05f) },
+		{ FName(TEXT("Component.Shielding")), FVector(0.05f, 0.47f, -0.08f) } };
 	auto SocketPoint = [&](const FVector& Fraction)
 	{
 		return O + FVector(Fraction.X * E.X * 2.f,
 			Fraction.Y * E.Y * 2.f, Fraction.Z * E.Z * 2.f);
 	};
-
+	// BLOCKOUTS FOR THE CARGO'S FOUR (2026-09-02, "blockout first when
+	// models are missing"): hull-relative boxes so they land on any hull
+	// mesh, hue-free so the livery stays the only colour on the craft,
+	// replaced by real parts when they are modelled. Each is a real
+	// component the line fitted - never decoration.
+	auto AddBlockoutFitting = [&](const FName& Key, int32 Index)
+	{
+		struct FLBFittingBlock
+		{
+			FVector Centre;
+			FVector Size;
+			FLinearColor Tint;
+		};
+		const FLinearColor Pale(0.55f, 0.53f, 0.50f);
+		const FLinearColor Graphite(0.10f, 0.11f, 0.12f);
+		TArray<FLBFittingBlock> Blocks;
+		if (Key == FName(TEXT("Component.CargoBay")))
+		{
+			Blocks = { { FVector(-0.05f, 0.f, -0.32f),
+				FVector(0.40f, 0.55f, 0.22f), Pale } };
+		}
+		else if (Key == FName(TEXT("Component.DockingCollar")))
+		{
+			Blocks = { { FVector(0.05f, 0.f, 0.44f),
+				FVector(0.10f, 0.12f, 0.10f), Graphite } };
+		}
+		else if (Key == FName(TEXT("Component.ThrusterPods")))
+		{
+			Blocks = { { FVector(-0.30f, 0.48f, 0.05f),
+				FVector(0.12f, 0.07f, 0.08f), Pale },
+				{ FVector(-0.30f, -0.48f, 0.05f),
+				FVector(0.12f, 0.07f, 0.08f), Pale } };
+		}
+		else if (Key == FName(TEXT("Component.Shielding")))
+		{
+			Blocks = { { FVector(0.05f, 0.47f, -0.08f),
+				FVector(0.55f, 0.02f, 0.22f), Graphite },
+				{ FVector(0.05f, -0.47f, -0.08f),
+				FVector(0.55f, 0.02f, 0.22f), Graphite } };
+		}
+		for (int32 BlockIndex = 0; BlockIndex < Blocks.Num(); ++BlockIndex)
+		{
+			const FLBFittingBlock& Block = Blocks[BlockIndex];
+			const FName BlockKey(*FString::Printf(TEXT("%s_Fit%d_%d"),
+				*UnitId.ToString(), Index, BlockIndex));
+			UStaticMeshComponent* Piece = MakeBlockComponent(BlockKey,
+				Block.Tint);
+			if (Piece == nullptr)
+			{
+				continue;
+			}
+			Piece->AttachToComponent(UnitComponent,
+				FAttachmentTransformRules::KeepRelativeTransform);
+			Piece->SetRelativeLocation(SocketPoint(Block.Centre));
+			Piece->SetRelativeRotation(FRotator::ZeroRotator);
+			Piece->SetRelativeScale3D(FVector(
+				Block.Size.X * E.X * 2.f, Block.Size.Y * E.Y * 2.f,
+				Block.Size.Z * E.Z * 2.f) / 100.f);
+			Fittings.Parts.Add(Piece);
+		}
+	};
 	int32 Placed = 0;
 	FVector Previous = FVector::ZeroVector;
 	bool bHavePrevious = false;
-	for (const auto& Socket : Sockets)
+	for (const FName& Key : FitSequence)
 	{
 		if (Placed >= Reveal)
 		{
 			break;
 		}
-		UStaticMesh* Mesh = TryGetStationMesh(FName(Socket.Key));
-		const FVector Local = SocketPoint(Socket.Value);
+		UStaticMesh* Mesh = TryGetStationMesh(Key);
+		const FVector* Fraction = SocketByKey.Find(Key);
+		const FVector Local = SocketPoint(Fraction != nullptr
+			? *Fraction : FVector::ZeroVector);
 		if (Mesh != nullptr)
 		{
-			const FName Key(*FString::Printf(TEXT("%s_Fit%d"),
+			const FName PartKey(*FString::Printf(TEXT("%s_Fit%d"),
 				*UnitId.ToString(), Placed));
 			UStaticMeshComponent* Part =
 				NewObject<UStaticMeshComponent>(this,
-					UStaticMeshComponent::StaticClass(), Key);
+					UStaticMeshComponent::StaticClass(), PartKey);
 			Part->SetStaticMesh(Mesh);
 			Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			Part->SetCastShadow(true);
@@ -7841,6 +7917,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 			Part->RegisterComponent();
 			Part->SetRelativeLocation(Local);
 			Fittings.Parts.Add(Part);
+		}
+		else
+		{
+			AddBlockoutFitting(Key, Placed);
 		}
 		// The pipe/cable dressing links the sockets once most parts
 		// are in - thin dark runs plus one warning-orange line.
@@ -7875,7 +7955,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 		bHavePrevious = true;
 		++Placed;
 	}
-	if (Reveal >= 7)
+	if (Reveal >= KindCount + 1)
 	{
 		// The canopy glass drops on at its authored position - the
 		// forms share one baked transform, so zero offset aligns it.
@@ -7898,7 +7978,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 		}
 	}
 }
-
 void ALBSpacecraftWIPPresentationActor::BeginShellDelivery(
 	FName UnitId, const FVector& StationLocation, UStaticMesh* ShellMesh)
 {

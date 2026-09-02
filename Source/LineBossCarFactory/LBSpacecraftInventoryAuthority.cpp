@@ -317,6 +317,15 @@ namespace LBSpacecraftInventoryPrivate
 			TEXT("Navigation Component"), EC::AssembledComponent, 4));
 		Table.Add(MakeInventoryItemRow(TEXT("Component.Interior"),
 			TEXT("Interior Component"), EC::AssembledComponent, 6));
+		// The Cargo tier's four (2026-09-02) - see ELBSpacecraftComponent.
+		Table.Add(MakeInventoryItemRow(TEXT("Component.CargoBay"),
+			TEXT("Cargo Bay Component"), EC::AssembledComponent, 8));
+		Table.Add(MakeInventoryItemRow(TEXT("Component.DockingCollar"),
+			TEXT("Docking Collar Component"), EC::AssembledComponent, 4));
+		Table.Add(MakeInventoryItemRow(TEXT("Component.ThrusterPods"),
+			TEXT("Thruster Pods Component"), EC::AssembledComponent, 5));
+		Table.Add(MakeInventoryItemRow(TEXT("Component.Shielding"),
+			TEXT("Shielding Component"), EC::AssembledComponent, 6));
 		return Table;
 	}
 }
@@ -488,7 +497,13 @@ int64 FLBSpacecraftItemCatalogue::GetItemImportPricePence(FName ItemId)
 		{ FName(TEXT("Component.Power")), 1774000 },
 		{ FName(TEXT("Component.Propulsion")), 2837000 },
 		{ FName(TEXT("Component.Navigation")), 1533000 },
-		{ FName(TEXT("Component.Interior")), 1264000 } };
+		{ FName(TEXT("Component.Interior")), 1264000 },
+		// The Cargo's four: their part basket at import prices +15%,
+		// computed from the rows above when they were added.
+		{ FName(TEXT("Component.CargoBay")), 1194000 },
+		{ FName(TEXT("Component.DockingCollar")), 666000 },
+		{ FName(TEXT("Component.ThrusterPods")), 1477000 },
+		{ FName(TEXT("Component.Shielding")), 1495000 } };
 		const int64* Price = Prices.Find(ItemId);
 	return Price != nullptr ? *Price : 0;
 }
@@ -521,6 +536,14 @@ FName FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
 		return FName(TEXT("Component.Navigation"));
 	case ELBSpacecraftComponent::Interior:
 		return FName(TEXT("Component.Interior"));
+	case ELBSpacecraftComponent::CargoBay:
+		return FName(TEXT("Component.CargoBay"));
+	case ELBSpacecraftComponent::DockingCollar:
+		return FName(TEXT("Component.DockingCollar"));
+	case ELBSpacecraftComponent::ThrusterPods:
+		return FName(TEXT("Component.ThrusterPods"));
+	case ELBSpacecraftComponent::Shielding:
+		return FName(TEXT("Component.Shielding"));
 	default:
 		return NAME_None;
 	}
@@ -572,8 +595,9 @@ bool FLBSpacecraftItemCatalogue::ValidateItemTable(FString& OutReason)
 			return false;
 		}
 	}
-	// The assembled-component rows must mirror the six-slot BOM exactly.
-	for (uint8 Component = 0; Component < 6; ++Component)
+	// The assembled-component rows must mirror the component kinds exactly.
+	for (uint8 Component = 0; Component < LBSpacecraftComponentKindCount;
+		++Component)
 	{
 		const FLBSpacecraftItemDefinition* Row =
 			FindItem(GetAssembledComponentItemId(Component));
@@ -585,9 +609,11 @@ bool FLBSpacecraftItemCatalogue::ValidateItemTable(FString& OutReason)
 		}
 	}
 	if (CategoryCounts[static_cast<uint8>(
-		ELBSpacecraftItemCategory::AssembledComponent)] != 6)
+		ELBSpacecraftItemCategory::AssembledComponent)]
+		!= LBSpacecraftComponentKindCount)
 	{
-		OutReason = TEXT("ASSEMBLED COMPONENT COUNT MUST BE EXACTLY SIX");
+		OutReason = TEXT("ASSEMBLED COMPONENT COUNT MUST MATCH THE ")
+			TEXT("COMPONENT KINDS");
 		return false;
 	}
 	return true;

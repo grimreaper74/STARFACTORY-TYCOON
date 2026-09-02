@@ -1622,6 +1622,14 @@ bool ALBSpacecraftGameMode::SetupCanonicalLine(
 	// refusal was silent, and stations 2/4/6 stood sideways (owner
 	// 2026-09-02: "2 and 4 are sideways").
 	const float Step = bMk2Line ? 2600.f : 2000.f;
+	if (bMk2Line)
+	{
+		// The Mk2 chain is 13 m longer than the Mk1 one; started where
+		// the Mk1 line starts, its booth landed off the hall floor
+		// ("Spray booth must stand inside a building", 2026-09-02).
+		// Centre the whole chain, booth included, on the hall instead.
+		Y = -(4.f * Step + Step + 400.f) * 0.5f;
+	}
 	for (int32 Index = 0; Index < 5; ++Index)
 	{
 		const TCHAR* ClassId =
@@ -3330,9 +3338,9 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftPressCommand(
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftBuildLineCommand(
 	TEXT("LB.Spacecraft.BuildLine"),
 	TEXT("Places one station of every class through the build authority and ")
-	TEXT("commissions the factory."),
+	TEXT("commissions the factory. Arg: [mk2] for the Mk2 marks."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
-		[](const TArray<FString>&, UWorld* World)
+		[](const TArray<FString>& Args, UWorld* World)
 {
 	ALBSpacecraftGameMode* GameMode = ALBSpacecraftGameMode::FindInWorld(World);
 	if (GameMode == nullptr || GameMode->GetBuildAuthority() == nullptr)
@@ -3343,7 +3351,10 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftBuildLineCommand(
 	}
 	FString Reason;
 	if (!ALBSpacecraftGameMode::SetupCanonicalLine(
-		*GameMode->GetBuildAuthority(), Reason))
+		*GameMode->GetBuildAuthority(), Reason,
+		// "mk2" places the Mk2 marks (research permitting) so the Cargo
+		// tier can be run from the console (2026-09-02).
+		Args.Num() > 0 && Args[0].Equals(TEXT("mk2"), ESearchCase::IgnoreCase)))
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.BuildLine REFUSED: %s"), *Reason);
@@ -3868,7 +3879,7 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftChainCommand(
 #if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStartCommand(
 	TEXT("LB.Spacecraft.Start"),
-	TEXT("Offers and accepts a contract. Args: [quantity=1] [recipeId=SCOUT-01]."),
+	TEXT("Offers and accepts a contract. Args: [quantity=1] [recipeId=SCOUT-01] [force]."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 		[](const TArray<FString>& Args, UWorld* World)
 {
@@ -3884,9 +3895,13 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStartCommand(
 	const FName RecipeId =
 		Args.Num() > 1 ? FName(*Args[1]) : FName(TEXT("SCOUT-01"));
 	FString Reason;
+	// "force" as the third arg skips the reputation gate - a dev run of
+	// the Cargo tier should not have to earn tier 2 first (2026-09-02).
+	const bool bForce = Args.Num() > 2
+		&& Args[2].Equals(TEXT("force"), ESearchCase::IgnoreCase);
 	if (!ALBSpacecraftGameMode::StartRecipeContract(
 		*GameMode->GetProductionAuthority(), RecipeId, Quantity, Reason,
-		GameMode->GetReputation()))
+		bForce ? nullptr : GameMode->GetReputation()))
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.Start REFUSED: %s"), *Reason);
@@ -5642,13 +5657,21 @@ bool ALBSpacecraftGameMode::SeedShipFactoryLoadout(
 	// craft, so the player sees the whole loop once. After that,
 	// supply is the game and they sort it out themselves.
 	int32 Stocked = 0;
-	for (uint8 Component = 0;
-		Component <= static_cast<uint8>(ELBSpacecraftComponent::Interior);
-		++Component)
+	// One of each the FIRST CRAFT needs - the Scout's kinds, read from
+	// its recipe rather than "every kind there is" now that the Cargo
+	// tier has kinds of its own (2026-09-02).
+	FLBSpacecraftRecipe LoadoutRecipe;
+	TArray<ELBSpacecraftComponent> LoadoutKinds;
+	if (FLBSpacecraftProductionCatalog::FindRecipe(FName(TEXT("SCOUT-01")),
+		LoadoutRecipe))
+	{
+		LoadoutKinds = LoadoutRecipe.RequiredComponents;
+	}
+	for (ELBSpacecraftComponent Component : LoadoutKinds)
 	{
 		const FName ItemId =
 			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
-				Component);
+				static_cast<uint8>(Component));
 		FString StockReason;
 		if (!ItemId.IsNone()
 			&& InInventory.Deposit(StoreId, ItemId, 1, StockReason))

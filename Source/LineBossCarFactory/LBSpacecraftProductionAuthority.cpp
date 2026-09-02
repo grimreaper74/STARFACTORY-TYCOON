@@ -631,7 +631,8 @@ bool ALBSpacecraftProductionAuthority::OfferRefit(FName OriginUnitId,
 	// ladder and bought only the cheap end of the bill of materials.
 	// The worst refit out-earned the best new build.
 	const float Fraction =
-		FLBSpacecraftProductionCatalog::RefitWorkFraction(EntryStage);
+		FLBSpacecraftProductionCatalog::RefitWorkFraction(EntryStage,
+			&Recipe);
 	Refit.PricePerUnitPence = static_cast<int64>(
 		static_cast<double>(Recipe.RevenuePence) * Fraction);
 	if (Refit.PricePerUnitPence <= 0)
@@ -723,8 +724,14 @@ bool ALBSpacecraftProductionAuthority::CreateRefitUnit(FName ContractId,
 	// writer of this list, and the assembly gate refuses a craft whose
 	// component set is incomplete - so a refit dropped in mid-ladder
 	// without this would be stuck at assembly forever.
-	FLBSpacecraftProductionCatalog::ComponentsEarnedBy(
-		Contract->RefitEntryStage, Unit.ProducedComponents);
+	{
+		FLBSpacecraftRecipe SeedRecipe;
+		const bool bSeedRecipe = FLBSpacecraftProductionCatalog::FindRecipe(
+			Unit.RecipeId, SeedRecipe);
+		FLBSpacecraftProductionCatalog::ComponentsEarnedBy(
+			Contract->RefitEntryStage, Unit.ProducedComponents,
+			bSeedRecipe ? &SeedRecipe : nullptr);
+	}
 
 	Ledger.Units.Add(Unit);
 	++Ledger.NextUnitSequence;

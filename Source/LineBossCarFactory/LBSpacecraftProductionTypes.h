@@ -41,8 +41,22 @@ enum class ELBSpacecraftComponent : uint8
 	Power,
 	Propulsion,
 	Navigation,
-	Interior
+	Interior,
+	/** THE CARGO TIER'S OWN FEATURES (owner 2026-09-02: "the line grows
+	 *  by components per craft, not by small parts"). Appended after the
+	 *  Scout's six so every saved unit's component bytes keep meaning.
+	 *  Each is a visible feature on the hull, an item with a price, and
+	 *  a sub-assembly recipe from parts already in the catalogue. */
+	CargoBay,
+	DockingCollar,
+	ThrusterPods,
+	Shielding
 };
+
+/** How many component kinds exist. The one number the item table, the
+ *  BOM mirror check and every "for each component" loop share, so a
+ *  new kind cannot be half-added. */
+constexpr uint8 LBSpacecraftComponentKindCount = 10;
 
 /** ONE ACCESS EDGE: fitting Blocker puts Blocked out of reach.
  *
@@ -527,13 +541,15 @@ public:
 	 *  seeded with these, which is what gets it past the assembly
 	 *  gate without walking the whole ladder. */
 	static void ComponentsEarnedBy(ELBSpacecraftStage Stage,
-		TArray<ELBSpacecraftComponent>& OutComponents);
+		TArray<ELBSpacecraftComponent>& OutComponents,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/** The components a refit entering at Stage will actually RE-FIT:
 	 *  the union of what rows Stage..end produce. This is the work
 	 *  being bought, and it is the only honest basis for a price. */
 	static void ComponentsRefittedFrom(ELBSpacecraftStage Stage,
-		TArray<ELBSpacecraftComponent>& OutComponents);
+		TArray<ELBSpacecraftComponent>& OutComponents,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/**
 	 * What share of a whole craft's work a refit from Stage represents,
@@ -553,7 +569,8 @@ public:
 	 * so a refit can never be more profitable per part than the build
 	 * it is a subset of.
 	 */
-	static float RefitWorkFraction(ELBSpacecraftStage EntryStage);
+	static float RefitWorkFraction(ELBSpacecraftStage EntryStage,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/**
 	 * May a refit enter here, and if not, why not?
