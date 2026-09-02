@@ -153,6 +153,16 @@ namespace LBSpacecraftCommandPanelPrivate
 	 *  "AssemblyRobot-002" reads as "Assembly station Mk1 2". Applied
 	 *  at the display chokepoints, so every authority keeps precise
 	 *  ids internally and refusal strings stay grep-able in logs. */
+	/** A finished COMPONENT is a ship's worth of one system and
+	 *  costs 12-29k each; five at a time made a first ship cost more
+	 *  than the opening bankroll left after building a line (stranger
+	 *  playthrough, 2026-09-02: 598,000 cr needed, 324,000 held).
+	 *  Components import one at a time; raw parts stay in fives. */
+	int32 ImportBundleFor(FName ItemId)
+	{
+		return ItemId.ToString().StartsWith(TEXT("Component.")) ? 1 : 5;
+	}
+
 	FString SpacecraftPrettifyStationIds(const FString& In,
 		const ALBSpacecraftBuildAuthority* Build)
 	{
@@ -548,6 +558,10 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTaggedButton(
 		Row->AddChildToHorizontalBox(Lines))
 	{
 		LinesSlot->SetVerticalAlignment(VAlign_Center);
+		// Fill, not auto: an auto-sized slot hands the text unbounded
+		// width and SetAutoWrapText never engages - the offer labels
+		// still clipped after the first wrap fix (2026-09-02).
+		LinesSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
 	}
 	Button->AddChild(Row);
 	if (UVerticalBoxSlot* ButtonSlot =
@@ -1769,12 +1783,14 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			{
 				continue;
 			}
+			const int32 Bundle = LBSpacecraftCommandPanelPrivate::ImportBundleFor(Item.ItemId);
 			AddTaggedButton(FText::Format(
-				LOCTEXT("ImportButton", "Import 5x {0}  ({1})"),
+				LOCTEXT("ImportButton", "Import {2}x {0}  ({1})"),
 				FText::FromString(Item.DisplayName),
 				FText::FromString(
 					ULBSpacecraftTopBarWidget::FormatCurrency(
-						ImportPrice * 5))).ToString(), Item.ItemId,
+						ImportPrice * Bundle)),
+				FText::AsNumber(Bundle)).ToString(), Item.ItemId,
 				[this](FName InTag) { HandleImport(InTag); });
 		}
 		break;
@@ -2178,7 +2194,7 @@ void ULBSpacecraftCommandPanelWidget::HandleImport(FName ItemId)
 	FString DockReason;
 	const FName DeliveryStore = ALBSpacecraftGameMode::FindDeliveryStore(
 		*GameMode->GetBuildAuthority(), *GameMode->GetInventoryAuthority(),
-		ItemId, 5 * BuyMultiplier, DockReason);
+		ItemId, LBSpacecraftCommandPanelPrivate::ImportBundleFor(ItemId) * BuyMultiplier, DockReason);
 	if (DeliveryStore.IsNone())
 	{
 		PanelActionText = DockReason;
@@ -2187,7 +2203,8 @@ void ULBSpacecraftCommandPanelWidget::HandleImport(FName ItemId)
 	FString Reason;
 	ALBSpacecraftGameMode::PlaceResourceOrder(
 		*GameMode->GetInventoryAuthority(),
-		*GameMode->GetProductionAuthority(), ItemId, 5 * BuyMultiplier,
+		*GameMode->GetProductionAuthority(), ItemId,
+		LBSpacecraftCommandPanelPrivate::ImportBundleFor(ItemId) * BuyMultiplier,
 		DeliveryStore, Reason);
 	PanelActionText = Reason;
 }
