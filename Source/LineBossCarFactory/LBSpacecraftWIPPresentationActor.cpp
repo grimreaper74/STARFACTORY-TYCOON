@@ -3298,10 +3298,32 @@ void ALBSpacecraftWIPPresentationActor::TickDrones(float DeltaSeconds)
 				{
 					// Supply point: the delivery dock apron, staggered
 					// per drone so sorties do not stack.
-					const FVector SupplySpot(-9900.f,
+					// THE PARTS COME OFF THE STATION'S OWN PALLETS (owner
+					// 2026-09-02: "the heavy drones are supposed to pick
+					// the parts up from the pallets and put together").
+					// The supply run used to go to a fixed point 99 m off
+					// the line, so the crew flew away to nowhere; now it
+					// is the pallet stack beside the station, and the
+					// fallback is only for a station with no stock shown.
+					FVector SupplySpot(-9900.f,
 						((Drone * 2 + (Record.StationId.GetNumber() % 5))
 							- 4) * 220.f,
 						DroneHoverHeightCm);
+					if (const TArray<TObjectPtr<UStaticMeshComponent>>*
+						Stacks = StationStockStacks.Find(Record.StationId))
+					{
+						if (Stacks->Num() > 0)
+						{
+							const UStaticMeshComponent* Pallet =
+								(*Stacks)[Drone % Stacks->Num()];
+							if (Pallet != nullptr)
+							{
+								SupplySpot = Pallet->GetComponentLocation()
+									+ FVector(0.f, 0.f,
+										DroneHoverHeightCm * 0.55f);
+							}
+						}
+					}
 					const float Alpha = FMath::SmoothStep(0.f, 1.f,
 						ALBSpacecraftDroneFleetAuthority::
 							GetMissionAlpha01(*State,
