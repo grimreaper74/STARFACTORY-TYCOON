@@ -828,6 +828,18 @@ bool ALBSpacecraftInventoryAuthority::Transfer(FName FromStoreId,
 	return true;
 }
 
+bool ALBSpacecraftInventoryAuthority::HasAnyStock() const
+{
+	for (const FLBSpacecraftInventoryStoreState& Store : Stores)
+	{
+		if (GetUsedUnits(Store.StoreId) > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 int32 ALBSpacecraftInventoryAuthority::GetQuantity(FName StoreId,
 	FName ItemId) const
 {

@@ -160,6 +160,9 @@ FString ULBSpacecraftDevToolset::GetSpacecraftFactoryStatus()
 		}
 		Root->SetArrayField(TEXT("route"), Route);
 	}
+	// The running factory's own complaint (stalls, starved stations) -
+	// what the toast shows when the player has not just acted.
+	Root->SetStringField(TEXT("simAlert"), GameMode->GetSimAlert());
 	if (ALBSpacecraftTrackAuthority* Track = GameMode->GetTrackAuthority())
 	{
 		Root->SetNumberField(TEXT("trackPieces"),

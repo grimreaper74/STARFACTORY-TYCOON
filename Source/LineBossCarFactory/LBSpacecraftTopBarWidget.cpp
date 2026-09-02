@@ -418,6 +418,14 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 				ClockWithSpeed += TEXT("  ")
 					+ SpeedGameMode->DescribeSimSpeed().ToString();
 			}
+			else
+			{
+				// The one place a waiting player looks. The stranger
+				// playthrough (2026-09-02) found no way on screen to
+				// learn that 1/2/4 set the factory speed.
+				ClockWithSpeed += LOCTEXT("SpeedKeysHint",
+					"  1x  (keys 1 / 2 / 4)").ToString();
+			}
 		}
 		ClockBlock->SetText(FText::FromString(ClockWithSpeed));
 	}

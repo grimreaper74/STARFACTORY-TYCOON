@@ -965,8 +965,16 @@ void ALBSpacecraftGameMode::RefreshOfferBoard(
 		// Customers want their craft BY a date. An offer nobody takes
 		// rots off the board on the same clock, which keeps the board
 		// turning over.
+		// A FIRST-TIMER'S CLOCK RUNS SLOW. The stranger playthrough
+		// (2026-09-02) lost its first contract to the eleven-minute
+		// deadline while still learning that a ship needs a delivery
+		// dock and parts ordered in. Until the first delivery, offers
+		// allow three times as long; after that, the real clock.
+		const bool bBeforeFirstDelivery = InContext.Progression == nullptr
+			|| InContext.Progression->GetCreditedDeliveries() <= 0;
 		Offer.DeadlineSimSeconds = ProductionAuthority->GetSimSeconds()
-			+ ContractAllowanceSeconds(Recipe, Offer.Quantity);
+			+ ContractAllowanceSeconds(Recipe, Offer.Quantity)
+				* (bBeforeFirstDelivery ? 3.0 : 1.0);
 		// Somebody actually wants this craft, and wants it in their
 		// colours. Deterministic per offer so a reload rebuilds the
 		// same board.

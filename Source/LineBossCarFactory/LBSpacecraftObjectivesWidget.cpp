@@ -11,6 +11,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
+#include "LBSpacecraftInventoryAuthority.h"
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftProgressionAuthority.h"
 #include "LBSpacecraftTrackAuthority.h"
@@ -206,30 +207,60 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		// 2026-09-01): nothing told a new player that uncrewed
 		// stations build dirty, and their first ship paid for it with
 		// a nine-minute rework hold at the end of the line.
-		bool bHasAnyDrone = false;
+		// EVERY line station crewed, not any station (the step ticked
+		// after one drone at one station, 2026-09-02); plus the two
+		// steps a first ship actually needs that nothing named: a
+		// delivery dock, and parts ordered in. The stranger lost the
+		// first contract to the clock learning both from a stall toast.
+		bool bAllLineCrewed = false;
+		bool bHasDock = false;
 		if (GameMode->GetBuildAuthority() != nullptr)
 		{
+			int32 LineStations = 0;
+			int32 Uncrewed = 0;
 			for (const FLBSpacecraftStationRecord& Record :
 				GameMode->GetBuildAuthority()->GetStations())
 			{
-				if (Record.InstalledDroneTypes.Num() > 0)
+				const FLBSpacecraftStationDefinition* Definition =
+					ALBSpacecraftBuildAuthority::FindDefinition(
+						Record.DefinitionId);
+				if (Definition == nullptr)
 				{
-					bHasAnyDrone = true;
-					break;
+					continue;
 				}
+				if (Definition->StageClassId == FName(TEXT("LineStation")))
+				{
+					++LineStations;
+					if (Record.InstalledDroneTypes.Num() == 0)
+					{
+						++Uncrewed;
+					}
+				}
+				bHasDock |= Record.DefinitionId
+					== FName(TEXT("DeliveryDock"));
 			}
+			bAllLineCrewed = LineStations > 0 && Uncrewed == 0;
 		}
+		const bool bHasParts = GameMode->GetInventoryAuthority() != nullptr
+			&& GameMode->GetInventoryAuthority()->HasAnyStock();
+		const bool bHasAnyDrone = bAllLineCrewed;
 		AddLine(LOCTEXT("FirstSteps", "FIRST STEPS").ToString(), true);
 		AddLine(LOCTEXT("StepStation",
 			"Place assembly stations - the track connects them")
 			.ToString(), bHasStation);
 		AddLine(LOCTEXT("StepCrew",
-			"Hire drones at each station - uncrewed work is dirty")
+			"Hire drones at every station - uncrewed work is dirty")
 			.ToString(), bHasAnyDrone);
+		AddLine(LOCTEXT("StepDock",
+			"Build a delivery dock - parts arrive there").ToString(),
+			bHasDock);
 		AddLine(LOCTEXT("StepCommission", "Commission the factory")
 			.ToString(), bCommissioned);
 		AddLine(LOCTEXT("StepContract", "Accept a contract").ToString(),
 			bHasAcceptedContract);
+		AddLine(LOCTEXT("StepParts",
+			"Order the ship's parts (Contracts tab, imports)").ToString(),
+			bHasParts);
 		AddLine(LOCTEXT("StepDeliver", "Deliver your first ship")
 			.ToString(), false);
 	}

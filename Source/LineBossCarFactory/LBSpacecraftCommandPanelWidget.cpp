@@ -520,6 +520,10 @@ ULBSpacecraftTaggedButton* ULBSpacecraftCommandPanelWidget::AddTaggedButton(
 	UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(
 		UTextBlock::StaticClass());
 	Text->SetText(FText::FromString(Label));
+	// Wrap, never clip: the offer board's "Accept SCOUT-01 x2 (150,000
+	// each, 300,000 total, 11m)" lost everything after the x at panel
+	// width - the numbers a player weighs before accepting (2026-09-02).
+	Text->SetAutoWrapText(true);
 	Text->SetColorAndOpacity(FSlateColor(SpacecraftPanelText));
 	FSlateFontInfo Font = Text->GetFont();
 	Font.Size = 14;
@@ -2372,13 +2376,31 @@ void ULBSpacecraftCommandPanelWidget::HandleAcceptOffer(FName ContractId)
 	{
 		return;
 	}
+	// Name it the way the board did - customer and ship - not the
+	// ledger id ("Contract accepted: SC-CONTRACT-001", 2026-09-02).
+	FString Shown = ContractId.ToString();
+	for (const FLBSpacecraftContract& Contract :
+		GameMode->GetProductionAuthority()->GetContracts())
+	{
+		if (Contract.ContractId == ContractId)
+		{
+			const FLBSpacecraftCustomer* Customer =
+				FLBSpacecraftCustomerCatalogue::FindCustomer(
+					Contract.CustomerId);
+			Shown = FString::Printf(TEXT("%s%s x%d"),
+				Customer != nullptr
+					? *(Customer->DisplayName + TEXT(": ")) : TEXT(""),
+				*Contract.RecipeId.ToString(), Contract.Quantity);
+			break;
+		}
+	}
 	FString Reason;
 	if (GameMode->GetProductionAuthority()->AcceptContract(ContractId,
 		Reason))
 	{
 		PanelActionText = FText::Format(
 			LOCTEXT("OfferAccepted", "Contract accepted: {0}"),
-			FText::FromName(ContractId)).ToString();
+			FText::FromString(Shown)).ToString();
 	}
 	else
 	{
@@ -2629,6 +2651,22 @@ void ULBSpacecraftCommandPanelWidget::NativeTick(const FGeometry& MyGeometry,
 				Combined += LINE_TERMINATOR;
 			}
 			Combined += PawnText;
+		}
+		// WHILE ARMED, SAY SO - every frame, on top. The placement hint
+		// arrived as a toast and was replaced by the next message, so a
+		// stranger clicking a station to inspect it kept placing more
+		// (2026-09-02). This line stays until the arm is dropped.
+		if (Pawn != nullptr && !Pawn->GetPlacementDefinition().IsNone())
+		{
+			const FLBSpacecraftStationDefinition* Placing =
+				ALBSpacecraftBuildAuthority::FindDefinition(
+					Pawn->GetPlacementDefinition());
+			const FString Pinned = FText::Format(LOCTEXT("PlacingPinned",
+				"PLACING {0} - click the floor to place, right-click to stop"),
+				FText::FromString(Placing != nullptr ? Placing->DisplayName
+					: Pawn->GetPlacementDefinition().ToString())).ToString();
+			Combined = Combined.IsEmpty() ? Pinned
+				: Pinned + LINE_TERMINATOR + Combined;
 		}
 		// ACTION TEXT AGES OUT (audit 2026-09-01): neither action
 		// string is ever cleared, so after the player's first click of

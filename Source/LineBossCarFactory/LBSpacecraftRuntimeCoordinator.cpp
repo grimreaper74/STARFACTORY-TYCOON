@@ -563,10 +563,14 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 					// because "needs 1x" when it wants three is a
 					// refusal that sends the player to fix the wrong
 					// thing.
+					// The item's NAME ("Hull component"), not its id
+					// ("Component.Hull") - the stranger read the id.
+					const FLBSpacecraftItemDefinition* Item =
+						FLBSpacecraftItemCatalogue::FindItem(Component);
 					OutHoldReason = FString::Printf(
 						TEXT("Insufficient resources: %s needs %dx %s%s"),
 						*Record->StationId.ToString(), Needed,
-						*Component.ToString(),
+						Item != nullptr ? *Item->DisplayName : *Component.ToString(),
 						*DescribeSupplyShortfall(Record->StationId,
 							Component));
 					return false;

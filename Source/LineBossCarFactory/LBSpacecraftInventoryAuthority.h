@@ -189,6 +189,9 @@ public:
 	int32 GetUsedUnits(FName StoreId) const;
 	int32 GetCapacityUnits(FName StoreId) const;
 	int32 GetStoreCount() const { return Stores.Num(); }
+	/** True once anything at all has arrived in any store - the
+	 *  objectives panel's "parts ordered" step. */
+	bool HasAnyStock() const;
 
 	/** Every registered store id, in registration order. */
 	TArray<FName> GetStoreIds() const;
