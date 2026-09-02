@@ -89,4 +89,13 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AICallable),
 		Category = "LineBoss|Dev|Input")
 	static FString SimulatePieWheel(float X, float Y, float Delta);
+
+	/** Starts PIE in its own floating window at the given size instead
+	 *  of the docked level viewport (which the stock StartPIE pins,
+	 *  and whose letterbox the management UI cannot live in). Returns
+	 *  immediately; poll GetPieViewportInfo until it reports the new
+	 *  size. Stop with the stock EditorAppToolset StopPIE. */
+	UFUNCTION(BlueprintCallable, meta = (AICallable),
+		Category = "LineBoss|Dev|Input")
+	static FString StartPieFloating(int32 Width = 1600, int32 Height = 900);
 };

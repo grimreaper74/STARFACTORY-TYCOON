@@ -11,6 +11,7 @@
 #include "TimerManager.h"
 #include "Widgets/SViewport.h"
 #include "Widgets/SWindow.h"
+#include "Settings/LevelEditorPlaySettings.h"
 #include "LBSpacecraftBuildAuthority.h"
 #include "LBSpacecraftGameMode.h"
 #include "LBSpacecraftPowerAuthority.h"
@@ -417,6 +418,41 @@ FString ULBSpacecraftDevToolset::SimulatePieKey(const FString& KeyName,
 	Root->SetBoolField(TEXT("success"), true);
 	Root->SetStringField(TEXT("key"), Key.ToString());
 	Root->SetNumberField(TEXT("holdSeconds"), HoldSeconds);
+	return WriteJson(Root);
+}
+
+FString ULBSpacecraftDevToolset::StartPieFloating(int32 Width, int32 Height)
+{
+	using namespace LBSpacecraftDevToolsetPrivate;
+	if (GEditor == nullptr)
+	{
+		return FailJson(TEXT("No editor."));
+	}
+	if (GEditor->PlayWorld != nullptr)
+	{
+		return FailJson(TEXT("PIE is already running - stop it first "
+			"(EditorAppToolset StopPIE)."));
+	}
+	ULevelEditorPlaySettings* Settings =
+		GetMutableDefault<ULevelEditorPlaySettings>();
+	Settings->LastExecutedPlayModeType = PlayMode_InEditorFloating;
+	Settings->NewWindowWidth = FMath::Max(Width, 320);
+	Settings->NewWindowHeight = FMath::Max(Height, 240);
+	Settings->NewWindowPosition = FIntPoint(0, 0);
+	Settings->CenterNewWindow = false;
+	FRequestPlaySessionParams Params;
+	Params.WorldType = EPlaySessionWorldType::PlayInEditor;
+	Params.SessionDestination = EPlaySessionDestinationType::InProcess;
+	Params.EditorPlaySettings = Settings;
+	// No DestinationSlateViewport: the editor falls through to the
+	// play-mode setting above and opens the floating window.
+	GEditor->RequestPlaySession(Params);
+	const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("success"), true);
+	Root->SetNumberField(TEXT("width"), Settings->NewWindowWidth);
+	Root->SetNumberField(TEXT("height"), Settings->NewWindowHeight);
+	Root->SetStringField(TEXT("note"),
+		TEXT("requested; poll GetPieViewportInfo for the new size"));
 	return WriteJson(Root);
 }
 
