@@ -460,6 +460,9 @@ void ULBSpacecraftCommandPanelWidget::AddSectionLabel(const FString& Text)
 	UTextBlock* Label = WidgetTree->ConstructWidget<UTextBlock>(
 		UTextBlock::StaticClass());
 	Label->SetText(FText::FromString(Text));
+	// Wrap rather than clip: "CONVEYOR BELTS UNLOCKS AFTER DELI" was
+	// what a stranger read at panel width (2026-09-02).
+	Label->SetAutoWrapText(true);
 	Label->SetColorAndOpacity(FSlateColor(SpacecraftPanelAccent));
 	FSlateFontInfo Font = Label->GetFont();
 	Font.Size = 15;
@@ -1012,10 +1015,30 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				// ATTACH TO THE LINE is gone with the manual track
 				// (owner 2026-09-01): the relayer attaches every
 				// station on placement and removal.
-				AddTaggedButton(
-					LOCTEXT("RemoveStation", "Remove station").ToString(),
-					Selected,
-					[this](FName InTag) { HandleRemoveStation(InTag); });
+				// The hall is the site, not a station to sell: no button
+				// (the authority refuses too - belt and braces after the
+				// stranger playthrough deleted it with one click).
+				bool bSelectedIsHall = false;
+				if (GameMode->GetBuildAuthority() != nullptr)
+				{
+					for (const FLBSpacecraftStationRecord& HallProbe :
+						GameMode->GetBuildAuthority()->GetStations())
+					{
+						if (HallProbe.StationId == Selected
+							&& HallProbe.DefinitionId
+								== FName(TEXT("ShipFactoryHall")))
+						{
+							bSelectedIsHall = true;
+						}
+					}
+				}
+				if (!bSelectedIsHall)
+				{
+					AddTaggedButton(
+						LOCTEXT("RemoveStation", "Remove station").ToString(),
+						Selected,
+						[this](FName InTag) { HandleRemoveStation(InTag); });
+				}
 			}
 		}
 		// The catalogue reads as GROUPS, the way the genre expects:
@@ -2237,6 +2260,12 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 	{
 		return;
 	}
+	// Name it BEFORE it is gone: the toast prettifies ids against the
+	// live station list, and a removed station is no longer in it -
+	// "Removed ShipFactoryHall-001" was what the stranger read.
+	const FString Shown =
+		LBSpacecraftCommandPanelPrivate::SpacecraftPrettifyStationIds(
+			StationId.ToString(), GameMode->GetBuildAuthority());
 	FString Reason;
 	if (ALBSpacecraftGameMode::RemoveStationPowered(
 		*GameMode->GetBuildAuthority(), *GameMode->GetPowerAuthority(),
@@ -2247,7 +2276,7 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 	{
 		PanelActionText = FText::Format(
 			LOCTEXT("StationRemoved", "Removed {0}"),
-			FText::FromName(StationId)).ToString();
+			FText::FromString(Shown)).ToString();
 		if (Pawn != nullptr)
 		{
 			Pawn->ClearSelectedStation();

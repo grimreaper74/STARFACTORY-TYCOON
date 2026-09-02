@@ -582,7 +582,7 @@ bool ALBSpacecraftBuildAuthority::EnvelopeIsLegal(FName DefinitionId,
 		if (FMath::Abs(Location.X - OtherLocation.X) < Half.X + OtherHalf.X
 			&& FMath::Abs(Location.Y - OtherLocation.Y) < Half.Y + OtherHalf.Y)
 		{
-			OutReason = FString::Printf(TEXT("Envelope overlaps station %s"),
+			OutReason = FString::Printf(TEXT("Too close to %s - leave a gap"),
 				*Other.StationId.ToString());
 			return false;
 		}

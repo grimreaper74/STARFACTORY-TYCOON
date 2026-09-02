@@ -143,4 +143,11 @@ private:
 
 	/** Rebuilt when the set of open places changes, not every frame. */
 	FString OpenSignature;
+
+	/** Two-click purchase on the picture: the first click on a
+	 *  buildable place quotes the price, the second within a few
+	 *  seconds buys. A stranger's first click on the "+" (2026-09-02)
+	 *  was an attempt to ENTER and cost 200,000 cr on the spot. */
+	FName PendingBuyPlace;
+	double PendingBuyStamp = 0.0;
 };

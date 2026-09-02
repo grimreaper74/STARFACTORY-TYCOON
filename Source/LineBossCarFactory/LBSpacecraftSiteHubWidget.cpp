@@ -5,6 +5,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
+#include "Components/Border.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -61,6 +62,34 @@ namespace LBSpacecraftSiteHubPrivate
 	 *  Centre is NORMALISED over the picture, size is in PIXELS, so a
 	 *  badge stays legible at any window size instead of shrinking with
 	 *  the building it marks. That is what point anchors are for. */
+	/** A small dark chip of text on the picture - the enter and buy
+	 *  captions. Text, not a baked icon, so it localises. */
+	void AddCaption(UWidgetTree& Tree, UCanvasPanel& Canvas,
+		const FVector2D& Centre, const FString& Text)
+	{
+		UBorder* Chip = Tree.ConstructWidget<UBorder>(UBorder::StaticClass());
+		Chip->SetBrushColor(FLinearColor(0.106f, 0.106f, 0.106f, 0.88f));
+		Chip->SetPadding(FMargin(8.f, 3.f));
+		UTextBlock* Label = Tree.ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		Label->SetText(FText::FromString(Text));
+		Label->SetColorAndOpacity(FSlateColor(
+			FLinearColor(0.93f, 0.93f, 0.92f, 1.f)));
+		FSlateFontInfo Font = Label->GetFont();
+		Font.Size = 13;
+		Label->SetFont(Font);
+		Chip->SetContent(Label);
+		if (UCanvasPanelSlot* CanvasSlot = Canvas.AddChildToCanvas(Chip))
+		{
+			CanvasSlot->SetAnchors(FAnchors(Centre.X, Centre.Y,
+				Centre.X, Centre.Y));
+			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+			CanvasSlot->SetPosition(FVector2D::ZeroVector);
+			CanvasSlot->SetAutoSize(true);
+			CanvasSlot->SetZOrder(31);
+		}
+	}
+
 	void AddStateBadge(UWidgetTree& Tree, UCanvasPanel& Canvas,
 		const FVector2D& Centre, float SizePx, const TCHAR* IconPath)
 	{
@@ -302,6 +331,23 @@ FString ULBSpacecraftSiteHubWidget::EnterPlace(FName PlaceId)
 			return FString::Printf(
 				TEXT("%s IS NOT BUILT YET"), *Name);
 		}
+		// QUOTE FIRST, BUY SECOND. The picture has no ghost, no price
+		// and no cancel; one click spending a fifth of the opening
+		// bankroll was the stranger playthrough's worst moment.
+		const FLBSpacecraftStationDefinition* Definition =
+			ALBSpacecraftBuildAuthority::FindDefinition(Place->DefinitionId);
+		const double Now = FPlatformTime::Seconds();
+		if (PendingBuyPlace != PlaceId || Now - PendingBuyStamp > 8.0)
+		{
+			PendingBuyPlace = PlaceId;
+			PendingBuyStamp = Now;
+			const int64 Credits = Definition != nullptr
+				? Definition->CostPence / 100 : 0;
+			return FString::Printf(
+				TEXT("BUY %s FOR %s CR? CLICK IT AGAIN TO CONFIRM"), *Name,
+				*FText::AsNumber(Credits).ToString());
+		}
+		PendingBuyPlace = NAME_None;
 		FString BuildReason;
 		FName Placed;
 		const bool bBuilt = ALBSpacecraftGameMode::PlaceStationPowered(
@@ -405,6 +451,18 @@ void ULBSpacecraftSiteHubWidget::RebuildContent()
 			{
 				StatusText->SetText(FText::FromString(Said));
 			}
+			// Through the toast the player already reads: the hub's own
+			// strip sat on beige ground in pale text and was wiped by
+			// the rebuild a purchase triggers (stranger playthrough,
+			// 2026-09-02 - every hub message went to the log only).
+			if (APlayerController* Owner = GetOwningPlayer())
+			{
+				if (ALBSpacecraftPlayerPawn* OwnerPawn =
+					Cast<ALBSpacecraftPlayerPawn>(Owner->GetPawn()))
+				{
+					OwnerPawn->SetLastActionText(Said);
+				}
+			}
 			UE_LOG(LogTemp, Display, TEXT("SPACECRAFT HUB: %s"), *Said);
 		};
 		Hit->Arm();
@@ -423,6 +481,49 @@ void ULBSpacecraftSiteHubWidget::RebuildContent()
 				Place.Max.X, Place.Max.Y));
 			CanvasSlot->SetOffsets(FMargin(0.f));
 			CanvasSlot->SetZOrder(20);
+		}
+		// WHAT THE CLICK DOES, written on the picture. The stranger
+		// playthrough found the player's own factory was the only place
+		// with NO mark, and the "+" gave no price.
+		{
+			FString Caption;
+			if (State == EState::Open)
+			{
+				bool bBuilt = false;
+				if (GameMode != nullptr
+					&& GameMode->GetBuildAuthority() != nullptr)
+				{
+					for (const FLBSpacecraftStationRecord& Record :
+						GameMode->GetBuildAuthority()->GetStations())
+					{
+						bBuilt |= !Place.DefinitionId.IsNone()
+							&& Record.DefinitionId == Place.DefinitionId;
+					}
+				}
+				if (bBuilt)
+				{
+					Caption = LOCTEXT("HubEnter", "ENTER").ToString();
+				}
+			}
+			else if (State == EState::Buildable)
+			{
+				const FLBSpacecraftStationDefinition* Definition =
+					ALBSpacecraftBuildAuthority::FindDefinition(
+						Place.DefinitionId);
+				if (Definition != nullptr)
+				{
+					Caption = FText::Format(LOCTEXT("HubBuy", "BUY  {0} cr"),
+						FText::AsNumber(Definition->CostPence / 100))
+						.ToString();
+				}
+			}
+			if (!Caption.IsEmpty())
+			{
+				AddCaption(*WidgetTree, *Root,
+					FVector2D((Place.Min.X + Place.Max.X) * 0.5f,
+						(Place.Min.Y + Place.Max.Y) * 0.5f + 0.045f),
+					Caption);
+			}
 		}
 		if (State != EState::Open)
 		{

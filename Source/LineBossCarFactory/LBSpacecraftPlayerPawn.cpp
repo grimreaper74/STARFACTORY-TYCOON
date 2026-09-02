@@ -518,7 +518,10 @@ FName ALBSpacecraftPlayerPawn::FindStationUnderCursor() const
 void ALBSpacecraftPlayerPawn::SetPlacementDefinition(FName DefinitionId)
 {
 	PlacementDefinitionId = DefinitionId;
-	SelectedStationId = NAME_None;
+	// ARMING NO LONGER CLEARS THE SELECTION. Clearing it reflowed the
+	// build panel under the cursor - the selected hall's rows vanished,
+	// every catalogue row moved up, and the stranger's second click on
+	// "Assembly station" bought a Delivery dock (2026-09-02).
 	if (DefinitionId.IsNone())
 	{
 		LastActionText = LOCTEXT("PlacementCancelled",
@@ -526,9 +529,13 @@ void ALBSpacecraftPlayerPawn::SetPlacementDefinition(FName DefinitionId)
 	}
 	else
 	{
+		const FLBSpacecraftStationDefinition* Definition =
+			ALBSpacecraftBuildAuthority::FindDefinition(DefinitionId);
 		LastActionText = FText::Format(LOCTEXT("PlacingHint",
 			"PLACING {0} - click the floor; X/Z rotates; right-click cancels"),
-			FText::FromName(DefinitionId)).ToString();
+			FText::FromString(Definition != nullptr
+				? Definition->DisplayName : DefinitionId.ToString()))
+			.ToString();
 	}
 }
 

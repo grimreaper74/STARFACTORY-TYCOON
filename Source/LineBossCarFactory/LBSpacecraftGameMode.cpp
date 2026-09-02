@@ -2618,6 +2618,21 @@ bool ALBSpacecraftGameMode::RemoveStationPowered(
 			return false;
 		}
 	}
+	// THE SHIP FACTORY IS THE SITE. The real-UI stranger playthrough
+	// (2026-09-02) selected the hall by clicking beside a dock, pressed
+	// "Remove station", and deleted the building the whole game happens
+	// in - one click, refunded, no confirmation, three stations left on
+	// the floor of nothing. It is not a station to sell.
+	for (const FLBSpacecraftStationRecord& Record : InBuild.GetStations())
+	{
+		if (Record.StationId == StationId
+			&& Record.DefinitionId == FName(TEXT("ShipFactoryHall")))
+		{
+			OutReason = TEXT("The ship factory is the site itself - it "
+				"cannot be removed");
+			return false;
+		}
+	}
 	// A slot building removes its hosted units FIRST through this same
 	// powered path, so their supplies, loads and refunds unwind
 	// exactly like free-standing stations.

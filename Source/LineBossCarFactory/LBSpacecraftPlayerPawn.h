@@ -49,6 +49,10 @@ public:
 
 	/** Last action feedback (placement result, selection, refusal). */
 	const FString& GetLastActionText() const { return LastActionText; }
+	/** The site hub speaks through the same toast the hall uses - its
+	 *  own status strip was invisible on the beige ground and wiped by
+	 *  its own rebuild after a purchase (stranger playthrough, 2026-09-02). */
+	void SetLastActionText(const FString& In) { LastActionText = In; }
 
 	/** Selected placed station (for the panel's station view). */
 	FName GetSelectedStation() const { return SelectedStationId; }
