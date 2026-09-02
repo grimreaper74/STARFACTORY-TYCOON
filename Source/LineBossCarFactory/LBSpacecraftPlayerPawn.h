@@ -226,7 +226,10 @@ private:
 	void ApplyZoomDelta(float Value);
 	void TickEdgeScroll(float DeltaSeconds);
 	void TickDragPan();
+public:
+	/** Speed from the top bar's chips as well as the keys (2026-09-02). */
 	void SetSimSpeedWithToast(float Scale);
+private:
 	float GetPanSpeedScale() const;
 
 	/** Cursor ray intersected with the Z=0 floor plane. */

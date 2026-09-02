@@ -876,12 +876,36 @@ void ALBSpacecraftPlayerPawn::FocusStation(FName StationId)
 		{
 			FVector LinePivot = LineBounds.GetCenter();
 			LinePivot.Z = 0.f;
-			SetActorLocation(LinePivot);
+			// The command panel takes the left 400 px of the viewport,
+			// so the free picture is the rest: frame the line in THAT
+			// and centre it there, or the panel sits on the head of the
+			// line (UI direction step 5 leftover, 2026-09-02).
+			float PanelFraction = 0.25f;
+			if (const APlayerController* PC =
+				Cast<APlayerController>(GetController()))
+			{
+				int32 ViewX = 0, ViewY = 0;
+				PC->GetViewportSize(ViewX, ViewY);
+				if (ViewX > 0)
+				{
+					PanelFraction = FMath::Clamp(400.f / ViewX, 0.f, 0.5f);
+				}
+			}
 			const FVector Size = LineBounds.GetSize();
 			DesiredZoomCm = ComputeFramingZoomCm(
-				FVector2D(FMath::Max(Size.X, 3000.f),
+				FVector2D(FMath::Max(Size.X, 3000.f) / (1.f - PanelFraction),
 					FMath::Max(Size.Y, 3000.f)),
 				/*MarginRatio=*/1.35f, ZoomMinCm, SiteMapZoomCeilingCm());
+			const float FramedWidthCm = 2.f * DesiredZoomCm
+				* FMath::Tan(FMath::DegreesToRadians(GetCameraFovDeg() * 0.5f));
+			FVector ScreenRight = CameraBoom != nullptr
+				? CameraBoom->GetRightVector() : GetActorRightVector();
+			ScreenRight.Z = 0.f;
+			ScreenRight.Normalize();
+			// Half the panel's share of the width, towards screen-left,
+			// puts the line in the middle of what the player can see.
+			SetActorLocation(LinePivot
+				- ScreenRight * FramedWidthCm * PanelFraction * 0.5f);
 		}
 	}
 	FocusedBuildingId = StationId;

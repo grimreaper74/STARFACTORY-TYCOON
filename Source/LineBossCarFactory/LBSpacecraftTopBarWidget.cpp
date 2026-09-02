@@ -12,6 +12,10 @@
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
+#include "LBSpacecraftCommandPanelWidget.h"
+#include "LBSpacecraftPlayerPawn.h"
 #include "LBSpacecraftDifficulty.h"
 
 #define LOCTEXT_NAMESPACE "LBSpacecraftHUD"
@@ -44,6 +48,50 @@ namespace LBSpacecraftTopBarPrivate
 		SpacecraftUiToken(TEXT("#EC3013"));          // refusal
 	const FLinearColor SpacecraftBarDivider =
 		SpacecraftUiToken(TEXT("#363433"), 0.85f);   // Panel.Rule
+	const FLinearColor SpacecraftBarChip =
+		SpacecraftUiToken(TEXT("#232322"));          // Panel.BgRaised
+	const FLinearColor SpacecraftBarChipLive =
+		SpacecraftUiToken(TEXT("#4A4D50"));          // Structure.Graphite
+	const FLinearColor SpacecraftBarChipHover =
+		SpacecraftUiToken(TEXT("#363433"));
+
+	/** The snapshot texts carry their own three-letter labels for the
+	 *  tests and the log; the gauge cell already says the word, so the
+	 *  bar shows the number alone. */
+	FString SpacecraftBarStripPrefix(const FString& Text, const TCHAR* Prefix)
+	{
+		return Text.StartsWith(Prefix) ? Text.Mid(FCString::Strlen(Prefix))
+			: Text;
+	}
+
+	/** A gauge with nothing to say hides its word too: "GRID" over a
+	 *  blank read as a broken readout (frame audit, 2026-09-02). */
+	void SpacecraftBarShowGauge(UTextBlock* Block, const FString& Text)
+	{
+		if (Block == nullptr)
+		{
+			return;
+		}
+		Block->SetText(FText::FromString(Text));
+		if (UWidget* Cell = Block->GetParent())
+		{
+			Cell->SetVisibility(Text.IsEmpty()
+				? ESlateVisibility::Collapsed
+				: ESlateVisibility::SelfHitTestInvisible);
+		}
+	}
+
+	FButtonStyle SpacecraftBarChipStyle(bool bLive)
+	{
+		FButtonStyle Style;
+		Style.SetNormal(FSlateRoundedBoxBrush(
+			bLive ? SpacecraftBarChipLive : SpacecraftBarChip, 3.f));
+		Style.SetHovered(FSlateRoundedBoxBrush(SpacecraftBarChipHover, 3.f));
+		Style.SetPressed(FSlateRoundedBoxBrush(SpacecraftBarChipLive, 3.f));
+		Style.SetNormalPadding(FMargin(7.f, 1.f));
+		Style.SetPressedPadding(FMargin(7.f, 2.f, 7.f, 0.f));
+		return Style;
+	}
 }
 
 FString ULBSpacecraftTopBarWidget::FormatCurrency(int64 Hundredths)
@@ -332,21 +380,122 @@ void ULBSpacecraftTopBarWidget::BindAuthorities(
 	ReputationAuthority = InReputation;
 }
 
-UTextBlock* ULBSpacecraftTopBarWidget::MakeBarText(UHorizontalBox* Box,
-	const FLinearColor& Colour, float LeftPadding)
+UTextBlock* ULBSpacecraftTopBarWidget::MakeBarGauge(UHorizontalBox* Box,
+	const FText& Label, const FLinearColor& Colour, float LeftPadding,
+	UProgressBar** OutMeter)
 {
+	using namespace LBSpacecraftTopBarPrivate;
+	UVerticalBox* Cell = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	// The word: small caps, heading grey, spaced.
+	UTextBlock* Word = WidgetTree->ConstructWidget<UTextBlock>(
+		UTextBlock::StaticClass());
+	Word->SetText(FText::FromString(Label.ToString().ToUpper()));
+	Word->SetColorAndOpacity(FSlateColor(SpacecraftBarInfo));
+	FSlateFontInfo WordFont = Word->GetFont();
+	WordFont.Size = 9;
+	WordFont.LetterSpacing = 140;
+	Word->SetFont(WordFont);
+	Cell->AddChildToVerticalBox(Word);
+	// The number.
 	UTextBlock* Block = WidgetTree->ConstructWidget<UTextBlock>(
 		UTextBlock::StaticClass());
 	Block->SetColorAndOpacity(FSlateColor(Colour));
 	FSlateFontInfo Font = Block->GetFont();
 	Font.Size = 16;
 	Block->SetFont(Font);
-	if (UHorizontalBoxSlot* BoxSlot = Box->AddChildToHorizontalBox(Block))
+	if (UVerticalBoxSlot* BlockSlot = Cell->AddChildToVerticalBox(Block))
 	{
-		BoxSlot->SetPadding(FMargin(LeftPadding, 6.f, 0.f, 6.f));
+		BlockSlot->SetPadding(FMargin(0.f, 1.f, 0.f, 0.f));
+	}
+	// The meter, when the gauge has one.
+	if (OutMeter != nullptr)
+	{
+		UProgressBar* Meter = WidgetTree->ConstructWidget<UProgressBar>(
+			UProgressBar::StaticClass());
+		Meter->SetFillColorAndOpacity(SpacecraftBarInfo);
+		USizeBox* MeterSize = WidgetTree->ConstructWidget<USizeBox>(
+			USizeBox::StaticClass());
+		MeterSize->SetHeightOverride(5.f);
+		MeterSize->AddChild(Meter);
+		if (UVerticalBoxSlot* MeterSlot =
+			Cell->AddChildToVerticalBox(MeterSize))
+		{
+			MeterSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+		}
+		*OutMeter = Meter;
+	}
+	if (UHorizontalBoxSlot* BoxSlot = Box->AddChildToHorizontalBox(Cell))
+	{
+		BoxSlot->SetPadding(FMargin(LeftPadding, 5.f, 0.f, 5.f));
 		BoxSlot->SetVerticalAlignment(VAlign_Center);
 	}
 	return Block;
+}
+
+void ULBSpacecraftTopBarWidget::MakeSpeedChips(UHorizontalBox* Box)
+{
+	using namespace LBSpacecraftTopBarPrivate;
+	// SPEED AS BUTTONS (UI direction step 4): pause, 1x, 2x, 4x as four
+	// chips, the live one filled. The keys still work; the chips are
+	// how a stranger finds out they exist.
+	UVerticalBox* Cell = WidgetTree->ConstructWidget<UVerticalBox>(
+		UVerticalBox::StaticClass());
+	UTextBlock* Word = WidgetTree->ConstructWidget<UTextBlock>(
+		UTextBlock::StaticClass());
+	Word->SetText(LOCTEXT("SpeedWord", "SPEED   KEYS 1 2 4"));
+	Word->SetColorAndOpacity(FSlateColor(SpacecraftBarInfo));
+	FSlateFontInfo WordFont = Word->GetFont();
+	WordFont.Size = 9;
+	WordFont.LetterSpacing = 140;
+	Word->SetFont(WordFont);
+	Cell->AddChildToVerticalBox(Word);
+	UHorizontalBox* Chips = WidgetTree->ConstructWidget<UHorizontalBox>(
+		UHorizontalBox::StaticClass());
+	struct FChip { const TCHAR* Tag; FText Label; };
+	const FChip ChipDefs[] = {
+		{ TEXT("0"), LOCTEXT("ChipPause", "II") },
+		{ TEXT("1"), LOCTEXT("Chip1", "1x") },
+		{ TEXT("2"), LOCTEXT("Chip2", "2x") },
+		{ TEXT("4"), LOCTEXT("Chip4", "4x") } };
+	for (const FChip& Def : ChipDefs)
+	{
+		ULBSpacecraftTaggedButton* Chip =
+			WidgetTree->ConstructWidget<ULBSpacecraftTaggedButton>(
+				ULBSpacecraftTaggedButton::StaticClass());
+		Chip->Tag = FName(Def.Tag);
+		Chip->OnTagClicked = [this](FName InTag) { HandleSpeedChip(InTag); };
+		Chip->Arm();
+		Chip->SetStyle(SpacecraftBarChipStyle(false));
+		UTextBlock* Text = WidgetTree->ConstructWidget<UTextBlock>(
+			UTextBlock::StaticClass());
+		Text->SetText(Def.Label);
+		Text->SetColorAndOpacity(FSlateColor(SpacecraftBarStatus));
+		FSlateFontInfo Font = Text->GetFont();
+		Font.Size = 12;
+		Text->SetFont(Font);
+		Chip->AddChild(Text);
+		if (UHorizontalBoxSlot* ChipSlot = Chips->AddChildToHorizontalBox(Chip))
+		{
+			ChipSlot->SetPadding(FMargin(0.f, 2.f, 4.f, 0.f));
+		}
+		SpeedChips.Add(Chip);
+	}
+	Cell->AddChildToVerticalBox(Chips);
+	if (UHorizontalBoxSlot* BoxSlot = Box->AddChildToHorizontalBox(Cell))
+	{
+		BoxSlot->SetPadding(FMargin(18.f, 5.f, 0.f, 5.f));
+		BoxSlot->SetVerticalAlignment(VAlign_Center);
+	}
+}
+
+void ULBSpacecraftTopBarWidget::HandleSpeedChip(FName Tag)
+{
+	if (ALBSpacecraftPlayerPawn* Pawn =
+		Cast<ALBSpacecraftPlayerPawn>(GetOwningPlayerPawn()))
+	{
+		Pawn->SetSimSpeedWithToast(FCString::Atof(*Tag.ToString()));
+	}
 }
 
 void ULBSpacecraftTopBarWidget::NativeOnInitialized()
@@ -362,9 +511,10 @@ void ULBSpacecraftTopBarWidget::NativeOnInitialized()
 	Bar->SetBrushColor(SpacecraftBarBackground);
 	if (UCanvasPanelSlot* BarCanvasSlot = Canvas->AddChildToCanvas(Bar))
 	{
-		// A bar along the top, never a full-screen tint.
+		// A bar along the top, never a full-screen tint. Two lines
+		// tall now that every readout is a word over a number.
 		BarCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 0.f));
-		BarCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 44.f));
+		BarCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 56.f));
 	}
 
 	UHorizontalBox* Box = WidgetTree->ConstructWidget<UHorizontalBox>(
@@ -375,9 +525,11 @@ void ULBSpacecraftTopBarWidget::NativeOnInitialized()
 		BarSlot->SetPadding(FMargin(18.f, 0.f));
 	}
 
-	// Sectioned readouts: credits lead larger; thin dividers separate
-	// the groups the way the genre's status strips do.
-	CashBlock = MakeBarText(Box, SpacecraftBarCash, 0.f);
+	// LABELLED GAUGES (UI direction step 4, 2026-09-02): each readout
+	// is a word over a number, the power one with a meter, the speed
+	// as buttons. Credits lead larger; thin rules separate the groups.
+	CashBlock = MakeBarGauge(Box, LOCTEXT("GaugeCredits", "Credits"),
+		SpacecraftBarCash, 0.f);
 	if (CashBlock != nullptr)
 	{
 		FSlateFontInfo CashFont = CashBlock->GetFont();
@@ -385,35 +537,27 @@ void ULBSpacecraftTopBarWidget::NativeOnInitialized()
 		CashBlock->SetFont(CashFont);
 	}
 	MakeBarDivider(Box);
-	// The contract and the line state are the two things the player
-	// most needs; in heading grey beside pure-white numerals they read
-	// as disabled (packaged-frame audit, 2026-09-02). Body white.
-	ContractBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
-	ClockBlock = MakeBarText(Box, SpacecraftBarStatus, 24.f);
+	ContractBlock = MakeBarGauge(Box, LOCTEXT("GaugeContract", "Contract"),
+		SpacecraftBarStatus, 0.f);
+	ClockBlock = MakeBarGauge(Box, LOCTEXT("GaugeClock", "Clock"),
+		SpacecraftBarStatus, 24.f);
+	MakeSpeedChips(Box);
 	MakeBarDivider(Box);
-	LineBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
+	LineBlock = MakeBarGauge(Box, LOCTEXT("GaugeLine", "Line"),
+		SpacecraftBarStatus, 0.f);
 	MakeBarDivider(Box);
-	PowerBlock = MakeBarText(Box, SpacecraftBarStatus, 0.f);
-	// The power GAUGE (owner 2026-08-26: "it has a gauge"): a slim
-	// fill bar beside the readout, plus the buy/sell trade line.
-	PowerGauge = WidgetTree->ConstructWidget<UProgressBar>(
-		UProgressBar::StaticClass());
-	PowerGauge->SetFillColorAndOpacity(SpacecraftBarInfo);
-	USizeBox* GaugeSize = WidgetTree->ConstructWidget<USizeBox>(
-		USizeBox::StaticClass());
-	GaugeSize->SetWidthOverride(90.f);
-	GaugeSize->SetHeightOverride(8.f);
-	GaugeSize->AddChild(PowerGauge);
-	if (UHorizontalBoxSlot* GaugeSlot =
-		Box->AddChildToHorizontalBox(GaugeSize))
-	{
-		GaugeSlot->SetPadding(FMargin(10.f, 0.f, 0.f, 0.f));
-		GaugeSlot->SetVerticalAlignment(VAlign_Center);
-	}
-	TradeBlock = MakeBarText(Box, SpacecraftBarStatus, 10.f);
-	ResearchBlock = MakeBarText(Box, SpacecraftBarStatus, 24.f);
-	ReputationBlock = MakeBarText(Box, SpacecraftBarStatus, 24.f);
-	QualityBlock = MakeBarText(Box, SpacecraftBarStatus, 24.f);
+	UProgressBar* Meter = nullptr;
+	PowerBlock = MakeBarGauge(Box, LOCTEXT("GaugePower", "Power"),
+		SpacecraftBarStatus, 0.f, &Meter);
+	PowerGauge = Meter;
+	TradeBlock = MakeBarGauge(Box, LOCTEXT("GaugeGrid", "Grid"),
+		SpacecraftBarStatus, 18.f);
+	ResearchBlock = MakeBarGauge(Box, LOCTEXT("GaugeResearch", "Research"),
+		SpacecraftBarStatus, 24.f);
+	ReputationBlock = MakeBarGauge(Box,
+		LOCTEXT("GaugeReputation", "Reputation"), SpacecraftBarStatus, 24.f);
+	QualityBlock = MakeBarGauge(Box, LOCTEXT("GaugeQuality", "Quality"),
+		SpacecraftBarStatus, 24.f);
 }
 
 void ULBSpacecraftTopBarWidget::MakeBarDivider(UHorizontalBox* Box)
@@ -434,6 +578,7 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	using namespace LBSpacecraftTopBarPrivate;
 	const FLBSpacecraftHUDSnapshot Snapshot = BuildSnapshot(
 		BuildAuthority, ProductionAuthority, Coordinator, PowerAuthority,
 		ResearchAuthority, ReputationAuthority);
@@ -447,32 +592,22 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	}
 	if (ClockBlock != nullptr)
 	{
-		// The factory speed rides the clock (the Car Manufacture 1-4
-		// row): "00:03:49" at 1x, "00:03:49  2x" / "PAUSED" otherwise.
-		FString ClockWithSpeed = Snapshot.ClockText;
-		if (const ALBSpacecraftGameMode* SpeedGameMode =
-			ALBSpacecraftGameMode::FindInWorld(GetWorld()))
+		ClockBlock->SetText(FText::FromString(Snapshot.ClockText));
+	}
+	if (const ALBSpacecraftGameMode* SpeedGameMode =
+		ALBSpacecraftGameMode::FindInWorld(GetWorld()))
+	{
+		// The live speed chip is the filled one.
+		using namespace LBSpacecraftTopBarPrivate;
+		const float Speed = SpeedGameMode->GetSimSpeed();
+		for (ULBSpacecraftTaggedButton* Chip : SpeedChips)
 		{
-			if (SpeedGameMode->GetSimSpeed() == 0.f)
+			if (Chip != nullptr)
 			{
-				ClockWithSpeed = SpeedGameMode->DescribeSimSpeed()
-					.ToString();
-			}
-			else if (SpeedGameMode->GetSimSpeed() != 1.f)
-			{
-				ClockWithSpeed += TEXT("  ")
-					+ SpeedGameMode->DescribeSimSpeed().ToString();
-			}
-			else
-			{
-				// The one place a waiting player looks. The stranger
-				// playthrough (2026-09-02) found no way on screen to
-				// learn that 1/2/4 set the factory speed.
-				ClockWithSpeed += LOCTEXT("SpeedKeysHint",
-					"  1x  (keys 1 / 2 / 4)").ToString();
+				Chip->SetStyle(SpacecraftBarChipStyle(FMath::IsNearlyEqual(
+					FCString::Atof(*Chip->Tag.ToString()), Speed)));
 			}
 		}
-		ClockBlock->SetText(FText::FromString(ClockWithSpeed));
 	}
 	if (LineBlock != nullptr)
 	{
@@ -480,7 +615,8 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	}
 	if (PowerBlock != nullptr)
 	{
-		PowerBlock->SetText(FText::FromString(Snapshot.PowerText));
+		PowerBlock->SetText(FText::FromString(SpacecraftBarStripPrefix(
+			Snapshot.PowerText, TEXT("PWR "))));
 		// Power reads warning-orange when the budget is nearly spent
 		// and stays status-grey otherwise - the honest early warning.
 		using namespace LBSpacecraftTopBarPrivate;
@@ -497,7 +633,7 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	if (TradeBlock != nullptr)
 	{
 		using namespace LBSpacecraftTopBarPrivate;
-		TradeBlock->SetText(FText::FromString(Snapshot.PowerTradeText));
+		SpacecraftBarShowGauge(TradeBlock, Snapshot.PowerTradeText);
 		// Buying grid power is a cost, not a refusal: the palette keeps
 		// #EC3013 for refusals alone, and red here read as an error on
 		// a line that was running normally (audit, 2026-09-02).
@@ -514,17 +650,18 @@ void ULBSpacecraftTopBarWidget::NativeTick(const FGeometry& MyGeometry,
 	}
 	if (ResearchBlock != nullptr)
 	{
-		ResearchBlock->SetText(FText::FromString(Snapshot.ResearchText));
+		ResearchBlock->SetText(FText::FromString(SpacecraftBarStripPrefix(
+			Snapshot.ResearchText, TEXT("RSC "))));
 	}
 	if (ReputationBlock != nullptr)
 	{
-		ReputationBlock->SetText(
-			FText::FromString(Snapshot.ReputationText));
+		ReputationBlock->SetText(FText::FromString(SpacecraftBarStripPrefix(
+			Snapshot.ReputationText, TEXT("REP "))));
 	}
 	if (QualityBlock != nullptr)
 	{
 		using namespace LBSpacecraftTopBarPrivate;
-		QualityBlock->SetText(FText::FromString(Snapshot.QualityText));
+		SpacecraftBarShowGauge(QualityBlock, Snapshot.QualityText);
 		QualityBlock->SetColorAndOpacity(FSlateColor(
 			Snapshot.bQualityAlarm ? SpacecraftBarWarn
 				: SpacecraftBarInfo));

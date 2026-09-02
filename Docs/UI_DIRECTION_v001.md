@@ -65,11 +65,17 @@ cards, cut from real captures.
    First pass faults caught on the frame: the accept glyph was not in
    the font, the 44 px icons were stretched to the tile, and the
    gated placeholder chassis gave a blank picture.
-4. Top bar as labelled gauges (word, number, meter; speed as buttons).
+4. Top bar as labelled gauges - **done 2026-09-02** (each readout a
+   small-caps word over a number, the power one with a meter, speed as
+   four chips II / 1x / 2x / 4x with the live one filled and the keys
+   named under them; a gauge with nothing to say hides its word). Frames
+   in `Saved/Audits/UITiles_2026_09_02/topbar_*`.
 5. Camera lands on the craft on entering the hall - **done 2026-09-02**
    (the line's bounds, margin 1.35; an empty hall keeps the floor frame).
-   Left over: the panel covers the head of the line; shift the pivot by
-   the panel width.
+   The panel-over-the-line leftover closed the same day: the line is
+   framed in the width the panel leaves free and its centre is shifted
+   half the panel's share towards screen-left
+   (`hall_entry_pivot_clear_of_panel.png`).
 6. Kenney CC0 glyphs (in `SourceAssets/UI/Kenney`) for the few places a
    glyph beats a render: tabs, session, land.
 

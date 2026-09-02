@@ -167,7 +167,18 @@ private:
 	UPROPERTY()
 	TObjectPtr<class UProgressBar> PowerGauge;
 
+	/** The four speed chips (pause, 1x, 2x, 4x); the live one is filled. */
+	UPROPERTY()
+	TArray<TObjectPtr<class ULBSpacecraftTaggedButton>> SpeedChips;
+
 	void MakeBarDivider(UHorizontalBox* Box);
-	UTextBlock* MakeBarText(UHorizontalBox* Box, const FLinearColor& Colour,
-		float LeftPadding);
+	/** A GAUGE CELL (UI direction step 4, 2026-09-02): a small-caps word
+	 *  above a number, and optionally a meter under it. Returns the
+	 *  number's text block; the meter, if asked for, comes back through
+	 *  OutMeter. */
+	UTextBlock* MakeBarGauge(UHorizontalBox* Box, const FText& Label,
+		const FLinearColor& Colour, float LeftPadding,
+		class UProgressBar** OutMeter = nullptr);
+	void MakeSpeedChips(UHorizontalBox* Box);
+	void HandleSpeedChip(FName Tag);
 };
