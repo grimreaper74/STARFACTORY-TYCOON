@@ -242,6 +242,9 @@ put the loose hull ACROSS the line
 hull runs along local X with the nose at -X, so the sections do too now
 (`hull_sections_close_up_over_first_stop.png`, six frames ten seconds
 apart). A dead first attempt that animated dolly pallets was removed.
+The dolly then still carried its own set of hull section pallets beside
+the craft's, two hulls in the picture; the hull is not a pallet on the
+dolly any more (`hull_sections_one_set_dolly_without_hull.png`).
 
 ## Status
 

@@ -5043,6 +5043,14 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 	auto AddKitPallets = [&](FName ComponentId, int32 Bay,
 		const FVector& LocalCentre)
 	{
+		// The HULL is not a pallet on the dolly: before it is fitted the
+		// craft itself shows those same sections coming together on the
+		// rams (the stripped hull), and a second set lying beside it
+		// made two hulls in the picture (frame, 2026-09-02).
+		if (ComponentId == FName(TEXT("Component.Hull")))
+		{
+			return false;
+		}
 		TArray<FName> Candidates;
 		GetKitPalletCandidates(ComponentId, Candidates);
 		if (Candidates.Num() == 0)
