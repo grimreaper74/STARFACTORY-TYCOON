@@ -402,7 +402,7 @@ bool FLBSpacecraftTrackChainTest::RunTest(const FString& Parameters)
 		Coordinator->ConfigureFromAuthorities(Build, Production, Reason,
 			Track));
 	TestTrue(TEXT("the refusal says to attach it"),
-		Reason.Contains(TEXT("ATTACH EVERY LINE STATION")));
+		Reason.Contains(TEXT("cannot reach")));  // names the unreachable station (2026-09-02)
 	// Piece 1 is occupied by station 0 since the swap; piece 0 is the
 	// free one.
 	TestTrue(TEXT("node two reattaches"),

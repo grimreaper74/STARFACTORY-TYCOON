@@ -1495,6 +1495,11 @@ bool ALBSpacecraftBuildAuthority::RemoveStation(FName StationId,
 	return true;
 }
 
+void ALBSpacecraftBuildAuthority::RevokeCommission()
+{
+	Layout.bCommissioned = false;
+}
+
 bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
 {
 	// ONE repeated station type since 2026-08-27: the line needs at

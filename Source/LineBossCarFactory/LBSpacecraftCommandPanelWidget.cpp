@@ -1500,73 +1500,6 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 		AddTaggedButton(LOCTEXT("CommissionLine",
 				"Commission the line").ToString(), NAME_None,
 			[this](FName InTag) { HandleCommission(InTag); });
-		AddSectionLabel(
-			LOCTEXT("SectionSupply", "SUPPLY - BUY RAW MATERIALS")
-				.ToString());
-		// ONE CLICK, ANY QUANTITY. Every order button multiplies by
-		// this, so stocking up for a long production run does not mean
-		// twenty clicks per item.
-		AddTaggedButton(FText::Format(
-			LOCTEXT("BuyMultiplier", "Buy quantity  x{0}"),
-			FText::AsNumber(BuyMultiplier)).ToString(), NAME_None,
-			[this](FName InTag) { HandleCycleBuyMultiplier(InTag); },
-			LOCTEXT("BuyMultiplierHint",
-				"click to cycle 1 / 5 / 20").ToString());
-		for (const FLBSpacecraftItemDefinition& Item :
-			FLBSpacecraftItemCatalogue::GetItemTable())
-		{
-			const int64 UnitPrice =
-				FLBSpacecraftItemCatalogue::GetRawItemPricePence(
-					Item.ItemId);
-			if (UnitPrice <= 0)
-			{
-				continue;
-			}
-			const int32 Lot = 10 * BuyMultiplier;
-			AddTaggedButton(FText::Format(
-				LOCTEXT("OrderButton", "Order {0}x {1}  ({2})"),
-				FText::AsNumber(Lot),
-				FText::FromString(Item.DisplayName),
-				FText::FromString(
-					ULBSpacecraftTopBarWidget::FormatCurrency(
-						UnitPrice * Lot))).ToString(), Item.ItemId,
-				[this](FName InTag) { HandleOrder(InTag); });
-		}
-		if (GameMode->GetInventoryAuthority() != nullptr)
-		{
-			for (const FLBSpacecraftResourceOrder& Order :
-				GameMode->GetInventoryAuthority()->GetPendingOrders())
-			{
-				const double Remaining = Order.ArrivesAtSeconds
-					- GameMode->GetInventoryAuthority()
-						->GetOrderClockSeconds();
-				AddSectionLabel(FText::Format(
-					LOCTEXT("PendingOrder", "{0} x{1} - arriving in {2}s"),
-					FText::FromName(Order.ItemId), Order.Count,
-					FMath::Max(0,
-						static_cast<int32>(Remaining))).ToString());
-			}
-		}
-		AddSectionLabel(LOCTEXT("SectionImport",
-			"IMPORT PARTS (MAKE-VS-BUY)").ToString());
-		for (const FLBSpacecraftItemDefinition& Item :
-			FLBSpacecraftItemCatalogue::GetItemTable())
-		{
-			const int64 ImportPrice =
-				FLBSpacecraftItemCatalogue::GetItemImportPricePence(
-					Item.ItemId);
-			if (ImportPrice <= 0)
-			{
-				continue;
-			}
-			AddTaggedButton(FText::Format(
-				LOCTEXT("ImportButton", "Import 5x {0}  ({1})"),
-				FText::FromString(Item.DisplayName),
-				FText::FromString(
-					ULBSpacecraftTopBarWidget::FormatCurrency(
-						ImportPrice * 5))).ToString(), Item.ItemId,
-				[this](FName InTag) { HandleImport(InTag); });
-		}
 		// WHAT IS ALREADY BUILT. Craft that rolled off the line with
 		// no order to fill fill one the instant it is taken, so this
 		// is the difference between an offer being work and an offer
@@ -1768,6 +1701,77 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				AddSectionLabel(LOCTEXT("NoOffers",
 					"No offers on the board").ToString());
 			}
+		}
+		// THE SHOP LAST (stranger playthrough 2026-09-02: forty-eight
+		// wheel notches down this tab still showed imports - the offer
+		// board, the tab's namesake, was unreachable). Offers, held
+		// work and stock first; raw materials and imports below.
+		AddSectionLabel(
+			LOCTEXT("SectionSupply", "SUPPLY - BUY RAW MATERIALS")
+				.ToString());
+		// ONE CLICK, ANY QUANTITY. Every order button multiplies by
+		// this, so stocking up for a long production run does not mean
+		// twenty clicks per item.
+		AddTaggedButton(FText::Format(
+			LOCTEXT("BuyMultiplier", "Buy quantity  x{0}"),
+			FText::AsNumber(BuyMultiplier)).ToString(), NAME_None,
+			[this](FName InTag) { HandleCycleBuyMultiplier(InTag); },
+			LOCTEXT("BuyMultiplierHint",
+				"click to cycle 1 / 5 / 20").ToString());
+		for (const FLBSpacecraftItemDefinition& Item :
+			FLBSpacecraftItemCatalogue::GetItemTable())
+		{
+			const int64 UnitPrice =
+				FLBSpacecraftItemCatalogue::GetRawItemPricePence(
+					Item.ItemId);
+			if (UnitPrice <= 0)
+			{
+				continue;
+			}
+			const int32 Lot = 10 * BuyMultiplier;
+			AddTaggedButton(FText::Format(
+				LOCTEXT("OrderButton", "Order {0}x {1}  ({2})"),
+				FText::AsNumber(Lot),
+				FText::FromString(Item.DisplayName),
+				FText::FromString(
+					ULBSpacecraftTopBarWidget::FormatCurrency(
+						UnitPrice * Lot))).ToString(), Item.ItemId,
+				[this](FName InTag) { HandleOrder(InTag); });
+		}
+		if (GameMode->GetInventoryAuthority() != nullptr)
+		{
+			for (const FLBSpacecraftResourceOrder& Order :
+				GameMode->GetInventoryAuthority()->GetPendingOrders())
+			{
+				const double Remaining = Order.ArrivesAtSeconds
+					- GameMode->GetInventoryAuthority()
+						->GetOrderClockSeconds();
+				AddSectionLabel(FText::Format(
+					LOCTEXT("PendingOrder", "{0} x{1} - arriving in {2}s"),
+					FText::FromName(Order.ItemId), Order.Count,
+					FMath::Max(0,
+						static_cast<int32>(Remaining))).ToString());
+			}
+		}
+		AddSectionLabel(LOCTEXT("SectionImport",
+			"IMPORT PARTS (MAKE-VS-BUY)").ToString());
+		for (const FLBSpacecraftItemDefinition& Item :
+			FLBSpacecraftItemCatalogue::GetItemTable())
+		{
+			const int64 ImportPrice =
+				FLBSpacecraftItemCatalogue::GetItemImportPricePence(
+					Item.ItemId);
+			if (ImportPrice <= 0)
+			{
+				continue;
+			}
+			AddTaggedButton(FText::Format(
+				LOCTEXT("ImportButton", "Import 5x {0}  ({1})"),
+				FText::FromString(Item.DisplayName),
+				FText::FromString(
+					ULBSpacecraftTopBarWidget::FormatCurrency(
+						ImportPrice * 5))).ToString(), Item.ItemId,
+				[this](FName InTag) { HandleImport(InTag); });
 		}
 		break;
 	}
@@ -2311,8 +2315,12 @@ void ULBSpacecraftCommandPanelWidget::HandleCommission(FName Unused)
 		return;
 	}
 	FString Reason;
-	if (GameMode->GetBuildAuthority()->CommissionFactory(Reason)
-		&& GameMode->GetCoordinator()->ConfigureFromAuthorities(
+	if (!GameMode->GetBuildAuthority()->CommissionFactory(Reason))
+	{
+		PanelActionText = Reason;
+		return;
+	}
+	if (GameMode->GetCoordinator()->ConfigureFromAuthorities(
 			GameMode->GetBuildAuthority(),
 			GameMode->GetProductionAuthority(), Reason,
 			GameMode->GetTrackAuthority()))
@@ -2322,6 +2330,12 @@ void ULBSpacecraftCommandPanelWidget::HandleCommission(FName Unused)
 	}
 	else
 	{
+		// FAIL CLOSED, WHOLE. The stranger playthrough (2026-09-02)
+		// saw "Line idle" and a ticked objective while the coordinator
+		// had refused to configure - half a commissioning that the
+		// player could neither run nor understand. Commission and
+		// configure stand or fall together.
+		GameMode->GetBuildAuthority()->RevokeCommission();
 		PanelActionText = Reason;
 	}
 }

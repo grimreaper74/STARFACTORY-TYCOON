@@ -198,9 +198,25 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 		const TArray<FName> Nodes = InTrack->GetNodeStationsInOrder();
 		if (Nodes.Num() != DerivedRoute.Num())
 		{
+			// NAME THE STATION, SAY WHAT TO DO. "Attach every line
+			// station to the track" told the stranger (2026-09-02) to
+			// do something the game no longer lets anyone do - the
+			// track connects itself. What it cannot do is reach a
+			// station; that station is what the player has to move.
+			FString Missing;
+			for (const FLBSpacecraftRouteStep& Step : DerivedRoute)
+			{
+				if (!Nodes.Contains(Step.StationId))
+				{
+					Missing += (Missing.IsEmpty() ? TEXT("") : TEXT(", "))
+						+ Step.StationId.ToString();
+				}
+			}
 			OutReason = FString::Printf(
-				TEXT("The line has %d stations but %d track nodes - ")
-				TEXT("attach every line station to the track"),
+				TEXT("The track cannot reach %s - move it clear of its ")
+				TEXT("neighbours, then commission again (%d stations, ")
+				TEXT("%d track nodes)"),
+				Missing.IsEmpty() ? TEXT("a station") : *Missing,
 				DerivedRoute.Num(), Nodes.Num());
 			return false;
 		}

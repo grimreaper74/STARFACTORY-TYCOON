@@ -521,6 +521,9 @@ public:
 	/** Commission the factory: refuses unless every station class the stage
 	 *  table requires has at least one placed station. */
 	bool CommissionFactory(FString& OutReason);
+	/** Undoes a commissioning whose follow-up (coordinator configure)
+	 *  refused, so the factory never sits "commissioned" with no route. */
+	void RevokeCommission();
 	bool IsCommissioned() const { return Layout.bCommissioned; }
 
 	/** Derive the serial production route from the stage table and the
