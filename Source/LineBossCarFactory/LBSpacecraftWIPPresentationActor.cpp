@@ -6689,9 +6689,12 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 							ProductionAuthority->GetContracts(), Unit->RecipeId);
 					PrimerMID->SetVectorParameterValue(TEXT("PaintColor"),
 						Livery);
+					// 30 % toward grey, was 50 %: at half the livery barely
+					// showed on the line before the booth (side-by-side,
+					// 2026-09-02); the product carries the colour.
 					PrimerMID->SetVectorParameterValue(TEXT("PrimerColor"),
 						FMath::Lerp(Livery,
-							FLinearColor(0.55f, 0.55f, 0.56f), 0.5f));
+							FLinearColor(0.55f, 0.55f, 0.56f), 0.3f));
 					// The front far behind the tail: nothing painted
 					// yet, the whole hull in primer.
 					PrimerMID->SetScalarParameterValue(TEXT("PaintFrontX"),
@@ -8498,6 +8501,35 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 				MinY = FMath::Min(MinY, At.Y);
 				MaxY = FMath::Max(MaxY, At.Y);
 				AxisX = At.X;
+			}
+			// THE LINE IS THE SPINE (side-by-side against Car Manufacture,
+			// 2026-09-02: their conveyor is the picture's spine, our
+			// track was a thin line). A dark corridor band runs under
+			// the whole line with hazard edges, flat paint on the floor,
+			// so nothing sits on the line but the line itself reads.
+			{
+				const float LineLen = (MaxY - MinY) + 2400.f;
+				const FVector Mid(AxisX, (MinY + MaxY) * 0.5f, 0.f);
+				if (UStaticMeshComponent* Band = MakeBlockComponent(
+					TEXT("HallLineCorridor"), FLinearColor(0.06f, 0.056f, 0.05f)))
+				{
+					Band->SetWorldTransform(FTransform(FRotator::ZeroRotator,
+						Mid + FVector(0.f, 0.f, 19.f),
+						FVector(3.4f, LineLen / 100.f, 0.02f)));
+					HallInteriorPieces.Add(Band);
+				}
+				for (int32 Edge = 0; Edge < 2; ++Edge)
+				{
+					if (UStaticMeshComponent* Line = MakeBlockComponent(
+						FName(*FString::Printf(TEXT("HallLineEdge%d"), Edge)),
+						LBSpacecraftPalette::Hazard))
+					{
+						Line->SetWorldTransform(FTransform(FRotator::ZeroRotator,
+							Mid + FVector((Edge == 0 ? -1.f : 1.f) * 176.f, 0.f, 21.f),
+							FVector(0.14f, LineLen / 100.f, 0.02f)));
+						HallInteriorPieces.Add(Line);
+					}
+				}
 			}
 			// Racks run along the line every 6.4 m, 6 m long each.
 			for (float Y = MinY - 400.f; Y <= MaxY + 400.f; Y += 640.f)

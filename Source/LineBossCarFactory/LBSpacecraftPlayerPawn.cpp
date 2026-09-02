@@ -57,8 +57,10 @@ ALBSpacecraftPlayerPawn::ALBSpacecraftPlayerPawn()
 	// This project does not use the extended luminance range, so these
 	// are LINEAR multipliers, not EV100: 2^4.4 lands on the metered
 	// scene (the visualiser read 4.2 back as EV 2.1).
-	Camera->PostProcessSettings.AutoExposureMinBrightness = 21.f;
-	Camera->PostProcessSettings.AutoExposureMaxBrightness = 21.f;
+	// 16, was 21 (a third of a stop up): the second side-by-side against
+	// Car Manufacture still read a stop darker than theirs (2026-09-02).
+	Camera->PostProcessSettings.AutoExposureMinBrightness = 16.f;
+	Camera->PostProcessSettings.AutoExposureMaxBrightness = 16.f;
 	Camera->PostProcessSettings.bOverride_AutoExposureBias = true;
 	Camera->PostProcessSettings.AutoExposureBias = 0.f;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;

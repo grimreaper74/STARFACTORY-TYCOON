@@ -291,6 +291,18 @@ Each landed as its own commit with a frame and a green suite:
 Cycle 13 (`Builds/LookPlan_2026_09_02c`) packages all of it; the status
 line below says whether it completed.
 
+## The second side-by-side (late evening)
+
+Ours beside the same Car Manufacture screenshot after the evening's work
+(`side_by_side_car_manufacture_vs_ours_evening.png`). Three faults, fixed
+in one pass: still a stop darker than theirs (exposure multiplier 21 to
+16, floor now 107/102/95); the craft on the line carried no visible
+colour before the booth (the primer is 30 % toward grey, was 50 %); and
+their conveyor is the picture's spine where our track was a thin line (a
+dark corridor band with hazard edges now runs under the whole line -
+paint, so nothing sits on it). What remains beside theirs: density, and
+that is the hall's size; and the crowd, which for us is drones.
+
 ## Status
 
 **Packaged playable, cycle 13** (`Builds/LookPlan_2026_09_02c`, BUILD
