@@ -138,13 +138,14 @@ hoist so a crane-per-gap trip lifts its craft together.
   morning. The placement toast (F11/F20) came after it and is
   editor-validated only; the NEXT objective line (F36) is in both
   cycles.
-- **The interface replay in the package did not happen.** Launching
-  the cycle-11 exe with real input raised a Windows Firewall prompt
-  ("allow public and private networks to access this app", publisher
-  Line Boss) that sat over the game from its first frame; every
-  scripted click and key went to that dialog. I did not answer it -
-  a security prompt is yours to answer - and killed the game instead.
-  When you first run the new build it will ask again; after that, the
-  Win32 replay (`scratchpad/stranger/packaged_replay11.ps1`) can run.
-  Two of those prompts (one per new package) are still open on the
-  desktop as I write this; they are yours.
+- **The interface replay in the package ran the next morning**, once
+  you had allowed the firewall prompt. Real OS input into the cycle-11
+  exe (`Saved/Audits/StrangerWave3_2026_09_02/packaged_cycle11`):
+  the site map with its ENTER and BUY captions; inside, CONTRACTS with
+  the one held contract listed once, offers with full prices, and the
+  six ship components heading the import list; the BUILD crane row;
+  and the line reading "2 craft, 1 done and waiting for the pulse"
+  then "3 craft" with a craft under a portal between stations. The
+  stranger fixes and the pulse line are therefore **packaged
+  playable** for the scripted line in cycle 11; the removal
+  confirmation and the placement toast remain editor-only.
