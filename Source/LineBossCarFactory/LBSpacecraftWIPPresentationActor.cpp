@@ -6088,8 +6088,16 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						// it, which put the loose hull across the line
 						// (frame, 2026-09-02). The section meshes are
 						// modelled lying along Y, hence the quarter turn.
+						// Centre the section's BOUNDS on its slot: the
+						// pallet meshes' pivots are not at their centre,
+						// so after the quarter turn the whole hull sat
+						// shifted to the far flank (frame, 2026-09-02).
+						const FVector SectionPivotShift =
+							FRotator(0.f, 90.f, 0.f).RotateVector(
+								SectionMeshes[Index]->GetBounds().Origin);
 						Section->SetRelativeLocationAndRotation(
-							FVector(SectionCentresCm[Index], 0.f, 0.f),
+							FVector(SectionCentresCm[Index], 0.f, 0.f)
+								- SectionPivotShift,
 							FRotator(0.f, 90.f, 0.f));
 						Section->RegisterComponent();
 						Sections.Add(Section);
@@ -6136,8 +6144,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						}
 						const float Spread = (Index - (Count - 1) * 0.5f)
 							* 260.f * (1.f - Closed);
+						const FVector SectionPivotShift = Section->GetStaticMesh()
+							? FRotator(0.f, 90.f, 0.f).RotateVector(
+								Section->GetStaticMesh()->GetBounds().Origin)
+							: FVector::ZeroVector;
 						Section->SetRelativeLocation(
-							FVector(CentresCm[Index] + Spread, 0.f, 0.f));
+							FVector(CentresCm[Index] + Spread, 0.f, 0.f)
+								- SectionPivotShift);
 					}
 				}
 			}
