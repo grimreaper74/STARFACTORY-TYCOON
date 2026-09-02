@@ -58,3 +58,21 @@ SoundWave under `Content/LineBoss/Audio/`, one manifest row with sha256 each,
 and a MetaSound or cue that the code actually plays. Until a cue is heard in a
 packaged run the status stays **source candidate**.
 
+## Wired (same morning)
+
+The eight picks were imported as SoundWaves under `/Game/LineBoss/Audio`
+(the folder is in `DirectoriesToAlwaysCook`) and wired, all soft-loaded
+by path: crane travel loop per crane and a set-down clunk on the
+busy-to-idle edge, the departure at the craft, the lorry at the dock
+when the pending-order count drops, the hall room tone while the view
+is inside (presenter); contract accepted, commission refused and
+placement refused (panel and pawn). Every play logs `SOUND <role>`.
+Heard in PIE by log: ambience on, lorry at the dock, 23 set-downs, two
+departures. The crane travel recording was trimmed to a ten-second
+loop with fades (the original is 99 s). Status: **validation-only**
+until a packaged run; the owner can hear PIE through the speakers.
+
+The archives now live in `assets downloads/` (owner, 2026-09-02),
+with the Kenney Game Icons packs beside them (CC0, for the panel's
+row icons, not yet used).
+
