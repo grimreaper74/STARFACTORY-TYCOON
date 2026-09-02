@@ -420,6 +420,190 @@ bool FLBSpacecraftCoordinatorHoldTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+namespace LBSpacecraftRuntimeCoordinatorTestsPrivate
+{
+	/** Runs the rig until the contract is fully dispatched or the tick
+	 *  budget runs out; returns sim seconds spent. Records whether a
+	 *  finished station was ever seen HOLDING its craft while another
+	 *  craft on the line was still mid-stop, and whether every move
+	 *  landed on a pulse tick. */
+	double RunPulseLineToDelivery(FLBSpacecraftRuntimeRig& Rig,
+		int32 Quantity, bool& bOutSawHold, bool& bOutMovesOnPulsesOnly,
+		int32& OutMaxOnLine)
+	{
+		bOutSawHold = false;
+		bOutMovesOnPulsesOnly = true;
+		OutMaxOnLine = 0;
+		double Elapsed = 0.0;
+		FString Reason;
+		TMap<FName, int32> LastIndex;
+		for (int32 Tick = 0; Tick < 6000; ++Tick)
+		{
+			const int32 PulsesBefore = Rig.Coordinator->GetPulseCount();
+			Rig.Coordinator->TickProduction(1.0, Reason);
+			Elapsed += 1.0;
+			const bool bPulsedThisTick =
+				Rig.Coordinator->GetPulseCount() != PulsesBefore;
+			int32 Complete = 0;
+			int32 Incomplete = 0;
+			for (const FLBSpacecraftRuntimeAssignment& Assignment :
+				Rig.Coordinator->GetAssignments())
+			{
+				const int32* Was = LastIndex.Find(Assignment.UnitId);
+				if (Was != nullptr && *Was != Assignment.RouteIndex
+					&& !bPulsedThisTick)
+				{
+					bOutMovesOnPulsesOnly = false;
+				}
+				LastIndex.Add(Assignment.UnitId, Assignment.RouteIndex);
+				const bool bLast = Assignment.RouteIndex
+					== Rig.Coordinator->GetRoute().Num() - 1;
+				if (bLast)
+				{
+					continue;
+				}
+				if (Assignment.bStopComplete)
+				{
+					++Complete;
+				}
+				else
+				{
+					++Incomplete;
+				}
+			}
+			OutMaxOnLine = FMath::Max(OutMaxOnLine,
+				Rig.Coordinator->GetAssignments().Num());
+			if (Complete > 0 && Incomplete > 0
+				&& Rig.Coordinator->GetLinePhase()
+					== ELBSpacecraftLinePhase::Stopped)
+			{
+				bOutSawHold = true;
+			}
+			int32 Dispatched = 0;
+			for (const FLBSpacecraftContract& Contract :
+				Rig.Production->GetContracts())
+			{
+				Dispatched += Contract.DispatchedCount;
+			}
+			if (Dispatched >= Quantity)
+			{
+				break;
+			}
+		}
+		return Elapsed;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPulseTogetherTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.PulseMovesCraftTogether",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftPulseTogetherTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 3, Reason));
+
+	// THE PULSE (PULSE_LINE_DESIGN_v001): craft never move on their own
+	// clock. A finished station holds its craft until the whole line is
+	// ready, and then everything with a station ahead moves in the
+	// same tick.
+	bool bSawHold = false;
+	bool bMovesOnPulsesOnly = true;
+	int32 MaxOnLine = 0;
+	const double Elapsed = RunPulseLineToDelivery(Rig, 3, bSawHold,
+		bMovesOnPulsesOnly, MaxOnLine);
+	int32 Dispatched = 0;
+	for (const FLBSpacecraftContract& Contract : Rig.Production->GetContracts())
+	{
+		Dispatched += Contract.DispatchedCount;
+	}
+	TestEqual(TEXT("all three craft delivered"), Dispatched, 3);
+	TestTrue(TEXT("more than one craft shared the line"), MaxOnLine >= 2);
+	TestTrue(TEXT("a finished station held its craft for the pulse"),
+		bSawHold);
+	TestTrue(TEXT("every move landed on a pulse tick"), bMovesOnPulsesOnly);
+	TestTrue(TEXT("the line pulsed"),
+		Rig.Coordinator->GetPulseCount() >= 4);
+	TestTrue(TEXT("finished in bounded time"), Elapsed < 6000.0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPulseCranesTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.MoreCranesMakeAShorterPulse",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FString Reason;
+	double Seconds[2] = { 0.0, 0.0 };
+	int32 Pulses[2] = { 0, 0 };
+	for (int32 Variant = 0; Variant < 2; ++Variant)
+	{
+		FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+		TestTrue(TEXT("line ready"),
+			PlaceAndCommissionSpacecraftLine(Rig, Reason));
+		if (Variant == 1)
+		{
+			// One crane per gap: buy up to the cap (one fewer than the
+			// positions on the line, booth included), then one more.
+			FString Earn;
+			const int32 Cap = Rig.Build->GetMaxCraneCount();
+			TestTrue(TEXT("the rig has gaps to fill"), Cap >= 3);
+			Rig.Production->EarnPence(
+				ALBSpacecraftBuildAuthority::GantryCraneCostPence * (Cap + 1),
+				Earn);
+			while (Rig.Build->GetCraneCount() < Cap)
+			{
+				TestTrue(TEXT("a crane buys below the cap"),
+					Rig.Build->BuyGantryCrane(*Rig.Production, Reason));
+			}
+			TestEqual(TEXT("one crane per gap on the rails"),
+				Rig.Build->GetCraneCount(), Cap);
+			TestFalse(TEXT("one more is refused - one per gap"),
+				Rig.Build->BuyGantryCrane(*Rig.Production, Reason));
+			TestTrue(TEXT("and says why"), Reason.Contains(TEXT("one per gap")));
+		}
+		TestTrue(TEXT("configured"),
+			Rig.Coordinator->ConfigureFromAuthorities(Rig.Build,
+				Rig.Production, Reason));
+		// A long trip so the difference is unmistakable against the
+		// stop times.
+		Rig.Coordinator->CraneTripSeconds = 30.f;
+		TestTrue(TEXT("contract ready"),
+			OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 3, Reason));
+		bool bSawHold = false;
+		bool bOnPulses = true;
+		int32 MaxOnLine = 0;
+		Seconds[Variant] = RunPulseLineToDelivery(Rig, 3, bSawHold,
+			bOnPulses, MaxOnLine);
+		Pulses[Variant] = Rig.Coordinator->GetPulseCount();
+		Rig.World->DestroyWorld(false);
+	}
+	// Same line, same craft - the only difference is how many craft
+	// each pulse can carry at once, so the crane-per-gap line must
+	// finish sooner. (The pulse COUNT is not pinned: a shorter move
+	// phase shifts when the head admits the next craft, and the run
+	// can need one pulse fewer.) This is the upgrade axis the owner
+	// named (2026-08-29), and the comparison he asked for.
+	TestTrue(TEXT("both lines pulsed"), Pulses[0] > 0 && Pulses[1] > 0);
+	TestTrue(TEXT("a crane per gap delivers sooner than one crane"),
+		Seconds[1] < Seconds[0]);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftCoordinatorSaveTest,
 	"LineBoss.Spacecraft.RuntimeCoordinator.RuntimeValidatesBeforeRestore",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

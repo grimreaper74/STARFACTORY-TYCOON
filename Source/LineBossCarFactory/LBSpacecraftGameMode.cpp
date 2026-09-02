@@ -5208,18 +5208,8 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftDismissCommand(
 }));
 #endif // !UE_BUILD_SHIPPING
 
-// HOW MANY CRANES - open, and meant to be COMPARED rather than argued
-// about (owner 2026-08-29: "1 crane does all work, will have to test
-// each"). Default is one per gap, which is what he asked for first; set
-// it to 0 for a single crane serving the whole line and rebuild the
-// hall to see the other model.
-static TAutoConsoleVariable<int32> GLBSpacecraftCranePerGap(
-	TEXT("LB.Spacecraft.CranePerGap"),
-	1,
-	TEXT("1 = a gantry between every pair of stations (N-1 cranes). ")
-	TEXT("0 = one gantry serving the whole line. ")
-	TEXT("Takes effect when the hall interior is next built."),
-	ECVF_Default);
+// The crane count is the build authority's (BuyGantryCrane); the old
+// LB.Spacecraft.CranePerGap cvar went with the pulse line (2026-09-02).
 
 // DEV COMMAND - COMPILED OUT OF SHIPPING. These drive and cheat the
 // game freely (grant points, bank materials, build the whole

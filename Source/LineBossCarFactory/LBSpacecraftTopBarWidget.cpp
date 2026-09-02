@@ -264,14 +264,39 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 		else
 		{
 			int32 InFlight = 0;
+			int32 Waiting = 0;
+			bool bMoving = false;
 			if (InCoordinator != nullptr)
 			{
 				InFlight = InCoordinator->GetAssignments().Num();
+				Waiting = InCoordinator->CountStopComplete();
+				bMoving = InCoordinator->GetLinePhase()
+					== ELBSpacecraftLinePhase::Moving;
 			}
-			Snapshot.LineStatusText = InFlight > 0
-				? FText::Format(LOCTEXT("LineRunning",
-						"Line running - {0} craft"), InFlight).ToString()
-				: LOCTEXT("LineIdle", "Line idle").ToString();
+			// THE PULSE, said plainly (PULSE_LINE_DESIGN_v001): the
+			// cranes are moving, or the line is stopped with some
+			// stations done and holding for the rest.
+			if (InFlight > 0 && bMoving)
+			{
+				Snapshot.LineStatusText = FText::Format(LOCTEXT(
+					"LinePulsing",
+					"Line running - PULSE, cranes moving {0} craft"),
+					Waiting).ToString();
+			}
+			else if (InFlight > 0 && Waiting > 0)
+			{
+				Snapshot.LineStatusText = FText::Format(LOCTEXT(
+					"LineWaiting",
+					"Line running - {0} craft, {1} done and waiting for the pulse"),
+					InFlight, Waiting).ToString();
+			}
+			else
+			{
+				Snapshot.LineStatusText = InFlight > 0
+					? FText::Format(LOCTEXT("LineRunning",
+							"Line running - {0} craft"), InFlight).ToString()
+					: LOCTEXT("LineIdle", "Line idle").ToString();
+			}
 			// A SHIP IN STOCK IS NEVER INVISIBLE (overnight stranger
 			// run, 2026-09-01: the first ship finished after its
 			// contract expired, sold to nobody, and simply vanished

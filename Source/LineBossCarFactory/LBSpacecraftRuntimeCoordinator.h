@@ -19,6 +19,19 @@
 #include "LBSpacecraftProductionAuthority.h"
 #include "LBSpacecraftRuntimeCoordinator.generated.h"
 
+/** THE PULSE LINE (owner 2026-08-28: military-aircraft pulse
+ *  mechanics; 2026-09-02: "can you do the pulse line"). The line is
+ *  either STOPPED - every craft sits at its station and the stops run -
+ *  or MOVING - the cranes carry every finished craft one station
+ *  forward together. A station whose stop is over HOLDS its craft
+ *  until the whole line is ready; the slowest station sets the pace. */
+UENUM(BlueprintType)
+enum class ELBSpacecraftLinePhase : uint8
+{
+	Stopped = 0,
+	Moving
+};
+
 USTRUCT(BlueprintType)
 struct LINEBOSSCARFACTORY_API FLBSpacecraftRuntimeAssignment
 {
@@ -45,6 +58,11 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftRuntimeAssignment
 	 *  must not collect the same station's defects twice). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
 	bool bStageDefectsAccrued = false;
+
+	/** The station's stop is over and it is HOLDING the craft for the
+	 *  pulse. Cleared when the craft moves (or its stop restarts). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	bool bStopComplete = false;
 };
 
 USTRUCT(BlueprintType)
@@ -59,6 +77,19 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftRuntimeState
 	 *  different route fails closed. (uint32 is not Blueprint-exposable.) */
 	UPROPERTY(VisibleAnywhere, Category = "LineBoss", SaveGame)
 	uint32 RouteTopologyHash = 0;
+
+	/** Stopped (stops running, finished stations holding) or Moving
+	 *  (the cranes are carrying every finished craft forward). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	ELBSpacecraftLinePhase Phase = ELBSpacecraftLinePhase::Stopped;
+
+	/** Seconds into the move phase. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	float PhaseElapsedSeconds = 0.f;
+
+	/** Pulses completed since the line was configured (HUD, tests). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	int32 PulseCount = 0;
 };
 
 UCLASS()
@@ -73,6 +104,13 @@ public:
 	 *  the WIP cap allow it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineBoss")
 	bool bAutoStartUnits = true;
+
+	/** One crane trip: lift, travel one station, set down. The move
+	 *  phase lasts ceil(craft to move / cranes) trips, so one crane on
+	 *  a four-craft line takes four times as long per pulse as a crane
+	 *  per gap - the upgrade axis the owner named (2026-08-29). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LineBoss")
+	float CraneTripSeconds = 6.f;
 
 	/** Why the head of the line last declined to start a craft.
 	 *
@@ -133,6 +171,25 @@ public:
 	}
 	/** 0..1 progress through the unit's current cycle; false if unknown. */
 	bool GetUnitCycleProgress(FName UnitId, float& OutProgress01) const;
+
+	// ---- the pulse ----
+	ELBSpacecraftLinePhase GetLinePhase() const { return Runtime.Phase; }
+	int32 GetPulseCount() const { return Runtime.PulseCount; }
+	/** Cranes serving the line (from the build authority; at least 1). */
+	int32 GetCraneCount() const;
+	/** Length of the current/next move phase in seconds. */
+	float GetMoveSeconds() const;
+	/** 0..1 through the move phase; 0 while stopped. */
+	float GetPulseProgress01() const;
+	/** True when the station's stop is over and it holds the craft. */
+	bool IsUnitStopComplete(FName UnitId) const;
+	/** The unit's crane trip within the move phase as a 0..1 window of
+	 *  the phase (tail-first order, `cranes` craft per trip). False when
+	 *  the unit is not on the line or the line is not moving. */
+	bool GetUnitCarryWindow(FName UnitId, float& OutStart01,
+		float& OutEnd01) const;
+	/** Craft on the line whose stop is complete. */
+	int32 CountStopComplete() const;
 
 	/** THE INSPECTION SWEEP. The craft currently under the scan at the
 	 *  end of the line, how far the sweep has run, and how many faults
@@ -201,6 +258,11 @@ private:
 	FLBSpacecraftRuntimeAssignment* FindAssignment(FName UnitId);
 	const FLBSpacecraftRuntimeAssignment* FindAssignment(FName UnitId) const;
 	bool StationOccupiedByOther(FName StationId, FName IgnoreUnitId) const;
+	/** Finished and with a station ahead: moves on the next pulse. */
+	bool IsPulseMover(const FLBSpacecraftRuntimeAssignment& Assignment) const;
+	/** The last pulse's verdict, kept until the next pulse (see
+	 *  TickProduction). Not saved: a load starts with a clean slate. */
+	FString LastPulseHold;
 
 	/** Advance one unit one route step if its cycle is complete and the move
 	 *  is legal; returns true when the unit moved (or dispatched). */

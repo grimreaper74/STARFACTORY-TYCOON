@@ -310,6 +310,12 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftFactoryLayoutState
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
 	bool bCommissioned = false;
+
+	/** Gantry cranes on the rails. The hall comes with one; each
+	 *  further crane lets one more craft move per crane trip of a
+	 *  pulse (PULSE_LINE_DESIGN_v001). Capped at line stations - 1. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	int32 GantryCranes = 1;
 };
 
 UCLASS()
@@ -525,6 +531,17 @@ public:
 	 *  refused, so the factory never sits "commissioned" with no route. */
 	void RevokeCommission();
 	bool IsCommissioned() const { return Layout.bCommissioned; }
+
+	// ---- gantry cranes (the pace of the pulse) ----
+	int32 GetCraneCount() const { return FMath::Max(1, Layout.GantryCranes); }
+	/** Most cranes this line can use: one per gap between line
+	 *  stations, never fewer than one. */
+	int32 GetMaxCraneCount() const;
+	static constexpr int64 GantryCraneCostPence = 4500000;
+	/** Buys one more crane (ledger debited); refuses at the cap or
+	 *  when the money is not there. */
+	bool BuyGantryCrane(class ALBSpacecraftProductionAuthority& InLedger,
+		FString& OutReason);
 
 	/** Derive the serial production route from the stage table and the
 	 *  placed stations. Length always equals the table's station stage

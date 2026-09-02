@@ -159,5 +159,22 @@ gantry, and with a crane per gap they all rise and travel together.
 4. Packaged run with both crane models captured on camera for the
    owner's comparison, recorded in an audit receipt.
 
-Status of this document: **Planned**. Nothing below the design has
-been built as of its writing.
+## Status (updated the same night)
+
+Built, in the order above, on 2026-09-02 between 03:20 and 04:30:
+steps 1 to 3 as written (simulation with the line's end exempt from
+the crane move, cranes bought in the BUILD tab up to one per gap, the
+cvar retired, schema v8, HUD and panel wording, the carry driven by
+the pulse phase, and the hall drawing as many cranes as are owned).
+Departures from the design: pulse readiness ignores the last station
+(a finished craft flies out under its own power, every tick), and the
+pulse COUNT is not pinned across crane counts - a shorter move phase
+shifts when the head admits the next craft.
+
+Evidence: `Saved/Automation/PulseLine3_2026_09_02` (138/138), with
+`RuntimeCoordinator.PulseMovesCraftTogether` and
+`RuntimeCoordinator.MoreCranesMakeAShorterPulse` new. **Validation-
+only**: no packaged build carries it, and step 4 (both crane models on
+camera) is still to do. Known gap: the hall animates one crane to the
+one carried craft; the other owned cranes stand still during a
+shared trip.

@@ -186,6 +186,8 @@ private:
 	void ScrollContentToTop();
 
 	void HandleBuildStation(FName DefinitionId);
+	/** One more gantry crane on the rails (the pace of the pulse). */
+	void HandleBuyCrane();
 	void HandleSelectRecipe(FName RecipeId);
 	void HandleRemoveStation(FName StationId);
 	void HandleBelt(FName StationId);

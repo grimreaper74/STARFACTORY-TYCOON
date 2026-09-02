@@ -785,7 +785,9 @@ bool ALBSpacecraftRuntimeCoordinator::TickProduction(double DeltaSeconds,
 		return false;
 	}
 
-	// Accrue cycle time.
+	// Accrue cycle time. A finished stop HOLDS the craft (bStopComplete)
+	// rather than releasing it: the pulse below is the only thing that
+	// moves a craft.
 	for (FLBSpacecraftRuntimeAssignment& Assignment : Runtime.Assignments)
 	{
 		const FLBSpacecraftUnitState* Unit =
@@ -819,66 +821,170 @@ bool ALBSpacecraftRuntimeCoordinator::TickProduction(double DeltaSeconds,
 					+ static_cast<float>(DeltaSeconds) * WorkBonus,
 				Cycle);
 		}
+		if (Cycle > 0.f && Assignment.CycleElapsedSeconds >= Cycle)
+		{
+			Assignment.bStopComplete = true;
+		}
 	}
 
+	// THE PULSE (PULSE_LINE_DESIGN_v001). Stopped: when EVERY craft on
+	// the line has finished its stop, the cranes start moving. Moving:
+	// when the move phase has run its trips, every craft advances one
+	// station together, tail-first so downstream moves free upstream,
+	// and the line stops again. A craft the advance refuses (parts
+	// missing, rework owed, the next station still taken) holds where
+	// it is with its stop still complete, and rides the NEXT pulse.
+	//
+	// This replaces "each craft moves the moment its own stop is over
+	// and the next station is free" - a car line with the belt taken
+	// off. On a pulse line the slowest station sets the pace and a
+	// finished station visibly waits; that wait is what the player
+	// shortens by splitting the fitting order or adding stations.
+	bool bPulsed = false;
 	FString TickHolds;
-	// Move finished units, furthest-first so downstream moves free upstream.
-	TArray<FLBSpacecraftRuntimeAssignment*> Ordered;
-	for (FLBSpacecraftRuntimeAssignment& Assignment : Runtime.Assignments)
+	// THE LINE'S END IS NOT A CRANE MOVE. A craft at the last station
+	// finishes its fitting, climbs into its hover test in place, and
+	// when the test passes it FLIES OUT of the factory itself (owner
+	// 2026-08-29: craft depart from the building). None of that waits
+	// for a pulse, and none of it occupies a crane - so it runs every
+	// tick, as it always did, and the pulse below moves only the craft
+	// with a station still ahead of them.
+	FString EndHold;
 	{
-		Ordered.Add(&Assignment);
-	}
-	Ordered.Sort([](const FLBSpacecraftRuntimeAssignment& A,
-		const FLBSpacecraftRuntimeAssignment& B)
-	{
-		return A.RouteIndex > B.RouteIndex;
-	});
-	TArray<FName> ToAdvance;
-	for (FLBSpacecraftRuntimeAssignment* Assignment : Ordered)
-	{
-		const FLBSpacecraftUnitState* Unit =
-			ProductionAuthority->FindUnit(Assignment->UnitId);
-		if (Unit == nullptr)
+		TArray<FName> AtEnd;
+		for (const FLBSpacecraftRuntimeAssignment& Assignment :
+			Runtime.Assignments)
 		{
-			continue;
-		}
-		FLBSpacecraftRecipe Recipe;
-		if (!FLBSpacecraftProductionCatalog::FindRecipe(Unit->RecipeId, Recipe))
-		{
-			continue;
-		}
-		const float Cycle = SpacecraftAssignmentCycleSeconds(Recipe,
-			Unit->Stage, Assignment->RouteIndex, Route.Num(),
-			BuildAuthority, Route);
-		if (Cycle > 0.f && Assignment->CycleElapsedSeconds >= Cycle)
-		{
-			ToAdvance.Add(Assignment->UnitId);
-		}
-	}
-	for (FName UnitId : ToAdvance)
-	{
-		FLBSpacecraftRuntimeAssignment* Assignment = FindAssignment(UnitId);
-		if (Assignment != nullptr)
-		{
-			FString HoldReason;
-			if (!TryAdvanceAssignment(*Assignment, HoldReason)
-				&& !HoldReason.IsEmpty())
+			if (Assignment.bStopComplete
+				&& Assignment.RouteIndex == Route.Num() - 1)
 			{
-				// Keep the FIRST hold of the tick: units are walked
-				// furthest-first, so the one nearest the end of the
-				// line is the one actually blocking the rest.
-				if (TickHolds.IsEmpty())
+				AtEnd.Add(Assignment.UnitId);
+			}
+		}
+		for (FName UnitId : AtEnd)
+		{
+			FLBSpacecraftRuntimeAssignment* Assignment =
+				FindAssignment(UnitId);
+			if (Assignment == nullptr)
+			{
+				continue;
+			}
+			FString HoldReason;
+			if (TryAdvanceAssignment(*Assignment, HoldReason))
+			{
+				if (FLBSpacecraftRuntimeAssignment* Still =
+					FindAssignment(UnitId))
 				{
-					TickHolds = HoldReason;
+					Still->bStopComplete = false; // the test's own stop
 				}
 			}
-			// A hold is a visible state, not an error - the unit waits.
+			else if (!HoldReason.IsEmpty() && EndHold.IsEmpty())
+			{
+				EndHold = HoldReason;
+			}
 		}
 	}
-	LastHoldReason = TickHolds;
+	if (Runtime.Phase == ELBSpacecraftLinePhase::Stopped)
+	{
+		int32 Movers = 0;
+		bool bAllComplete = true;
+		for (const FLBSpacecraftRuntimeAssignment& Assignment :
+			Runtime.Assignments)
+		{
+			if (Assignment.RouteIndex >= Route.Num() - 1)
+			{
+				continue; // the line's end, handled above
+			}
+			if (!Assignment.bStopComplete)
+			{
+				bAllComplete = false;
+				break;
+			}
+			++Movers;
+		}
+		if (bAllComplete && Movers > 0)
+		{
+			Runtime.Phase = ELBSpacecraftLinePhase::Moving;
+			Runtime.PhaseElapsedSeconds = 0.f;
+		}
+	}
+	if (Runtime.Phase == ELBSpacecraftLinePhase::Moving)
+	{
+		Runtime.PhaseElapsedSeconds += static_cast<float>(DeltaSeconds);
+		if (Runtime.PhaseElapsedSeconds >= GetMoveSeconds())
+		{
+			TArray<FLBSpacecraftRuntimeAssignment*> Ordered;
+			for (FLBSpacecraftRuntimeAssignment& Assignment :
+				Runtime.Assignments)
+			{
+				if (IsPulseMover(Assignment))
+				{
+					Ordered.Add(&Assignment);
+				}
+			}
+			Ordered.Sort([](const FLBSpacecraftRuntimeAssignment& A,
+				const FLBSpacecraftRuntimeAssignment& B)
+			{
+				return A.RouteIndex > B.RouteIndex;
+			});
+			TArray<FName> ToAdvance;
+			for (FLBSpacecraftRuntimeAssignment* Assignment : Ordered)
+			{
+				ToAdvance.Add(Assignment->UnitId);
+			}
+			for (FName UnitId : ToAdvance)
+			{
+				// Re-found each time: a dispatch removes an assignment
+				// and the array reallocates.
+				FLBSpacecraftRuntimeAssignment* Assignment =
+					FindAssignment(UnitId);
+				if (Assignment == nullptr)
+				{
+					continue;
+				}
+				FString HoldReason;
+				if (TryAdvanceAssignment(*Assignment, HoldReason))
+				{
+					// Moved, or climbed into Testing in place: either
+					// way a NEW stop begins. (A dispatched unit is
+					// gone; FindAssignment says so.)
+					if (FLBSpacecraftRuntimeAssignment* Moved =
+						FindAssignment(UnitId))
+					{
+						Moved->bStopComplete = false;
+					}
+				}
+				else if (!HoldReason.IsEmpty() && TickHolds.IsEmpty())
+				{
+					// Keep the FIRST hold of the pulse: units are
+					// walked furthest-first, so the one nearest the
+					// end of the line is the one actually blocking.
+					TickHolds = HoldReason;
+				}
+				// A hold is a visible state, not an error - the unit
+				// waits, stop still complete, for the next pulse.
+			}
+			Runtime.Phase = ELBSpacecraftLinePhase::Stopped;
+			Runtime.PhaseElapsedSeconds = 0.f;
+			++Runtime.PulseCount;
+			bPulsed = true;
+		}
+	}
+	// The hold reason is a PULSE's verdict; between pulses it stands,
+	// so a starved station stays named until the next pulse clears it.
+	// The line's end reports its own holds (the hover test, rework)
+	// only when no pulse hold is standing.
+	if (bPulsed)
+	{
+		LastPulseHold = TickHolds;
+	}
+	LastHoldReason = !LastPulseHold.IsEmpty() ? LastPulseHold : EndHold;
 
-	// Feed the head of the line.
-	if (bAutoStartUnits)
+	// Feed the head of the line - INTO AN EMPTY LINE, or at the pulse.
+	// A craft admitted mid-stop would start its own clock late and be
+	// the slowest station by construction, dragging every pulse; on a
+	// pulse line all stops start together.
+	if (bAutoStartUnits && (Runtime.Assignments.Num() == 0 || bPulsed))
 	{
 		FName NewUnitId;
 		FString StartReason;
@@ -942,6 +1048,90 @@ bool ALBSpacecraftRuntimeCoordinator::GetUnitCycleProgress(FName UnitId,
 	}
 	OutProgress01 = FMath::Clamp(
 		Assignment->CycleElapsedSeconds / Cycle, 0.f, 1.f);
+	return true;
+}
+
+int32 ALBSpacecraftRuntimeCoordinator::GetCraneCount() const
+{
+	return BuildAuthority != nullptr ? BuildAuthority->GetCraneCount() : 1;
+}
+
+bool ALBSpacecraftRuntimeCoordinator::IsPulseMover(
+	const FLBSpacecraftRuntimeAssignment& Assignment) const
+{
+	// Finished, and with a station still ahead: the line's end leaves
+	// under its own power, never on a crane.
+	return Assignment.bStopComplete
+		&& Assignment.RouteIndex < Route.Num() - 1;
+}
+
+int32 ALBSpacecraftRuntimeCoordinator::CountStopComplete() const
+{
+	int32 Count = 0;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Runtime.Assignments)
+	{
+		Count += IsPulseMover(Assignment) ? 1 : 0;
+	}
+	return Count;
+}
+
+float ALBSpacecraftRuntimeCoordinator::GetMoveSeconds() const
+{
+	// ceil(craft to move / cranes) trips. Never zero: an empty pulse
+	// still takes one trip, so the phase always ends.
+	const int32 Moving = FMath::Max(CountStopComplete(), 1);
+	const int32 Cranes = FMath::Max(GetCraneCount(), 1);
+	const int32 Trips = (Moving + Cranes - 1) / Cranes;
+	return FMath::Max(CraneTripSeconds, 0.01f) * Trips;
+}
+
+float ALBSpacecraftRuntimeCoordinator::GetPulseProgress01() const
+{
+	if (Runtime.Phase != ELBSpacecraftLinePhase::Moving)
+	{
+		return 0.f;
+	}
+	return FMath::Clamp(Runtime.PhaseElapsedSeconds / GetMoveSeconds(),
+		0.f, 1.f);
+}
+
+bool ALBSpacecraftRuntimeCoordinator::IsUnitStopComplete(FName UnitId) const
+{
+	const FLBSpacecraftRuntimeAssignment* Assignment = FindAssignment(UnitId);
+	return Assignment != nullptr && Assignment->bStopComplete;
+}
+
+bool ALBSpacecraftRuntimeCoordinator::GetUnitCarryWindow(FName UnitId,
+	float& OutStart01, float& OutEnd01) const
+{
+	OutStart01 = 0.f;
+	OutEnd01 = 0.f;
+	if (Runtime.Phase != ELBSpacecraftLinePhase::Moving)
+	{
+		return false;
+	}
+	const FLBSpacecraftRuntimeAssignment* Assignment = FindAssignment(UnitId);
+	if (Assignment == nullptr || !IsPulseMover(*Assignment))
+	{
+		return false;
+	}
+	// Tail-first order among the craft that move; `cranes` craft share
+	// a trip.
+	int32 Ahead = 0;
+	for (const FLBSpacecraftRuntimeAssignment& Other : Runtime.Assignments)
+	{
+		if (IsPulseMover(Other) && Other.RouteIndex > Assignment->RouteIndex)
+		{
+			++Ahead;
+		}
+	}
+	const int32 Cranes = FMath::Max(GetCraneCount(), 1);
+	const int32 Moving = FMath::Max(CountStopComplete(), 1);
+	const int32 Trips = (Moving + Cranes - 1) / Cranes;
+	const int32 Trip = Ahead / Cranes;
+	OutStart01 = static_cast<float>(Trip) / Trips;
+	OutEnd01 = static_cast<float>(Trip + 1) / Trips;
 	return true;
 }
 
@@ -1050,6 +1240,29 @@ bool ALBSpacecraftRuntimeCoordinator::ValidateRuntime(
 		if (bStationTaken)
 		{
 			OutReason = TEXT("Two units occupy one station");
+			return false;
+		}
+	}
+	if (State.PhaseElapsedSeconds < 0.f || State.PulseCount < 0)
+	{
+		OutReason = TEXT("Pulse counters out of range");
+		return false;
+	}
+	if (State.Phase == ELBSpacecraftLinePhase::Moving)
+	{
+		// A move phase carries craft; with nothing on the line there is
+		// nothing to carry, and a craft whose stop is not over cannot be
+		// on the hook.
+		bool bAnyComplete = false;
+		for (const FLBSpacecraftRuntimeAssignment& Assignment :
+			State.Assignments)
+		{
+			bAnyComplete |= Assignment.bStopComplete
+				&& Assignment.RouteIndex < Route.Num() - 1;
+		}
+		if (!bAnyComplete)
+		{
+			OutReason = TEXT("Line is moving with no craft ready to move");
 			return false;
 		}
 	}

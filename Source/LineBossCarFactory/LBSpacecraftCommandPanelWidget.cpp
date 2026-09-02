@@ -1191,6 +1191,38 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 					Definition->DefinitionId == Armed);
 			}
 		}
+		// THE CRANES (PULSE_LINE_DESIGN_v001). One comes with the hall;
+		// each further crane lets one more craft move per crane trip of
+		// a pulse, up to one per gap between line stations. Offered
+		// only inside the factory, like everything on the line.
+		if (!bOnSiteMap && GameMode->GetBuildAuthority() != nullptr)
+		{
+			const ALBSpacecraftBuildAuthority* CraneBuild =
+				GameMode->GetBuildAuthority();
+			const int32 Have = CraneBuild->GetCraneCount();
+			const int32 Cap = CraneBuild->GetMaxCraneCount();
+			AddSectionLabel(LOCTEXT("SectionCranes",
+				"THE LINE - GANTRY CRANES").ToString());
+			AddTaggedButton(FText::Format(
+				LOCTEXT("CraneRow", "Gantry crane  ({0} of {1})"),
+				FText::AsNumber(Have), FText::AsNumber(Cap)).ToString(),
+				FName(TEXT("GantryCrane")),
+				[this](FName InTag) { HandleBuyCrane(); },
+				Have >= Cap
+					? LOCTEXT("CraneCapped",
+						"one per gap - build more stations for more")
+						.ToString()
+					: FText::Format(LOCTEXT("CraneNext",
+						"{0}   +1 lets {1} craft move per crane trip"),
+						FText::FromString(
+							ULBSpacecraftTopBarWidget::FormatCurrency(
+								ALBSpacecraftBuildAuthority
+									::GantryCraneCostPence)),
+						FText::AsNumber(Have + 1)).ToString(),
+				Have < Cap
+					&& ALBSpacecraftBuildAuthority::GantryCraneCostPence
+						> Cash);
+		}
 		// THE FIXING SPLIT (owner: "get the ui right"). The engine has
 		// carried the split-the-sequence model for days with no face on
 		// it: who fits what, in line order, with the boundary moved one
@@ -1301,8 +1333,18 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 									->GetLastHoldReason();
 								if (Live.IsEmpty())
 								{
-									Live = LOCTEXT("SplitDeparting",
-										"Departing").ToString();
+									// A finished station HOLDS its
+									// craft until the whole line is
+									// ready (the pulse). Naming the
+									// wait is what lets a player see
+									// which station is the slow one.
+									Live = LiveCoordinator->GetLinePhase()
+											== ELBSpacecraftLinePhase::Moving
+										? LOCTEXT("SplitDeparting",
+											"Departing").ToString()
+										: LOCTEXT("SplitHolding",
+											"Done - waiting for the pulse")
+											.ToString();
 								}
 							}
 							else
@@ -1910,6 +1952,23 @@ void ULBSpacecraftCommandPanelWidget::ScrollContentToTop()
 	if (ContentScroll != nullptr)
 	{
 		ContentScroll->ScrollToStart();
+	}
+}
+
+void ULBSpacecraftCommandPanelWidget::HandleBuyCrane()
+{
+	if (GameMode == nullptr || GameMode->GetBuildAuthority() == nullptr
+		|| GameMode->GetProductionAuthority() == nullptr)
+	{
+		return;
+	}
+	FString Reason;
+	GameMode->GetBuildAuthority()->BuyGantryCrane(
+		*GameMode->GetProductionAuthority(), Reason);
+	PanelActionText = Reason;
+	if (Pawn != nullptr)
+	{
+		Pawn->SetLastActionText(Reason);
 	}
 }
 

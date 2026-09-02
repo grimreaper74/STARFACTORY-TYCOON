@@ -6039,10 +6039,31 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		// its cradle, across, and set down at the next station.
 		FVector Location =
 			Route[Assignment.RouteIndex].WorldTransform.GetLocation();
+		// THE PULSE (2026-09-02): the craft rides only while the line
+		// is MOVING and only inside its own crane trip's window of
+		// the move phase - with one crane the craft go one after
+		// another, with a crane per gap they all rise together. A
+		// finished station's craft sits on its cradle until then;
+		// after its trip it waits at the next station for the phase
+		// to end, where the sim will put it. Progress01 is remapped so
+		// the carry arc (ComputeCraneCarryCm) spans the whole trip.
 		float Progress01 = 0.f;
-		if (Coordinator->GetUnitCycleProgress(Assignment.UnitId, Progress01)
-			&& Progress01 > SlideStartFraction
-			&& Route.IsValidIndex(Assignment.RouteIndex + 1))
+		float CarryStart01 = 0.f;
+		float CarryEnd01 = 0.f;
+		const bool bInCarryWindow = Coordinator->GetUnitCarryWindow(
+			Assignment.UnitId, CarryStart01, CarryEnd01)
+			&& Route.IsValidIndex(Assignment.RouteIndex + 1);
+		if (bInCarryWindow)
+		{
+			const float Phase01 = Coordinator->GetPulseProgress01();
+			const float Trip01 = FMath::Clamp(
+				(Phase01 - CarryStart01)
+					/ FMath::Max(CarryEnd01 - CarryStart01, 0.001f),
+				0.f, 1.f);
+			Progress01 = SlideStartFraction
+				+ Trip01 * (1.f - SlideStartFraction);
+		}
+		if (bInCarryWindow && Progress01 > SlideStartFraction)
 		{
 			const FVector Next =
 				Route[Assignment.RouteIndex + 1].WorldTransform.GetLocation();
@@ -8351,18 +8372,17 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			}
 			CloseLeg();
 		}
-		static const auto* CranePerGapVar =
-			IConsoleManager::Get().FindConsoleVariable(
-				TEXT("LB.Spacecraft.CranePerGap"));
-		// ONE CRANE PER LEG BY DEFAULT (owner 2026-09-01 "how many
-		// cranes do we need?", answered from the pulse-line research:
-		// real plants hold lift capacity at a few positions and grow
-		// it with rate. One crane makes the pulse a visible queue of
-		// trips - an honest bottleneck - and buying more toward
-		// one-per-gap becomes the upgrade that lets the whole line
-		// pulse at once. The cvar keeps the per-gap A/B alive.
-		const bool bCranePerGap = CranePerGapVar != nullptr
-			&& CranePerGapVar->GetInt() != 0;
+		// AS MANY CRANES AS THE PLAYER OWNS (PULSE_LINE_DESIGN_v001,
+		// 2026-09-02). The hall comes with one; each bought crane
+		// lets one more craft move per crane trip of a pulse, up to
+		// one per gap. The count is the build authority's, so what is
+		// drawn on the rails is exactly what the simulation is moving
+		// craft with. The old LB.Spacecraft.CranePerGap cvar is gone:
+		// the comparison the owner asked for (2026-08-29, "1 crane
+		// does all work, will have to test each") is now made by
+		// buying cranes in the BUILD tab.
+		const int32 OwnedCranes = BuildAuthority != nullptr
+			? BuildAuthority->GetCraneCount() : 1;
 		int32 CraneIndex = 0;
 		for (int32 LegIndex = 0; LegIndex < Legs.Num(); ++LegIndex)
 		{
@@ -8409,15 +8429,29 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 					}
 				}
 			}
-			// One crane per GAP within the leg, or one for the leg.
+			// The owned cranes spread along the leg: one per gap when
+			// there are enough, otherwise evenly over the gaps, and a
+			// single crane parks at the leg's middle.
 			TArray<float> Parks;
 			TArray<float> Stations = Leg.StationAlongCm;
 			Stations.Sort();
-			if (bCranePerGap && Stations.Num() > 1)
+			TArray<float> GapParks;
+			for (int32 Gap = 0; Gap + 1 < Stations.Num(); ++Gap)
 			{
-				for (int32 Gap = 0; Gap + 1 < Stations.Num(); ++Gap)
+				GapParks.Add((Stations[Gap] + Stations[Gap + 1]) * 0.5f);
+			}
+			if (GapParks.Num() > 0 && OwnedCranes >= GapParks.Num())
+			{
+				Parks = GapParks;
+			}
+			else if (GapParks.Num() > 1 && OwnedCranes > 1)
+			{
+				for (int32 Index = 0; Index < OwnedCranes; ++Index)
 				{
-					Parks.Add((Stations[Gap] + Stations[Gap + 1]) * 0.5f);
+					Parks.Add(GapParks[FMath::Clamp(
+						(Index * GapParks.Num() + GapParks.Num() / 2)
+							/ OwnedCranes,
+						0, GapParks.Num() - 1)]);
 				}
 			}
 			else

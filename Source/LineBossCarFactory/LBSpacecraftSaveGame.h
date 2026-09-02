@@ -38,8 +38,11 @@ public:
 	 *  v4 (2026-08-25): player cash joined the production ledger;
 	 *  reputation snapshot added the same day.
 	 *  v7 (2026-08-26): the LINE TRACK joined the save (laid pieces +
-	 *  station nodes). */
-	static constexpr int32 CurrentSchemaVersion = 7;
+	 *  station nodes).
+	 *  v8 (2026-09-02): the PULSE LINE - line phase, move-phase clock
+	 *  and pulse count on the runtime state, a stop-complete flag per
+	 *  assignment, and the crane count on the layout. */
+	static constexpr int32 CurrentSchemaVersion = 8;
 
 	UPROPERTY()
 	int32 SchemaVersion = CurrentSchemaVersion;

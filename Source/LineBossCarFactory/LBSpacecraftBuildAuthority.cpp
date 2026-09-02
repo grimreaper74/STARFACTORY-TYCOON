@@ -1,4 +1,5 @@
 #include "LBSpacecraftBuildAuthority.h"
+#include "LBSpacecraftProductionAuthority.h"
 
 #include "LBSpacecraftInventoryAuthority.h"
 
@@ -1498,6 +1499,46 @@ bool ALBSpacecraftBuildAuthority::RemoveStation(FName StationId,
 void ALBSpacecraftBuildAuthority::RevokeCommission()
 {
 	Layout.bCommissioned = false;
+}
+
+int32 ALBSpacecraftBuildAuthority::GetMaxCraneCount() const
+{
+	int32 LineStations = 0;
+	for (const FLBSpacecraftStationRecord& Record : Layout.Stations)
+	{
+		const FLBSpacecraftStationDefinition* Definition =
+			FindDefinition(Record.DefinitionId);
+		if (Definition != nullptr
+			&& Definition->StageClassId == FName(TEXT("LineStation")))
+		{
+			++LineStations;
+		}
+	}
+	return FMath::Max(1, LineStations - 1);
+}
+
+bool ALBSpacecraftBuildAuthority::BuyGantryCrane(
+	ALBSpacecraftProductionAuthority& InLedger, FString& OutReason)
+{
+	const int32 Cap = GetMaxCraneCount();
+	if (GetCraneCount() >= Cap)
+	{
+		OutReason = FString::Printf(
+			TEXT("The rails already carry %d crane%s - one per gap "
+				"between line stations; build more stations first"),
+			Cap, Cap == 1 ? TEXT("") : TEXT("s"));
+		return false;
+	}
+	if (!InLedger.SpendPence(GantryCraneCostPence, OutReason))
+	{
+		return false;
+	}
+	Layout.GantryCranes = GetCraneCount() + 1;
+	OutReason = FString::Printf(
+		TEXT("Gantry crane %d of %d bought - %d craft can move per "
+			"crane trip"),
+		Layout.GantryCranes, Cap, Layout.GantryCranes);
+	return true;
 }
 
 bool ALBSpacecraftBuildAuthority::CommissionFactory(FString& OutReason)
