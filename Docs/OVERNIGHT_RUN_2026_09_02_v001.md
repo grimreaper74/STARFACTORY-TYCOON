@@ -48,7 +48,15 @@ What stood between the line and its first ship, in order found:
   CONFIRM"), with an eight-second window that re-arms if it lapses.
   Verified in PIE (`Saved/Audits/StrangerWave3_2026_09_02`); not in
   either package.
-- **Open:** F5/F9/F12 (site hit-testing, door cue).
+- **F5 closed without a code change.** Roof clicks on the site map
+  were re-tried at the end of the night: the heavy ship factory and
+  the parking apron each answer with their toast, and the ship
+  factory's roof enters the hall (`Saved/Audits/StrangerWave3_2026_09_02/site_strips.png`).
+  The first wave's silence was the hub message never reaching the
+  screen (F4/F6), not the hit rectangles, which cover the roofs.
+- **Open:** F9/F12 (an empty hall gives no door or direction cue; the
+  placement ghost has no footprint or arrow). Visual design work,
+  better done with you looking.
 
 Two toolset additions made the run possible: `ProbePieWidgetAt(X,Y)`
 reports the widget and label under a point before a click (a rendered

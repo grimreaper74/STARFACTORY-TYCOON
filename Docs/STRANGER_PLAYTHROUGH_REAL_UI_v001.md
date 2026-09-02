@@ -105,8 +105,10 @@ Nineteen findings in full: `scratchpad/stranger/findings.md`
 
 ## Not fixed tonight (next)
 
-- F5 building hit-testing (roof clicks should count) — needs the hub
-  rectangles to cover the sprite, or a screen-space pick.
+- F5 building hit-testing — CLOSED 2026-09-02 without a code change:
+  the rectangles do cover the roofs; the silence was F4/F6 (messages
+  never shown). Re-tried in PIE at the end of the second night: roof
+  clicks answer.
 - F15 persistent "PLACING … right-click cancels" indicator while armed.
 - F18 click-to-select tolerance for small stations.
 - F2 Contracts tab ordering (offers first).
