@@ -3446,10 +3446,14 @@ void ULBSpacecraftCommandPanelWidget::HandleInstallDroneKind(FName KindId)
 		return;
 	}
 	FString Reason;
+	// The RESEARCH authority goes in here and only here: this is the
+	// button where the player picks a specific crew KIND, so it is the
+	// one hire a locked specialist must be refused at. The kind-less
+	// hire above always gets the free assembly drone.
 	ALBSpacecraftGameMode::InstallStationDronePowered(
 		*GameMode->GetBuildAuthority(), Pawn->GetSelectedStation(), Reason,
 		GameMode->GetProductionAuthority(), GameMode->GetProgression(),
-		KindId);
+		KindId, GameMode->GetResearchAuthority());
 	PanelActionText = Reason;
 	// The fleet mirrors the station records, so a new crew member has
 	// to be told about or it never appears on the floor.

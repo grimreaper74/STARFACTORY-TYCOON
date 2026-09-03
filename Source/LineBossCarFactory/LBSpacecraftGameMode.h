@@ -232,13 +232,19 @@ public:
 		int32 SlotIndex, FString& OutReason,
 		ALBSpacecraftProductionAuthority* InLedger = nullptr);
 
+	/** InResearch gates the KIND (2026-09-03): specialist crew are
+	 *  research content like any machine, so a kind the player has
+	 *  not researched cannot be hired. Optional and defaulted, like
+	 *  the progression hook beside it - a caller that passes no
+	 *  research authority (dev commands, fixtures) is ungated. */
 	static bool InstallStationDronePowered(
 		ALBSpacecraftBuildAuthority& InBuild, FName StationId,
 		FString& OutReason,
 		ALBSpacecraftProductionAuthority* InLedger = nullptr,
 		const class ALBSpacecraftProgressionAuthority* InProgression =
 			nullptr,
-		FName KindId = NAME_None);
+		FName KindId = NAME_None,
+		const class ALBSpacecraftResearchAuthority* InResearch = nullptr);
 
 	/** Sell-back fraction refunded when a station is removed through
 	 *  RemoveStationPowered with a ledger (PROVISIONAL: half). */

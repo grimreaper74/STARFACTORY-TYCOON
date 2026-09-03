@@ -137,7 +137,7 @@ bool FLBSpacecraftHUDSnapshotTest::RunTest(const FString& Parameters)
 		// is bought until generation) - 1,000 own + 800 grid.
 		TEXT("PWR 400/1,800 kW"));
 	TestEqual(TEXT("research reads points and unlock count"),
-		Phase2.ResearchText, TEXT("RSC 15 pts  1/6"));
+		Phase2.ResearchText, TEXT("RSC 15 pts  1/12"));
 
 	FLBSpacecraftHUDSnapshot Done =
 		ULBSpacecraftTopBarWidget::BuildSnapshot(Build, Production,

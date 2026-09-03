@@ -3985,18 +3985,35 @@ bool FLBSpacecraftPartsMarkTest::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("all nine families have a bigger mark"), Marks, 9);
 
-	// The upgrade is EARNED, at the end of the tree.
-	const FLBSpacecraftResearchNode* Node =
-		FLBSpacecraftResearchCatalogue::FindNode(
-			FName(TEXT("Research.Mfg.PartsMk2")));
-	TestNotNull(TEXT("the parts upgrade is a research node"), Node);
-	if (Node != nullptr)
+	// The upgrade is EARNED, at the end of the tree - and since
+	// 2026-09-03 it is earned in THREE pieces rather than one, so a
+	// player upgrades the part of their factory that is actually their
+	// bottleneck first. The nine marks are still all reachable and
+	// still all sit behind the last tier; what changed is that they no
+	// longer arrive together.
+	const TCHAR* PartsNodes[] = {TEXT("Research.Mfg.HeavyStock"),
+		TEXT("Research.Mfg.HeavyElectronics"),
+		TEXT("Research.Mfg.HeavyPropulsion")};
+	TSet<FName> MarksOpened;
+	for (const TCHAR* NodeId : PartsNodes)
 	{
-		TestEqual(TEXT("it opens all nine marks"),
-			Node->UnlockedStationClasses.Num(), 9);
-		TestTrue(TEXT("and sits behind the last tier"),
-			Node->Prerequisites.Contains(FName(TEXT("Research.Mfg.T4"))));
+		const FLBSpacecraftResearchNode* Node =
+			FLBSpacecraftResearchCatalogue::FindNode(FName(NodeId));
+		TestNotNull(TEXT("each parts specialisation is a research node"),
+			Node);
+		if (Node != nullptr)
+		{
+			TestTrue(TEXT("and sits behind the last tier"),
+				Node->Prerequisites.Contains(
+					FName(TEXT("Research.Mfg.T4"))));
+			for (const FName& Mark : Node->UnlockedStationClasses)
+			{
+				MarksOpened.Add(Mark);
+			}
+		}
 	}
+	TestEqual(TEXT("between them the three still open all nine marks"),
+		MarksOpened.Num(), 9);
 	return true;
 }
 

@@ -41,6 +41,16 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftResearchNode
 	/** Station families this node opens for building and crafting. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
 	TArray<FName> UnlockedStationClasses;
+
+	/** Drone KINDS this node opens for hiring (2026-09-03). Still
+	 *  content, not a stat bonus: the player unlocks a new kind of
+	 *  crew to buy and place, exactly as they unlock a new machine -
+	 *  what changes is what exists to choose from, never a multiplier
+	 *  applied behind their back. Seven kinds shipped with quality
+	 *  weights from 0.6 to 1.7 and all seven were hireable from the
+	 *  first minute, so the choice carried no progression at all. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	TArray<FName> UnlockedDroneKinds;
 };
 
 /** Whole-authority snapshot for the save pipeline. */
@@ -75,6 +85,12 @@ public:
 
 	/** Station families available with NO research (the slice five). */
 	static const TArray<FName>& GetDefaultStationClasses();
+
+	/** Crew kinds available with NO research. Exactly one: the plain
+	 *  assembly drone at nominal quality, which is also the fallback
+	 *  every kind-less caller already gets - so an unresearched
+	 *  factory crews normally and researches its SPECIALISTS. */
+	static const TArray<FName>& GetDefaultDroneKinds();
 
 	/** Shape, ordering-acyclicity and unlock-target validation. */
 	static bool ValidateNodeTable(FString& OutReason);
@@ -121,6 +137,10 @@ public:
 	/** True for the default (slice) families and for any family opened by
 	 *  an unlocked node. The build authority and crafting UI gate on this. */
 	bool IsStationClassUnlocked(FName StationClassId) const;
+
+	/** True for the default crew kind and for any kind opened by an
+	 *  unlocked node. The hire path and the crew UI gate on this. */
+	bool IsDroneKindUnlocked(FName KindId) const;
 
 	int32 GetUnlockedNodeCount() const { return UnlockedNodes.Num(); }
 

@@ -2514,8 +2514,19 @@ bool ALBSpacecraftGameMode::InstallInSlotPowered(
 bool ALBSpacecraftGameMode::InstallStationDronePowered(
 	ALBSpacecraftBuildAuthority& InBuild, FName StationId,
 	FString& OutReason, ALBSpacecraftProductionAuthority* InLedger,
-	const ALBSpacecraftProgressionAuthority* InProgression, FName KindId)
+	const ALBSpacecraftProgressionAuthority* InProgression, FName KindId,
+	const ALBSpacecraftResearchAuthority* InResearch)
 {
+	// A SPECIALIST IS RESEARCHED CONTENT (2026-09-03). Refused before
+	// anything is spent, and named the same way a locked machine is,
+	// so the reason reads like every other research refusal.
+	if (InResearch != nullptr && !InResearch->IsDroneKindUnlocked(KindId))
+	{
+		OutReason = FString::Printf(
+			TEXT("%s IS LOCKED - RESEARCH IT FIRST"),
+			*KindId.ToString());
+		return false;
+	}
 	// QUALITY CONTROL is a delivery milestone, and crew is what quality
 	// MEANS here - an under-crewed station fits parts badly. Everyone
 	// can crew to nominal from the first minute, so nobody is forced to
