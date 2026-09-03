@@ -1119,6 +1119,24 @@ private:
 	TObjectPtr<UAudioComponent> HallAmbienceAudio;
 	/** Pending order count last frame; a drop means a lorry landed. */
 	int32 LastPendingOrderCount = -1;
+
+	// THE THREE CUES THAT WERE IMPORTED BUT NEVER HEARD (audit
+	// 2026-09-03). Docs/AUDIO_INTAKE_2026_09_02_v001.md records eight
+	// sounds imported and "wired"; four of them were - ambience,
+	// lorry, departure, refusal, plus the panel's contract-accepted -
+	// but LB_DroneWork_v001 was never referenced by any code, and
+	// LB_CraneTravel/LB_CraneSetDown lost their only caller when the
+	// gantry crane was removed the following night. The work loop is
+	// the costly silence: drones fitting parts is the most frequent
+	// thing on screen and it made no sound at all.
+	/** One work loop per station, playing while its drones fit. */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UAudioComponent>> StationWorkAudio;
+	/** The line's travel loop, playing through the pulse's move. */
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> PulseTravelAudio;
+	/** Pulse count last frame; a rise means craft just set down. */
+	int32 LastPulseCount = -1;
 	/** Sounds by role, loaded on first use. */
 	UPROPERTY()
 	TMap<FName, TObjectPtr<USoundBase>> SoundByRole;

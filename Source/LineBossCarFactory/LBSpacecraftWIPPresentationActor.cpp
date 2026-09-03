@@ -9713,6 +9713,129 @@ void ALBSpacecraftWIPPresentationActor::TickAudioCues(float DeltaSeconds)
 		}
 		LastPendingOrderCount = Pending;
 	}
+
+	// THE WORK ITSELF (2026-09-03): a loop per station that runs while
+	// that station's drones are actually fitting, driven by the same
+	// WorkAlpha the drone animation already uses - so what you hear
+	// and what you see can never disagree. Spatialised on the station,
+	// so a floor of six stations is a place rather than a wall of
+	// noise, and the loop is only created for a station that has
+	// actually worked once.
+	if (BuildAuthority != nullptr)
+	{
+		for (const FLBSpacecraftStationRecord& Record :
+			BuildAuthority->GetStations())
+		{
+			const float WorkAlpha = GetDroneWorkAlpha(Record.StationId);
+			const bool bWorking = WorkAlpha > 0.5f;
+			TObjectPtr<UAudioComponent>* Existing =
+				StationWorkAudio.Find(Record.StationId);
+			if (bWorking && Existing == nullptr)
+			{
+				USoundBase* Loop = SoundFor(FName(TEXT("DroneWork")));
+				if (Loop == nullptr)
+				{
+					continue;   // silent cue, not a crash
+				}
+				const FName Key(*FString::Printf(TEXT("WorkAudio_%s"),
+					*Record.StationId.ToString()));
+				if (UAudioComponent* Audio =
+					LBSpacecraftWIPPresentationPrivate
+						::SpacecraftMakeRotorAudio(this, RootComponent,
+							Key, Loop, RotorAudioRadiusCm,
+							RotorAudioFalloffCm))
+				{
+					Audio->SetWorldLocation(
+						Record.WorldTransform.GetLocation()
+							+ FVector(0.f, 0.f, 120.f));
+					Audio->Play();
+					StationWorkAudio.Add(Record.StationId, Audio);
+					UE_LOG(LogTemp, Display,
+						TEXT("SOUND DroneWork on at %s"),
+						*Record.StationId.ToString());
+				}
+			}
+			else if (Existing != nullptr && *Existing != nullptr)
+			{
+				UAudioComponent* Audio = Existing->Get();
+				if (bWorking && !Audio->IsPlaying())
+				{
+					Audio->Play();
+				}
+				else if (!bWorking && Audio->IsPlaying())
+				{
+					Audio->Stop();
+				}
+			}
+		}
+		// A SOLD STATION TAKES ITS VOICE WITH IT. Without this the
+		// loop would keep running at the empty floor where the station
+		// used to stand - the same "created but never cleaned up"
+		// shape three separate audits found elsewhere tonight.
+		for (auto It = StationWorkAudio.CreateIterator(); It; ++It)
+		{
+			if (BuildAuthority->FindStation(It.Key()) == nullptr)
+			{
+				if (It.Value() != nullptr)
+				{
+					It.Value()->Stop();
+					It.Value()->DestroyComponent();
+				}
+				It.RemoveCurrent();
+			}
+		}
+	}
+
+	// THE PULSE MOVES (2026-09-03, replacing the deleted crane's own
+	// audio): the travel loop runs for exactly as long as the line is
+	// in its move phase, and a set-down lands per craft when the pulse
+	// resolves. Same two waves the gantry used - what carries the
+	// craft changed, the sound of a line moving did not.
+	if (Coordinator != nullptr)
+	{
+		const bool bMoving = Coordinator->GetPulseProgress01() > 0.f;
+		if (bMoving && PulseTravelAudio == nullptr)
+		{
+			if (USoundBase* Travel = SoundFor(FName(TEXT("CraneTravel"))))
+			{
+				PulseTravelAudio = UGameplayStatics::CreateSound2D(this,
+					Travel, 0.5f, 1.f, 0.f, nullptr,
+					/*bPersistAcrossLevelTransition=*/false,
+					/*bAutoDestroy=*/false);
+			}
+		}
+		if (PulseTravelAudio != nullptr)
+		{
+			if (bMoving && !PulseTravelAudio->IsPlaying())
+			{
+				PulseTravelAudio->Play();
+				UE_LOG(LogTemp, Display, TEXT("SOUND CraneTravel on"));
+			}
+			else if (!bMoving && PulseTravelAudio->IsPlaying())
+			{
+				PulseTravelAudio->Stop();
+			}
+		}
+		// A RISE IN THE PULSE COUNT is the line landing: one clunk per
+		// craft that just moved, where it now stands.
+		const int32 Pulses = Coordinator->GetPulseCount();
+		if (LastPulseCount >= 0 && Pulses > LastPulseCount)
+		{
+			for (const FLBSpacecraftRuntimeAssignment& Assignment :
+				Coordinator->GetAssignments())
+			{
+				if (const FLBSpacecraftStationRecord* At =
+					BuildAuthority != nullptr
+						? BuildAuthority->FindStation(Assignment.StationId)
+						: nullptr)
+				{
+					PlayWorldCue(FName(TEXT("CraneSetDown")),
+						At->WorldTransform.GetLocation());
+				}
+			}
+		}
+		LastPulseCount = Pulses;
+	}
 }
 
 void ALBSpacecraftWIPPresentationActor::EnsureTileStudio()
