@@ -496,6 +496,24 @@ void ALBSpacecraftProductionAuthority::SellUnitInto(
 	}
 }
 
+bool ALBSpacecraftProductionAuthority::SetWIPCap(int32 NewCap,
+	FString& OutReason)
+{
+	if (NewCap <= 0)
+	{
+		OutReason = TEXT("A FACTORY MUST HOLD AT LEAST ONE CRAFT");
+		return false;
+	}
+	// Craft already on the line are NOT thrown off when the cap drops.
+	// Nothing in the game can sell a carrier today, but if that ever
+	// arrives, the honest behaviour is that the line finishes what it
+	// started and simply admits nothing new until it is under the cap
+	// again - which is exactly what CreateUnit's >= test already does.
+	Ledger.WIPCap = NewCap;
+	OutReason = FString::Printf(TEXT("THE LINE HOLDS %d CRAFT"), NewCap);
+	return true;
+}
+
 int32 ALBSpacecraftProductionAuthority::GetStockedCraftCount() const
 {
 	int32 Count = 0;

@@ -311,11 +311,21 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftFactoryLayoutState
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
 	bool bCommissioned = false;
 
-	/** Gantry cranes on the rails. The hall comes with one; each
-	 *  further crane lets one more craft move per crane trip of a
-	 *  pulse (PULSE_LINE_DESIGN_v001). Capped at line stations - 1. */
+	/** CARRIERS - the motorised transporters craft ride down the line
+	 *  (owner 2026-09-04; the field keeps its old name for save
+	 *  compatibility). One carrier holds one craft for its whole
+	 *  journey, so this count IS the line's WIP cap, and buying
+	 *  another is how a player puts one more craft in build.
+	 *
+	 *  THREE, not one. It was one when a crane could carry any craft
+	 *  and the count only set how many moved per trip; as the WIP cap
+	 *  it has to start where the old flat cap was, or making the limit
+	 *  visible would quietly cut the factory from three craft to one -
+	 *  a large difficulty change nobody asked for, which is exactly
+	 *  what the suite caught when this landed at 1. Capped at line
+	 *  stations - 1: more carriers than places to stand is no use. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
-	int32 GantryCranes = 1;
+	int32 GantryCranes = 3;
 };
 
 UCLASS()
@@ -543,6 +553,15 @@ public:
 
 	// ---- gantry cranes (the pace of the pulse) ----
 	int32 GetCraneCount() const { return FMath::Max(1, Layout.GantryCranes); }
+
+	/** CARRIERS, which is what these actually are since the crane came
+	 *  off on 2026-09-03 and every craft started riding its own stand.
+	 *  Same stored number (the field keeps its old name for save
+	 *  compatibility - renaming working, tested, serialised code for a
+	 *  cosmetic reason is not free), read through a name that says
+	 *  what it means: one motorised carrier per craft on the line, so
+	 *  this count is also the line's WIP cap. */
+	int32 GetCarrierCount() const { return GetCraneCount(); }
 	/** Most cranes this line can use: one per gap between line
 	 *  stations, never fewer than one. */
 	int32 GetMaxCraneCount() const;

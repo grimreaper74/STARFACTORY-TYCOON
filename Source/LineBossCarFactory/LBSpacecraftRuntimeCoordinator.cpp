@@ -278,6 +278,19 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 		Runtime.Assignments.Reset();
 	}
 	Runtime.RouteTopologyHash = NewTopologyHash;
+	// THE CARRIERS ARE THE CAP (2026-09-04, owner's design). A craft
+	// rides its carrier for the whole time it is on the line, so how
+	// many carriers the player owns is how many craft can be in build.
+	// Pushed here because this runs on commissioning and after every
+	// placement, so the cap can never drift from the carriers owned.
+	// The old flat 3 was a rule the player only met as a refusal;
+	// this is the same limit made into a thing they can see, count
+	// and buy another of.
+	{
+		FString CapReason;
+		InProductionAuthority->SetWIPCap(
+			InBuildAuthority->GetCarrierCount(), CapReason);
+	}
 	OutReason.Reset();
 	return true;
 }

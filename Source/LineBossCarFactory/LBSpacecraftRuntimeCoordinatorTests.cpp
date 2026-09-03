@@ -545,7 +545,7 @@ bool FLBSpacecraftPulseTogetherTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPulseCranesTest,
-	"LineBoss.Spacecraft.RuntimeCoordinator.MoreCranesMakeAShorterPulse",
+	"LineBoss.Spacecraft.RuntimeCoordinator.MoreCarriersHoldMoreCraftAndDeliverSooner",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
@@ -555,6 +555,7 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 	FString Reason;
 	double Seconds[2] = { 0.0, 0.0 };
 	int32 Pulses[2] = { 0, 0 };
+	int32 OnLine[2] = { 0, 0 };
 	for (int32 Variant = 0; Variant < 2; ++Variant)
 	{
 		FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
@@ -562,8 +563,8 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 			PlaceAndCommissionSpacecraftLine(Rig, Reason));
 		if (Variant == 1)
 		{
-			// One crane per gap: buy up to the cap (one fewer than the
-			// positions on the line, booth included), then one more.
+			// Buy carriers up to the cap (one fewer than the positions
+			// on the line, booth included), then try one more.
 			FString Earn;
 			const int32 Cap = Rig.Build->GetMaxCraneCount();
 			TestTrue(TEXT("the rig has gaps to fill"), Cap >= 3);
@@ -587,24 +588,36 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 		// A long trip so the difference is unmistakable against the
 		// stop times.
 		Rig.Coordinator->CraneTripSeconds = 30.f;
+		// FIVE craft, more than either line can hold at once, so the
+		// carrier count is what decides how many run in parallel - with
+		// three the difference would be invisible, because the starting
+		// three carriers already hold three.
 		TestTrue(TEXT("contract ready"),
-			OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 3, Reason));
+			OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 5, Reason));
+		TestEqual(TEXT("the carriers ARE the WIP cap"),
+			Rig.Production->GetWIPCap(), Rig.Build->GetCarrierCount());
 		bool bSawHold = false;
 		bool bOnPulses = true;
 		int32 MaxOnLine = 0;
-		Seconds[Variant] = RunPulseLineToDelivery(Rig, 3, bSawHold,
+		Seconds[Variant] = RunPulseLineToDelivery(Rig, 5, bSawHold,
 			bOnPulses, MaxOnLine);
+		OnLine[Variant] = MaxOnLine;
 		Pulses[Variant] = Rig.Coordinator->GetPulseCount();
 		Rig.World->DestroyWorld(false);
 	}
-	// Same line, same craft - the only difference is how many craft
-	// each pulse can carry at once, so the crane-per-gap line must
-	// finish sooner. (The pulse COUNT is not pinned: a shorter move
-	// phase shifts when the head admits the next craft, and the run
-	// can need one pulse fewer.) This is the upgrade axis the owner
-	// named (2026-08-29), and the comparison he asked for.
+	// WHAT THE UPGRADE BUYS CHANGED (2026-09-04). While a crane could
+	// carry any craft, buying one shortened the MOVE - ceil(craft /
+	// cranes) trips - and this test pinned that. Now a craft rides its
+	// own carrier for the whole journey, so the count is the WIP CAP:
+	// every craft on the line always has a carrier, every pulse is one
+	// trip, and buying a carrier puts one MORE CRAFT in build instead
+	// of hurrying the ones already there. Same upgrade axis the owner
+	// named (2026-08-29), a better thing bought with it - so the test
+	// pins the new promise rather than the retired one.
 	TestTrue(TEXT("both lines pulsed"), Pulses[0] > 0 && Pulses[1] > 0);
-	TestTrue(TEXT("a crane per gap delivers sooner than one crane"),
+	TestTrue(TEXT("more carriers hold more craft at once"),
+		OnLine[1] > OnLine[0]);
+	TestTrue(TEXT("and a line that holds more craft delivers sooner"),
 		Seconds[1] < Seconds[0]);
 	return true;
 }
