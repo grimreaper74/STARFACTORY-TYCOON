@@ -480,9 +480,25 @@ bool FLBSpacecraftPhase2CatalogueTest::RunTest(const FString& Parameters)
 			|| Definition.StorageCapacityUnits > 0)
 		{
 			// Infrastructure: supplies or stores, never crafts.
-			TestTrue(TEXT("infrastructure families need no research"),
-				FLBSpacecraftResearchCatalogue::GetDefaultStationClasses()
-					.Contains(Definition.DefinitionId));
+			// THE BASE OF EACH KIND IS FREE, and that is the invariant
+			// that matters: research points come from deliveries, and
+			// a delivery needs power to make and somewhere to put what
+			// is bought, so gating the FIRST rack or plant would lock
+			// the game behind itself. An optional bigger MARK of the
+			// same thing is a different case - the player already has
+			// a working yard and is buying a larger one - so since
+			// 2026-09-03 those may be researched. (StorageRackMk2 is
+			// the first; its Mk1 stays free, as this still checks.)
+			const bool bIsBiggerMark =
+				Definition.DefinitionId.ToString().EndsWith(TEXT("Mk2"));
+			if (!bIsBiggerMark)
+			{
+				TestTrue(TEXT("the BASE of every infrastructure family "
+					"needs no research"),
+					FLBSpacecraftResearchCatalogue
+						::GetDefaultStationClasses()
+						.Contains(Definition.DefinitionId));
+			}
 			TestEqual(TEXT("infrastructure families craft nothing"),
 				FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 					Definition.DefinitionId).Num(), 0);
@@ -542,9 +558,13 @@ bool FLBSpacecraftPhase2CatalogueTest::RunTest(const FString& Parameters)
 	// THREE world-map buildings at one scale (owner 2026-08-28): the
 	// ship factory, the parts factory and the power plant.
 	TestEqual(TEXT("three site buildings"), SiteCount, 3);
-	TestEqual(TEXT("thirty-three families (9 route + 18 craft + 3 infra ")
+	// 34 since 2026-09-03: StorageRackMk2 joined the infrastructure
+	// four. Two systems had referenced it by name for weeks as a
+	// condition that could never be true, because the definition was
+	// never written.
+	TestEqual(TEXT("thirty-four families (9 route + 18 craft + 4 infra ")
 		TEXT("+ 3 site)"),
-		ALBSpacecraftBuildAuthority::StationCatalogue().Num(), 33);
+		ALBSpacecraftBuildAuthority::StationCatalogue().Num(), 34);
 
 	// The canonical slice line still commissions with route families only.
 	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
@@ -4012,8 +4032,12 @@ bool FLBSpacecraftPartsMarkTest::RunTest(const FString& Parameters)
 			}
 		}
 	}
-	TestEqual(TEXT("between them the three still open all nine marks"),
-		MarksOpened.Num(), 9);
+	// Nine PARTS marks; the yard's bigger rack rides on HeavyStock too
+	// (2026-09-03) and is not one of them, so it is excluded rather
+	// than quietly inflating the count this test exists to pin.
+	MarksOpened.Remove(FName(TEXT("StorageRackMk2")));
+	TestEqual(TEXT("between them the three still open all nine parts "
+		"marks"), MarksOpened.Num(), 9);
 	return true;
 }
 

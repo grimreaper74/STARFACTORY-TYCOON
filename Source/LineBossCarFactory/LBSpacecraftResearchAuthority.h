@@ -1,7 +1,12 @@
-// Spacecraft-era research unlocks - the last Phase-2 engine seam (one
-// branch for early access; Docs/SPACECRAFT_CONTENT_CATALOGUE_v001.md
-// sections 3 and 5). Unlocks open CONTENT (station families and their
-// recipes), never stat bonuses - the owner's plan is explicit about that.
+// Spacecraft-era research unlocks - the last Phase-2 engine seam.
+// Unlocks open CONTENT (station families, their marks, storage and crew
+// kinds), never stat bonuses. THE RULE AND ITS REASONING LIVE IN
+// Docs/RESEARCH_UNLOCKS_CONTENT_ONLY_v001.md. Until 2026-09-03 this
+// comment cited Docs/SPACECRAFT_CONTENT_CATALOGUE_v001.md, which does
+// not exist in the repository - so the rule shaping every node had no
+// findable source, and a modifier-node proposal nearly went ahead
+// before the comment was noticed. The owner kept the rule; it is
+// written down now.
 //
 // The Manufacturing branch gates the six Phase-2 station families added by
 // the crafting seam: the slice's original five families are free, and each

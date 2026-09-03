@@ -71,11 +71,15 @@ namespace LBSpacecraftResearchPrivate
 		// its own and the player upgrades the part of their factory
 		// that is ACTUALLY their bottleneck first. Same nine marks,
 		// same total ballpark, three real decisions instead of none.
+		// The bigger YARD RACK rides with the heavy stock machinery:
+		// the node is about handling materials at scale, and a yard
+		// that cannot hold what the bigger mills eat is the same
+		// bottleneck seen from the other end.
 		Table.Add(MakeResearchNode(TEXT("Research.Mfg.HeavyStock"),
 			TEXT("Heavy Stock Machinery"), 30,
 			{TEXT("Research.Mfg.T4")},
 			{TEXT("RollingMillMk2"), TEXT("SmelterMk2"),
-				TEXT("StructureFabMk2")}));
+				TEXT("StructureFabMk2"), TEXT("StorageRackMk2")}));
 		Table.Add(MakeResearchNode(TEXT("Research.Mfg.HeavyElectronics"),
 			TEXT("Heavy Electronics"), 30,
 			{TEXT("Research.Mfg.T4")},
@@ -277,7 +281,15 @@ bool FLBSpacecraftResearchCatalogue::ValidateNodeTable(FString& OutReason)
 			// family that crafts nothing.
 			const FName RecipeClass = Unlocked != nullptr
 				? Unlocked->GetRecipeClassId() : StationClass;
-			if (!bRouteMark
+			// STORAGE COUNTS AS CONTENT TOO (2026-09-03). The rule was
+			// written when only crafting families and route marks were
+			// unlockable; a bigger yard rack is neither, and crafts
+			// nothing, but it is plainly a real thing the player
+			// builds. Without this the validator refuses it as
+			// "CRAFTS NOTHING" and the node table fails closed.
+			const bool bStorage = Unlocked != nullptr
+				&& Unlocked->StorageCapacityUnits > 0;
+			if (!bRouteMark && !bStorage
 				&& FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 					RecipeClass).Num() == 0)
 			{

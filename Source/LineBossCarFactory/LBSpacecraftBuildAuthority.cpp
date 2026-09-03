@@ -396,6 +396,27 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			StorageRack.bRouteRequired = false;
 			Out.Add(StorageRack);
 
+			// THE BIGGER RACK (2026-09-03). Two systems already asked
+			// for it by name - the drone fleet's rack detection
+			// (LBSpacecraftDroneFleetAuthority.cpp) and the presenter -
+			// as conditions that could never be true, because the
+			// definition was never written. Planned content that was
+			// half-wired and then forgotten; both call sites work the
+			// moment it exists. Same shape as the Mk1 so a yard reads
+			// as one kind of thing, wider and far deeper in stock, and
+			// earned through research rather than free like the Mk1
+			// (which must stay free - the yard needs somewhere to put
+			// bought goods before any research can be paid for).
+			FLBSpacecraftStationDefinition StorageRackMk2;
+			StorageRackMk2.DefinitionId = FName(TEXT("StorageRackMk2"));
+			StorageRackMk2.DisplayName = TEXT("Storage rack Mk2");
+			StorageRackMk2.FootprintCm = FVector2D(800.f, 1400.f);
+			StorageRackMk2.CostPence = 6500000;
+			StorageRackMk2.MaxCraftEnvelopeCm = FVector::ZeroVector;
+			StorageRackMk2.StorageCapacityUnits = 6000;
+			StorageRackMk2.bRouteRequired = false;
+			Out.Add(StorageRackMk2);
+
 			// THE SHIP FACTORY HALL - the world map's first and only
 			// offering (owner 2026-08-28). The player places this on
 			// the outside map, clicks it to enter, and builds the line
