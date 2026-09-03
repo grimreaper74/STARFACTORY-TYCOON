@@ -723,6 +723,15 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("PalletLoads_v001/%s/%s/StaticMeshes/%s.%s"),
 				*FolderStem, Pallet, Pallet, Pallet))));
 	}
+	// THE CARGO'S OWN FIRST PART (owner's own GPT reference image,
+	// through Meshy image-to-3D, 2026-09-03): a separate small import,
+	// not part of the PalletLoads_v001 batch, so registered on its own
+	// rather than folded into the loop above whose nested path this
+	// asset does not share.
+	StationMeshes.Add(FName(TEXT("Pallet.pallet-thrusterpod")),
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT(
+			"/Game/LineBoss/Candidates/Spacecraft/CargoParts_v001")
+			TEXT("/SM_LB_SC_ThrusterPod_v001.SM_LB_SC_ThrusterPod_v001"))));
 }
 
 UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
@@ -2718,6 +2727,13 @@ void ALBSpacecraftWIPPresentationActor::GetKitPalletCandidates(
 	else if (ComponentId == FName(TEXT("Component.Interior")))
 	{
 		OutPalletKeys = { FName(TEXT("Pallet.pallet-interior")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.ThrusterPods")))
+	{
+		// The real pod (2026-09-03): the kit dolly shows it waiting,
+		// and the hauler's claw carries it, the same as every other
+		// component that has a real pallet load.
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-thrusterpod")) };
 	}
 }
 

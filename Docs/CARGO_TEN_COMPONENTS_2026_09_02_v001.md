@@ -219,3 +219,34 @@ six into the yard, which filled a Cargo head station's shelf with kinds
 it had plenty of and left no room for the hulls it was short of - it
 follows the recipe's kinds and counts now. Still not proven: the
 departure on a frame, and the fitted-part moments.
+
+## Addendum, 2026-09-03: the owner's own thruster pod is in the game
+
+The owner's own GPT reference image (see the chat record) went through
+Meshy's image-to-3D as a `.blend` drop - the first attempt at this part
+that actually reads as a thruster on the render: a plain cylinder, a
+bolted mounting collar at the front, and at the rear a nozzle that
+genuinely flares outward, unlike either of the two text-to-3D tries
+(`CargoParts_v001`, `CargoParts_v003`) that came before it. 14,008
+clean triangles, no materials packed. `Tools/export_meshy_blend_axis_v001.py`
+(new - the .blend counterpart to `export_meshy_glb_v001.py`'s single-axis
+sizing, since the existing `export_meshy_blend_v001.py` sizes by a two-axis
+footprint for buildings, not a part's one defining length) imposed 180 cm
+on its longest axis; `Scripts/import_cargo_thruster_pod_v001.py` imported
+it Nanite-on with the size measured at 180.0 against 180 declared
+(`Saved/Audits/Spacecraft/cargo_thruster_pod_import_v001.json`).
+
+Registered as `Pallet.pallet-thrusterpod` and wired into
+`GetKitPalletCandidates` for `Component.ThrusterPods`, which is the one
+place both the kit dolly's pallet load AND the hauler's carried cargo
+already resolve from - the same mechanism the Scout's six real
+components use. Not yet wired: attaching it directly onto the Cargo
+hull as a fitted part, which needs the hull split (see below).
+
+Proven on a frame (`Saved/Audits/CargoParts_v001_2026_09_03/pod_carry_hero.png`):
+a cargo-lift drone carrying the real pod, slung under its claw, on a
+flight out of the delivery dock - confirming the same registration that
+feeds the kit dolly also feeds the hauler, live, in PIE. Not proven:
+the same pod actually sitting in a station's own kit bay on a frame -
+the five stations checked that same run did not happen to have it in
+view at the zoom used.
