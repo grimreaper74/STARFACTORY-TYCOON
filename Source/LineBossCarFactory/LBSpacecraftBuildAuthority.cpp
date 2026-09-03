@@ -1523,12 +1523,20 @@ int32 ALBSpacecraftBuildAuthority::GetMaxCraneCount() const
 bool ALBSpacecraftBuildAuthority::BuyGantryCrane(
 	ALBSpacecraftProductionAuthority& InLedger, FString& OutReason)
 {
+	// TEXT RESKINNED 2026-09-03 ("don't think we need the cranes") -
+	// the internal name (GantryCranes field, this function's own name,
+	// GantryCraneCostPence) is unchanged for save compatibility and
+	// minimal diff; only the two player-facing reason strings below
+	// changed, to a transfer drive rather than a crane, matching the
+	// removed presentation. "one per gap" is preserved verbatim - the
+	// cap test (RuntimeCoordinatorTests.cpp,
+	// MoreCranesMakeAShorterPulse) asserts on that exact phrase.
 	const int32 Cap = GetMaxCraneCount();
 	if (GetCraneCount() >= Cap)
 	{
 		OutReason = FString::Printf(
-			TEXT("The rails already carry %d crane%s - one per gap "
-				"between line stations; build more stations first"),
+			TEXT("The rails already carry %d transfer drive%s - one per ")
+				TEXT("gap between line stations; build more stations first"),
 			Cap, Cap == 1 ? TEXT("") : TEXT("s"));
 		return false;
 	}
@@ -1538,8 +1546,8 @@ bool ALBSpacecraftBuildAuthority::BuyGantryCrane(
 	}
 	Layout.GantryCranes = GetCraneCount() + 1;
 	OutReason = FString::Printf(
-		TEXT("Gantry crane %d of %d bought - %d craft can move per "
-			"crane trip"),
+		TEXT("Transfer drive %d of %d bought - %d craft can move per ")
+			TEXT("transfer trip"),
 		Layout.GantryCranes, Cap, Layout.GantryCranes);
 	return true;
 }

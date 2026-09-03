@@ -1480,10 +1480,17 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						: FString());
 			}
 		}
-		// THE CRANES (PULSE_LINE_DESIGN_v001). One comes with the hall;
-		// each further crane lets one more craft move per crane trip of
-		// a pulse, up to one per gap between line stations. Offered
-		// only inside the factory, like everything on the line.
+		// THE TRANSFER DRIVES (PULSE_LINE_DESIGN_v001; reskinned
+		// 2026-09-03, "don't think we need the cranes"). Same upgrade
+		// axis as before the visual crane was removed - one comes with
+		// the hall, each further one lets one more craft move per
+		// transfer trip of a pulse, up to one per gap between line
+		// stations - the internal name (GantryCrane tag, GetCraneCount,
+		// GantryCraneCostPence) is unchanged for save compatibility;
+		// only what the player reads changed, since "buy a gantry
+		// crane" stopped making sense the moment there was no longer a
+		// crane on screen to buy. Offered only inside the factory, like
+		// everything on the line.
 		if (!bOnSiteMap && GameMode->GetBuildAuthority() != nullptr)
 		{
 			const ALBSpacecraftBuildAuthority* CraneBuild =
@@ -1491,9 +1498,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			const int32 Have = CraneBuild->GetCraneCount();
 			const int32 Cap = CraneBuild->GetMaxCraneCount();
 			AddSectionLabel(LOCTEXT("SectionCranes",
-				"THE LINE - GANTRY CRANES").ToString());
+				"THE LINE - TRANSFER DRIVES").ToString());
 			AddTaggedButton(FText::Format(
-				LOCTEXT("CraneRow", "Gantry crane  ({0} of {1})"),
+				LOCTEXT("CraneRow", "Transfer drive  ({0} of {1})"),
 				FText::AsNumber(Have), FText::AsNumber(Cap)).ToString(),
 				FName(TEXT("GantryCrane")),
 				[this](FName InTag) { HandleBuyCrane(); },
@@ -1502,7 +1509,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						"one per gap - build more stations for more")
 						.ToString()
 					: FText::Format(LOCTEXT("CraneNext",
-						"{0}   +1 lets {1} craft move per crane trip"),
+						"{0}   +1 lets {1} craft move per transfer trip"),
 						FText::FromString(
 							ULBSpacecraftTopBarWidget::FormatCurrency(
 								ALBSpacecraftBuildAuthority

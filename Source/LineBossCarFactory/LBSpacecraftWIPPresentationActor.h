@@ -614,25 +614,6 @@ public:
 	 *  holds through the middle where the work happens, and lowers over
 	 *  the last. Eased at both ends - a lift that snapped would read as
 	 *  a teleport. Pure and deterministic. */
-	/** How high the craft rides while the gantry crane carries it
-	 *  between stations, in cm. Enough to clear the station cradles and
-	 *  the parts bins it passes over, and to read as CARRIED rather
-	 *  than as hovering. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
-	float CraneCarryRiseCm = 260.f;
-
-	/** How fast the gantry travels along the line, cm/s. A gantry runs
-	 *  on rails, so this is the ONLY axis it moves on. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
-	float CraneTravelSpeedCmS = 900.f;
-
-	/** The carry height at a point in a station's cycle: zero while the
-	 *  craft is parked, then rise, hold and set down across the slide
-	 *  window. Pure so the choreography is testable without a world -
-	 *  the same reason ComputeStationLiftCm is. */
-	static float ComputeCraneCarryCm(float Progress01, float SlideStart,
-		float CarryCm);
-
 	/** Does this station's own shelf hold that component right now? */
 	bool HasKitComponent(FName StationId, FName ComponentId) const;
 
@@ -891,6 +872,24 @@ private:
 	};
 	TMap<FName, FLBSpacecraftGearSet> UnitGear;
 
+	/** THE CRAFT'S OWN STAND (2026-09-03, replacing the gantry crane):
+	 *  a flat platform attached under a unit's primary visual component
+	 *  the moment it first appears on the line, sized to the craft's
+	 *  own bounds. It travels with the craft for its whole time on the
+	 *  line - through every station's own four-post working lift
+	 *  (unchanged, unrelated - that still raises the craft AND its
+	 *  stand together for the ground crew) and every pulse's slide to
+	 *  the next station - and is destroyed when the unit departs. A
+	 *  fresh one is made for whichever craft is admitted next, so a new
+	 *  stand reads as appearing at the head of the line the moment the
+	 *  previous occupant's has moved on, without any separate idle-prop
+	 *  bookkeeping. Hue-free blockout (MakeBlockComponent) until a real
+	 *  asset replaces it - blockout first when a model is missing, the
+	 *  same rule every other stand-in in this file follows. */
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> UnitStands;
+	UStaticMeshComponent* MakeUnitStand(UStaticMeshComponent* CraftComponent,
+		FName UnitId);
+
 	/** Builds the three gear legs under a craft mesh component. Draws
 	 *  nothing at all if the primitives are unavailable - never a
 	 *  half-built undercarriage. */
@@ -1080,49 +1079,26 @@ private:
 	TObjectPtr<class UInstancedStaticMeshComponent> HallTrussInstances;
 	TObjectPtr<class UInstancedStaticMeshComponent> HallLightInstances;
 
-	/** The gantry itself, held separately from the rest of the hall
-	 *  furniture because it is the only piece that MOVES. */
-	/** Every portal standing on the line's track. One per gap, or one
-	 *  for the whole line - the count is switchable while the two are
-	 *  compared in play (owner 2026-08-29, "will have to test each"). */
-	TArray<TWeakObjectPtr<UStaticMeshComponent>> HallCranes;
-
-	/** Idle post of each crane in HallCranes, index for index. */
-	/** Per-crane park position and travel axis: cranes ride the rails
-	 *  of the track LEG they serve (owner 2026-09-01: "if i place a
-	 *  station at the top the crane isnt over it" - the old rig was a
-	 *  single hall-centre column that ignored where the line ran). */
-	TArray<FVector> HallCraneParkCm;
-	TArray<bool> HallCraneAxisAlongY;
-
-	/** The crane TickHallCrane is currently driving - the one nearest
-	 *  the craft being carried. The hoist rig hangs off this one. */
-	TWeakObjectPtr<UStaticMeshComponent> HallCrane;
-
-	/** Hoist block and its two cables, made once and repositioned. */
-	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoist;
-
-	/** One hoist rig (block + two cables, three entries) PER CRANE,
-	 *  flat, index = crane * 3. Rebuilt when the crane count changes. */
-	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoists;
-
-	/** EVERY craft in transit this frame, published by RefreshUnits.
-	 *  With a crane per gap a pulse carries several at once, and each
-	 *  crane takes the nearest unclaimed one (PULSE_LINE_DESIGN_v001). */
-	TArray<FVector> CarriedCraftsCm;
-
-	/** Where the crane must be, published by RefreshUnits - the one
-	 *  place that knows where a carried craft is. Deriving it a second
-	 *  time in the crane tick would let the two disagree, and the crane
-	 *  would drift off the thing it is supposed to be holding. */
-	FVector CarriedCraftAtCm = FVector::ZeroVector;
-	bool bCraftIsCarried = false;
-	FVector HallCraneParkAtCm = FVector::ZeroVector;
-	bool bHallCraneAxisAlongY = true;
-
-	/** Moves the gantry along the line and hangs its hoist on whatever
-	 *  craft is in transit. */
-	void TickHallCrane(float DeltaSeconds);
+	/** THE CRANE IS GONE (2026-09-03: owner - "don't think we need the
+	 *  cranes... the whole [transfer] should move with the ship stands
+	 *  so a new stand will appear in station one after it's moved out
+	 *  in sync"). It used to be here: a portal gantry that chased a
+	 *  published craft position without ever actually carrying it (the
+	 *  craft's own rise-carry-descend arc and the crane mesh were two
+	 *  independently-driven systems only choreographed to look
+	 *  connected). Removed along with HallCranes, HallCraneParkCm,
+	 *  HallCraneAxisAlongY, HallCrane, HallCraneHoist(s), HallCraneAudio,
+	 *  HallCraneWasBusy, TickHallCrane, and the published
+	 *  CarriedCraftsCm/CarriedCraftAtCm/bCraftIsCarried fields that
+	 *  existed only to feed it. The pulse timing and the crane-count
+	 *  PURCHASE economy this fed (BuildAuthority::GantryCranes,
+	 *  BuyGantryCrane, GetCraneCount, CraneTripSeconds) are UNCHANGED -
+	 *  that is a real, tested throughput upgrade axis the owner asked
+	 *  for on 2026-08-29 and this evening's ask was about the visible
+	 *  mechanism, not the economy. See UnitStands below for what
+	 *  replaced the visual: every craft now travels on its own stand
+	 *  for its whole time on the line, sliding at a constant rail
+	 *  height instead of being lifted and carried. */
 
 	// ---- THE FACTORY'S VOICE (Docs/AUDIO_INTAKE_2026_09_02_v001.md) ----
 	// The module had no audio at all until 2026-09-02. Every cue here is
@@ -1130,19 +1106,6 @@ private:
 	// the waves still cooks and runs, only silent. The presenter plays
 	// WORLD cues (it is the one place that knows where things are);
 	// interface cues live with the panel and the pawn.
-	/** One looping crane-travel component per crane, index for index
-	 *  with HallCranes; started while the crane has a job. */
-	// UPROPERTY on every one of these (packaged crash, 2026-09-02, cycle
-	// 12: EXCEPTION_ACCESS_VIOLATION in FAudioDevice::PlaySoundAtLocation
-	// under PlayWorldCue from TickHallCrane). The same family as the
-	// mesh-cache purge: the editor keeps assets alive, the packaged
-	// game's garbage collector does not, and an unreflected TObjectPtr
-	// hands the audio device a freed sound.
-	UPROPERTY()
-	TArray<TObjectPtr<UAudioComponent>> HallCraneAudio;
-	/** Whether each crane was busy last frame - the set-down one-shot
-	 *  fires on the busy-to-idle edge. */
-	TArray<bool> HallCraneWasBusy;
 	/** The hall's room tone, playing whenever the view is inside. */
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> HallAmbienceAudio;
