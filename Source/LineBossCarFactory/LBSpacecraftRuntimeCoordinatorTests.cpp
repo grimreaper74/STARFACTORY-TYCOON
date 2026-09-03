@@ -1154,4 +1154,115 @@ bool FLBSpacecraftRemoveLiveRouteStationTest::RunTest(
 	return true;
 }
 
+// FOUND BY AUDIT (2026-09-03, integration gap audit round 3): the
+// station-quality defect read used to look at the station's LIVE crew
+// whenever TryAdvanceAssignment happened to run - which for a non-final
+// station only happens once the whole line pulses, a real gap of one or
+// more ticks after the station's own stop actually finished. A player
+// could dismiss a just-finished station's crew in that window (rational
+// - they're idle, waiting on a slower station) and have the craft
+// unfairly charged defects for work a full crew actually did. Fixed by
+// snapshotting crew at the exact instant a stop completes
+// (Assignment.SnapshotInstalledDrones/SnapshotInstalledDroneTypes) and
+// reading THAT in the later defect calculation instead of the live
+// station record.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftCrewSnapshotSurvivesDismissalTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.DismissingCrewAfterAStopFinishesDoesNotRetroactivelyChangeItsQuality",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftCrewSnapshotSurvivesDismissalTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready, nominally crewed (2 drones per station)"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-CREW1"), 1, Reason));
+
+	// Tick until the FIRST station's stop completes - a single unit at
+	// RouteIndex 0 is enough to flip the line to Moving (bAllComplete
+	// only checks non-final assignments), giving a real multi-tick
+	// window before the pulse actually resolves it.
+	int32 Guard = 0;
+	while (Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+		if (Rig.Coordinator->GetAssignments().Num() == 1
+			&& Rig.Coordinator->GetAssignments()[0].bStopComplete)
+		{
+			break;
+		}
+	}
+	TestEqual(TEXT("one unit assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const FLBSpacecraftRuntimeAssignment FirstStop =
+		Rig.Coordinator->GetAssignments()[0];
+	TestTrue(TEXT("its first stop is complete"), FirstStop.bStopComplete);
+	TestEqual(TEXT("the snapshot captured the nominal crew that did "
+		"the work"), FirstStop.SnapshotInstalledDrones, 2);
+	const FName UnitId = FirstStop.UnitId;
+	const FName StationId = FirstStop.StationId;
+
+	// DISMISS THE CREW NOW - after the stop finished, before the pulse
+	// that will actually read it. A rational player move: this
+	// station is done and idle, waiting on the others.
+	TestTrue(TEXT("first drone dismissed"),
+		Rig.Build->RemoveStationDrone(StationId, Reason));
+	TestTrue(TEXT("second drone dismissed"),
+		Rig.Build->RemoveStationDrone(StationId, Reason));
+	const FLBSpacecraftStationRecord* Record =
+		Rig.Build->FindStation(StationId);
+	TestNotNull(TEXT("station still exists"), Record);
+	if (Record != nullptr)
+	{
+		TestEqual(TEXT("the station is genuinely uncrewed now"),
+			Record->InstalledDrones, 0);
+	}
+
+	// Tick until the pulse actually resolves this assignment (it moves
+	// off RouteIndex 0, or dispatches if the line is that short).
+	Guard = 0;
+	while (Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+		const FLBSpacecraftRuntimeAssignment* Still =
+			nullptr;
+		for (const FLBSpacecraftRuntimeAssignment& A :
+			Rig.Coordinator->GetAssignments())
+		{
+			if (A.UnitId == UnitId)
+			{
+				Still = &A;
+			}
+		}
+		if (Still == nullptr || Still->RouteIndex != FirstStop.RouteIndex)
+		{
+			break; // moved on (or dispatched, if the line were length 1)
+		}
+	}
+
+	const FLBSpacecraftUnitState* Unit = Rig.Production->FindUnit(UnitId);
+	TestNotNull(TEXT("the unit still exists"), Unit);
+	if (Unit != nullptr)
+	{
+		TestEqual(TEXT("NO DEFECTS: the crew that did the work was "
+			"nominal, and dismissing them afterward must not "
+			"retroactively charge the craft as if they were never "
+			"there"), Unit->DefectPoints, 0);
+	}
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

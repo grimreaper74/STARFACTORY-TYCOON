@@ -782,17 +782,23 @@ ALBSpacecraftBuildAuthority::DroneKinds()
 float ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
 	const FLBSpacecraftStationRecord& Record)
 {
-	if (Record.InstalledDroneTypes.Num() == 0)
+	return ComputeTypedCrewQuality(Record.InstalledDroneTypes);
+}
+
+float ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
+	const TArray<FName>& InstalledDroneTypes)
+{
+	if (InstalledDroneTypes.Num() == 0)
 	{
 		return 1.f;   // untyped or empty: nominal, changes nothing
 	}
 	float Total = 0.f;
-	for (const FName& KindId : Record.InstalledDroneTypes)
+	for (const FName& KindId : InstalledDroneTypes)
 	{
 		const FLBSpacecraftDroneKind* Kind = FindDroneKind(KindId);
 		Total += Kind != nullptr ? Kind->QualityWeight : 1.f;
 	}
-	return Total / static_cast<float>(Record.InstalledDroneTypes.Num());
+	return Total / static_cast<float>(InstalledDroneTypes.Num());
 }
 
 const FLBSpacecraftDroneKind* ALBSpacecraftBuildAuthority::FindDroneKind(

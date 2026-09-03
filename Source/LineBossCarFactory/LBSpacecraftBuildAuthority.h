@@ -516,6 +516,15 @@ public:
 	 *  accident. */
 	static float ComputeTypedCrewQuality(
 		const FLBSpacecraftStationRecord& Record);
+	/** Same computation from a raw kind list, for a SNAPSHOT of crew
+	 *  taken at stop-complete time rather than the station's live
+	 *  record (2026-09-03 audit: the defect read used to run against
+	 *  whatever crew happened to be installed whenever it got around
+	 *  to running - which for a non-final station is only once the
+	 *  whole line pulses, tens of seconds to minutes after the crew
+	 *  that actually did the work). */
+	static float ComputeTypedCrewQuality(
+		const TArray<FName>& InstalledDroneTypes);
 
 	/** The station's current work bonus (1.0 for unknown stations -
 	 *  the route never stalls on a lookup miss). */

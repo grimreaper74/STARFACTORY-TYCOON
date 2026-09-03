@@ -175,6 +175,120 @@ bool FLBSpacecraftSaveRoundTripTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+// FOUND BY AUDIT (2026-09-03, integration gap audit round 3): the
+// MidFlightRoundTripRestoresExactly fixture above (30 fixed ticks at
+// dt=5.0) genuinely passes through Phase==Moving several times along
+// the way, but deterministically always lands back on Phase==Stopped
+// by the time it actually saves - so the "pulse fields carried through
+// Runtime wholesale" this document's own design doc claims was proven
+// had never actually been tested against a save landing mid-transit.
+// A manual quicksave has no phase gate (confirmed: grepped for an
+// autosave system, none exists) and the default single-crane
+// configuration spends several real seconds of every pulse in Moving
+// whenever more than one craft is in flight - not a contrived edge
+// case. This test drives to Phase==Moving directly (rather than
+// hoping a fixed tick count lands there) and saves in that exact
+// window.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftSaveDuringMoveRoundTripTest,
+	"LineBoss.Spacecraft.SaveLoad.MidMoveRoundTripResolvesThePulseExactlyOnce",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftSaveDuringMoveRoundTripTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftSaveGameTestsPrivate;
+	FLBSpacecraftSaveRig Rig = MakeSpacecraftSaveRig();
+	FString Reason;
+
+	TestTrue(TEXT("canonical line sets up"),
+		ALBSpacecraftGameMode::SetupCanonicalLine(*Rig.Build, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	// Quantity 2: a single unit can flip Phase to Moving (it is the
+	// only non-final mover), but a second one in flight means the
+	// restored coordinator has real work left to do post-load, which
+	// is the more convincing proof the pulse resolves cleanly rather
+	// than trivially.
+	TestTrue(TEXT("contract starts"),
+		ALBSpacecraftGameMode::StartScoutContract(*Rig.Production, 2,
+			Reason));
+
+	// Tick until the line is GENUINELY mid-transit, then stop - not a
+	// guessed tick count, the actual phase. (Not gated on assignments
+	// existing yet: at the very start there are none, and the first
+	// unit is only admitted a few ticks in.)
+	int32 Guard = 0;
+	while (Rig.Coordinator->GetPulseProgress01() == 0.f && Guard++ < 60)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	const float SavedProgress = Rig.Coordinator->GetPulseProgress01();
+	TestTrue(TEXT("genuinely mid-move at save time"), SavedProgress > 0.f
+		&& SavedProgress < 1.f);
+	const int32 SavedPulseCount = Rig.Coordinator->GetPulseCount();
+	const int32 SavedAssignments = Rig.Coordinator->GetAssignments().Num();
+
+	TestTrue(TEXT("save succeeds mid-move"),
+		FLBSpacecraftSavePipeline::SaveToSlot(Rig.Context(),
+			SpacecraftTestSlot, Reason));
+
+	// Diverge hard: run the line well past this pulse and, ideally,
+	// into a later one.
+	for (int32 Tick = 0; Tick < 20; ++Tick)
+	{
+		TestTrue(TEXT("tick runs"),
+			Rig.Coordinator->TickProduction(5.0, Reason));
+	}
+
+	TestTrue(TEXT("load rolls the pulse back to the saved mid-move "
+		"instant"),
+		FLBSpacecraftSavePipeline::LoadFromSlot(Rig.Context(),
+			SpacecraftTestSlot, Reason));
+	TestEqual(TEXT("pulse progress restored exactly"),
+		Rig.Coordinator->GetPulseProgress01(), SavedProgress);
+	TestEqual(TEXT("pulse count restored"),
+		Rig.Coordinator->GetPulseCount(), SavedPulseCount);
+	TestEqual(TEXT("assignment count restored"),
+		Rig.Coordinator->GetAssignments().Num(), SavedAssignments);
+	TestTrue(TEXT("restored runtime validates"),
+		Rig.Coordinator->ValidateRuntime(
+			Rig.Coordinator->CaptureRuntime(), Reason));
+
+	// Resuming must resolve the PENDING pulse exactly once - no
+	// double-admission (PulseCount jumping by more than the number of
+	// pulses that actually complete) and no stall.
+	int32 PulseCountAfter = SavedPulseCount;
+	Guard = 0;
+	while (PulseCountAfter == SavedPulseCount && Guard++ < 40)
+	{
+		TestTrue(TEXT("post-load tick runs"),
+			Rig.Coordinator->TickProduction(5.0, Reason));
+		PulseCountAfter = Rig.Coordinator->GetPulseCount();
+	}
+	TestEqual(TEXT("the pending pulse resolved exactly once"),
+		PulseCountAfter, SavedPulseCount + 1);
+
+	// And the line goes on to actually finish the contract - the
+	// restored mid-move state is not just structurally valid, it is
+	// alive.
+	Guard = 0;
+	while (Rig.Production->GetUnits().Num() < 2 && Guard++ < 20)
+	{
+		TestTrue(TEXT("head admits the second unit eventually"),
+			Rig.Coordinator->TickProduction(5.0, Reason));
+	}
+	TestEqual(TEXT("both units of the contract were admitted - no "
+		"skipped admission from a mishandled restore"),
+		Rig.Production->GetUnits().Num(), 2);
+
+	UGameplayStatics::DeleteGameInSlot(SpacecraftTestSlot, 0);
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftSaveFailClosedTest,
 	"LineBoss.Spacecraft.SaveLoad.MissingAndForeignSlotsFailClosed",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

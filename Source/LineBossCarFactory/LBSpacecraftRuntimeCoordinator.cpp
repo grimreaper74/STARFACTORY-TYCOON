@@ -632,15 +632,26 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 				: nullptr;
 		if (CrewRecord != nullptr && CrewDefinition != nullptr)
 		{
+			// THE SNAPSHOT, not the station's live record (2026-09-03
+			// audit): this block can run tens of seconds to minutes
+			// after the crew that actually did the work, once the
+			// whole line pulses - reading live let a player dismiss a
+			// finished station's crew (rational, they're idle) and get
+			// unfairly charged, or install crew just ahead of the
+			// pulse to buy a clean read for work done uncrewed. Only
+			// DroneSlotCount (the station's fixed catalog capacity,
+			// not per-instance state) still comes from the live
+			// definition.
+			//
 			// The crew's SIZE and its CHARACTER both count: a station
 			// short of drones rushes the fit, and a crew of winches
 			// bodges where a crew of sprays would not.
 			const int32 Points =
 				FLBSpacecraftProductionCatalog::DefectPointsForCrewQuality(
-					CrewRecord->InstalledDrones,
+					Assignment.SnapshotInstalledDrones,
 					CrewDefinition->DroneSlotCount,
 					ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
-						*CrewRecord));
+						Assignment.SnapshotInstalledDroneTypes));
 			FString DefectReason;
 			if (!ProductionAuthority->AccrueDefects(Assignment.UnitId,
 				Points, DefectReason))
@@ -661,9 +672,10 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 			// Without this the feature ate the end-of-line quality
 			// gate entirely: every defect was caught and reworked in
 			// place, so no craft could ever fail its hover test.
-			const bool bSomeoneIsWatching = CrewRecord->InstalledDrones > 0
+			const bool bSomeoneIsWatching =
+				Assignment.SnapshotInstalledDrones > 0
 				&& ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
-					*CrewRecord) >= 0.9f;
+					Assignment.SnapshotInstalledDroneTypes) >= 0.9f;
 			if (Points > 0 && bSomeoneIsWatching)
 			{
 				FString ReworkReason;
@@ -840,9 +852,30 @@ bool ALBSpacecraftRuntimeCoordinator::TickProduction(double DeltaSeconds,
 					+ static_cast<float>(DeltaSeconds) * WorkBonus,
 				Cycle);
 		}
-		if (Cycle > 0.f && Assignment.CycleElapsedSeconds >= Cycle)
+		if (Cycle > 0.f && Assignment.CycleElapsedSeconds >= Cycle
+			&& !Assignment.bStopComplete)
 		{
 			Assignment.bStopComplete = true;
+			// SNAPSHOT THE CREW RIGHT HERE - see the field comment on
+			// SnapshotInstalledDrones. The later defect read (in
+			// TryAdvanceAssignment, once the pulse actually processes
+			// this assignment) uses this, not the station's live
+			// record.
+			Assignment.SnapshotInstalledDrones = 0;
+			Assignment.SnapshotInstalledDroneTypes.Reset();
+			if (BuildAuthority != nullptr
+				&& Route.IsValidIndex(Assignment.RouteIndex))
+			{
+				if (const FLBSpacecraftStationRecord* CrewRecord =
+					BuildAuthority->FindStation(
+						Route[Assignment.RouteIndex].StationId))
+				{
+					Assignment.SnapshotInstalledDrones =
+						CrewRecord->InstalledDrones;
+					Assignment.SnapshotInstalledDroneTypes =
+						CrewRecord->InstalledDroneTypes;
+				}
+			}
 		}
 	}
 

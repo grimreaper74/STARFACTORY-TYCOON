@@ -100,8 +100,14 @@ has finished and holds the craft). Save schema bumps to v8; a v7 save
 is refused as today (no migration).
 
 `ValidateRuntime` keeps "two units occupy one station" and adds:
-`Phase == Moving` requires at least one assignment, and no
-assignment may be `bStopComplete` while `Moving`.
+`Phase == Moving` requires at least one assignment that IS
+`bStopComplete` (a mover the pulse is carrying) - not, as this
+document originally and wrongly said, that none may be. Corrected
+2026-09-03 (integration gap audit round 3): the shipped check was
+always the opposite of this paragraph's prose, and rightly so - the
+Stopped-to-Moving transition only fires once every mover already has
+`bStopComplete == true`, so `Moving` with zero complete movers would
+itself be the invalid state.
 
 `TickProduction` becomes:
 

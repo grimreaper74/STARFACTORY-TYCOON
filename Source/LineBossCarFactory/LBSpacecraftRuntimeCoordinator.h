@@ -63,6 +63,22 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftRuntimeAssignment
 	 *  pulse. Cleared when the craft moves (or its stop restarts). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
 	bool bStopComplete = false;
+
+	/** THE CREW THAT ACTUALLY DID THE WORK (2026-09-03 audit): captured
+	 *  the instant bStopComplete is set, not read live whenever the
+	 *  defect calculation happens to run. For a non-final station that
+	 *  run can be tens of seconds to minutes later - the whole line
+	 *  waits for its slowest station before the pulse - and until this
+	 *  snapshot existed, a player could dismiss a station's crew the
+	 *  moment it finished (rational: they're idle, reassign them) and
+	 *  have the craft charged defects for work a full crew actually
+	 *  did, or install crew just ahead of the pulse to buy a "clean"
+	 *  read for work done uncrewed. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	int32 SnapshotInstalledDrones = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	TArray<FName> SnapshotInstalledDroneTypes;
 };
 
 USTRUCT(BlueprintType)

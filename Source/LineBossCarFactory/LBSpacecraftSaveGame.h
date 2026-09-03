@@ -41,8 +41,13 @@ public:
 	 *  station nodes).
 	 *  v8 (2026-09-02): the PULSE LINE - line phase, move-phase clock
 	 *  and pulse count on the runtime state, a stop-complete flag per
-	 *  assignment, and the crane count on the layout. */
-	static constexpr int32 CurrentSchemaVersion = 8;
+	 *  assignment, and the crane count on the layout.
+	 *  v9 (2026-09-03): a per-assignment crew snapshot (installed drone
+	 *  count and kind list), captured at stop-complete time so the
+	 *  later defect read can't be gamed by dismissing or installing
+	 *  crew in the window between a stop finishing and the pulse that
+	 *  actually reads it. */
+	static constexpr int32 CurrentSchemaVersion = 9;
 
 	UPROPERTY()
 	int32 SchemaVersion = CurrentSchemaVersion;
