@@ -1128,6 +1128,98 @@ int32 ALBSpacecraftRuntimeCoordinator::CountStopComplete() const
 	return Count;
 }
 
+bool ALBSpacecraftRuntimeCoordinator::GetPaceSetter(
+	FLBSpacecraftPaceSetter& Out) const
+{
+	using namespace LBSpacecraftRuntimeCoordinatorPrivate;
+	Out = FLBSpacecraftPaceSetter();
+	if (!IsConfigured() || BuildAuthority == nullptr
+		|| ProductionAuthority == nullptr)
+	{
+		return false;
+	}
+	// WHICH CRAFT'S PACE? The one on the line, or - before anything is
+	// started - the one the oldest accepted contract asks for, so the
+	// answer is useful while the player is still laying stations out
+	// rather than only once production runs.
+	FName RecipeId;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Runtime.Assignments)
+	{
+		if (const FLBSpacecraftUnitState* Unit =
+			ProductionAuthority->FindUnit(Assignment.UnitId))
+		{
+			RecipeId = Unit->RecipeId;
+			break;
+		}
+	}
+	if (RecipeId.IsNone())
+	{
+		for (const FLBSpacecraftContract& Contract :
+			ProductionAuthority->GetContracts())
+		{
+			if (Contract.State == ELBSpacecraftContractState::Accepted)
+			{
+				RecipeId = Contract.RecipeId;
+				break;
+			}
+		}
+	}
+	FLBSpacecraftRecipe Recipe;
+	if (RecipeId.IsNone()
+		|| !FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe))
+	{
+		return false;
+	}
+	// Every station's stop, crew included. Any pre-Testing stage takes
+	// the share path (the helper only branches at Testing and beyond,
+	// where a craft flies its own test in place rather than taking a
+	// stop the pulse waits on), so Assembly stands for "fitting" here.
+	bool bFound = false;
+	for (int32 Index = 0; Index < Route.Num(); ++Index)
+	{
+		const float Cycle = SpacecraftAssignmentCycleSeconds(Recipe,
+			ELBSpacecraftStage::Assembly, Index, Route.Num(),
+			BuildAuthority, Route);
+		if (Cycle <= 0.f)
+		{
+			continue;
+		}
+		const float Bonus = FMath::Max(
+			BuildAuthority->GetStationWorkBonus(Route[Index].StationId),
+			KINDA_SMALL_NUMBER);
+		const float Stop = Cycle / Bonus;
+		if (Stop > Out.StopSeconds)
+		{
+			Out.RunnerUpStationId = Out.StationId;
+			Out.RunnerUpSeconds = Out.StopSeconds;
+			Out.StationId = Route[Index].StationId;
+			Out.StopSeconds = Stop;
+			bFound = true;
+		}
+		else if (Stop > Out.RunnerUpSeconds)
+		{
+			Out.RunnerUpStationId = Route[Index].StationId;
+			Out.RunnerUpSeconds = Stop;
+		}
+	}
+	if (!bFound)
+	{
+		return false;
+	}
+	if (const FLBSpacecraftStationRecord* Record =
+		BuildAuthority->FindStation(Out.StationId))
+	{
+		const FLBSpacecraftStationDefinition* Definition =
+			ALBSpacecraftBuildAuthority::FindDefinition(
+				Record->DefinitionId);
+		Out.bProcessStation =
+			Definition != nullptr && Definition->bProcessStation;
+	}
+	Out.PulseSeconds = Out.StopSeconds + GetMoveSeconds();
+	return true;
+}
+
 float ALBSpacecraftRuntimeCoordinator::GetMoveSeconds() const
 {
 	// ceil(craft to move / cranes) trips. Never zero: an empty pulse

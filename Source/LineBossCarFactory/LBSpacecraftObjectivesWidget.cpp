@@ -362,6 +362,46 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 					.ToString(), false);
 		}
 	}
+	// THE PACE-SETTER (2026-09-03). Both benchmarks let a player look
+	// at the floor and see where the problem is; this game had OEE
+	// numbers and no answer to "what is holding me up". On a pulse line
+	// the answer is exact - every station waits for the slowest one -
+	// so it is stated plainly, with the GAP to the runner-up, because
+	// that gap is all that fixing it would actually win before another
+	// station takes over as the bottleneck.
+	if (GameMode->GetCoordinator() != nullptr)
+	{
+		FLBSpacecraftPaceSetter Pace;
+		if (GameMode->GetCoordinator()->GetPaceSetter(Pace))
+		{
+			AddLine(FText::Format(
+				LOCTEXT("PaceSetter",
+					"PACE: {0} sets it at {1}s of every {2}s pulse"),
+				FText::FromName(Pace.StationId),
+				FText::AsNumber(FMath::RoundToInt(Pace.StopSeconds)),
+				FText::AsNumber(FMath::RoundToInt(Pace.PulseSeconds)))
+					.ToString(), false);
+			// Only worth advising when there is something to win: if the
+			// runner-up is right behind, the line is already balanced
+			// and telling the player to fix this station would be a lie.
+			const float Gain = Pace.StopSeconds - Pace.RunnerUpSeconds;
+			if (Gain >= 1.f)
+			{
+				AddLine(FText::Format(
+					Pace.bProcessStation
+						// A booth takes what it takes - there is no
+						// fitting order on it to split.
+						? LOCTEXT("PaceProcess",
+							"  up to {0}s per craft if it were not the "
+							"slowest - crew cannot hurry a process")
+						: LOCTEXT("PaceAdvice",
+							"  up to {0}s per craft back by crewing it "
+							"or splitting its fitting order"),
+					FText::AsNumber(FMath::RoundToInt(Gain)))
+						.ToString(), false);
+			}
+		}
+	}
 	struct FLBSpacecraftObjectiveRow
 	{
 		int32 Needed;

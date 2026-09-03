@@ -1265,4 +1265,84 @@ bool FLBSpacecraftCrewSnapshotSurvivesDismissalTest::RunTest(
 	return true;
 }
 
+// THE PACE-SETTER (2026-09-03). On a pulse line every station waits for
+// the slowest one, so naming that station - and the gap to the next
+// slowest, which is what fixing it would actually win - is the single
+// most actionable thing the game can tell a player. This pins that the
+// readout is real: it names a station on the route, its arithmetic
+// agrees with the pulse it predicts, and it RESPONDS to the player's
+// own lever (crew), which is what makes it advice rather than trivia.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPaceSetterTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.ThePaceSetterNamesTheSlowestStationAndAnswersToCrew",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftPaceSetterTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+
+	// BEFORE A SINGLE CRAFT RUNS: the answer comes from an accepted
+	// contract's recipe, so a player laying stations out can already be
+	// told where their pace will come from.
+	FLBSpacecraftPaceSetter Early;
+	TestFalse(TEXT("nothing to pace with no contract and no craft"),
+		Rig.Coordinator->GetPaceSetter(Early));
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-PACE1"), 1, Reason));
+	TestTrue(TEXT("the pace-setter is known before production starts"),
+		Rig.Coordinator->GetPaceSetter(Early));
+
+	// It names a station that is REALLY on the route.
+	bool bOnRoute = false;
+	for (const FLBSpacecraftRouteStep& Step : Rig.Coordinator->GetRoute())
+	{
+		bOnRoute |= Step.StationId == Early.StationId;
+	}
+	TestTrue(TEXT("it names a station on the route"), bOnRoute);
+	TestTrue(TEXT("with a real stop time"), Early.StopSeconds > 0.f);
+	// The runner-up is a different station, and never the slower one.
+	TestNotEqual(TEXT("the runner-up is a different station"),
+		Early.RunnerUpStationId, Early.StationId);
+	TestTrue(TEXT("and is not slower than the pace-setter"),
+		Early.RunnerUpSeconds <= Early.StopSeconds);
+	// The arithmetic it reports is the arithmetic it promises.
+	TestEqual(TEXT("a pulse is the slowest stop plus the move"),
+		Early.PulseSeconds,
+		Early.StopSeconds + Rig.Coordinator->GetMoveSeconds());
+
+	// IT ANSWERS TO CREW. Crewing the pace-setter raises its work bonus,
+	// which shortens its stop - so either it speeds up, or it stops
+	// being the bottleneck at all and the runner-up takes over. Both
+	// are correct; what would be wrong is nothing changing.
+	const FName WasPacing = Early.StationId;
+	const float WasSeconds = Early.StopSeconds;
+	for (int32 Hire = 0; Hire < 4; ++Hire)
+	{
+		FString HireReason;
+		Rig.Build->InstallStationDrone(WasPacing, HireReason);
+	}
+	FLBSpacecraftPaceSetter After;
+	TestTrue(TEXT("still answers after hiring"),
+		Rig.Coordinator->GetPaceSetter(After));
+	const bool bMovedOn = After.StationId != WasPacing;
+	const bool bGotFaster = After.StationId == WasPacing
+		&& After.StopSeconds < WasSeconds;
+	TestTrue(TEXT("crewing the pace-setter either speeds it up or hands "
+		"the bottleneck to another station"), bMovedOn || bGotFaster);
+	// Either way the LINE got faster - that is the player's payoff.
+	TestTrue(TEXT("and the line's pace improved"),
+		After.StopSeconds < WasSeconds + KINDA_SMALL_NUMBER);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
