@@ -347,20 +347,33 @@ red flag about the underlying wiring - the pipeline itself ran clean
 across many full cycles - but it should be looked at on an actual frame
 before calling the visual result decided, per house rule.
 
-**Separate finding, not fixed tonight:** a contract accepted for exactly
-as many units as were force-started can leave an orphaned unit stuck at
-`MaterialIntake` forever. `TryStartUnit`'s own demand scan
-(`LBSpacecraftRuntimeCoordinator.cpp`) only checks
-`Contract.DispatchedCount >= Contract.Quantity`, but `CreateUnit`'s
-`UnclaimedDemand` check (`LBSpacecraftProductionAuthority.cpp`)
-apparently also counts in-flight, undispatched units against that same
-quantity - so a unit that never got a runtime assignment (seen once
-this session, cause not isolated) permanently eats one unit of demand
-against its contract with no way to cancel or clear it. Reproduced
-directly: `LB.Spacecraft.Start 1 CARGO-01 force` before a `DeliveryDock`
-existed left a unit sitting at `MaterialIntake` for over 700 sim-seconds
-with `simAlert: "No accepted contract demand for this recipe"` even
-though nothing else was in flight; a fresh, larger-quantity contract
-worked around it, unclaimed demand never returned to true zero. Worth a
-look on its own - a single-ship contract is an entirely normal thing
-for a real player to accept.
+**Correction, later the same night: the "orphaned unit" above was a false
+alarm, not a bug.** `LB.Spacecraft.Start 1 CARGO-01 force` before a
+`DeliveryDock` existed did leave a unit sitting at `MaterialIntake` with
+0 components produced for a long stretch live in PIE, and the simAlert's
+generic "No accepted contract demand for this recipe" (the wrong reason
+surfacing at the wrong moment - a real, separate small bug in what
+`ApplyLineAlert` shows, not in the coordinator itself) made it read like
+a silent, unexplained stall. It was never one. A deterministic repro
+(`LineBoss.Spacecraft.Phase2.ASingleShipContractHoldsClearlyThenRecovers`,
+`LBSpacecraftPhase2IntegrationTests.cpp`) drives the SAME combination no
+other Cargo test in the suite exercises - components deposited onto
+`Store.Floor` and carried to each station by the real hauler fleet
+through `TickWholeSimStep`, rather than the shortcut every other Cargo
+test in this file takes (pushing stock straight onto each station's own
+shelf and ticking only `Coordinator::TickProduction`, never the drone
+fleet) - and it shows the coordinator's OWN hold reason was exact and
+actionable the entire time: "20 on the floor, but nothing can carry
+them; build a delivery dock or a storage rack, whose drone collects
+parts." Building the dock and giving the SAME unit real time afterward
+lets it finish cleanly - 10/10 components, reaching `Dispatched`. Its
+original contract had by then expired from the long hold, so it settled
+into stock rather than revenue - the existing sell-from-stock safety net
+this project already documented in `Docs/TRANSPORTER_DRONES_2026_09_02_v001.md`
+("a single large forced contract can outrun its own deadline under the
+WIP cap, caught cleanly by the existing sell-from-stock rule") doing
+exactly the job it was built for. Nothing was lost, silently or
+otherwise, at any point. The live session's mistake was moving on to
+fresh contracts within a couple of minutes of adding the dock rather
+than giving the first unit enough sim-time to recover - a testing
+patience problem, not a production one.
