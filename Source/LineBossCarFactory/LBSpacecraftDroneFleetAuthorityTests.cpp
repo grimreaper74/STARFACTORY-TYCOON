@@ -605,4 +605,127 @@ bool FLBSpacecraftHaulerChargesTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+// FOUND BY AUDIT (2026-09-03, integration gap audit round 2): a haul
+// already carrying a station's OLD recipe input, reselected mid-flight
+// to a recipe with wholly disjoint inputs, used to land its full cargo
+// in the station's own shelf anyway - the drop-side re-clamp only
+// re-sizes a want it can still FIND by ItemId, and an item the new
+// recipe never lists at all matches no want, so the loop never touches
+// CarryCount. That stranded the unwanted item occupying capacity the
+// new recipe actually needs, with no reclaim path back (reclaim only
+// finds stock some OTHER live recipe still wants). Fixed to spill to
+// the site overflow yard instead, the same answer the return leg
+// already gives a full rack.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftHaulSurvivesRecipeReselectionTest,
+	"LineBoss.Spacecraft.Drones.AHaulReselectedMidFlightSpillsToOverflowNotTheWrongShelf",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftHaulSurvivesRecipeReselectionTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftDroneFleetTestsPrivate;
+	FLBSpacecraftDroneRig Rig = MakeDroneRig(*this);
+	FString Reason;
+
+	// A SMELTER, not the rig's own mill: Recipe.Steel wants ONLY
+	// Raw.IronOre and Recipe.CopperWire wants ONLY Raw.CopperOre - two
+	// genuinely disjoint-input recipes on the same station class, the
+	// exact shape the audit flagged.
+	// SubAssemblyHall is a 12000x12000 cm building (half-extent 6000);
+	// MakeDroneRig already placed one at (22000, 0, 0), so this one
+	// needs real clearance from it (site buildings share the 30000 cm
+	// site half-extent, not the ship factory's smaller interior).
+	FName SmelterHallId;
+	TestTrue(TEXT("a second sub-assembly hall places"),
+		Rig.Build->PlaceStation(FName(TEXT("SubAssemblyHall")),
+			FTransform(FRotator::ZeroRotator,
+				FVector(22000.f, 14000.f, 0.f)), SmelterHallId, Reason));
+	FName SmelterId;
+	TestTrue(TEXT("a smelter installs"),
+		Rig.Build->InstallInSlot(SmelterHallId, FName(TEXT("Smelter")),
+			SmelterId, Reason));
+	TestTrue(TEXT("the smelter selects steel"),
+		ALBSpacecraftGameMode::SelectStationRecipe(*Rig.Build,
+			*Rig.Crafting, *Rig.Research, SmelterId,
+			FName(TEXT("Recipe.Steel")), Reason));
+	TestTrue(TEXT("a standing order opens"),
+		Rig.Crafting->AddOrder(SmelterId, 99, Reason));
+
+	// A freestanding rack is NOT a site building - it must stand on the
+	// ship factory hall's own interior floor (26000x18000 cm, centred
+	// on the site origin), unlike the SubAssemblyHall above.
+	FName RackId;
+	TestTrue(TEXT("rack places"),
+		Rig.Build->PlaceStation(FName(TEXT("StorageRack")),
+			FTransform(FRotator::ZeroRotator,
+				FVector(4000.f, 0.f, 0.f)), RackId, Reason));
+	Rig.Fleet->SyncFromBuild(Rig.Build, Rig.Power);
+	ALBSpacecraftGameMode::SyncStationStores(*Rig.Build, *Rig.Inventory,
+		Rig.Crafting);
+	const FName RackStore(*FString::Printf(TEXT("Store.%s"),
+		*RackId.ToString()));
+	const FName SmelterShelf(*FString::Printf(TEXT("Store.%s"),
+		*SmelterId.ToString()));
+	const FName IronOre(TEXT("Raw.IronOre"));
+	const FName CopperOre(TEXT("Raw.CopperOre"));
+	const FName Overflow = ALBSpacecraftGameMode::SiteOverflowStoreId();
+
+	TestTrue(TEXT("iron ore lands in the rack"),
+		Rig.Inventory->Deposit(RackStore, IronOre, 4, Reason));
+
+	// Find THIS smelter's own hauler - the rig now has one per rack,
+	// and only the smelter's rack was stocked.
+	Rig.Fleet->TickHauls(0.1, Rig.Crafting, Rig.Inventory, Rig.Build,
+		Rig.Power);
+	int32 HaulIndex = INDEX_NONE;
+	for (int32 Index = 0; Index < Rig.Fleet->GetHauls().Num(); ++Index)
+	{
+		if (Rig.Fleet->GetHauls()[Index].MachineStationId == SmelterId)
+		{
+			HaulIndex = Index;
+			break;
+		}
+	}
+	if (!TestTrue(TEXT("the smelter's hauler plans a delivery"),
+		HaulIndex != INDEX_NONE))
+	{
+		Rig.World->DestroyWorld(false);
+		return false;
+	}
+	const FLBSpacecraftHaulState* Haul = &Rig.Fleet->GetHauls()[HaulIndex];
+	TestEqual(TEXT("it carries iron ore"), Haul->CarryItemId, IronOre);
+	TestEqual(TEXT("out to the smelter"), Haul->MachineStationId,
+		SmelterId);
+	const int32 Carried = Haul->CarryCount;
+	TestTrue(TEXT("it carries something"), Carried >= 1);
+
+	// RESELECT MID-FLIGHT: the smelter now wants copper ore only. The
+	// iron ore already airborne matches nothing in the new recipe.
+	TestTrue(TEXT("the smelter reselects to copper wire"),
+		ALBSpacecraftGameMode::SelectStationRecipe(*Rig.Build,
+			*Rig.Crafting, *Rig.Research, SmelterId,
+			FName(TEXT("Recipe.CopperWire")), Reason));
+	TestTrue(TEXT("a fresh standing order opens for it"),
+		Rig.Crafting->AddOrder(SmelterId, 99, Reason));
+
+	Rig.Fleet->TickHauls(Rig.Fleet->HaulTravelSeconds + 0.1, Rig.Crafting,
+		Rig.Inventory, Rig.Build, Rig.Power);
+
+	TestEqual(TEXT("the unwanted iron ore did NOT land on the "
+		"smelter's own shelf"),
+		Rig.Inventory->GetQuantity(SmelterShelf, IronOre), 0);
+	TestEqual(TEXT("it spilled to the site overflow yard instead"),
+		Rig.Inventory->GetQuantity(Overflow, IronOre), Carried);
+	// The rack itself was never re-stocked with copper ore, so this
+	// proves the drop chose overflow rather than merely refusing.
+	TestEqual(TEXT("nothing wanted copper ore on the smelter's shelf "
+		"either - this was never about the new recipe being fed"),
+		Rig.Inventory->GetQuantity(SmelterShelf, CopperOre), 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

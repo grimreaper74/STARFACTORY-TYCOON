@@ -355,7 +355,7 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 			const int32 Stock = Ledger->GetStockedCraftCount();
 			AddLine(Stock > 0
 				? FText::Format(LOCTEXT("NextSellStock",
-					"NEXT: accept a contract - {0} finished ship(s) sell the moment one is taken"),
+					"NEXT: accept a matching contract - {0} finished ship(s) sell the moment one is taken"),
 					Stock).ToString()
 				: LOCTEXT("NextAccept",
 					"NEXT: accept a contract - the line is idle (Contracts tab)")

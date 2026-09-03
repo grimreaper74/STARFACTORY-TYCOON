@@ -163,6 +163,29 @@ namespace LBSpacecraftHaulPrivate
 			*StationId.ToString()));
 	}
 
+	/** FOUND BY AUDIT (2026-09-03): SyncStationStores only ever
+	 *  registers PER-STATION stores from storage buildings - a comment
+	 *  right beside the dev floor store even says so ("the real game
+	 *  registers stores through storage buildings"). Nothing in
+	 *  ordinary play ever registers the SITE OVERFLOW yard itself, so
+	 *  every real spill into it (a full rack on the return leg; an
+	 *  unwanted item on drop, below) silently failed with TRANSFER
+	 *  PRECONDITIONS FAILED in a genuine playthrough that never
+	 *  happened to run a dev/console command first - only ever proven
+	 *  working via LB.Spacecraft.StockComponents/StockShowComponents,
+	 *  which register it themselves before using it. Lazily ensured
+	 *  right at the point of use instead, the same shape those two
+	 *  already use. */
+	void EnsureOverflowStore(ALBSpacecraftInventoryAuthority& InInventory)
+	{
+		const FName Floor = ALBSpacecraftGameMode::SiteOverflowStoreId();
+		if (!InInventory.HasStore(Floor))
+		{
+			FString Ignored;
+			InInventory.RegisterStore(Floor, 5000, Ignored);
+		}
+	}
+
 	/** Everything a station consumes: the components fitted at a line
 	 *  station, or the inputs of whatever recipe a machine is set to. */
 	/** What a station's shelf should hold of each item, DEMAND-CAPPED.
@@ -255,6 +278,7 @@ namespace LBSpacecraftHaulPrivate
 			// move only at dropoff, so clamping to zero means
 			// nothing moved at all - there is no cargo to
 			// return.
+			bool bWasWanted = false;
 			if (InBuild != nullptr)
 			{
 				if (const FLBSpacecraftStationRecord* DropRecord
@@ -271,6 +295,7 @@ namespace LBSpacecraftHaulPrivate
 						{
 							continue;
 						}
+						bWasWanted = true;
 						const int32 NowShort = FMath::Max(
 							DropWant.TargetUnits
 							- InInventory->GetQuantity(
@@ -283,11 +308,28 @@ namespace LBSpacecraftHaulPrivate
 					}
 				}
 			}
+			// THE STATION'S RECIPE CHANGED IN FLIGHT (found by audit,
+			// 2026-09-03): the item this haul carries does not match
+			// ANY current want, not merely a topped-up one - the
+			// station's shelf was re-clamped above for that case and
+			// this one never touches it. Landing it in the shelf
+			// anyway would strand it there occupying capacity the new
+			// recipe actually needs, with no reclaim path back (reclaim
+			// only finds stock some OTHER live recipe still wants).
+			// Same answer as a full rack on the return leg: spill to
+			// the site overflow yard instead of jamming the wrong
+			// shelf - goods always have somewhere to be.
+			FName DropStoreId = SpacecraftHaulStoreOf(Haul.MachineStationId);
+			if (!bWasWanted)
+			{
+				EnsureOverflowStore(*InInventory);
+				DropStoreId = ALBSpacecraftGameMode::SiteOverflowStoreId();
+			}
 			FString Reason;
 			if (Haul.CarryCount > 0
 				&& !InInventory->Transfer(Haul.SourceStoreId,
-					SpacecraftHaulStoreOf(Haul.MachineStationId),
-					Haul.CarryItemId, Haul.CarryCount, Reason))
+					DropStoreId, Haul.CarryItemId, Haul.CarryCount,
+					Reason))
 			{
 				// Say it rather than swallow it: a delivery
 				// that cannot land is exactly the kind of
@@ -297,7 +339,7 @@ namespace LBSpacecraftHaulPrivate
 					TEXT("HAUL REFUSED %s x%d -> %s: %s"),
 					*Haul.CarryItemId.ToString(),
 					Haul.CarryCount,
-					*Haul.MachineStationId.ToString(), *Reason);
+					*DropStoreId.ToString(), *Reason);
 			}
 	}
 }
@@ -774,7 +816,12 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 					{
 						// The rack is full or absent: SPILL to the site
 						// overflow yard rather than jam the machine.
-						// Goods always have somewhere to be.
+						// Goods always have somewhere to be - which
+						// needs the yard to actually exist first (found
+						// by the 2026-09-03 audit: nothing in ordinary
+						// play ever registered it, so this always
+						// silently failed outside a dev/console run).
+						EnsureOverflowStore(*InInventory);
 						InCrafting->TransferBufferToStore(
 							Haul.MachineStationId, *InInventory,
 							ALBSpacecraftGameMode::SiteOverflowStoreId(),

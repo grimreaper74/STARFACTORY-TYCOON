@@ -885,7 +885,15 @@ private:
 	 *  previous occupant's has moved on, without any separate idle-prop
 	 *  bookkeeping. Hue-free blockout (MakeBlockComponent) until a real
 	 *  asset replaces it - blockout first when a model is missing, the
-	 *  same rule every other stand-in in this file follows. */
+	 *  same rule every other stand-in in this file follows. UPROPERTY
+	 *  is load-bearing here exactly as it is on UnitVisuals above (see
+	 *  its comment: an unmarked TObjectPtr cache crashed a packaged
+	 *  soak on 2026-09-01 when GC freed what a stale latch still
+	 *  pointed at) - found untagged by the 2026-09-03 integration-gap
+	 *  audit, latent rather than reachable today since create/destroy
+	 *  are tightly paired, fixed anyway for the same defense-in-depth
+	 *  reason the file already states. */
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> UnitStands;
 	UStaticMeshComponent* MakeUnitStand(UStaticMeshComponent* CraftComponent,
 		FName UnitId);

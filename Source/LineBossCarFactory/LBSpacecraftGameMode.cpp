@@ -273,11 +273,19 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 				&& !ExpiredContractsAnnounced.Contains(Contract.ContractId))
 			{
 				ExpiredContractsAnnounced.Add(Contract.ContractId);
+				// Named to the recipe (found by the 2026-09-03
+				// integration-gap audit): a stocked ship only sells
+				// against a MATCHING contract, and "accept a new
+				// contract" unqualified misled a player who had
+				// nothing but a different recipe on offer - the exact
+				// state a reputation-tier drop can leave the board in.
 				RaiseSimAlert(FString::Printf(
 					TEXT("CONTRACT %s EXPIRED - the deadline passed. ")
-					TEXT("Finished ships wait in stock and sell when you ")
-					TEXT("accept a new contract"),
-					*Contract.ContractId.ToString()));
+					TEXT("Finished %s stock waits and sells when you ")
+					TEXT("accept a new %s contract"),
+					*Contract.ContractId.ToString(),
+					*Contract.RecipeId.ToString(),
+					*Contract.RecipeId.ToString()));
 			}
 		}
 	}
