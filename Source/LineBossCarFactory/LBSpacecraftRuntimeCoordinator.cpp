@@ -257,8 +257,27 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 	BuildAuthority = InBuildAuthority;
 	ProductionAuthority = InProductionAuthority;
 	Route = MoveTemp(DerivedRoute);
-	Runtime.Assignments.Reset();
-	Runtime.RouteTopologyHash = ComputeRouteTopologyHash(Route);
+	const uint32 NewTopologyHash = ComputeRouteTopologyHash(Route);
+	// A RECONFIGURE THAT DOES NOT CHANGE THE ROUTE must not touch
+	// in-flight assignments. This runs on every station placement
+	// (LB.Spacecraft.Place -> RelayTrackThroughStations -> here,
+	// unconditionally - even for a non-line building like a delivery
+	// dock, which never appears in the line-station route at all) -
+	// wiping Runtime.Assignments every time orphaned any craft already
+	// on the line, forever: the unit's ledger record survives in
+	// ProductionAuthority, but nothing ever creates it a NEW assignment
+	// (TryStartUnit only ever spawns units against fresh, unclaimed
+	// demand). Found live 2026-09-03: a Cargo unit force-started before
+	// a delivery dock existed sat stuck at MaterialIntake permanently -
+	// placing THAT dock was the moment that silently cut it loose.
+	// The topology hash already exists for exactly this comparison
+	// (RestoreRuntime trusts it the same way); only reset when the
+	// route's own station composition or order genuinely changed.
+	if (NewTopologyHash != Runtime.RouteTopologyHash)
+	{
+		Runtime.Assignments.Reset();
+	}
+	Runtime.RouteTopologyHash = NewTopologyHash;
 	OutReason.Reset();
 	return true;
 }

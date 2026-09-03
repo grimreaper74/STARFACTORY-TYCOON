@@ -935,3 +935,110 @@ bool FLBSpacecraftUnbuildableContractTest::RunTest(const FString& Parameters)
 	Rig.World->DestroyWorld(false);
 	return true;
 }
+
+// FOUND LIVE (2026-09-03): a Cargo unit force-started before a delivery
+// dock existed sat stuck at MaterialIntake forever, even long after the
+// dock was placed. Root cause: ConfigureFromAuthorities unconditionally
+// reset Runtime.Assignments on every call, and LB.Spacecraft.Place ->
+// RelayTrackThroughStations calls it after EVERY station placement -
+// not just line stations, a delivery dock included, which never even
+// appears in the derived route. The wipe orphaned any unit already
+// assigned: its ledger record survived in ProductionAuthority, but
+// nothing ever created it a replacement assignment, since TryStartUnit
+// only ever spawns units against fresh, unclaimed demand.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftReconfigurePreservesInFlightUnitsTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.AReconfigureThatDoesNotChangeTheRouteKeepsInFlightUnits",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftReconfigurePreservesInFlightUnitsTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	// Quantity 2 so a second unit stays a live possibility - the same
+	// shape as the live repro's later, larger contracts, not just the
+	// exhausted-single-unit case already covered elsewhere.
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 2, Reason));
+
+	// Run the line for real until a unit is genuinely assigned and has
+	// made some progress - not just created.
+	int32 Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() == 0 && Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("a unit is assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const FName UnitId = Rig.Coordinator->GetAssignments()[0].UnitId;
+	for (int32 Tick = 0; Tick < 4; ++Tick)
+	{
+		Rig.Coordinator->TickProduction(5.0, Reason);
+	}
+	float ElapsedBefore = -1.f;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Rig.Coordinator->GetAssignments())
+	{
+		if (Assignment.UnitId == UnitId)
+		{
+			ElapsedBefore = Assignment.CycleElapsedSeconds;
+		}
+	}
+	TestTrue(TEXT("real cycle time has accrued"), ElapsedBefore > 0.f);
+
+	// A DELIVERY DOCK, placed exactly as LB.Spacecraft.Place would -
+	// it is not a line station and never appears in the derived route,
+	// so the route's own topology is unchanged by this.
+	FName DockId;
+	TestTrue(TEXT("a delivery dock places"),
+		Rig.Build->PlaceStation(FName(TEXT("DeliveryDock")),
+			FTransform(FRotator::ZeroRotator, FVector(-4000.f, 0.f, 0.f)),
+			DockId, Reason));
+	// THE RELAY'S OWN RECONFIGURE (RelayTrackThroughStations calls this
+	// unconditionally after every placement) - reproduced directly
+	// rather than through the console command, since that is the exact
+	// call the live session's dock placement made.
+	TestTrue(TEXT("the reconfigure itself still succeeds"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+
+	TestEqual(TEXT("the same unit is still assigned - not orphaned by a "
+		"same-topology reconfigure"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	float ElapsedAfter = -1.f;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Rig.Coordinator->GetAssignments())
+	{
+		if (Assignment.UnitId == UnitId)
+		{
+			ElapsedAfter = Assignment.CycleElapsedSeconds;
+		}
+	}
+	TestTrue(TEXT("it is the SAME unit, findable by its own id"),
+		ElapsedAfter >= 0.f);
+	TestEqual(TEXT("its accrued cycle time was not reset to zero"),
+		ElapsedAfter, ElapsedBefore);
+
+	// And production keeps working afterward - the fix does not just
+	// preserve stale state, the line actually still runs.
+	Guard = 0;
+	while (Rig.Production->GetRevenuePence() == 0 && Guard++ < 400)
+	{
+		Rig.Coordinator->TickProduction(5.0, Reason);
+	}
+	TestTrue(TEXT("the preserved unit goes on to dispatch normally"),
+		Rig.Production->GetRevenuePence() > 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
