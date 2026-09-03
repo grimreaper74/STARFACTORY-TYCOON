@@ -1,71 +1,132 @@
-"""import_cargo_craft_v001.py - the FINISHED Cargo-01 craft meshes
-from the textured master (the segmentation forms have no UVs; the
-craft visual needs the texture master's UVs). Imported PLAIN and
-dressed with MI_LB_SC_Cargo01_Hull - the MI's textures were extracted
-from this same master, so its UVs fit; embedded-FBX texture import is
-never trusted (the extension-less Meshy texture lesson)."""
+"""Import the CARGO-01 CRAFT (concept A, the blunt freighter the owner
+chose on 2026-09-03 from the CargoCraft_v001 previews) as a Nanite
+static mesh, size imposed at export (21 m on its longest axis, 1.5x the
+Scout) and verified here within 3%. Refuses to overwrite, writes a
+receipt. Geometry only - materials are authored in Unreal.
+"""
+import hashlib
+import json
+from datetime import datetime, timezone
+from pathlib import Path
 
-import os
 import unreal
 
-FBX = (r"C:\Users\greg_\Projects\LineBossCarFactory_Unreal 5.8"
-       r"\SourceAssets\Candidate\Spacecraft\Cargo01_RuntimeDerivative_v001"
-       r"\FBX")
-DEST = "/Game/LineBoss/Candidates/Spacecraft/SpacecraftTestBay_v001/Meshes"
+root = Path(unreal.Paths.project_dir())
+source_dir = root / "SourceAssets/Candidate/Spacecraft/CargoCraft_v001/export"
+dest = "/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v001"
+out = root / "Saved/Audits/Spacecraft/cargo_craft_import_v001.json"
+if out.exists():
+    raise RuntimeError("Refusing to rerun: receipt exists. Author v002.")
 
-NAMES = ["SM_LB_SC_Cargo01_v001_LOD0", "SM_LB_SC_Cargo01_v001_LOD1"]
-MI_PATH = ("/Game/LineBoss/Candidates/Spacecraft/StationMeshes_v001"
-           "/Materials/MI_LB_SC_Cargo01_Hull")
+# name -> (defining axis, declared cm)
+EXPECTED = {
+    "SM_LB_SC_Cargo01_Craft_v001": ("longest", 2100),
+}
+PALETTE = "/Game/LineBoss/Materials/Surfaces/MI_LB_Surface_Graphite"
 
-unreal.SystemLibrary.execute_console_command(
-    None, "Interchange.FeatureFlags.Import.FBX 0")
-lib = unreal.EditorAssetLibrary
+library = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 failures = []
-for name in NAMES:
-    task = unreal.AssetImportTask()
-    task.set_editor_properties({
-        "filename": os.path.join(FBX, name + ".fbx"),
-        "destination_path": DEST, "destination_name": name,
-        "automated": True, "replace_existing": True,
-        "replace_existing_settings": True, "save": True})
-    ui = unreal.FbxImportUI()
-    ui.set_editor_properties({
-        "import_mesh": True, "import_as_skeletal": False,
-        "import_materials": False, "import_textures": False,
-        "mesh_type_to_import": unreal.FBXImportType.FBXIT_STATIC_MESH,
-        "automated_import_should_detect_type": False})
-    ui.static_mesh_import_data.set_editor_properties({
-        "combine_meshes": True, "generate_lightmap_u_vs": False,
-        "auto_generate_collision": True, "import_uniform_scale": 1.0,
-        "convert_scene": True, "convert_scene_unit": True,
-        "normal_import_method":
-            unreal.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS})
-    task.options = ui
-    tools.import_asset_tasks([task])
-    unreal.AutomationUtilsBlueprintLibrary.finish_all_asset_compilation()
-    mesh = lib.load_asset("%s/%s" % (DEST, name))
-    if mesh is None:
-        failures.append(name + ": IMPORT FAILED")
+rows = []
+tasks = []
+for name in sorted(EXPECTED):
+    source = source_dir / ("%s.fbx" % name)
+    if not source.exists():
+        failures.append("missing source %s" % source)
         continue
-    ext = mesh.get_bounds().box_extent
-    size = (ext.x * 2.0, ext.y * 2.0, ext.z * 2.0)
-    fits = (size[0] <= 2100.0 * 1.02 and size[1] <= 1120.0 * 1.02
-            and size[2] <= 580.0 * 1.05)
-    unreal.log("IMPORTED %s size_cm=(%.0f, %.0f, %.0f) fits=%s"
-               % (name, size[0], size[1], size[2], fits))
-    if not fits:
-        failures.append(name + ": OVERRUNS ENVELOPE")
-if failures:
-    raise RuntimeError("FAILED CLOSED: " + "; ".join(failures))
-mi = lib.load_asset(MI_PATH)
-if mi is None:
-    raise RuntimeError("FAIL CLOSED: cargo hull MI missing")
-for name in NAMES:
-    mesh = lib.load_asset("%s/%s" % (DEST, name))
-    slots = mesh.get_editor_property("static_materials")
-    for index in range(len(slots)):
-        mesh.set_material(index, mi)
-    lib.save_asset("%s/%s" % (DEST, name))
-unreal.log("CARGO CRAFT IMPORT DONE: %d meshes wearing the cargo hull MI"
-           % len(NAMES))
+    if library.does_asset_exist("%s/%s" % (dest, name)):
+        failures.append("refusing to overwrite %s/%s" % (dest, name))
+        continue
+    options = unreal.FbxImportUI()
+    options.set_editor_property("import_mesh", True)
+    options.set_editor_property("import_textures", False)
+    options.set_editor_property("import_materials", False)
+    options.set_editor_property("import_as_skeletal", False)
+    options.set_editor_property("mesh_type_to_import",
+                                unreal.FBXImportType.FBXIT_STATIC_MESH)
+    static_data = options.static_mesh_import_data
+    static_data.set_editor_property("combine_meshes", True)
+    static_data.set_editor_property("generate_lightmap_u_vs", False)
+    static_data.set_editor_property("auto_generate_collision", False)
+    static_data.set_editor_property("import_uniform_scale", 1.0)
+    task = unreal.AssetImportTask()
+    task.set_editor_property("filename", str(source))
+    task.set_editor_property("destination_path", dest)
+    task.set_editor_property("destination_name", name)
+    task.set_editor_property("automated", True)
+    task.set_editor_property("replace_existing", False)
+    task.set_editor_property("save", True)
+    task.set_editor_property("options", options)
+    tasks.append(task)
+if tasks:
+    tools.import_asset_tasks(tasks)
+
+for name, (axis, target_cm) in sorted(EXPECTED.items()):
+    path = "%s/%s" % (dest, name)
+    asset = library.load_asset(path)
+    if asset is None or not isinstance(asset, unreal.StaticMesh):
+        failures.append("missing StaticMesh %s" % path)
+        continue
+    try:
+        settings = unreal.MeshNaniteSettings()
+        settings.set_editor_property("enabled", True)
+        asset.set_editor_property("nanite_settings", settings)
+        asset.modify()
+        library.save_loaded_asset(asset, only_if_is_dirty=False)
+    except Exception as exc:  # noqa: BLE001
+        failures.append("%s could not take Nanite: %s" % (name, exc))
+    nanite = None
+    try:
+        nanite = bool(asset.get_editor_property(
+            "nanite_settings").get_editor_property("enabled"))
+    except Exception:  # noqa: BLE001
+        pass
+    if nanite is False:
+        failures.append("%s did not take Nanite" % name)
+    palette = library.load_asset(PALETTE)
+    if palette is None:
+        failures.append("palette material missing: %s" % PALETTE)
+    else:
+        for slot in range(len(asset.static_materials)):
+            asset.set_material(slot, palette)
+        library.save_loaded_asset(asset, only_if_is_dirty=False)
+    extent = asset.get_bounds().box_extent
+    dims = {"x": extent.x * 2, "y": extent.y * 2, "z": extent.z * 2}
+    measured = max(dims.values()) if axis == "longest" else dims[axis]
+    if abs(measured - target_cm) > target_cm * 0.03:
+        failures.append("%s imported %.0f cm on %s, expected %d"
+                        % (name, measured, axis, target_cm))
+    source = source_dir / ("%s.fbx" % name)
+    rows.append({
+        "asset": path,
+        "source_sha256": hashlib.sha256(
+            source.read_bytes()).hexdigest().upper(),
+        "provenance": "Meshy text-to-3D preview, generated 2026-09-02 "
+                      "by Scripts/submit_meshy_cargo_craft_v001.ps1",
+        "defining_axis": axis,
+        "declared_cm": target_cm,
+        "measured_cm": round(measured),
+        "imported_extent_cm": [round(dims["x"]), round(dims["y"]),
+                               round(dims["z"])],
+        "nanite_enabled": nanite,
+    })
+
+report = {
+    "$schema": "lineboss/audit/cargo-craft-import-v001/v1",
+    "generated_utc": datetime.now(timezone.utc).isoformat(),
+    "status": "PASS__CARGO_CRAFT_IMPORTED" if not failures
+              else "FAIL_CLOSED__STATION_DRESS_IMPORT",
+    "destination": dest,
+    "assets": rows,
+    "failures": failures,
+    "not_proven": [
+        "Import proves size and Nanite only. How each piece reads on the "
+        "floor is judged on a rendered frame after the presenter dresses it.",
+    ],
+}
+out.parent.mkdir(parents=True, exist_ok=True)
+out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+unreal.log("STATION DRESS IMPORT %s: %d assets, %d failures"
+           % (report["status"], len(rows), len(failures)))
+for failure in failures:
+    unreal.log_warning(failure)

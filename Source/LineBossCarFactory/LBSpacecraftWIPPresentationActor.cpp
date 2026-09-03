@@ -530,6 +530,18 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 			"/Game/LineBoss/Candidates/Spacecraft/SpacecraftTestBay_v001")
 			TEXT("/Meshes/SM_LB_SC_Cargo01_Canopy_v001")
 			TEXT(".SM_LB_SC_Cargo01_Canopy_v001"))));
+	// THE CARGO-01 CRAFT (owner 2026-09-03: concept A, the blunt
+	// freighter, chosen from the CargoCraft_v001 previews). Imported at
+	// 21 m on its longest axis with the size verified (Saved/Audits/
+	// Spacecraft/cargo_craft_import_v001.json); promoted under "Craft."
+	// in TryGetStationMesh. One mesh: the bay, collar, pods and plating
+	// are sculpted into it, so a Cargo shows whole from its hull stage
+	// on - splitting it into fitted parts like the Scout is the next
+	// modelling step, not a switch.
+	StationMeshes.Add(FName(TEXT("Craft.Cargo01")),
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT(
+			"/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v001")
+			TEXT("/SM_LB_SC_Cargo01_Craft_v001.SM_LB_SC_Cargo01_Craft_v001"))));
 	// The six ship COMPONENTS (owner's batch 2026-08-26, identities
 	// assigned by gallery; sized to fit IN the ship). Keyed by their
 	// ledger item ids so cargo visuals resolve straight from state.
@@ -798,7 +810,10 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("Station."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Hall."))
 		// The storage rack wears the same imported pallet rack (2026-09-02).
-		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"));
+		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"))
+		// The Cargo-01 craft (2026-09-03): owner-chosen concept, size
+		// verified at import, receipt on record - promoted.
+		|| DefinitionId.ToString().StartsWith(TEXT("Craft."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -6009,14 +6024,24 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		// it as blockouts so their placement can be judged now. Read
 		// this as "blockout until the Cargo model is commissioned",
 		// never as the Cargo's look.
-		const bool bCargoOnScoutForm = Unit->RecipeId
+		const bool bCargoHullReady = Unit->RecipeId
 			== LBSpacecraftWIPPresentationPrivate::SpacecraftCargoRecipeId
 			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
-		const bool bCraftForm = bScoutSixPart || bCargoOnScoutForm
+		// The real Cargo-01 (concept A, 2026-09-03) when it resolves;
+		// the Scout stand-in at 1.5x only while it does not.
+		UStaticMesh* CargoCraftHull = bCargoHullReady
+			? TryGetStationMesh(FName(TEXT("Craft.Cargo01"))) : nullptr;
+		const bool bCargoOnScoutForm = bCargoHullReady
+			&& CargoCraftHull == nullptr;
+		const bool bCraftForm = bScoutSixPart || bCargoHullReady
 			|| Unit->Stage >= ELBSpacecraftStage::Assembly;
 		UStaticMesh* Craft = nullptr;
 		if (bCraftForm)
 		{
+			if (CargoCraftHull != nullptr)
+			{
+				Craft = CargoCraftHull;
+			}
 			// THE SIX-ASSEMBLY SCOUT tries first for its own recipe.
 			// Hull becomes the primary component's mesh; the other
 			// five attach as children once Component exists below.

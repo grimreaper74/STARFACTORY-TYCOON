@@ -112,3 +112,42 @@ at `Saved/Automation/CargoTen3_2026_09_02/index.json` (the two earlier
 runs of the evening, `CargoTen_2026_09_02` and `CargoTen2_2026_09_02`,
 are the failing runs that caught the two filtering bugs above and the
 six tests that had pinned "six"; kept as evidence).
+
+## Addendum, 2026-09-03: the owner chose A, and it is in the game
+
+The owner answered "a" to the contact sheet. The blunt freighter's
+preview geometry went through the lane as it stands (materials are
+authored in Unreal, so the textured refine was not bought):
+`Tools/export_meshy_glb_v001.py` imposed 2100 cm on its longest axis
+(source bounds 1.90 x 1.21 x 0.65 m, scale 11.04, base on the ground);
+`Scripts/import_cargo_craft_v001.py` imported it as
+`/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v001/SM_LB_SC_Cargo01_Craft_v001`,
+Nanite on, measured 2100 cm against 2100 declared, extent 2100 x 1335 x
+712 cm, source sha256 recorded (`Saved/Audits/Spacecraft/cargo_craft_import_v001.json`;
+its schema, status and provenance labels were corrected after the run,
+the lane having been copied from the station-dress importer). The folder
+is in `DirectoriesToAlwaysCook`.
+
+In the presenter it is registered as `Craft.Cargo01`, promoted under the
+`Craft.` prefix, and a Cargo unit wears it from the moment its hull is
+produced; the Scout stand-in at 1.5x and its four blockouts now apply
+only if this mesh fails to resolve. One mesh, bay, collar, pods and
+plating sculpted into it: a Cargo therefore shows whole from its hull
+stage on, and the per-kind fitting moments the Scout has come only when
+this model is split into fitted parts in Blender, which is the next
+modelling step. The mesh is 1335 cm wide and 712 tall against the
+recipe's declared 1119 x 580 envelope; the capacity law reads the
+recipe, so this is a cosmetic mismatch to settle when the model is
+split.
+
+**Evidence for the model in the game** (`Saved/Audits/CargoCraft_v001_2026_09_03/`):
+`run10.log` - an Mk2 line built from the console, a forced Cargo
+contract, the log line "station mesh bound for Craft.Cargo01", the craft
+walking the ladder to Testing; `c4_st005.png` - the freighter on its Mk2
+station at hull stage (the real mesh, close); `c4_booth_wide.png` - the
+craft in its hover test over the spray booth; the contract then settled
+at 440,000 cr ("CARGO-01 Complete", "Ships delivered: 1", `c5_depart_3.png`
+the runway after departure). Not proven: a wide, unobstructed frame of the
+finished Cargo on the line (the close frames are covered by the panels),
+the departure itself on a frame, and the fitted-part moments, which need
+the model split.
