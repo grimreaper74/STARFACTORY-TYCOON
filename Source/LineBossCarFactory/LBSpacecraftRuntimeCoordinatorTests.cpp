@@ -2,6 +2,8 @@
 
 #include "LBSpacecraftRuntimeCoordinator.h"
 
+#include "LBSpacecraftGameMode.h"
+
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
@@ -774,7 +776,13 @@ bool FLBSpacecraftStationInspectionTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-#endif // WITH_DEV_AUTOMATION_TESTS
+// NOTE: everything below this line was found (2026-09-03, integration
+// gap audit) sitting OUTSIDE the WITH_DEV_AUTOMATION_TESTS guard above
+// - a pre-existing misplacement, not something this session's edits
+// caused. In a Shipping/Test config (WITH_DEV_AUTOMATION_TESTS=0) this
+// would have left IMPLEMENT_SIMPLE_AUTOMATION_TEST and TestTrue/
+// TestEqual referenced with no guard around them. The single #endif
+// for the whole file now sits at the true end instead.
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftQualityRulesTest,
 	"LineBoss.Spacecraft.Quality.CrewDecidesWorkmanship",
@@ -1042,3 +1050,108 @@ bool FLBSpacecraftReconfigurePreservesInFlightUnitsTest::RunTest(
 	Rig.World->DestroyWorld(false);
 	return true;
 }
+
+// FOUND BY AUDIT (2026-09-03, integration gap audit): the guard that
+// stops a route station being removed while craft are on the line -
+// ALBSpacecraftGameMode::RemoveStationPowered's "CRAFT ARE ON THE LINE"
+// refusal, added 2026-09-01 after selling a live route station
+// poisoned a save - reads correct by inspection but had ZERO test
+// coverage anywhere in the suite. Every existing RemoveStationPowered
+// call site either omits InCoordinator (defaulting nullptr, which
+// short-circuits the guard's own outer null check) or never has a live
+// assignment when it calls it. This proves both halves for real: the
+// refusal while a craft is mid-line, and the ResetConfiguration() wipe
+// when the station is on an idle (assignment-free) route instead.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftRemoveLiveRouteStationTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.RemovingARouteStationRefusesWithCraftOnItAndResetsWhenIdle",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftRemoveLiveRouteStationTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	TestTrue(TEXT("route exists before any craft is assigned"),
+		Rig.Coordinator->IsConfigured());
+	// Four fitting stations plus the spray booth the line cannot
+	// commission without (owner 2026-08-28) - same shape as the
+	// route-length assertion above.
+	TestEqual(TEXT("route has the four line stations and the booth"),
+		Rig.Coordinator->GetRoute().Num(), 5);
+	const FName StationOnRoute = Rig.Coordinator->GetRoute()[0].StationId;
+
+	ALBSpacecraftPowerAuthority* Power =
+		Rig.World->SpawnActor<ALBSpacecraftPowerAuthority>();
+	ALBSpacecraftInventoryAuthority* Inventory =
+		Rig.World->SpawnActor<ALBSpacecraftInventoryAuthority>();
+
+	// --- Part A: a craft is genuinely mid-line - removal must refuse,
+	// with the exact reason, and mutate NOTHING. ---
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-REM1"), 1, Reason));
+	int32 Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() == 0 && Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("a unit is genuinely on the line"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const int32 StationCountBefore = Rig.Build->GetStations().Num();
+
+	FString RefusalReason;
+	TestFalse(TEXT("removal of a live-route station refuses"),
+		ALBSpacecraftGameMode::RemoveStationPowered(*Rig.Build, *Power,
+			*Inventory, nullptr, StationOnRoute, RefusalReason,
+			Rig.Production, Rig.Coordinator));
+	TestTrue(TEXT("the refusal names craft on the line"),
+		RefusalReason.Contains(TEXT("CRAFT ARE ON THE LINE")));
+	TestEqual(TEXT("no station was removed"),
+		Rig.Build->GetStations().Num(), StationCountBefore);
+	TestEqual(TEXT("the assignment survived untouched"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	TestTrue(TEXT("the route is still configured"),
+		Rig.Coordinator->IsConfigured());
+
+	// --- Part B: drain the line so the route is idle (commissioned,
+	// zero live assignments) - removal must now SUCCEED, and the
+	// coordinator must fully reset rather than keep ticking a route
+	// missing one of its stations. ---
+	Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() > 0 && Guard++ < 400)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("the line drained - no craft left assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 0);
+	TestTrue(TEXT("the route itself is still configured while idle"),
+		Rig.Coordinator->IsConfigured());
+
+	FString RemovalReason;
+	TestTrue(TEXT("removal of an idle-route station succeeds"),
+		ALBSpacecraftGameMode::RemoveStationPowered(*Rig.Build, *Power,
+			*Inventory, nullptr, StationOnRoute, RemovalReason,
+			Rig.Production, Rig.Coordinator));
+	TestEqual(TEXT("the station is actually gone"),
+		Rig.Build->GetStations().Num(), StationCountBefore - 1);
+	TestFalse(TEXT("ResetConfiguration wiped the route rather than "
+		"leaving it stale with a missing station"),
+		Rig.Coordinator->IsConfigured());
+	TestEqual(TEXT("assignments are empty too"),
+		Rig.Coordinator->GetAssignments().Num(), 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+#endif // WITH_DEV_AUTOMATION_TESTS
