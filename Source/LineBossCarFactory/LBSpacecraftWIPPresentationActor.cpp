@@ -6347,12 +6347,12 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					}
 					TArray<float> CentresCm;
 					ComputeSequentialLayoutCentresCm(LengthsCm, CentresCm);
-					const int32 Count = Loose->Num();
+					const int32 Count = Loose->Items.Num();
 					const float Closed = FMath::SmoothStep(0.f, 1.f,
 						FMath::Clamp(StopProgress, 0.f, 1.f));
 					for (int32 Index = 0; Index < Count; ++Index)
 					{
-						UStaticMeshComponent* Section = (*Loose)[Index];
+						UStaticMeshComponent* Section = Loose->Items[Index];
 						if (Section == nullptr || !CentresCm.IsValidIndex(Index))
 						{
 							continue;
@@ -6369,10 +6369,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					}
 				}
 			}
-			else if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			else if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(Assignment.UnitId))
 			{
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -6446,7 +6446,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// bCraftForm first turns true.
 				TSet<ELBSpacecraftComponent>& Attached =
 					ScoutV2AttachedComponents.FindOrAdd(Assignment.UnitId);
-				TArray<TObjectPtr<UStaticMeshComponent>>& Parts =
+				FLBMeshComponentArray& Parts =
 					ScoutV2Parts.FindOrAdd(Assignment.UnitId);
 				// Unique key per UNIT, not just per part-name: with
 				// attachment now gated on real per-component fitting
@@ -6499,7 +6499,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					{
 						return;
 					}
-					Parts.Add(Attach(Mesh, NodeId, bDisallowNanite));
+					Parts.Items.Add(Attach(Mesh, NodeId, bDisallowNanite));
 					Attached.Add(Comp);
 				};
 				AttachIfFitted(ELBSpacecraftComponent::Propulsion,
@@ -6566,7 +6566,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 								Block.Size.X * E.X * 2.f,
 								Block.Size.Y * E.Y * 2.f,
 								Block.Size.Z * E.Z * 2.f) / 100.f);
-							Parts.Add(Piece);
+							Parts.Items.Add(Piece);
 						}
 						Attached.Add(Kind);
 					};
@@ -6626,7 +6626,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		{
 			TSet<ELBSpacecraftComponent>& CargoAttached =
 				CargoHullAttachedComponents.FindOrAdd(Assignment.UnitId);
-			TArray<TObjectPtr<UStaticMeshComponent>>& CargoParts =
+			FLBMeshComponentArray& CargoParts =
 				CargoHullParts.FindOrAdd(Assignment.UnitId);
 			const FBoxSphereBounds HullBounds = CargoCraftHull->GetBounds();
 			const FVector HullExtent = HullBounds.BoxExtent;
@@ -6655,7 +6655,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					FAttachmentTransformRules::KeepRelativeTransform);
 				Part->SetRelativeLocation(CargoSocketPoint(Fraction));
 				Part->RegisterComponent();
-				CargoParts.Add(Part);
+				CargoParts.Items.Add(Part);
 			};
 			auto AttachCargoKindIfFitted = [&](ELBSpacecraftComponent Kind)
 			{
@@ -7396,10 +7396,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			// they follow its transform automatically), but still need
 			// explicit destruction at the end, so they move with the
 			// departing visual the same way the gear legs do.
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* V2Parts =
+			if (FLBMeshComponentArray* V2Parts =
 				ScoutV2Parts.Find(It.Key()))
 			{
-				Departure.ScoutParts = *V2Parts;
+				Departure.ScoutParts = V2Parts->Items;
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
 			}
@@ -7409,10 +7409,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			// (unlike the Scout parts above) - destroyed here instead,
 			// a smaller visual simplification than risking a leak on a
 			// path added under time pressure while proving this fix.
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* CargoParts =
+			if (FLBMeshComponentArray* CargoParts =
 				CargoHullParts.Find(It.Key()))
 			{
-				for (UStaticMeshComponent* Part : *CargoParts)
+				for (UStaticMeshComponent* Part : CargoParts->Items)
 				{
 					if (Part != nullptr) { Part->DestroyComponent(); }
 				}
@@ -7439,10 +7439,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			// fitted long before Testing/Dispatched - but destroyed
 			// defensively rather than left to leak if a unit somehow
 			// reaches here first.
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(It.Key()))
 			{
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -7476,24 +7476,24 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				}
 				UnitGear.Remove(It.Key());
 			}
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* V2Parts =
+			if (FLBMeshComponentArray* V2Parts =
 				ScoutV2Parts.Find(It.Key()))
 			{
 				// Same trap, same fix: the six-part Scout's five
 				// children hang off Component too.
-				for (UStaticMeshComponent* Part : *V2Parts)
+				for (UStaticMeshComponent* Part : V2Parts->Items)
 				{
 					if (Part != nullptr) { Part->DestroyComponent(); }
 				}
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
 			}
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* CargoParts =
+			if (FLBMeshComponentArray* CargoParts =
 				CargoHullParts.Find(It.Key()))
 			{
 				// Same trap, same fix: the Cargo's four kinds hang off
 				// Component too.
-				for (UStaticMeshComponent* Part : *CargoParts)
+				for (UStaticMeshComponent* Part : CargoParts->Items)
 				{
 					if (Part != nullptr) { Part->DestroyComponent(); }
 				}
@@ -7510,12 +7510,12 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				}
 				UnitStands.Remove(It.Key());
 			}
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(It.Key()))
 			{
 				// Same trap, same fix: the loose hull sections hang off
 				// Component too.
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -7760,9 +7760,9 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 			CraftingAuthority->GetStationOutputItem(Record.StationId);
 		UStaticMesh* OutputMesh = OutputItem.IsNone()
 			? nullptr : TryGetStationMesh(OutputItem);
-		TArray<TObjectPtr<UStaticMeshComponent>>& Stack =
+		FLBMeshComponentArray& Stack =
 			BufferCrates.FindOrAdd(Record.StationId);
-		while (Stack.Num() < Crates && Cube != nullptr)
+		while (Stack.Items.Num() < Crates && Cube != nullptr)
 		{
 			UStaticMeshComponent* Crate =
 				NewObject<UStaticMeshComponent>(this,
@@ -7782,23 +7782,23 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 					SpacecraftCrateColour);
 				Crate->SetMaterial(0, MID);
 			}
-			Stack.Add(Crate);
+			Stack.Items.Add(Crate);
 		}
-		while (Stack.Num() > Crates)
+		while (Stack.Items.Num() > Crates)
 		{
-			if (Stack.Last() != nullptr)
+			if (Stack.Items.Last() != nullptr)
 			{
-				Stack.Last()->DestroyComponent();
+				Stack.Items.Last()->DestroyComponent();
 			}
-			Stack.Pop();
+			Stack.Items.Pop();
 		}
 		const FVector Base = Record.WorldTransform.TransformPosition(
 			FVector(Definition->FootprintCm.X * 0.5f + 120.f, 0.f, 0.f));
-		for (int32 Index = 0; Index < Stack.Num(); ++Index)
+		for (int32 Index = 0; Index < Stack.Items.Num(); ++Index)
 		{
-			if (Stack[Index] != nullptr)
+			if (Stack.Items[Index] != nullptr)
 			{
-				Stack[Index]->SetWorldTransform(FTransform(
+				Stack.Items[Index]->SetWorldTransform(FTransform(
 					FQuat::Identity,
 					Base + FVector(0.f, 0.f, 40.f + Index * 82.f),
 					FVector(0.8f, 0.8f, 0.8f)));
@@ -7809,7 +7809,7 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 	{
 		if (!Live.Contains(It.Key()))
 		{
-			for (UStaticMeshComponent* Crate : It.Value())
+			for (UStaticMeshComponent* Crate : It.Value().Items)
 			{
 				if (Crate != nullptr)
 				{
