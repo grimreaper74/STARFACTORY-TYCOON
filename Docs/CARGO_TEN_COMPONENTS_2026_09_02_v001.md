@@ -87,6 +87,43 @@ recipe's required kinds (`AdvanceUnit`, `ComponentsEarnedBy`,
 `ComponentsRefittedFrom`, `RefitWorkFraction`), with the callers passing
 the recipe they have.
 
+## Mk2 soak, 2026-09-03: five Cargo ships, one-part-per-trip, no haul stall
+
+A fresh Mk2 line (dock, rack, a 20-unit float of every kind in the yard)
+took a forced five-unit Cargo contract and ran unattended at 4x for
+about 30 real minutes (~1800 sim seconds). All five ships reached
+`Dispatched` with all ten kinds produced; the WIP cap (3) held the
+whole time, cycling a new unit in as each one cleared a stage; station
+shelves for all five Mk2 marks stayed fed throughout (`run12b.log`,
+`run13_continue.log`). In that whole run the only hold was
+"Holding: station SprayBooth-007 occupied", twice, both self-resolving
+- a single-craft paint booth queuing behind Assembly's faster throughput
+is the ordinary shape of that hold, not a fault. No haul-shortage alert
+("insufficient resources", "nothing can carry them") appeared even once
+across five ships' worth of ten-kind, one-part-per-trip hauling.
+
+One real cost this exposed: the five-quantity contract's OWN deadline
+(sized from nominal per-unit time × quantity) is tighter than five
+ships actually take once the WIP cap and real haul time are accounted
+for - it expired with four of five sold and the fifth finished but
+unsold, and the existing "finished ships wait in stock and sell when
+you next accept a contract" rule (built 2026-09-01) caught it cleanly:
+cash kept arriving, nothing stuck. This is a property of a single large
+forced quantity, which a real player rarely takes in one contract (the
+board offers 1-4 at a time); noted, not changed - the safety net it
+exercised already does its job.
+
+A test artifact worth naming so it is not mistaken for a game bug: this
+soak's `LB.Spacecraft.Start ... force` contracts, like every dev-forced
+contract, carry no customer, and the panel's "Ships delivered" objective
+counter stayed at 0 across all five real dispatches even though cash was
+paid each time - only the delivery-count counter, not the sale. Not
+chased down: `force` is a testing shortcut that already skips the
+reputation gate by design, and this looks like the same category of
+gap, on a path a real player accepting a real board contract does not
+take. First frame `Saved/Audits/CargoCraft_v001_2026_09_03/s_final2.png`
+shows the settled state: 2,604,422 cr, one Cargo in stock, line idle.
+
 ## Not proven
 
 - **The four new kinds on the Cargo's hull.** The Cargo's craft forms
@@ -148,9 +185,28 @@ station at hull stage (the real mesh, close); `c4_booth_wide.png` - the
 craft in its hover test over the spray booth; the contract then settled
 at 440,000 cr ("CARGO-01 Complete", "Ships delivered: 1", `c5_depart_3.png`
 the runway after departure). Not proven: a wide, unobstructed frame of the
-finished Cargo on the line (the close frames are covered by the panels),
-the departure itself on a frame, and the fitted-part moments, which need
-the model split.
+finished Cargo on the line (closed by `cargo_real_station5.png` the same
+night), the departure itself on a frame, and the fitted-part moments,
+which need the model split.
+
+**Checked, 2026-09-03: the livery paint reaches the real mesh, unmodified.**
+The primer/paint code in `TickSubAssemblyLogistics` is generic - it keys
+only on `Assignment.UnitId`/`Unit->RecipeId`, never on which mesh the
+unit's component currently holds - so it was never expected to need
+Cargo-specific work, and a live check confirms it: the Cargo unit's
+material slot 0 is `MID_M_LB_ShipPaint_v001_0`, the same dynamic paint
+instance every craft wears. Every frame captured of it tonight was
+white because it was filmed under `LB.Spacecraft.Start ... force`, the
+dev console's contract path, which - like every dev-forced contract
+before it - never attaches a customer, so `LiveryForRecipe` falls back
+to white (confirmed in `StartRecipeContract`, unchanged by this work).
+The REAL offer board (`RefreshOfferBoard`) sets a customer and a real
+livery colour for any recipe the player's reputation tier allows,
+Cargo included, through the same `FLBSpacecraftCustomerCatalogue` the
+Scout uses - there is no special case that would treat it differently.
+Not proven on a frame: an actual customer-coloured Cargo, which needs
+reputation tier 2 reached through real deliveries rather than the dev
+console.
 
 **Later the same night:** the wide frame came (`cargo_real_station5.png`,
 `c8_sheet.png`): a fresh Mk2 line with a delivery dock, every part of a
