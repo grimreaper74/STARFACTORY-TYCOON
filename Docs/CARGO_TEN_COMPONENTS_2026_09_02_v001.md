@@ -377,3 +377,47 @@ otherwise, at any point. The live session's mistake was moving on to
 fresh contracts within a couple of minutes of adding the dock rather
 than giving the first unit enough sim-time to recover - a testing
 patience problem, not a production one.
+
+## Addendum, 2026-09-03 (later still): the Cargo's own four kinds were invisible on a real hull - not a screenshot problem, an architectural gate
+
+Trying to get a clean screenshot of the new engines mounted on the v002
+hull kept failing even with the dev camera fully understood. The live
+PIE log explained why: `RefreshUnitFittings` - which carries the
+special-case code from earlier tonight that attaches the two engines -
+only runs when `!bCraftForm`. `bCraftForm` turns true for a Cargo unit
+the moment `Unit->ProducedComponents` contains `Hull`, which is very
+early - long before CargoBay, DockingCollar, ThrusterPods or Shielding
+are even fabricated. Getting the real v002 hull to resolve (this
+session's whole point) meant `RefreshUnitFittings` stopped running for
+Cargo units entirely, and so did the OTHER attachment path (the
+`bCargoOnScoutForm` blockout block), since that is also gated off once
+`CargoCraftHull != nullptr`. Net effect: a Cargo unit wearing its own
+real hull showed literally none of its four kinds - not the real
+parts, not even the blockouts that showed before tonight. Getting the
+real hull to resolve was an accidental regression of what had been
+working (blockout) coverage.
+
+Fixed with a new block, `bCraftForm && CargoCraftHull != nullptr`,
+structurally the twin of the existing Scout-v2-parts block just above
+it (same `TSet<Kind>` attached-tracking, same `TArray<Component>`
+per-unit parts cache, same "attach the instant `ProducedComponents`
+contains it" gate). All four kinds now attach for real - not
+blockouts, since all four have real imported meshes as of tonight
+(`Pallet.pallet-cargobay`, `-dockingcollar`, `-thrusterpod-a/b`,
+`-shielding`) - at the same hull-relative fractional sockets the
+blockout version already used.
+
+Proven directly against the live PIE log rather than chasing another
+screenshot: with a fresh, clean editor launch, a Cargo unit run through
+the full pipeline to Testing logged `SPACECRAFT PRESENTER: station mesh
+bound for` all five real assets (both engines plus bay, collar,
+plating) - definitive evidence the new code path executed and resolved
+every one of them, which a screenshot alone could not have
+distinguished from a lucky-looking blockout. 118/118 across the full
+suite, no regressions, no errors or asserts in the session log.
+
+Not proven: the departure animation - the four parts are destroyed
+outright when a unit starts departing rather than carried along with
+it the way the Scout's five parts are (Departure.ScoutParts), a smaller
+scope cut made explicitly rather than risk a leak while proving this
+fix. Worth revisiting as polish, not a correctness gap.

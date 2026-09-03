@@ -6523,6 +6523,99 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			}
 		}
 
+		// THE CARGO'S OWN FOUR, FOR REAL (2026-09-03 evening). The block
+		// above only ever attaches them while bCargoOnScoutForm - the
+		// Scout-stand-in fallback. Getting the real v002 hull to resolve
+		// (CargoCraftHull != nullptr) means that branch is skipped now,
+		// same as the RefreshUnitFittings call further up - so a real
+		// hull showed literally none of its four kinds, real parts or
+		// blockouts, until this. All four now have real imported meshes
+		// (bay door, docking collar, the hull's own twin engines,
+		// plating), so this attaches the real thing directly rather than
+		// a blockout standing in for one. Same hull-relative fractional
+		// sockets the blockout version used, so nothing needs to move
+		// again once every kind has a real part.
+		if (bCraftForm && CargoCraftHull != nullptr)
+		{
+			TSet<ELBSpacecraftComponent>& CargoAttached =
+				CargoHullAttachedComponents.FindOrAdd(Assignment.UnitId);
+			TArray<TObjectPtr<UStaticMeshComponent>>& CargoParts =
+				CargoHullParts.FindOrAdd(Assignment.UnitId);
+			const FBoxSphereBounds HullBounds = CargoCraftHull->GetBounds();
+			const FVector HullExtent = HullBounds.BoxExtent;
+			const FVector HullOrigin = HullBounds.Origin;
+			auto CargoSocketPoint = [&](const FVector& Fraction)
+			{
+				return HullOrigin + FVector(Fraction.X * HullExtent.X * 2.f,
+					Fraction.Y * HullExtent.Y * 2.f,
+					Fraction.Z * HullExtent.Z * 2.f);
+			};
+			auto AttachCargoPart = [&](UStaticMesh* Mesh,
+				const FVector& Fraction, const TCHAR* Label, int32 Index)
+			{
+				if (Mesh == nullptr)
+				{
+					return;
+				}
+				const FName PartKey(*FString::Printf(TEXT("%s_%s%d"),
+					*Assignment.UnitId.ToString(), Label, Index));
+				UStaticMeshComponent* Part = NewObject<UStaticMeshComponent>(
+					this, UStaticMeshComponent::StaticClass(), PartKey);
+				Part->SetStaticMesh(Mesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Part->SetCastShadow(true);
+				Part->AttachToComponent(Component,
+					FAttachmentTransformRules::KeepRelativeTransform);
+				Part->SetRelativeLocation(CargoSocketPoint(Fraction));
+				Part->RegisterComponent();
+				CargoParts.Add(Part);
+			};
+			auto AttachCargoKindIfFitted = [&](ELBSpacecraftComponent Kind)
+			{
+				if (CargoAttached.Contains(Kind)
+					|| !Unit->ProducedComponents.Contains(Kind))
+				{
+					return;
+				}
+				CargoAttached.Add(Kind);
+				if (Kind == ELBSpacecraftComponent::CargoBay)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-cargobay"))),
+						FVector(-0.05f, 0.f, -0.32f), TEXT("CargoBay"), 0);
+				}
+				else if (Kind == ELBSpacecraftComponent::DockingCollar)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-dockingcollar"))),
+						FVector(0.05f, 0.f, 0.44f), TEXT("DockingCollar"), 0);
+				}
+				else if (Kind == ELBSpacecraftComponent::ThrusterPods)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-thrusterpod-a"))),
+						FVector(-0.30f, 0.48f, 0.05f), TEXT("ThrusterPod"), 0);
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-thrusterpod-b"))),
+						FVector(-0.30f, -0.48f, 0.05f), TEXT("ThrusterPod"),
+						1);
+				}
+				else if (Kind == ELBSpacecraftComponent::Shielding)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-shielding"))),
+						FVector(0.05f, 0.47f, -0.08f), TEXT("Shielding"), 0);
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-shielding"))),
+						FVector(0.05f, -0.47f, -0.08f), TEXT("Shielding"), 1);
+				}
+			};
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::CargoBay);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::DockingCollar);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::ThrusterPods);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::Shielding);
+		}
+
 		// Position: at the station, CARRIED BY THE GANTRY to the next
 		// late in a cycle (owner 2026-08-28: "if the gantry crane moves
 		// the ship we don't need conveyer?", then choosing crane plus
@@ -7218,6 +7311,22 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
 			}
+			// The Cargo's own four kinds, same trap as the Scout's five:
+			// hang off Component, so a parent DestroyComponent() would
+			// only detach, not destroy them. Not carried into Departure
+			// (unlike the Scout parts above) - destroyed here instead,
+			// a smaller visual simplification than risking a leak on a
+			// path added under time pressure while proving this fix.
+			if (TArray<TObjectPtr<UStaticMeshComponent>>* CargoParts =
+				CargoHullParts.Find(It.Key()))
+			{
+				for (UStaticMeshComponent* Part : *CargoParts)
+				{
+					if (Part != nullptr) { Part->DestroyComponent(); }
+				}
+				CargoHullParts.Remove(It.Key());
+				CargoHullAttachedComponents.Remove(It.Key());
+			}
 			// Should not normally exist at departure - Hull is always
 			// fitted long before Testing/Dispatched - but destroyed
 			// defensively rather than left to leak if a unit somehow
@@ -7270,6 +7379,18 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				}
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
+			}
+			if (TArray<TObjectPtr<UStaticMeshComponent>>* CargoParts =
+				CargoHullParts.Find(It.Key()))
+			{
+				// Same trap, same fix: the Cargo's four kinds hang off
+				// Component too.
+				for (UStaticMeshComponent* Part : *CargoParts)
+				{
+					if (Part != nullptr) { Part->DestroyComponent(); }
+				}
+				CargoHullParts.Remove(It.Key());
+				CargoHullAttachedComponents.Remove(It.Key());
 			}
 			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
 				StrippedHullSections.Find(It.Key()))

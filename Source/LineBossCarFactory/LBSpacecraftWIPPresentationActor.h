@@ -718,6 +718,20 @@ private:
 	 *  what stops it being re-attached every tick once it has. */
 	TMap<FName, TSet<ELBSpacecraftComponent>> ScoutV2AttachedComponents;
 
+	/** The Cargo's own four kinds (bay, collar, thruster pods, plating),
+	 *  attached as children once the REAL v002 hull resolves - the
+	 *  mirror of ScoutV2Parts/ScoutV2AttachedComponents just above for
+	 *  a hull that is not the Scout's. Before 2026-09-03 evening this
+	 *  never had anywhere to attach TO: the Cargo either wore the
+	 *  Scout's stand-in (bCargoOnScoutForm, blockouts only) or its own
+	 *  v001 single fused mesh (everything already sculpted in, nothing
+	 *  to attach). Getting the real v002 hull to resolve is what
+	 *  exposed the gap - CargoCraftHull != nullptr skips BOTH of those
+	 *  branches, so without this map a real hull showed literally none
+	 *  of its four kinds, real or blockout. */
+	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> CargoHullParts;
+	TMap<FName, TSet<ELBSpacecraftComponent>> CargoHullAttachedComponents;
+
 	/** The four real hull-section pallets (nose/fwd/mid/aft), riding
 	 *  loose on a Scout unit BEFORE Hull is fitted - "stripped down and
 	 *  built live" (owner, 2026-08-30): the ship reads as its own real
