@@ -869,7 +869,20 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"))
 		// The Cargo-01 craft (2026-09-03): owner-chosen concept, size
 		// verified at import, receipt on record - promoted.
-		|| DefinitionId.ToString().StartsWith(TEXT("Craft."));
+		|| DefinitionId.ToString().StartsWith(TEXT("Craft."))
+		// THE OLD MESHY CONTENT IS RELEASED (owner, 2026-09-04:
+		// "unblock the ten keys, they're the old meshy stuff"). The
+		// 2026-08-30 punchlist held these off screen until Design
+		// replaced them; the owner has decided, knowing exactly what
+		// they are, that showing them beats showing engine cubes in
+		// their place. This SUPERSEDES that decision for these keys -
+		// see Docs/MESHY_BLOCKOUT_PUNCHLIST_v001.md. Each has a real
+		// imported asset on disk today; every one of them was drawing
+		// as a blockout purely because of this gate.
+		|| DefinitionId == FName(TEXT("SubAssemblyHall"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Canopy."))
+		|| DefinitionId == FName(TEXT("Gear.Leg"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Component."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -5600,7 +5613,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			Frame.Parts.Add(Ram);
 			Stages.Add(Ram);
 		}
-		StationLiftRams.Add(Record.StationId, Stages);
+		StationLiftRams.Add(Record.StationId, FLBMeshComponentArray(Stages));
 
 		const FName SaddleKey(*FString::Printf(TEXT("%s_LF_LiftSaddle"),
 			*Record.StationId.ToString()));
@@ -6305,7 +6318,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						Sections.Add(Section);
 					}
 					StrippedHullSections.Add(Assignment.UnitId,
-						MoveTemp(Sections));
+						FLBMeshComponentArray(MoveTemp(Sections)));
 				}
 				Component->SetVisibility(false);
 				// THE HULL COMES TOGETHER (look plan, 2026-09-02): the
@@ -6314,7 +6327,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// progresses, so the first station shows a hull being
 				// built rather than parts lying still; the real hull
 				// takes over the instant it is fitted.
-				if (TArray<TObjectPtr<UStaticMeshComponent>>* Loose =
+				if (FLBMeshComponentArray* Loose =
 					StrippedHullSections.Find(Assignment.UnitId))
 				{
 					float StopProgress = 0.f;
@@ -6324,7 +6337,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 							StopProgress);
 					}
 					TArray<float> LengthsCm;
-					for (UStaticMeshComponent* Section : *Loose)
+					for (UStaticMeshComponent* Section : Loose->Items)
 					{
 						LengthsCm.Add(Section != nullptr
 							&& Section->GetStaticMesh() != nullptr
@@ -6867,7 +6880,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// same number rather than its own copy of the curve -
 				// a lift whose column disagreed with the thing standing
 				// on it is the one fault this cannot have.
-				if (TArray<TObjectPtr<UStaticMeshComponent>>* Stages =
+				if (FLBMeshComponentArray* Stages =
 					StationLiftRams.Find(Assignment.StationId))
 				{
 					// TELESCOPING STAGES SLIDE, THEY DO NOT STRETCH.
@@ -6899,9 +6912,9 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					const float Extension = FMath::Clamp(
 						Lift / FMath::Max(SpacecraftLiftMaxTravelCm, 1.f),
 						0.f, 1.f);
-					for (int32 Stage = 0; Stage < Stages->Num(); ++Stage)
+					for (int32 Stage = 0; Stage < Stages->Items.Num(); ++Stage)
 					{
-						UStaticMeshComponent* Ram = (*Stages)[Stage];
+						UStaticMeshComponent* Ram = Stages->Items[Stage];
 						if (Ram == nullptr
 							|| !StationLiftRamRestZ.Contains(Ram))
 						{

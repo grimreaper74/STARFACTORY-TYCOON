@@ -66,6 +66,28 @@ struct FLBSpacecraftDepartingVisual
 	float GearRetractTravelCm = 0.f;
 };
 
+/** Wraps a per-key array of mesh components so it can carry UPROPERTY()
+ *  as a TMap value - UHT rejects TArray directly as a map value (nested
+ *  containers are not reflectable), which is why ScoutV2Parts,
+ *  CargoHullParts, StrippedHullSections, StationLiftRams and
+ *  BufferCrates could not simply take the bare UPROPERTY() that closed
+ *  the same GC gap on UnitVisuals/StationVisuals/UnitStands - a build
+ *  attempt confirmed UHT's error is exactly that (2026-09-04). */
+USTRUCT()
+struct FLBMeshComponentArray
+{
+	GENERATED_BODY()
+
+	FLBMeshComponentArray() = default;
+	explicit FLBMeshComponentArray(TArray<TObjectPtr<UStaticMeshComponent>> InItems)
+		: Items(MoveTemp(InItems))
+	{
+	}
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Items;
+};
+
 UCLASS()
 class LINEBOSSCARFACTORY_API ALBSpacecraftWIPPresentationActor : public AActor
 {
@@ -685,7 +707,8 @@ private:
 	 *  first - a parent's DestroyComponent() DETACHES children rather
 	 *  than destroying them, the trap the landing gear legs and the
 	 *  rotor voices already taught this file twice. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> ScoutV2Parts;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> ScoutV2Parts;
 
 	/** Which of the five non-Hull assemblies a Scout unit has actually
 	 *  had FITTED so far (owner, 2026-08-30: "the hull parts need to be
@@ -710,7 +733,8 @@ private:
 	 *  exposed the gap - CargoCraftHull != nullptr skips BOTH of those
 	 *  branches, so without this map a real hull showed literally none
 	 *  of its four kinds, real or blockout. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> CargoHullParts;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> CargoHullParts;
 	TMap<FName, TSet<ELBSpacecraftComponent>> CargoHullAttachedComponents;
 
 	/** The four real hull-section pallets (nose/fwd/mid/aft), riding
@@ -721,7 +745,8 @@ private:
 	 *  mesh takes over. Attached as children of the unit's primary
 	 *  visual component, so they ride every crane-carry/slide for free;
 	 *  destroyed (never just detached) wherever the primary is. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> StrippedHullSections;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> StrippedHullSections;
 
 
 	/** THE INSPECTION SWEEP (owner 2026-08-27). A bar of light that
@@ -1208,7 +1233,8 @@ private:
 	 *  than a scissor because a scissor's linkage splays into exactly
 	 *  the volume under the craft that the ground crew were hired to
 	 *  work in - the same mistake the four corner posts made. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> StationLiftRams;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> StationLiftRams;
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> StationLiftSaddles;
 
 	/** Each ram stage's authored Z, recorded when it is built.
@@ -1367,7 +1393,8 @@ private:
 	FString TrackRenderSignature;
 	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftTrackAuthority> TrackAuthority;
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> BufferCrates;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> BufferCrates;
 	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerBodies;
 	UPROPERTY()
