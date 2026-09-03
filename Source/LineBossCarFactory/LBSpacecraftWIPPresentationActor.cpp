@@ -831,16 +831,25 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("AssemblyRobot"))
 		|| DefinitionId == FName(TEXT("DeliveryDock"))
 		|| DefinitionId == FName(TEXT("PowerStation"))
-		|| DefinitionId == FName(TEXT("StructureFab"))
-		|| DefinitionId == FName(TEXT("FitOutFab"))
-		|| DefinitionId == FName(TEXT("CircuitFab"))
-		|| DefinitionId == FName(TEXT("PowerCellPlant"))
-		|| DefinitionId == FName(TEXT("PropulsionStation"))
-		|| DefinitionId == FName(TEXT("ElectronicsStation"))
-		|| DefinitionId == FName(TEXT("SubAssemblyRobot"))
-		|| DefinitionId == FName(TEXT("Smelter"))
-		|| DefinitionId == FName(TEXT("PowerPlant"))
-		|| DefinitionId == FName(TEXT("RollingMill"))
+		// A BIGGER MARK INHERITS ITS FAMILY'S PROMOTION (2026-09-03).
+		// These nine tested for an EXACT name while the four line
+		// families just above test with StartsWith - so every Mk2 of
+		// an approved crafting family failed the gate and drew as a
+		// grey cube, with its Mk1's approved mesh sitting right there
+		// unused. Nothing about a bigger mark makes its art less
+		// promoted than the mark it replaces; the inconsistency was
+		// an oversight, not a decision. StartsWith on all of them now,
+		// matching the line stations.
+		|| DefinitionId.ToString().StartsWith(TEXT("StructureFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("FitOutFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("CircuitFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PowerCellPlant"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PropulsionStation"))
+		|| DefinitionId.ToString().StartsWith(TEXT("ElectronicsStation"))
+		|| DefinitionId.ToString().StartsWith(TEXT("SubAssemblyRobot"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Smelter"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PowerPlant"))
+		|| DefinitionId.ToString().StartsWith(TEXT("RollingMill"))
 		|| DefinitionId.ToString().StartsWith(TEXT("Carrier."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
 		// PALLETLOADS_v001 (2026-08-30): added at registration time,
