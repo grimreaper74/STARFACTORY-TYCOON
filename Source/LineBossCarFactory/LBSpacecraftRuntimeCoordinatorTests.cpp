@@ -1308,6 +1308,17 @@ bool FLBSpacecraftPaceSetterTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("it names a station on the route"), bOnRoute);
 	TestTrue(TEXT("with a real stop time"), Early.StopSeconds > 0.f);
+	// NEVER THE LINE'S END. A craft at the last station climbs into its
+	// hover test in place and departs under its own power, so it is
+	// excluded from the pulse by IsPulseMover and can never be what the
+	// line waits on - naming it would be advice the player cannot act
+	// on. (Caught by a parallel survey right after this shipped.)
+	TestNotEqual(TEXT("the pace-setter is never the line's end"),
+		Early.StationId,
+		Rig.Coordinator->GetRoute().Last().StationId);
+	TestNotEqual(TEXT("and neither is the runner-up"),
+		Early.RunnerUpStationId,
+		Rig.Coordinator->GetRoute().Last().StationId);
 	// The runner-up is a different station, and never the slower one.
 	TestNotEqual(TEXT("the runner-up is a different station"),
 		Early.RunnerUpStationId, Early.StationId);

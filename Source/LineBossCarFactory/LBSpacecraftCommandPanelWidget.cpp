@@ -1594,12 +1594,30 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						Parts = LOCTEXT("SplitPassThrough",
 							"Pass-through").ToString();
 					}
-					const float StopSeconds = bRecipe
+					// CREW COUNTS, and this row used to pretend it did
+					// not (found 2026-09-03 alongside the pace-setter
+					// readout, which would otherwise have contradicted
+					// this tile). StationFitSeconds is the NOMINAL
+					// share of the fitting work; the stop a player
+					// actually waits through is that divided by the
+					// station's work bonus, which spans 0.5x to 2.5x.
+					// An unevenly crewed line was showing two stations
+					// the same "~40 s stop" when one really took five
+					// times the other.
+					float StopSeconds = bRecipe
 						? FLBSpacecraftProductionCatalog::
 							StationFitSeconds(SplitRecipe,
 								SplitCounts[Index], TotalAllocated,
 								SplitStations.Num())
 						: 0.f;
+					if (StopSeconds > 0.f
+						&& GameMode->GetBuildAuthority() != nullptr)
+					{
+						StopSeconds /= FMath::Max(
+							GameMode->GetBuildAuthority()
+								->GetStationWorkBonus(SplitStations[Index]),
+							KINDA_SMALL_NUMBER);
+					}
 					// LIVE FITTING PROGRESS: when a craft stands at
 					// this station, the row says which part of the
 					// slice is going on and how far through the stop

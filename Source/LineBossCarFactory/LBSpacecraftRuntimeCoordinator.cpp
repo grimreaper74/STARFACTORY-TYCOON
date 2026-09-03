@@ -1175,8 +1175,14 @@ bool ALBSpacecraftRuntimeCoordinator::GetPaceSetter(
 	// the share path (the helper only branches at Testing and beyond,
 	// where a craft flies its own test in place rather than taking a
 	// stop the pulse waits on), so Assembly stands for "fitting" here.
+	// THE LINE'S END IS NOT IN THE RANKING. A craft at the last station
+	// climbs into its hover test in place and flies out under its own
+	// power - IsPulseMover excludes it and the all-complete scan skips
+	// it, so it can NEVER be the station a pulse waits on. Ranking it
+	// would let the readout name a station the player cannot fix by
+	// crewing or splitting, and would be simply untrue.
 	bool bFound = false;
-	for (int32 Index = 0; Index < Route.Num(); ++Index)
+	for (int32 Index = 0; Index + 1 < Route.Num(); ++Index)
 	{
 		const float Cycle = SpacecraftAssignmentCycleSeconds(Recipe,
 			ELBSpacecraftStage::Assembly, Index, Route.Num(),
