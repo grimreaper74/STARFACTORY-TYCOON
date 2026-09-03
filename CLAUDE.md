@@ -89,6 +89,13 @@ like a clean pass with a full test tally. Two separate sessions have read a stal
 evidence. Check the log's own `LogInit: Command Line:` line names the run you just made, and
 treat a missing `index.json` as "did not run" rather than "export failed".
 
+**`-ExecutePythonScript=` needs the same absolute-path treatment.** A relative script path
+resolves against the ENGINE's own `Engine/Binaries/Win64/` directory, not the project — the
+run exits 0, writes no receipt, and (without `-stdout -FullStdOutLogOutput` and an explicit
+`-abslog=<absolute path>`) leaves no log at all to explain why, reading exactly like the
+project-path failure above but with exit code 0 instead of 1. Always pass an absolute path to
+`-ExecutePythonScript`.
+
 Current top-level namespaces: `LineBoss.OneFactory`, `.Management`, `.BodyShop`, `.PaintShop`,
 `.FactoryBuilder`, `.PressShop`, `.WeldShop`, `.BodyWeld`, `.Settings`, `.AutomationBridge`,
 `.ControlRoom`, `.SupportRobots`, `.Environment`, `.Presentation`, `.MobileRoutes`,
