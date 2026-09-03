@@ -530,18 +530,23 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 			"/Game/LineBoss/Candidates/Spacecraft/SpacecraftTestBay_v001")
 			TEXT("/Meshes/SM_LB_SC_Cargo01_Canopy_v001")
 			TEXT(".SM_LB_SC_Cargo01_Canopy_v001"))));
-	// THE CARGO-01 CRAFT (owner 2026-09-03: concept A, the blunt
-	// freighter, chosen from the CargoCraft_v001 previews). Imported at
-	// 21 m on its longest axis with the size verified (Saved/Audits/
-	// Spacecraft/cargo_craft_import_v001.json); promoted under "Craft."
-	// in TryGetStationMesh. One mesh: the bay, collar, pods and plating
-	// are sculpted into it, so a Cargo shows whole from its hull stage
-	// on - splitting it into fitted parts like the Scout is the next
-	// modelling step, not a switch.
+	// THE CARGO-01 CRAFT, v002 (owner 2026-09-03 evening: "fuse part 2
+	// and part 3 together" / "yes go ahead" on splitting it for real).
+	// Built from the owner's Meshy part-segmentation drop rather than
+	// the v001 single mesh: two overlapping hull slices pushed into a
+	// real Boolean union (71% surface containment at best fit - genuine
+	// overlap, not just adjacency), landing legs and the boarding ramp
+	// joined on as fixed hull furniture, decimated 282,747 -> 38,940
+	// tris after a render check held up the panel detail. Imported at
+	// 21 m on its longest axis, verified (Saved/Audits/Spacecraft/
+	// cargo_craft_import_v002.json); promoted under "Craft." in
+	// TryGetStationMesh. v001 stays on disk, unused, as evidence. The
+	// two engine nacelles ship separately (CargoOwnPallets below) and
+	// fit onto this hull through the existing ThrusterPods sockets.
 	StationMeshes.Add(FName(TEXT("Craft.Cargo01")),
 		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT(
-			"/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v001")
-			TEXT("/SM_LB_SC_Cargo01_Craft_v001.SM_LB_SC_Cargo01_Craft_v001"))));
+			"/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v002")
+			TEXT("/SM_LB_SC_Cargo01_Craft_v002.SM_LB_SC_Cargo01_Craft_v002"))));
 	// The six ship COMPONENTS (owner's batch 2026-08-26, identities
 	// assigned by gallery; sized to fit IN the ship). Keyed by their
 	// ledger item ids so cargo visuals resolve straight from state.
@@ -723,15 +728,33 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("PalletLoads_v001/%s/%s/StaticMeshes/%s.%s"),
 				*FolderStem, Pallet, Pallet, Pallet))));
 	}
-	// THE CARGO'S OWN FIRST PART (owner's own GPT reference image,
-	// through Meshy image-to-3D, 2026-09-03): a separate small import,
-	// not part of the PalletLoads_v001 batch, so registered on its own
-	// rather than folded into the loop above whose nested path this
-	// asset does not share.
-	StationMeshes.Add(FName(TEXT("Pallet.pallet-thrusterpod")),
-		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT(
-			"/Game/LineBoss/Candidates/Spacecraft/CargoParts_v001")
-			TEXT("/SM_LB_SC_ThrusterPod_v001.SM_LB_SC_ThrusterPod_v001"))));
+	// THE CARGO'S OWN FOUR (owner's own GPT reference images, through
+	// Meshy image-to-3D, 2026-09-03): separate small imports, not part
+	// of the PalletLoads_v001 batch, so registered on their own rather
+	// than folded into the loop above whose nested path these assets
+	// do not share.
+	const TCHAR* CargoOwnPallets[][2] = {
+		{ TEXT("Pallet.pallet-thrusterpod"), TEXT("SM_LB_SC_ThrusterPod_v001") },
+		{ TEXT("Pallet.pallet-cargobay"), TEXT("SM_LB_SC_Cargo01_BayDoor_v001") },
+		{ TEXT("Pallet.pallet-dockingcollar"), TEXT("SM_LB_SC_Cargo01_DockingCollar_v001") },
+		{ TEXT("Pallet.pallet-shielding"), TEXT("SM_LB_SC_Cargo01_Shielding_v001") },
+		// The v002 hull's OWN engines (2026-09-03 evening), cut from the
+		// same part-segmentation drop as the hull itself and sized to
+		// the same 180 cm already verified for pallet-thrusterpod above
+		// - these replace it at the ThrusterPods socket (RefreshUnitFittings)
+		// because they share the hull's own panel language; the generic
+		// pallet-thrusterpod stays registered for the kit-dolly/hauler
+		// display, which still wants one representative mesh, not a pair.
+		{ TEXT("Pallet.pallet-thrusterpod-a"), TEXT("SM_LB_SC_Cargo01_ThrusterA_v001") },
+		{ TEXT("Pallet.pallet-thrusterpod-b"), TEXT("SM_LB_SC_Cargo01_ThrusterB_v001") },
+	};
+	for (const auto& Entry : CargoOwnPallets)
+	{
+		StationMeshes.Add(FName(Entry[0]),
+			TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
+				TEXT("/Game/LineBoss/Candidates/Spacecraft/CargoParts_v001/%s.%s"),
+				Entry[1], Entry[1]))));
+	}
 }
 
 UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
@@ -2730,10 +2753,22 @@ void ALBSpacecraftWIPPresentationActor::GetKitPalletCandidates(
 	}
 	else if (ComponentId == FName(TEXT("Component.ThrusterPods")))
 	{
-		// The real pod (2026-09-03): the kit dolly shows it waiting,
-		// and the hauler's claw carries it, the same as every other
-		// component that has a real pallet load.
+		// The real parts (2026-09-03): the kit dolly shows them
+		// waiting, and the hauler's claw carries them, the same as
+		// every other component that has a real pallet load.
 		OutPalletKeys = { FName(TEXT("Pallet.pallet-thrusterpod")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.CargoBay")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-cargobay")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.DockingCollar")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-dockingcollar")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Shielding")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-shielding")) };
 	}
 }
 
@@ -8038,29 +8073,71 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 		{
 			break;
 		}
-		UStaticMesh* Mesh = TryGetStationMesh(Key);
 		const FVector* Fraction = SocketByKey.Find(Key);
 		const FVector Local = SocketPoint(Fraction != nullptr
 			? *Fraction : FVector::ZeroVector);
-		if (Mesh != nullptr)
+		bool bHandled = false;
+		if (Key == FName(TEXT("Component.ThrusterPods")))
 		{
-			const FName PartKey(*FString::Printf(TEXT("%s_Fit%d"),
-				*UnitId.ToString(), Placed));
-			UStaticMeshComponent* Part =
-				NewObject<UStaticMeshComponent>(this,
-					UStaticMeshComponent::StaticClass(), PartKey);
-			Part->SetStaticMesh(Mesh);
-			Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Part->SetCastShadow(true);
-			Part->SetReceivesDecals(false);
-			Part->SetupAttachment(UnitComponent);
-			Part->RegisterComponent();
-			Part->SetRelativeLocation(Local);
-			Fittings.Parts.Add(Part);
+			// The hull's OWN two engines (2026-09-03 evening, the
+			// part-segmentation drop): a real left/right pair, cut from
+			// the same source as the hull so the panel language matches.
+			// Replaces the two-block blockout at these same sockets when
+			// both resolve; falls through to the generic single-mesh
+			// path (and from there to blockout) if either is missing -
+			// never a half-fitted pair.
+			UStaticMesh* EngineA = TryGetStationMesh(
+				FName(TEXT("Pallet.pallet-thrusterpod-a")));
+			UStaticMesh* EngineB = TryGetStationMesh(
+				FName(TEXT("Pallet.pallet-thrusterpod-b")));
+			if (EngineA != nullptr && EngineB != nullptr)
+			{
+				auto SpawnEngine = [&](UStaticMesh* Mesh,
+					const FVector& Fraction2, const TCHAR* Suffix)
+				{
+					const FName PartKey(*FString::Printf(
+						TEXT("%s_Fit%d%s"), *UnitId.ToString(), Placed,
+						Suffix));
+					UStaticMeshComponent* Part =
+						NewObject<UStaticMeshComponent>(this,
+							UStaticMeshComponent::StaticClass(), PartKey);
+					Part->SetStaticMesh(Mesh);
+					Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Part->SetCastShadow(true);
+					Part->SetReceivesDecals(false);
+					Part->SetupAttachment(UnitComponent);
+					Part->RegisterComponent();
+					Part->SetRelativeLocation(SocketPoint(Fraction2));
+					Fittings.Parts.Add(Part);
+				};
+				SpawnEngine(EngineA, FVector(-0.30f, 0.48f, 0.05f), TEXT("A"));
+				SpawnEngine(EngineB, FVector(-0.30f, -0.48f, 0.05f), TEXT("B"));
+				bHandled = true;
+			}
 		}
-		else
+		if (!bHandled)
 		{
-			AddBlockoutFitting(Key, Placed);
+			UStaticMesh* Mesh = TryGetStationMesh(Key);
+			if (Mesh != nullptr)
+			{
+				const FName PartKey(*FString::Printf(TEXT("%s_Fit%d"),
+					*UnitId.ToString(), Placed));
+				UStaticMeshComponent* Part =
+					NewObject<UStaticMeshComponent>(this,
+						UStaticMeshComponent::StaticClass(), PartKey);
+				Part->SetStaticMesh(Mesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Part->SetCastShadow(true);
+				Part->SetReceivesDecals(false);
+				Part->SetupAttachment(UnitComponent);
+				Part->RegisterComponent();
+				Part->SetRelativeLocation(Local);
+				Fittings.Parts.Add(Part);
+			}
+			else
+			{
+				AddBlockoutFitting(Key, Placed);
+			}
 		}
 		// The pipe/cable dressing links the sockets once most parts
 		// are in - thin dark runs plus one warning-orange line.

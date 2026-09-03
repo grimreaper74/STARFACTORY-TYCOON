@@ -250,3 +250,117 @@ feeds the kit dolly also feeds the hauler, live, in PIE. Not proven:
 the same pod actually sitting in a station's own kit bay on a frame -
 the five stations checked that same run did not happen to have it in
 view at the zoom used.
+
+## Addendum, 2026-09-03 (same night): the bay door, collar and plating land
+
+The owner's three remaining GPT reference images, run through the same
+image-to-3D lane as the thruster pod, all read clean on an isolated
+render before anything was imported: a bay door (200 cm longest axis),
+a docking collar (180 cm) and a plating strip. The plating's size was
+the one real judgement call - an earlier session's blockout fraction
+implied something nearer 11.5 m for this slot, but tonight's own Meshy
+prompt anchored it at "about as long as a car", so 460 cm (the
+prompt-consistent figure) was declared rather than the older, larger
+number; covering the hull's full length is a later tiling decision on
+the smaller asset, not a reason to inflate the source part itself.
+
+`Scripts/import_cargo_parts_v005.py` imported all three Nanite-on, sizes
+verified within 3% (`Saved/Audits/Spacecraft/cargo_parts_v005_import_v001.json`),
+registered in `CargoOwnPallets` alongside the thruster pod. All four of
+the Cargo's own kinds now resolve to real meshes through
+`GetKitPalletCandidates`, the same mechanism proven live for the
+thruster pod above.
+
+## Addendum, 2026-09-03 (later): the hull is split for real, from the owner's own model
+
+The owner had a "better Cargo" made and asked Meshy to split it -
+`Meshy_AI__0903101341_part-segmentation.blend`, the first genuine
+multi-object drop of the night (7 separate mesh objects, not one fused
+mesh scored into islands). Isolated renders of all seven identified a
+real kit: two engine nacelles (independent geometry, not a mirrored
+pair - 85,785 and 54,537 triangles), two landing legs, a boarding ramp,
+and two overlapping slices of the hull body itself (both carrying the
+same distinctive octagonal hatch - the tell that these were two cuts of
+one volume, not two adjacent parts).
+
+The kit arrived in an exploded pose. Every part except the hull pair
+snapped cleanly onto an anchor (`model_part3`) by sliding it back along
+its own explosion vector until its surface (sampled vertex clouds, not
+just bounding boxes - a corner-touch pass first, then a stricter
+nearest-surface pass) met the growing assembly; both passes converged
+on the same visible gap between the two hull slices, which is what
+confirmed they do not mate as adjacent pieces. Owner's call: "just fuse
+part 2 and part 3 together." Pushed further along the same vector, the
+two slices' surface-containment fraction peaked at 71% (from 0%),
+proof of real volumetric overlap - genuine duplicate coverage of one
+body, not two complementary halves - so a real Boolean union was run
+rather than a plain join (252,936 tris, no fallback needed; the source
+cut geometry was non-manifold at the seam - 67/71,850 and 436/403,150
+non-manifold edges - but the solver handled it). The two landing legs
+and the ramp were joined onto the fused hull as fixed furniture (owner:
+they are not drone-fitted components, this is not a new pair of
+component kinds - keeps `LBSpacecraftComponentKindCount` at ten). All
+three final pieces were decimated after a render check held up the
+panel detail (hull 282,747 -> 38,940 tris; engines 85,785 -> 14,999 and
+54,537 -> 11,999) and exported at declared real-world sizes on the same
+axis convention every part in this doc uses: the hull at 2100 cm
+longest axis (matching the live v001 craft, so it drops in without
+retuning anything downstream), each engine at 180 cm (matching the
+already-verified standalone thruster pod, so it sits right at the
+already-tuned socket).
+
+`Scripts/import_cargo_craft_v002.py` imported all three - hull, engine
+A, engine B - Nanite-on, sizes verified exactly on declared
+(`Saved/Audits/Spacecraft/cargo_craft_import_v002.json`). `Craft.Cargo01`
+now points at the v002 hull; v001 is left on disk, untouched, as
+evidence. The two engines are registered as `Pallet.pallet-thrusterpod-a/-b`
+and wired into `RefreshUnitFittings`'s `Component.ThrusterPods` handling
+as a special case: when BOTH resolve, they replace the two-block
+blockout at the same two hull-relative fractional sockets that blockout
+already used (`(-0.30, ±0.48, 0.05)`) rather than one of the two ever
+appearing alone; if either is missing it falls through to the existing
+generic single-mesh path and, from there, to blockout - never a
+half-fitted pair. The older generic `Pallet.pallet-thrusterpod` stays
+registered for the kit-dolly/hauler display, which wants one
+representative mesh, not a pair.
+
+**Proven:** the import (measured sizes and triangle counts, Nanite on,
+all in the receipt); the build (clean compile); the wiring, functionally
+- across this session's testing, nine Cargo units were started and at
+least five completed the full pipeline end to end (fabrication through
+dispatch) with the new hull and the new ThrusterPods branch live, zero
+crashes or errors. My own Blender renders of the fused, decimated kit
+(`Saved/Audits/...` scratch renders, not yet moved into the repo) show
+the assembled result matching intent: twin engines flanking the hull,
+legs and ramp in place, the hull seam essentially invisible after the
+Boolean fuse.
+
+**Not proven:** a clean in-game screenshot of the mounted engines on a
+live unit. Extensive attempts this session to catch a unit at its
+Assembly-stage station via the dev camera (`LB.Spacecraft.Watch`) and
+`capture_image` kept missing - the craft moves through each station
+faster than a Watch-then-capture round trip can reliably land on, and
+partial glimpses at station edges were consistent with, but did not
+conclusively confirm, the new grey/graphite parts in position. This is
+a tooling/timing gap in how this session drove the camera, not a
+red flag about the underlying wiring - the pipeline itself ran clean
+across many full cycles - but it should be looked at on an actual frame
+before calling the visual result decided, per house rule.
+
+**Separate finding, not fixed tonight:** a contract accepted for exactly
+as many units as were force-started can leave an orphaned unit stuck at
+`MaterialIntake` forever. `TryStartUnit`'s own demand scan
+(`LBSpacecraftRuntimeCoordinator.cpp`) only checks
+`Contract.DispatchedCount >= Contract.Quantity`, but `CreateUnit`'s
+`UnclaimedDemand` check (`LBSpacecraftProductionAuthority.cpp`)
+apparently also counts in-flight, undispatched units against that same
+quantity - so a unit that never got a runtime assignment (seen once
+this session, cause not isolated) permanently eats one unit of demand
+against its contract with no way to cancel or clear it. Reproduced
+directly: `LB.Spacecraft.Start 1 CARGO-01 force` before a `DeliveryDock`
+existed left a unit sitting at `MaterialIntake` for over 700 sim-seconds
+with `simAlert: "No accepted contract demand for this recipe"` even
+though nothing else was in flight; a fresh, larger-quantity contract
+worked around it, unclaimed demand never returned to true zero. Worth a
+look on its own - a single-ship contract is an entirely normal thing
+for a real player to accept.
