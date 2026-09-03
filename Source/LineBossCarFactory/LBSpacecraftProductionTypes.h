@@ -50,13 +50,24 @@ enum class ELBSpacecraftComponent : uint8
 	CargoBay,
 	DockingCollar,
 	ThrusterPods,
-	Shielding
+	Shielding,
+	/** Sentinel, not a real kind - always the count of everything above
+	 *  it by construction, so appending a kind can never leave the
+	 *  count stale the way a hand-typed number could (Copilot review,
+	 *  PR #1: a manual constant next to the enum still drifts if a new
+	 *  kind lands without updating both). Hidden from Blueprint pickers. */
+	Count UMETA(Hidden)
 };
 
 /** How many component kinds exist. The one number the item table, the
  *  BOM mirror check and every "for each component" loop share, so a
- *  new kind cannot be half-added. */
-constexpr uint8 LBSpacecraftComponentKindCount = 10;
+ *  new kind cannot be half-added. Derived from the enum's own trailing
+ *  Count sentinel rather than hand-typed, so it cannot drift from it. */
+constexpr uint8 LBSpacecraftComponentKindCount =
+	static_cast<uint8>(ELBSpacecraftComponent::Count);
+static_assert(LBSpacecraftComponentKindCount == 10,
+	"A kind was added or removed - this is not a failure, just a nudge "
+	"to update this comment's expectation once the new count is known.");
 
 /** ONE ACCESS EDGE: fitting Blocker puts Blocked out of reach.
  *
