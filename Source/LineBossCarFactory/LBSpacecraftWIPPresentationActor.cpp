@@ -230,8 +230,12 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// DARK BED (owner 2026-09-01 "still not right" over a frame of
 	// chalk-pale track on a pale floor). Both benchmarks make the
 	// conveyor the darkest thing on the floor - that contrast IS how
-	// it reads as the spine. Palette hazard backing #23211F in linear.
-	const FLinearColor SpacecraftConveyorBed(0.017f, 0.016f, 0.014f);
+	// it reads as the spine. This IS the palette's own HazardBlack
+	// (#23211F) - now wired to the named token instead of a duplicated
+	// literal, so the two can never drift apart the way this codebase's
+	// own review history keeps finding (LBSpacecraftInventoryAuthorityTests's
+	// hard-coded kind count, ELBSpacecraftComponent's hand-typed literal).
+	const FLinearColor SpacecraftConveyorBed = LBSpacecraftPalette::HazardBlack;
 	const FLinearColor SpacecraftCrateColour = LBSpacecraftPalette::CrateTan; // delivered crates - a second, different crate tone
 	// PHASE A OF THE LOOK PLAN (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md,
 	// owner "start on A", 2026-09-02): VALUE CONTRAST. Every frame
@@ -261,6 +265,17 @@ namespace LBSpacecraftWIPPresentationPrivate
 	const FLinearColor SpacecraftConveyorChevron(0.58f, 0.57f, 0.54f);
 	const FLinearColor SpacecraftBeltRail(0.52f, 0.53f, 0.56f);
 	const FLinearColor SpacecraftBeltAccent = LBSpacecraftPalette::MachineAmberTrim; // belt accent, running the length of the floor
+	// THE HAZARD BLACK NEVER GOT ITS PARTNER. The palette's own comment
+	// on HazardBlack says it is "always paired with the black" - the
+	// bed IS that black (TickTrack's continuous belt spline and
+	// TickConveyors' per-segment furniture both paint it), but nothing
+	// painted the yellow half, so the belt read as an unexplained dark
+	// scar rather than the yellow-and-black hazard banding this file's
+	// own reference-compare comment (the station bay border) already
+	// names as one of the three things both benchmarks lean on. Used
+	// on TickTrack's sleepers below, replacing their old pale grey.
+	const FLinearColor SpacecraftConveyorHazardStripe =
+		LBSpacecraftPalette::Hazard;
 	constexpr float SpacecraftBeltDeckZCm = 34.f;
 	constexpr float SpacecraftConveyorSpeedCmPerS = 250.f;
 	constexpr float SpacecraftConveyorSpacingCm = 400.f;
@@ -1652,8 +1667,18 @@ void ALBSpacecraftWIPPresentationActor::TickTrack(float DeltaSeconds)
 			UMaterialInstanceDynamic* SleeperMID =
 				UMaterialInstanceDynamic::Create(ShapeMaterial,
 					TrackSleepers);
+			// HAZARD YELLOW, not pale grey (found by the 2026-09-03
+			// look pass): the belt's dark bed IS the palette's own
+			// HazardBlack, and HazardBlack's own doc comment says it
+			// is "always paired with the black" - nothing painted that
+			// pairing before, so the belt read as an unexplained dark
+			// scar rather than the yellow-and-black hazard banding
+			// this file's own reference-compare comment already names
+			// as one of the three things both benchmarks lean on. The
+			// sleepers already give the belt its cross-tie rhythm;
+			// this just gives that rhythm the colour it was missing.
 			SleeperMID->SetVectorParameterValue(TEXT("Color"),
-				SpacecraftConveyorChevron);
+				SpacecraftConveyorHazardStripe);
 			TrackSleepers->SetMaterial(0, SleeperMID);
 		}
 	}
