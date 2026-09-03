@@ -3432,11 +3432,12 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftLayToCommand(
 #if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 	TEXT("LB.Spacecraft.StockComponents"),
-	TEXT("Stocks 4 units of each component into the fitting station ")
-	TEXT("stockpiles. Use after LB.Spacecraft.BuildLine to make production ")
-	TEXT("immediately runnable."),
+	TEXT("Stocks one craft's worth of each allocated kind into the fitting ")
+	TEXT("station stockpiles, by the recipe's counts, and a float of every ")
+	TEXT("kind it requires in the yard. Arg: [recipeId=SCOUT-01]. Use after ")
+	TEXT("LB.Spacecraft.BuildLine to make production immediately runnable."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
-		[](const TArray<FString>&, UWorld* World)
+		[](const TArray<FString>& Args, UWorld* World)
 {
 	ALBSpacecraftGameMode* GameMode = ALBSpacecraftGameMode::FindInWorld(World);
 	if (GameMode == nullptr || GameMode->GetInventoryAuthority() == nullptr
@@ -3444,6 +3445,16 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.StockComponents: no game mode"));
+		return;
+	}
+	const FName StockRecipeId = Args.Num() > 0
+		? FName(*Args[0]) : FName(TEXT("SCOUT-01"));
+	FLBSpacecraftRecipe Recipe;
+	if (!FLBSpacecraftProductionCatalog::FindRecipe(StockRecipeId, Recipe))
+	{
+		UE_LOG(LogLBSpacecraft, Warning,
+			TEXT("LB.Spacecraft.StockComponents: unknown recipe %s"),
+			*StockRecipeId.ToString());
 		return;
 	}
 	FString Reason;
@@ -3467,17 +3478,27 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 		}
 		for (const FName& Component : Record.AllocatedComponents)
 		{
+			// ONE CRAFT'S WORTH of each allocated kind, by the recipe's
+			// instance count (a Cargo eats three hulls), not a flat four:
+			// the flat four filled a Cargo head station's shelf with
+			// kinds it had plenty of and left no room for the hulls it
+			// was short of - the same deadlock the haul planner's
+			// shortfall rule exists to avoid (2026-09-03).
+			const int32 Count = FMath::Max(1, FLBSpacecraftProductionCatalog
+				::ComponentCountForItem(Recipe, Component));
 			if (GameMode->GetInventoryAuthority()->Deposit(Stockpile,
-				Component, 4, Reason))
+				Component, Count, Reason))
 			{
 				++Stocked;
 			}
 		}
 	}
-	for (uint8 Index = 0; Index < 6; ++Index)
+	// And a float of every kind THIS recipe requires in the yard.
+	for (ELBSpacecraftComponent Kind : Recipe.RequiredComponents)
 	{
 		const FName ItemId =
-			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(Index);
+			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
+				static_cast<uint8>(Kind));
 		if (!ItemId.IsNone())
 		{
 			GameMode->GetInventoryAuthority()->Deposit(Floor, ItemId, 4, Reason);

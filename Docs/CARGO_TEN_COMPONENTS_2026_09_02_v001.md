@@ -151,3 +151,15 @@ the runway after departure). Not proven: a wide, unobstructed frame of the
 finished Cargo on the line (the close frames are covered by the panels),
 the departure itself on a frame, and the fitted-part moments, which need
 the model split.
+
+**Later the same night:** the wide frame came (`cargo_real_station5.png`,
+`c8_sheet.png`): a fresh Mk2 line with a delivery dock, every part of a
+Cargo ordered through the console and hauled to the shelves one component
+at a time by the dock's drone, the freighter standing whole on its fifth
+Mk2 station under the crane at component fabrication with ten kinds
+produced. Also found and fixed on the way: the dev `StockComponents`
+command stocked a flat four of each allocated kind and only the Scout's
+six into the yard, which filled a Cargo head station's shelf with kinds
+it had plenty of and left no room for the hulls it was short of - it
+follows the recipe's kinds and counts now. Still not proven: the
+departure on a frame, and the fitted-part moments.
