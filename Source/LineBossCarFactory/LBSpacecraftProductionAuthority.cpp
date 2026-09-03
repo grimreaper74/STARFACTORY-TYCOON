@@ -388,15 +388,13 @@ bool ALBSpacecraftProductionAuthority::AdvanceUnit(FName UnitId,
 	return true;
 }
 
-void ALBSpacecraftProductionAuthority::SellUnitInto(
-	FLBSpacecraftUnitState& Unit, FLBSpacecraftContract& Contract)
+int64 ALBSpacecraftProductionAuthority::UnitDeductionPercent(
+	const FLBSpacecraftUnitState& Unit)
 {
-	Unit.bAwaitingSale = false;
-	++Contract.DispatchedCount;
 	// Defect penalty (vision: honest machine economy): each failed
 	// hover test costs 10% of the price, capped at 30% (PROVISIONAL).
 	// It travels with the CRAFT, so a shoddy one sells for less
-	// whenever it sells - out of stock as much as off the line.
+	// whenever it sells - out of stock, off the line, or to a broker.
 	int64 DeductionPercent = FMath::Min<int64>(
 		static_cast<int64>(Unit.FailedQualityTests) * 10, 30);
 	// A CONCESSION IS CHARGED IN PLACE OF THE FAILURES, NOT ON TOP.
@@ -416,8 +414,80 @@ void ALBSpacecraftProductionAuthority::SellUnitInto(
 			static_cast<int64>(FLBSpacecraftProductionCatalog
 				::ConcessionDeductionPercent(Unit.ConcededDefectPoints)));
 	}
+	return DeductionPercent;
+}
+
+int64 ALBSpacecraftProductionAuthority::BrokerOfferPence(
+	FName RecipeId, const FLBSpacecraftUnitState& Unit)
+{
+	FLBSpacecraftRecipe Recipe;
+	if (!FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe)
+		|| Recipe.RevenuePence <= 0)
+	{
+		return 0;
+	}
+	// PROVISIONAL 60% (owner tunes, like the station sell-back's 50%).
+	// The discount IS the mechanic: a broker takes the craft off your
+	// hands today, and the difference between this and a real order is
+	// what patience is worth. Deep enough that waiting for a customer
+	// is usually right, shallow enough that clearing a jam is a real
+	// option rather than a punishment.
+	const int64 Base = Recipe.RevenuePence * BrokerPricePercent / 100;
+	return Base * (100 - UnitDeductionPercent(Unit)) / 100;
+}
+
+bool ALBSpacecraftProductionAuthority::SellStockedCraftToBroker(
+	FName RecipeId, int64& OutPaidPence, FString& OutReason)
+{
+	OutPaidPence = 0;
+	// The OLDEST of that kind, so repeated sales clear stock in the
+	// order it was built rather than in whatever order the array sits.
+	FLBSpacecraftUnitState* Oldest = nullptr;
+	for (FLBSpacecraftUnitState& Unit : Ledger.Units)
+	{
+		if (!Unit.bAwaitingSale || Unit.RecipeId != RecipeId)
+		{
+			continue;
+		}
+		if (Oldest == nullptr)
+		{
+			Oldest = &Unit;
+		}
+	}
+	if (Oldest == nullptr)
+	{
+		OutReason = FString::Printf(
+			TEXT("NO %s IN FINISHED STOCK"), *RecipeId.ToString());
+		return false;
+	}
+	const int64 PaidPence = BrokerOfferPence(RecipeId, *Oldest);
+	if (PaidPence <= 0)
+	{
+		OutReason = FString::Printf(
+			TEXT("NO BROKER PRICE FOR %s"), *RecipeId.ToString());
+		return false;
+	}
+	// Settled like any other sale: the craft leaves stock and the money
+	// is revenue. It is NOT a contract delivery, so it credits no
+	// research points and moves no reputation - a clearance sale
+	// teaches the factory nothing and impresses nobody.
+	Oldest->bAwaitingSale = false;
+	Ledger.RevenuePence += PaidPence;
+	Ledger.CashPence += PaidPence;
+	OutPaidPence = PaidPence;
+	OutReason = FString::Printf(
+		TEXT("SOLD %s TO A BROKER FOR %lld"), *RecipeId.ToString(),
+		PaidPence / 100);
+	return true;
+}
+
+void ALBSpacecraftProductionAuthority::SellUnitInto(
+	FLBSpacecraftUnitState& Unit, FLBSpacecraftContract& Contract)
+{
+	Unit.bAwaitingSale = false;
+	++Contract.DispatchedCount;
 	const int64 PaidPence = Contract.PricePerUnitPence
-		* (100 - DeductionPercent) / 100;
+		* (100 - UnitDeductionPercent(Unit)) / 100;
 	Ledger.RevenuePence += PaidPence;
 	Ledger.CashPence += PaidPence;
 	if (Contract.DispatchedCount >= Contract.Quantity)

@@ -1952,6 +1952,44 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				{
 					AddSectionLabel(BuildFinishedStockLine(Row.Key,
 						Row.Value));
+					// THE BROKER (2026-09-03). Stock used to be a line
+					// of text and nothing else: a finished craft with
+					// no matching order left the player waiting for
+					// the offer board to come round again, with their
+					// capital frozen and no move available. The price
+					// is on the button because the whole point is an
+					// informed trade - cash today against full price
+					// whenever a real customer turns up.
+					{
+						const FLBSpacecraftUnitState* Stocked = nullptr;
+						for (const FLBSpacecraftUnitState& Unit :
+							StockLedger->GetUnits())
+						{
+							if (Unit.bAwaitingSale
+								&& Unit.RecipeId == Row.Key)
+							{
+								Stocked = &Unit;
+								break;
+							}
+						}
+						const int64 Offer = Stocked != nullptr
+							? ALBSpacecraftProductionAuthority
+								::BrokerOfferPence(Row.Key, *Stocked)
+							: 0;
+						if (Offer > 0)
+						{
+							AddTaggedButton(FText::Format(
+								LOCTEXT("SellToBroker",
+									"Sell one to a broker  ({0})"),
+								FText::FromString(
+									ULBSpacecraftTopBarWidget
+										::FormatCurrency(Offer)))
+									.ToString(),
+								Row.Key,
+								[this](FName InTag)
+								{ HandleSellToBroker(InTag); });
+						}
+					}
 				}
 			}
 		}
@@ -3055,6 +3093,25 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 	else
 	{
 		PanelActionText = Reason;
+	}
+}
+
+void ULBSpacecraftCommandPanelWidget::HandleSellToBroker(FName RecipeId)
+{
+	if (GameMode == nullptr
+		|| GameMode->GetProductionAuthority() == nullptr)
+	{
+		return;
+	}
+	int64 Paid = 0;
+	FString Reason;
+	const bool bSold = GameMode->GetProductionAuthority()
+		->SellStockedCraftToBroker(RecipeId, Paid, Reason);
+	PanelActionText = Reason;
+	if (!bSold)
+	{
+		LBSpacecraftCommandPanelPrivate::SpacecraftPlayInterfaceCue(this,
+			FName(TEXT("Refusal")));
 	}
 }
 

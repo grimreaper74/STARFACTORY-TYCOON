@@ -985,4 +985,94 @@ bool FLBSpacecraftFactoryCeilingTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+// THE BROKER (2026-09-03). A finished craft with no matching order used
+// to leave the player with nothing to do but wait for the offer board
+// to come round to its recipe again - never a soft-lock (the board
+// round-robins), but frozen capital and no move available, which is the
+// opposite of what a management game should do with an awkward spot.
+// The broker is the decision that replaces the waiting. What this pins
+// is that it stays a LAST RESORT: taking it must always be worse than
+// finding a customer, or the mechanic would quietly become the optimal
+// play and orders would stop mattering.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftBrokerSaleTest,
+	"LineBoss.Spacecraft.ProductionAuthority.ABrokerClearsStockAtADiscountAndNeverBeatsACustomer",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftBrokerSaleTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftProductionAuthorityTestsPrivate;
+	UWorld* World = MakeSpacecraftLedgerTestWorld();
+	ALBSpacecraftProductionAuthority* Ledger =
+		World->SpawnActor<ALBSpacecraftProductionAuthority>();
+	FString Reason;
+	const FName Scout(TEXT("SCOUT-01"));
+
+	// Nothing in stock: fails closed and names why.
+	int64 Paid = -1;
+	TestFalse(TEXT("an empty stock sells nothing"),
+		Ledger->SellStockedCraftToBroker(Scout, Paid, Reason));
+	TestEqual(TEXT("and pays nothing"), Paid, (int64)0);
+	TestTrue(TEXT("the refusal names the craft"),
+		Reason.Contains(TEXT("SCOUT-01")));
+
+	// A CRAFT ENDS UP IN STOCK the way it really does: its contract
+	// expires while it is still being built, so it rolls off the line
+	// with no order to settle against (the same path
+	// WIPCapAndDeadlineExpiry pins).
+	TestTrue(TEXT("offer"), Ledger->OfferContract(
+		MakeScoutContract(TEXT("C-BRK"), 1, 100.0), Reason));
+	TestTrue(TEXT("accept"), Ledger->AcceptContract(
+		FName(TEXT("C-BRK")), Reason));
+	FName UnitId;
+	TestTrue(TEXT("a craft starts"),
+		Ledger->CreateUnit(Scout, UnitId, Reason));
+	TestTrue(TEXT("its deadline passes mid-build"),
+		Ledger->AdvanceSimSeconds(150.0, Reason));
+	TestTrue(TEXT("unit reaches Testing"),
+		AdvanceSpacecraftUnitToTesting(*Ledger, UnitId, Reason));
+	TestTrue(TEXT("hover test passes"),
+		Ledger->RecordQualityResult(UnitId, true, Reason));
+	TestTrue(TEXT("it still leaves the line"),
+		Ledger->AdvanceUnit(UnitId, Reason));
+	TestEqual(TEXT("with no order to take it, it lands in stock"),
+		Ledger->GetStockedCraftCount(), 1);
+	const int64 CashBefore = Ledger->GetCashPence();
+
+	// THE OFFER IS VISIBLE BEFORE THE SALE, and it is a real discount
+	// on the craft's list price - the whole trade is cash today
+	// against full price later, so the player must be able to see both.
+	FLBSpacecraftRecipe Recipe;
+	TestTrue(TEXT("the recipe is catalogued"),
+		FLBSpacecraftProductionCatalog::FindRecipe(Scout, Recipe));
+	const FLBSpacecraftUnitState* Stocked = Ledger->FindUnit(UnitId);
+	TestNotNull(TEXT("the stocked craft is findable"), Stocked);
+	int64 Offer = 0;
+	if (Stocked != nullptr)
+	{
+		Offer = ALBSpacecraftProductionAuthority::BrokerOfferPence(
+			Scout, *Stocked);
+	}
+	TestTrue(TEXT("the broker offers something"), Offer > 0);
+	TestTrue(TEXT("but STRICTLY LESS than the craft's list price - a "
+		"clearance sale must never beat finding a customer"),
+		Offer < Recipe.RevenuePence);
+
+	// The sale itself: stock clears, cash arrives, and the money is
+	// exactly what was quoted.
+	TestTrue(TEXT("the broker takes it"),
+		Ledger->SellStockedCraftToBroker(Scout, Paid, Reason));
+	TestEqual(TEXT("paying exactly what the button said"), Paid, Offer);
+	TestEqual(TEXT("stock is clear"), Ledger->GetStockedCraftCount(), 0);
+	TestEqual(TEXT("and the cash arrived"),
+		Ledger->GetCashPence(), CashBefore + Paid);
+
+	// Selling the same stock twice is refused - the craft is gone.
+	TestFalse(TEXT("the same craft cannot be sold twice"),
+		Ledger->SellStockedCraftToBroker(Scout, Paid, Reason));
+
+	World->DestroyWorld(false);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
