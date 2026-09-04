@@ -711,6 +711,17 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("LB_Carrier_%s.LB_Carrier_%s"),
 				Carrier, Carrier, Carrier))));
 	}
+	// THE CRAFT AGV (2026-09-04): the motorised carrier a craft rides
+	// down the line, replacing the procedural stand that stood in for
+	// it since the gantry crane came off. Same "Carrier." prefix as
+	// the parts carriers above - both are things that carry - which
+	// also means it inherits their promoted-source entry and renders
+	// the moment it is registered, rather than silently falling back
+	// to a cube the way ten other real assets were doing until today.
+	StationMeshes.Add(FName(TEXT("Carrier.CraftAGV")),
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
+			TEXT("/Game/LineBoss/Spacecraft/CraftAGV_v001/")
+			TEXT("SM_LB_SC_CraftAGV_v001.SM_LB_SC_CraftAGV_v001"))));
 	// PALLETLOADS_v001 (2026-08-30): fourteen real ship assemblies cut
 	// from the Scout model itself, stowed on factory pallets - the
 	// per-COMPONENT kit dolly content the Meshy-era generic crate block
@@ -1374,6 +1385,39 @@ UStaticMeshComponent* ALBSpacecraftWIPPresentationActor::MakeUnitStand(
 	}
 	const FBoxSphereBounds Bounds =
 		CraftComponent->GetStaticMesh()->GetBounds();
+	// THE REAL CARRIER, when it resolves (2026-09-04). A motorised AGV
+	// the craft rides, in place of the flat platform below. It is
+	// scaled UNIFORMLY off the hull's LENGTH, never per-axis: the model
+	// is 1500 x 355 cm, a Scout is 1400 x 746, and stretching Y to the
+	// hull's width would nearly double one axis alone and visibly
+	// distort the wheels and cradles. A transporter narrower than its
+	// load is also what real ones look like - the craft overhangs the
+	// sides, as it should.
+	if (UStaticMesh* CarrierMesh =
+		TryGetStationMesh(FName(TEXT("Carrier.CraftAGV"))))
+	{
+		const FBoxSphereBounds CarrierBounds = CarrierMesh->GetBounds();
+		const float CarrierLength =
+			FMath::Max(CarrierBounds.BoxExtent.X * 2.f, 1.f);
+		// The deck runs a little longer than the hull so the craft sits
+		// ON it rather than overhanging the ends, which is the one
+		// direction an overhang would read as a mistake.
+		const float WantLength = Bounds.BoxExtent.X * 2.f * 1.06f;
+		const float Uniform = WantLength / CarrierLength;
+		Stand->SetStaticMesh(CarrierMesh);
+		Stand->AttachToComponent(CraftComponent,
+			FAttachmentTransformRules::KeepRelativeTransform);
+		Stand->SetRelativeRotation(FRotator::ZeroRotator);
+		Stand->SetRelativeScale3D(FVector(Uniform));
+		// Sits UNDER the hull: the mesh is modelled with its base at
+		// zero, so drop it by its own scaled height plus the hull's
+		// half-depth to put the deck against the craft's belly.
+		Stand->SetRelativeLocation(FVector(Bounds.Origin.X,
+			Bounds.Origin.Y,
+			Bounds.Origin.Z - Bounds.BoxExtent.Z
+				- CarrierBounds.BoxExtent.Z * 2.f * Uniform));
+		return Stand;
+	}
 	// Undoes the CRAFT's own scale for the one quantity that must stay
 	// a constant WORLD thickness regardless of it (a blockout hull's
 	// scale can be over twenty times a unit cube's) - the same
