@@ -63,6 +63,57 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftRuntimeAssignment
 	 *  pulse. Cleared when the craft moves (or its stop restarts). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
 	bool bStopComplete = false;
+
+	/** THE CREW THAT ACTUALLY DID THE WORK (2026-09-03 audit): captured
+	 *  the instant bStopComplete is set, not read live whenever the
+	 *  defect calculation happens to run. For a non-final station that
+	 *  run can be tens of seconds to minutes later - the whole line
+	 *  waits for its slowest station before the pulse - and until this
+	 *  snapshot existed, a player could dismiss a station's crew the
+	 *  moment it finished (rational: they're idle, reassign them) and
+	 *  have the craft charged defects for work a full crew actually
+	 *  did, or install crew just ahead of the pulse to buy a "clean"
+	 *  read for work done uncrewed. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	int32 SnapshotInstalledDrones = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss", SaveGame)
+	TArray<FName> SnapshotInstalledDroneTypes;
+};
+
+/** Which station sets the line's pace, and by how much. */
+USTRUCT(BlueprintType)
+struct LINEBOSSCARFACTORY_API FLBSpacecraftPaceSetter
+{
+	GENERATED_BODY()
+
+	/** The slowest station on the route - the one everything waits for. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	FName StationId;
+
+	/** Its stop, in seconds, after its crew's work bonus. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	float StopSeconds = 0.f;
+
+	/** The next slowest station, and its stop. The GAP between the two
+	 *  is what fixing the pace-setter would actually win - past that
+	 *  point this station stops being the bottleneck and the runner-up
+	 *  takes over, which is the honest thing to tell a player. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	FName RunnerUpStationId;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	float RunnerUpSeconds = 0.f;
+
+	/** Seconds a whole pulse takes: the slowest stop plus the move. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	float PulseSeconds = 0.f;
+
+	/** True when the pace-setter is a process station (a spray booth
+	 *  takes what it takes), so the advice must not say "split its
+	 *  fitting order" - there is no fitting order to split. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	bool bProcessStation = false;
 };
 
 USTRUCT(BlueprintType)
@@ -190,6 +241,16 @@ public:
 		float& OutEnd01) const;
 	/** Craft on the line whose stop is complete. */
 	int32 CountStopComplete() const;
+
+	/** THE PACE-SETTER. On a pulse line every station waits for the
+	 *  slowest, so one station sets the tempo of the whole factory and
+	 *  everything else is idle time - the single most useful thing a
+	 *  player can be told, and the thing neither benchmark states
+	 *  outright. Computed, not measured: a station's stop is its share
+	 *  of the recipe's fitting work (or a process station's fixed
+	 *  time) divided by its crew's work bonus, so the answer is exact
+	 *  and available before a single craft has run. */
+	bool GetPaceSetter(FLBSpacecraftPaceSetter& Out) const;
 
 	/** THE INSPECTION SWEEP. The craft currently under the scan at the
 	 *  end of the line, how far the sweep has run, and how many faults

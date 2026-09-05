@@ -29,6 +29,22 @@ namespace LBSpacecraftResearchPrivate
 		return Node;
 	}
 
+	/** A node that opens CREW KINDS rather than station families. */
+	FLBSpacecraftResearchNode MakeCrewResearchNode(const TCHAR* Id,
+		const TCHAR* Display, int32 CostPoints,
+		std::initializer_list<const TCHAR*> Prerequisites,
+		std::initializer_list<const TCHAR*> DroneKinds)
+	{
+		FLBSpacecraftResearchNode Node =
+			MakeResearchNode(Id, Display, CostPoints, Prerequisites, {});
+		Node.Branch = FName(TEXT("Crew"));
+		for (const TCHAR* KindId : DroneKinds)
+		{
+			Node.UnlockedDroneKinds.Add(FName(KindId));
+		}
+		return Node;
+	}
+
 	TArray<FLBSpacecraftResearchNode> BuildManufacturingBranch()
 	{
 		TArray<FLBSpacecraftResearchNode> Table;
@@ -46,26 +62,67 @@ namespace LBSpacecraftResearchPrivate
 		Table.Add(MakeResearchNode(TEXT("Research.Mfg.T4"),
 			TEXT("Robotic Sub-Assembly"), 80, {TEXT("Research.Mfg.T3")},
 			{TEXT("SubAssemblyRobot")}));
-		// The parts line's own upgrade, at the end of the tree: a
-		// mature factory spends its points making its six crafting
-		// families faster rather than adding more of them.
-		Table.Add(MakeResearchNode(TEXT("Research.Mfg.PartsMk2"),
-			TEXT("Heavy Parts Machinery"), 100,
+		// THE PARTS UPGRADE, SPLIT THREE WAYS (2026-09-03). It used to
+		// be one 100-point node that handed over all nine bigger marks
+		// at once - the most expensive thing in the tree and the least
+		// interesting, because there was nothing to decide: you saved
+		// up, you bought it, your whole parts floor upgraded. Split by
+		// what the machines actually make, each node is affordable on
+		// its own and the player upgrades the part of their factory
+		// that is ACTUALLY their bottleneck first. Same nine marks,
+		// same total ballpark, three real decisions instead of none.
+		// The bigger YARD RACK rides with the heavy stock machinery:
+		// the node is about handling materials at scale, and a yard
+		// that cannot hold what the bigger mills eat is the same
+		// bottleneck seen from the other end.
+		Table.Add(MakeResearchNode(TEXT("Research.Mfg.HeavyStock"),
+			TEXT("Heavy Stock Machinery"), 30,
 			{TEXT("Research.Mfg.T4")},
-			{TEXT("RollingMillMk2"), TEXT("CircuitFabMk2"),
-				TEXT("ElectronicsStationMk2"), TEXT("PowerCellPlantMk2"),
-				TEXT("PropulsionStationMk2"),
-				TEXT("SubAssemblyRobotMk2"),
-				// The new families get their bigger marks here too, or
-				// they would be catalogue entries nothing can ever
-				// unlock.
-				TEXT("SmelterMk2"), TEXT("StructureFabMk2"),
-				TEXT("FitOutFabMk2")}));
+			{TEXT("RollingMillMk2"), TEXT("SmelterMk2"),
+				TEXT("StructureFabMk2"), TEXT("StorageRackMk2")}));
+		Table.Add(MakeResearchNode(TEXT("Research.Mfg.HeavyElectronics"),
+			TEXT("Heavy Electronics"), 30,
+			{TEXT("Research.Mfg.T4")},
+			{TEXT("CircuitFabMk2"), TEXT("ElectronicsStationMk2"),
+				TEXT("PowerCellPlantMk2")}));
+		Table.Add(MakeResearchNode(TEXT("Research.Mfg.HeavyPropulsion"),
+			TEXT("Heavy Propulsion and Fit-out"), 30,
+			{TEXT("Research.Mfg.T4")},
+			{TEXT("PropulsionStationMk2"), TEXT("FitOutFabMk2"),
+				TEXT("SubAssemblyRobotMk2")}));
 		// Mark upgrades: the Mk2 route stations that hold Cargo-tier craft.
 		Table.Add(MakeResearchNode(TEXT("Research.Mfg.Mk2"),
 			TEXT("Heavy Station Marks"), 60, {TEXT("Research.Mfg.T2")},
 			{TEXT("MaterialProcessorMk2"), TEXT("HullFabricatorMk2"),
 				TEXT("ComponentFabricatorMk2"), TEXT("AssemblyRobotMk2")}));
+
+		// THE CREW BRANCH (2026-09-03). Seven drone kinds shipped -
+		// quality weights from the winch's rough 0.6 to the ground
+		// sprayer's 1.7, each at its own price - and every one was
+		// hireable from the first minute, so picking a crew carried no
+		// progression at all. They are content like any machine: the
+		// plain assembly drone stays free (it is also the fallback
+		// every kind-less caller gets), and the SPECIALISTS are earned.
+		// This branch hangs off T1 rather than the deep chain so a
+		// player has a real choice early: widen what your factory can
+		// MAKE, or improve who BUILDS it.
+		Table.Add(MakeCrewResearchNode(TEXT("Research.Crew.Specialists"),
+			TEXT("Crew Specialisation"), 15, {TEXT("Research.Mfg.T1")},
+			{TEXT("Spray"), TEXT("Winch")}));
+		Table.Add(MakeCrewResearchNode(TEXT("Research.Crew.HeavyLift"),
+			TEXT("Heavy Lift Crew"), 20,
+			{TEXT("Research.Crew.Specialists")},
+			{TEXT("CargoLift")}));
+		// GROUND CREW park on the floor and work the craft's belly -
+		// the choreography the fitting stations already draw for them.
+		Table.Add(MakeCrewResearchNode(TEXT("Research.Crew.Ground"),
+			TEXT("Ground Crew"), 25,
+			{TEXT("Research.Crew.Specialists")},
+			{TEXT("GroundLifter"), TEXT("GroundAssembly")}));
+		Table.Add(MakeCrewResearchNode(TEXT("Research.Crew.Precision"),
+			TEXT("Precision Finishing"), 40,
+			{TEXT("Research.Crew.Ground")},
+			{TEXT("GroundSprayer")}));
 		return Table;
 	}
 
@@ -142,6 +199,18 @@ FLBSpacecraftResearchCatalogue::GetDefaultStationClasses()
 	return Defaults;
 }
 
+const TArray<FName>&
+FLBSpacecraftResearchCatalogue::GetDefaultDroneKinds()
+{
+	// ONE free kind, deliberately. Assembly is the nominal-quality
+	// drone and the fallback FindDroneKind hands back for an unknown
+	// name, so a factory with no research crews every station to
+	// nominal and builds clean craft - nobody is gated out of playing.
+	// What research buys is the SPECIALISTS beside it.
+	static const TArray<FName> Defaults = {FName(TEXT("Assembly"))};
+	return Defaults;
+}
+
 bool FLBSpacecraftResearchCatalogue::ValidateNodeTable(FString& OutReason)
 {
 	const TArray<FLBSpacecraftResearchNode>& Table = GetNodeTable();
@@ -185,7 +254,12 @@ bool FLBSpacecraftResearchCatalogue::ValidateNodeTable(FString& OutReason)
 			}
 		}
 		SeenIds.Add(Node.NodeId);
-		if (Node.UnlockedStationClasses.Num() == 0)
+		// CONTENT ONLY, still: a node must hand over something that
+		// EXISTS to build or hire. Crew kinds count as content for the
+		// same reason machines do - what changes is what the player
+		// can choose from, never a multiplier behind their back.
+		if (Node.UnlockedStationClasses.Num() == 0
+			&& Node.UnlockedDroneKinds.Num() == 0)
 		{
 			OutReason = FString::Printf(
 				TEXT("RESEARCH NODE %s UNLOCKS NOTHING - CONTENT ONLY"),
@@ -207,7 +281,15 @@ bool FLBSpacecraftResearchCatalogue::ValidateNodeTable(FString& OutReason)
 			// family that crafts nothing.
 			const FName RecipeClass = Unlocked != nullptr
 				? Unlocked->GetRecipeClassId() : StationClass;
-			if (!bRouteMark
+			// STORAGE COUNTS AS CONTENT TOO (2026-09-03). The rule was
+			// written when only crafting families and route marks were
+			// unlockable; a bigger yard rack is neither, and crafts
+			// nothing, but it is plainly a real thing the player
+			// builds. Without this the validator refuses it as
+			// "CRAFTS NOTHING" and the node table fails closed.
+			const bool bStorage = Unlocked != nullptr
+				&& Unlocked->StorageCapacityUnits > 0;
+			if (!bRouteMark && !bStorage
 				&& FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 					RecipeClass).Num() == 0)
 			{
@@ -220,6 +302,27 @@ bool FLBSpacecraftResearchCatalogue::ValidateNodeTable(FString& OutReason)
 			{
 				OutReason = FString::Printf(
 					TEXT("RESEARCH NODE %s RE-LOCKS A DEFAULT FAMILY"),
+					*Node.NodeId.ToString());
+				return false;
+			}
+		}
+		// CREW KINDS get the same two checks their station families
+		// get: the kind must actually exist in the drone catalogue,
+		// and the free kind can never be sold back to the player.
+		for (const FName& KindId : Node.UnlockedDroneKinds)
+		{
+			if (ALBSpacecraftBuildAuthority::FindDroneKind(KindId)
+				== nullptr)
+			{
+				OutReason = FString::Printf(
+					TEXT("RESEARCH NODE %s UNLOCKS UNKNOWN CREW KIND %s"),
+					*Node.NodeId.ToString(), *KindId.ToString());
+				return false;
+			}
+			if (GetDefaultDroneKinds().Contains(KindId))
+			{
+				OutReason = FString::Printf(
+					TEXT("RESEARCH NODE %s RE-LOCKS THE FREE CREW KIND"),
 					*Node.NodeId.ToString());
 				return false;
 			}
@@ -306,6 +409,30 @@ bool ALBSpacecraftResearchAuthority::IsStationClassUnlocked(
 			FLBSpacecraftResearchCatalogue::FindNode(NodeId);
 		if (Node != nullptr
 			&& Node->UnlockedStationClasses.Contains(StationClassId))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ALBSpacecraftResearchAuthority::IsDroneKindUnlocked(
+	FName KindId) const
+{
+	// A KIND-LESS HIRE IS THE PLAIN DRONE. Every existing caller that
+	// passes no kind falls back to Assembly downstream, so an empty
+	// name must read as unlocked or the whole game stops crewing.
+	if (KindId.IsNone()
+		|| FLBSpacecraftResearchCatalogue::GetDefaultDroneKinds()
+			.Contains(KindId))
+	{
+		return true;
+	}
+	for (const FName& NodeId : UnlockedNodes)
+	{
+		const FLBSpacecraftResearchNode* Node =
+			FLBSpacecraftResearchCatalogue::FindNode(NodeId);
+		if (Node != nullptr && Node->UnlockedDroneKinds.Contains(KindId))
 		{
 			return true;
 		}

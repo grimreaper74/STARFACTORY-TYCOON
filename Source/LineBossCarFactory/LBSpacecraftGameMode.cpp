@@ -244,16 +244,19 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 		// A line that stops must SAY so. Every hold reason used to be
 		// computed and dropped, so the factory could sit frozen with
 		// nothing on screen to explain it.
-		RaiseSimAlert(Coordinator->GetLastHoldReason());
 		// AND A LINE THAT REFUSES TO START (audit 2026-09-01): the
 		// start refusal - a contract the route cannot service, an
 		// occupied head - went to the log only, and a stranger with an
 		// accepted contract stared at "LINE IDLE" with no explanation
 		// in any widget.
-		if (Coordinator->GetLastHoldReason().IsEmpty())
-		{
-			RaiseSimAlert(Coordinator->GetLastStartRefusal());
-		}
+		// BUT NOT WHILE IT RUNS (stranger run, 2026-09-02): with their
+		// one ship in build, the strip read "No accepted contract
+		// demand for this recipe" - the refusal to start a SECOND
+		// ship - and a resolved hold ("a drone is on its way") would
+		// otherwise have stayed on screen. See LineAlertFor.
+		ApplyLineAlert(LineAlertFor(Coordinator->GetLastHoldReason(),
+			Coordinator->GetLastStartRefusal(),
+			Coordinator->GetAssignments().Num()));
 	}
 	// AN ACCEPTED CONTRACT EXPIRING IS AN EVENT, NOT A STATE (overnight
 	// stranger run, 2026-09-01: the deadline lapsed mid-rework and the
@@ -270,11 +273,19 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 				&& !ExpiredContractsAnnounced.Contains(Contract.ContractId))
 			{
 				ExpiredContractsAnnounced.Add(Contract.ContractId);
+				// Named to the recipe (found by the 2026-09-03
+				// integration-gap audit): a stocked ship only sells
+				// against a MATCHING contract, and "accept a new
+				// contract" unqualified misled a player who had
+				// nothing but a different recipe on offer - the exact
+				// state a reputation-tier drop can leave the board in.
 				RaiseSimAlert(FString::Printf(
 					TEXT("CONTRACT %s EXPIRED - the deadline passed. ")
-					TEXT("Finished ships wait in stock and sell when you ")
-					TEXT("accept a new contract"),
-					*Contract.ContractId.ToString()));
+					TEXT("Finished %s stock waits and sells when you ")
+					TEXT("accept a new %s contract"),
+					*Contract.ContractId.ToString(),
+					*Contract.RecipeId.ToString(),
+					*Contract.RecipeId.ToString()));
 			}
 		}
 	}
@@ -300,7 +311,7 @@ void ALBSpacecraftGameMode::Tick(float DeltaSeconds)
 		DroneFleet->TickFleet(SimDelta, CraftingAuthority,
 			PowerAuthority, Coordinator);
 		DroneFleet->TickHauls(SimDelta, CraftingAuthority,
-			InventoryAuthority, BuildAuthority);
+			InventoryAuthority, BuildAuthority, PowerAuthority);
 	}
 	if (PowerAuthority != nullptr && SimDelta > 0.f)
 	{
@@ -1002,6 +1013,34 @@ void ALBSpacecraftGameMode::RaiseSimAlert(const FString& Alert)
 	UE_LOG(LogLBSpacecraft, Display, TEXT("SPACECRAFT ALERT: %s"), *Alert);
 }
 
+FString ALBSpacecraftGameMode::LineAlertFor(const FString& HoldReason,
+	const FString& StartRefusal, int32 UnitsInFlight)
+{
+	if (!HoldReason.IsEmpty())
+	{
+		return HoldReason;
+	}
+	return UnitsInFlight > 0 ? FString() : StartRefusal;
+}
+
+void ALBSpacecraftGameMode::ApplyLineAlert(const FString& LineAlert)
+{
+	if (!LineAlert.IsEmpty())
+	{
+		RaiseSimAlert(LineAlert);
+	}
+	else if (!LastLineAlertText.IsEmpty()
+		&& SimAlertText == LastLineAlertText)
+	{
+		// The line's own complaint, now resolved: a hold that lifted, a
+		// refusal answered by a contract. Nothing else is touched.
+		SimAlertText.Reset();
+		UE_LOG(LogLBSpacecraft, Display,
+			TEXT("SPACECRAFT ALERT cleared: %s"), *LastLineAlertText);
+	}
+	LastLineAlertText = LineAlert;
+}
+
 FString ALBSpacecraftGameMode::BuildBufferStallAlert(FName StationId,
 	bool bAnyStorageRack)
 {
@@ -1591,6 +1630,14 @@ bool ALBSpacecraftGameMode::SetupCanonicalLine(
 	// refusal was silent, and stations 2/4/6 stood sideways (owner
 	// 2026-09-02: "2 and 4 are sideways").
 	const float Step = bMk2Line ? 2600.f : 2000.f;
+	if (bMk2Line)
+	{
+		// The Mk2 chain is 13 m longer than the Mk1 one; started where
+		// the Mk1 line starts, its booth landed off the hall floor
+		// ("Spray booth must stand inside a building", 2026-09-02).
+		// Centre the whole chain, booth included, on the hall instead.
+		Y = -(4.f * Step + Step + 400.f) * 0.5f;
+	}
 	for (int32 Index = 0; Index < 5; ++Index)
 	{
 		const TCHAR* ClassId =
@@ -2467,8 +2514,19 @@ bool ALBSpacecraftGameMode::InstallInSlotPowered(
 bool ALBSpacecraftGameMode::InstallStationDronePowered(
 	ALBSpacecraftBuildAuthority& InBuild, FName StationId,
 	FString& OutReason, ALBSpacecraftProductionAuthority* InLedger,
-	const ALBSpacecraftProgressionAuthority* InProgression, FName KindId)
+	const ALBSpacecraftProgressionAuthority* InProgression, FName KindId,
+	const ALBSpacecraftResearchAuthority* InResearch)
 {
+	// A SPECIALIST IS RESEARCHED CONTENT (2026-09-03). Refused before
+	// anything is spent, and named the same way a locked machine is,
+	// so the reason reads like every other research refusal.
+	if (InResearch != nullptr && !InResearch->IsDroneKindUnlocked(KindId))
+	{
+		OutReason = FString::Printf(
+			TEXT("%s IS LOCKED - RESEARCH IT FIRST"),
+			*KindId.ToString());
+		return false;
+	}
 	// QUALITY CONTROL is a delivery milestone, and crew is what quality
 	// MEANS here - an under-crewed station fits parts badly. Everyone
 	// can crew to nominal from the first minute, so nobody is forced to
@@ -3299,9 +3357,9 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftPressCommand(
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftBuildLineCommand(
 	TEXT("LB.Spacecraft.BuildLine"),
 	TEXT("Places one station of every class through the build authority and ")
-	TEXT("commissions the factory."),
+	TEXT("commissions the factory. Arg: [mk2] for the Mk2 marks."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
-		[](const TArray<FString>&, UWorld* World)
+		[](const TArray<FString>& Args, UWorld* World)
 {
 	ALBSpacecraftGameMode* GameMode = ALBSpacecraftGameMode::FindInWorld(World);
 	if (GameMode == nullptr || GameMode->GetBuildAuthority() == nullptr)
@@ -3312,7 +3370,10 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftBuildLineCommand(
 	}
 	FString Reason;
 	if (!ALBSpacecraftGameMode::SetupCanonicalLine(
-		*GameMode->GetBuildAuthority(), Reason))
+		*GameMode->GetBuildAuthority(), Reason,
+		// "mk2" places the Mk2 marks (research permitting) so the Cargo
+		// tier can be run from the console (2026-09-02).
+		Args.Num() > 0 && Args[0].Equals(TEXT("mk2"), ESearchCase::IgnoreCase)))
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.BuildLine REFUSED: %s"), *Reason);
@@ -3390,11 +3451,12 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftLayToCommand(
 #if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 	TEXT("LB.Spacecraft.StockComponents"),
-	TEXT("Stocks 4 units of each component into the fitting station ")
-	TEXT("stockpiles. Use after LB.Spacecraft.BuildLine to make production ")
-	TEXT("immediately runnable."),
+	TEXT("Stocks one craft's worth of each allocated kind into the fitting ")
+	TEXT("station stockpiles, by the recipe's counts, and a float of every ")
+	TEXT("kind it requires in the yard. Arg: [recipeId=SCOUT-01]. Use after ")
+	TEXT("LB.Spacecraft.BuildLine to make production immediately runnable."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
-		[](const TArray<FString>&, UWorld* World)
+		[](const TArray<FString>& Args, UWorld* World)
 {
 	ALBSpacecraftGameMode* GameMode = ALBSpacecraftGameMode::FindInWorld(World);
 	if (GameMode == nullptr || GameMode->GetInventoryAuthority() == nullptr
@@ -3402,6 +3464,16 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.StockComponents: no game mode"));
+		return;
+	}
+	const FName StockRecipeId = Args.Num() > 0
+		? FName(*Args[0]) : FName(TEXT("SCOUT-01"));
+	FLBSpacecraftRecipe Recipe;
+	if (!FLBSpacecraftProductionCatalog::FindRecipe(StockRecipeId, Recipe))
+	{
+		UE_LOG(LogLBSpacecraft, Warning,
+			TEXT("LB.Spacecraft.StockComponents: unknown recipe %s"),
+			*StockRecipeId.ToString());
 		return;
 	}
 	FString Reason;
@@ -3425,17 +3497,27 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStockComponentsCommand(
 		}
 		for (const FName& Component : Record.AllocatedComponents)
 		{
+			// ONE CRAFT'S WORTH of each allocated kind, by the recipe's
+			// instance count (a Cargo eats three hulls), not a flat four:
+			// the flat four filled a Cargo head station's shelf with
+			// kinds it had plenty of and left no room for the hulls it
+			// was short of - the same deadlock the haul planner's
+			// shortfall rule exists to avoid (2026-09-03).
+			const int32 Count = FMath::Max(1, FLBSpacecraftProductionCatalog
+				::ComponentCountForItem(Recipe, Component));
 			if (GameMode->GetInventoryAuthority()->Deposit(Stockpile,
-				Component, 4, Reason))
+				Component, Count, Reason))
 			{
 				++Stocked;
 			}
 		}
 	}
-	for (uint8 Index = 0; Index < 6; ++Index)
+	// And a float of every kind THIS recipe requires in the yard.
+	for (ELBSpacecraftComponent Kind : Recipe.RequiredComponents)
 	{
 		const FName ItemId =
-			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(Index);
+			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
+				static_cast<uint8>(Kind));
 		if (!ItemId.IsNone())
 		{
 			GameMode->GetInventoryAuthority()->Deposit(Floor, ItemId, 4, Reason);
@@ -3837,7 +3919,7 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftChainCommand(
 #if !UE_BUILD_SHIPPING
 static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStartCommand(
 	TEXT("LB.Spacecraft.Start"),
-	TEXT("Offers and accepts a contract. Args: [quantity=1] [recipeId=SCOUT-01]."),
+	TEXT("Offers and accepts a contract. Args: [quantity=1] [recipeId=SCOUT-01] [force]."),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 		[](const TArray<FString>& Args, UWorld* World)
 {
@@ -3853,9 +3935,13 @@ static FAutoConsoleCommandWithWorldAndArgs GLBSpacecraftStartCommand(
 	const FName RecipeId =
 		Args.Num() > 1 ? FName(*Args[1]) : FName(TEXT("SCOUT-01"));
 	FString Reason;
+	// "force" as the third arg skips the reputation gate - a dev run of
+	// the Cargo tier should not have to earn tier 2 first (2026-09-02).
+	const bool bForce = Args.Num() > 2
+		&& Args[2].Equals(TEXT("force"), ESearchCase::IgnoreCase);
 	if (!ALBSpacecraftGameMode::StartRecipeContract(
 		*GameMode->GetProductionAuthority(), RecipeId, Quantity, Reason,
-		GameMode->GetReputation()))
+		bForce ? nullptr : GameMode->GetReputation()))
 	{
 		UE_LOG(LogLBSpacecraft, Warning,
 			TEXT("LB.Spacecraft.Start REFUSED: %s"), *Reason);
@@ -3927,7 +4013,7 @@ bool ALBSpacecraftGameMode::TickWholeSimStep(
 		// one haul's travel time. Anything on the sim clock belongs
 		// HERE; the actor tick is only the real-time path to this step.
 		InContext.DroneFleet->TickHauls(StepSeconds, InContext.Crafting,
-			InContext.Inventory, InContext.Build);
+			InContext.Inventory, InContext.Build, InContext.Power);
 	}
 	if (InContext.Power != nullptr)
 	{
@@ -5611,13 +5697,21 @@ bool ALBSpacecraftGameMode::SeedShipFactoryLoadout(
 	// craft, so the player sees the whole loop once. After that,
 	// supply is the game and they sort it out themselves.
 	int32 Stocked = 0;
-	for (uint8 Component = 0;
-		Component <= static_cast<uint8>(ELBSpacecraftComponent::Interior);
-		++Component)
+	// One of each the FIRST CRAFT needs - the Scout's kinds, read from
+	// its recipe rather than "every kind there is" now that the Cargo
+	// tier has kinds of its own (2026-09-02).
+	FLBSpacecraftRecipe LoadoutRecipe;
+	TArray<ELBSpacecraftComponent> LoadoutKinds;
+	if (FLBSpacecraftProductionCatalog::FindRecipe(FName(TEXT("SCOUT-01")),
+		LoadoutRecipe))
+	{
+		LoadoutKinds = LoadoutRecipe.RequiredComponents;
+	}
+	for (ELBSpacecraftComponent Component : LoadoutKinds)
 	{
 		const FName ItemId =
 			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
-				Component);
+				static_cast<uint8>(Component));
 		FString StockReason;
 		if (!ItemId.IsNone()
 			&& InInventory.Deposit(StoreId, ItemId, 1, StockReason))

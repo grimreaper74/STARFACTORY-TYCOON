@@ -300,6 +300,8 @@ private:
 	void HandleImport(FName ItemId);
 	void HandleRemoveBelt(FName RouteId);
 	void HandleCommission(FName Unused);
+	/** Clears one finished craft of this recipe to a broker. */
+	void HandleSellToBroker(FName RecipeId);
 	void HandleContract(FName RecipeId);
 	void HandleAcceptOffer(FName ContractId);
 	void HandleOrder(FName ItemId);

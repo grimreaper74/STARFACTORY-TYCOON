@@ -457,93 +457,6 @@ bool FLBSpacecraftAccessGraphTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftCraneCarryTest,
-	"LineBoss.Spacecraft.Presentation.CraneCarry",
-	EAutomationTestFlags::EditorContext
-		| EAutomationTestFlags::EngineFilter)
-
-bool FLBSpacecraftCraneCarryTest::RunTest(const FString& Parameters)
-{
-	(void)Parameters;
-	// The gantry carries the craft between stations (owner 2026-08-28,
-	// choosing crane plus rail over the conveyor). The craft must be
-	// DOWN on its cradle for the whole working stop, ride clear in the
-	// middle of the move, and be DOWN again before the next stop - a
-	// craft still in the air when the station lift comes up would be
-	// jacked into its own hoist.
-	const float Slide = 0.8f;
-	const float Carry = 260.f;
-	auto At = [Slide, Carry](float Progress)
-	{
-		return ALBSpacecraftWIPPresentationActor::ComputeCraneCarryCm(
-			Progress, Slide, Carry);
-	};
-
-	// PARKED for the whole working stop, right up to the slide.
-	TestTrue(TEXT("on the cradle at the start of the stop"),
-		FMath::IsNearlyZero(At(0.f)));
-	TestTrue(TEXT("still on the cradle mid-stop"),
-		FMath::IsNearlyZero(At(0.5f)));
-	TestTrue(TEXT("still on the cradle at the moment the slide begins"),
-		FMath::IsNearlyZero(At(Slide)));
-
-	// CARRIED across the middle of the move.
-	TestTrue(TEXT("fully carried halfway between stations"),
-		FMath::IsNearlyEqual(At(0.9f), Carry));
-
-	// SET DOWN by the end, so the next stop starts on the cradle.
-	TestTrue(TEXT("set down before the next station"),
-		FMath::IsNearlyZero(At(1.f)));
-
-	// MONOTONIC on each leg, stepped strictly FORWARD in time. The last
-	// lift test I wrote walked its descent backwards and then blamed
-	// the code for the result, so each loop here only ever increases
-	// Progress and each leg is asserted in its own direction.
-	float Previous = At(Slide);
-	for (int32 Step = 1; Step <= 20; ++Step)
-	{
-		// Slide start -> the top of the rise (a quarter of the window).
-		const float Progress = Slide
-			+ (1.f - Slide) * 0.25f * (static_cast<float>(Step) / 20.f);
-		const float Now = At(Progress);
-		TestTrue(TEXT("the craft only ever rises on the way up"),
-			Now >= Previous - KINDA_SMALL_NUMBER);
-		Previous = Now;
-	}
-	Previous = At(Slide + (1.f - Slide) * 0.75f);
-	for (int32 Step = 1; Step <= 20; ++Step)
-	{
-		// The last quarter of the window: it must only ever come down.
-		const float Progress = Slide + (1.f - Slide)
-			* (0.75f + 0.25f * (static_cast<float>(Step) / 20.f));
-		const float Now = At(Progress);
-		TestTrue(TEXT("the craft only ever descends on the way down"),
-			Now <= Previous + KINDA_SMALL_NUMBER);
-		Previous = Now;
-	}
-
-	// It must never exceed the carry height - the hoist cables are
-	// drawn from the beam DOWN to the load, and a craft above the beam
-	// would invert them.
-	for (int32 Step = 0; Step <= 50; ++Step)
-	{
-		const float Progress = static_cast<float>(Step) / 50.f;
-		TestTrue(TEXT("never carried above the beam clearance"),
-			At(Progress) <= Carry + KINDA_SMALL_NUMBER);
-		TestTrue(TEXT("never carried below the cradle"),
-			At(Progress) >= -KINDA_SMALL_NUMBER);
-	}
-
-	// A degenerate slide window must not divide by zero or fling the
-	// craft - the presenter's tunables are EditAnywhere, so a nonsense
-	// value is reachable from the details panel.
-	TestTrue(TEXT("a zero-width slide window is survivable"),
-		ALBSpacecraftWIPPresentationActor::ComputeCraneCarryCm(
-			1.f, 1.f, Carry) <= Carry + KINDA_SMALL_NUMBER);
-
-	return true;
-}
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPhase2CatalogueTest,
 	"LineBoss.Spacecraft.Phase2.CatalogueSplitsRouteAndCraftingFamilies",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -567,9 +480,25 @@ bool FLBSpacecraftPhase2CatalogueTest::RunTest(const FString& Parameters)
 			|| Definition.StorageCapacityUnits > 0)
 		{
 			// Infrastructure: supplies or stores, never crafts.
-			TestTrue(TEXT("infrastructure families need no research"),
-				FLBSpacecraftResearchCatalogue::GetDefaultStationClasses()
-					.Contains(Definition.DefinitionId));
+			// THE BASE OF EACH KIND IS FREE, and that is the invariant
+			// that matters: research points come from deliveries, and
+			// a delivery needs power to make and somewhere to put what
+			// is bought, so gating the FIRST rack or plant would lock
+			// the game behind itself. An optional bigger MARK of the
+			// same thing is a different case - the player already has
+			// a working yard and is buying a larger one - so since
+			// 2026-09-03 those may be researched. (StorageRackMk2 is
+			// the first; its Mk1 stays free, as this still checks.)
+			const bool bIsBiggerMark =
+				Definition.DefinitionId.ToString().EndsWith(TEXT("Mk2"));
+			if (!bIsBiggerMark)
+			{
+				TestTrue(TEXT("the BASE of every infrastructure family "
+					"needs no research"),
+					FLBSpacecraftResearchCatalogue
+						::GetDefaultStationClasses()
+						.Contains(Definition.DefinitionId));
+			}
 			TestEqual(TEXT("infrastructure families craft nothing"),
 				FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 					Definition.DefinitionId).Num(), 0);
@@ -629,9 +558,13 @@ bool FLBSpacecraftPhase2CatalogueTest::RunTest(const FString& Parameters)
 	// THREE world-map buildings at one scale (owner 2026-08-28): the
 	// ship factory, the parts factory and the power plant.
 	TestEqual(TEXT("three site buildings"), SiteCount, 3);
-	TestEqual(TEXT("thirty-three families (9 route + 18 craft + 3 infra ")
+	// 34 since 2026-09-03: StorageRackMk2 joined the infrastructure
+	// four. Two systems had referenced it by name for weeks as a
+	// condition that could never be true, because the definition was
+	// never written.
+	TestEqual(TEXT("thirty-four families (9 route + 18 craft + 4 infra ")
 		TEXT("+ 3 site)"),
-		ALBSpacecraftBuildAuthority::StationCatalogue().Num(), 33);
+		ALBSpacecraftBuildAuthority::StationCatalogue().Num(), 34);
 
 	// The canonical slice line still commissions with route families only.
 	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
@@ -1261,13 +1194,13 @@ bool FLBSpacecraftCargoDemandTest::RunTest(const FString& Parameters)
 			ALBSpacecraftGameMode::StartRecipeContract(*Rig.Production,
 				FName(TEXT("CARGO-01")), 1, Reason));
 		int32 Guard = 0;
-		while (Rig.Production->GetRevenuePence() < 36000000 && Guard++ < 400)
+		while (Rig.Production->GetRevenuePence() < 44000000 && Guard++ < 400)
 		{
 			TestTrue(TEXT("tick runs"),
 				Rig.Coordinator->TickProduction(5.0, Reason));
 		}
 		TestEqual(TEXT("the Cargo craft settled at the Cargo price"),
-			Rig.Production->GetRevenuePence(), (int64)36000000);
+			Rig.Production->GetRevenuePence(), (int64)44000000);
 		TestTrue(TEXT("a CARGO unit was built"),
 			Rig.Production->GetUnits().Num() > 0
 			&& Rig.Production->GetUnits()[0].RecipeId
@@ -3728,6 +3661,170 @@ bool FLBSpacecraftCargoDeliversTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+// A LIVE PIE SESSION (2026-09-03 evening) force-started a quantity-1
+// Cargo unit with no delivery dock yet, saw it sit at MaterialIntake
+// with 0 components produced, and read that as an unexplained orphan -
+// a diagnosis this test disproves. Every OTHER Cargo test in this file
+// sidesteps the question it actually answers: they all pre-load each
+// station's OWN shelf directly (SyncStationStores or a manual Deposit
+// straight to Store.<StationId>) and tick only
+// Coordinator::TickProduction, never the drone fleet. A real player -
+// and the dev console's Run/Jump, through TickWholeSimStep - deposits
+// onto Store.Floor and leaves the HAULER FLEET to carry parts to each
+// station's shelf; no existing test drove that combination before this
+// one. Run that way, the "stuck" unit turns out to be correctly held
+// with an exact, actionable reason ("nothing can carry them; build a
+// delivery dock"), and recovers cleanly once one exists - the live
+// session's read was a false alarm from not waiting long enough after
+// adding the dock, not a defect in the coordinator or the hauler fleet.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftSingleShipContractTest,
+	"LineBoss.Spacecraft.Phase2.ASingleShipContractHoldsClearlyThenRecovers",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftSingleShipContractTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftPhase2IntegrationTestsPrivate;
+	FLBSpacecraftPhase2Rig Rig = MakeSpacecraftPhase2Rig();
+	FString Reason;
+
+	TestTrue(TEXT("points bank"), Rig.Research->AddPoints(100, Reason));
+	for (const TCHAR* NodeId : { TEXT("Research.Mfg.T1"),
+		TEXT("Research.Mfg.T2"), TEXT("Research.Mfg.Mk2") })
+	{
+		TestTrue(TEXT("the mark research unlocks"),
+			Rig.Research->UnlockNode(FName(NodeId), Reason));
+	}
+	const TCHAR* Mk2[] = {
+		TEXT("MaterialProcessorMk2"), TEXT("HullFabricatorMk2"),
+		TEXT("ComponentFabricatorMk2"), TEXT("AssemblyRobotMk2") };
+	float Y = -4000.f;
+	for (const TCHAR* ClassId : Mk2)
+	{
+		FName StationId;
+		TestTrue(TEXT("Mk2 station places"),
+			Rig.Build->PlaceStation(FName(ClassId),
+				FTransform(FRotator::ZeroRotator, FVector(0.f, Y, 0.f)),
+				StationId, Reason));
+		for (int32 Crew = 0; Crew < 2; ++Crew)
+		{
+			TestTrue(TEXT("crewed to nominal"),
+				Rig.Build->InstallStationDrone(StationId, Reason));
+		}
+		Y += 3400.f;
+	}
+	TestTrue(TEXT("the Mk2 line commissions"),
+		EnsureSprayBoothAndCommission(Rig, Reason));
+
+	// Quantity ONE, force-started - the everyday shape of a player's
+	// first order, and exactly the live repro's shape.
+	TestTrue(TEXT("a Cargo contract accepts"),
+		ALBSpacecraftGameMode::StartRecipeContract(*Rig.Production,
+			FName(TEXT("CARGO-01")), 1, Reason));
+	Rig.Coordinator->BindInventory(Rig.Inventory);
+	TestTrue(TEXT("coordinator configures"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build,
+			Rig.Production, Reason));
+
+	// Deposited onto Store.Floor - the yard - not onto any station's own
+	// shelf. Getting it there is the hauler fleet's job. Store.Floor is
+	// the dev console's own floor store (SpacecraftEnsureDevFloorStore,
+	// LBSpacecraftGameMode.cpp) - it does not exist until registered.
+	TestTrue(TEXT("the dev floor store registers"),
+		Rig.Inventory->RegisterStore(FName(TEXT("Store.Floor")), 5000,
+			Reason));
+	for (const TCHAR* ComponentId : { TEXT("Component.Hull"),
+		TEXT("Component.Power"), TEXT("Component.Propulsion"),
+		TEXT("Component.Electronics"), TEXT("Component.Navigation"),
+		TEXT("Component.Interior"), TEXT("Component.CargoBay"),
+		TEXT("Component.DockingCollar"), TEXT("Component.ThrusterPods"),
+		TEXT("Component.Shielding") })
+	{
+		TestTrue(TEXT("floor stock deposits"),
+			Rig.Inventory->Deposit(FName(TEXT("Store.Floor")),
+				FName(ComponentId), 20, Reason));
+	}
+
+	// TickWholeSimStep, not TickProduction alone - the same combined
+	// step LB.Spacecraft.Run and .Jump use live: crafting stations,
+	// drone fleet haulage and the coordinator's pulse together.
+	const FLBSpacecraftSaveContext Context = Rig.Context();
+	int32 Cycles = 0;
+
+	// PHASE ONE, deliberately no dock yet: material sits on Store.Floor
+	// with nothing able to carry it. The live session (2026-09-03) read
+	// this as a stuck, unexplained orphan - it is neither: the hold
+	// names exactly what is missing.
+	for (int32 Tick = 0; Tick < 200; ++Tick)
+	{
+		TestTrue(TEXT("the tick itself never fails"),
+			ALBSpacecraftGameMode::TickWholeSimStep(Context, 5.0, Reason,
+				Cycles));
+	}
+	AddInfo(FString::Printf(TEXT("phase one hold: %s"),
+		*Rig.Coordinator->GetLastHoldReason()));
+	TestTrue(TEXT("the hold names the missing hauler, not a vague refusal"),
+		Rig.Coordinator->GetLastHoldReason().Contains(
+			TEXT("nothing can carry them")));
+	TestEqual(TEXT("the unit is genuinely still at square one, not lost"),
+		Rig.Production->GetUnits().Num(), 1);
+
+	// PHASE TWO: build the dock the hold asked for, exactly as the live
+	// session eventually did, then give the SAME unit created above the
+	// time to actually recover - the live session moved on to fresh
+	// contracts within a couple of minutes of adding the dock, which
+	// this phase's tick budget deliberately exceeds by a wide margin.
+	FName DockId;
+	TestTrue(TEXT("a delivery dock places"),
+		Rig.Build->PlaceStation(FName(TEXT("DeliveryDock")),
+			FTransform(FRotator::ZeroRotator, FVector(-4000.f, 0.f, 0.f)),
+			DockId, Reason));
+	Rig.DroneFleet->SyncFromBuild(Rig.Build, Rig.Power);
+
+	int32 Guard = 0;
+	while (Rig.Production->GetRevenuePence() == 0
+		&& Rig.Production->GetStockedCraftCount() == 0 && Guard++ < 400)
+	{
+		if (!ALBSpacecraftGameMode::TickWholeSimStep(Context, 5.0, Reason,
+			Cycles))
+		{
+			break;
+		}
+	}
+	if (Rig.Production->GetRevenuePence() == 0
+		&& Rig.Production->GetStockedCraftCount() == 0)
+	{
+		AddInfo(FString::Printf(TEXT("line held after %d more ticks: %s"),
+			Guard, *Rig.Coordinator->GetLastHoldReason()));
+		for (const FLBSpacecraftUnitState& Unit :
+			Rig.Production->GetUnits())
+		{
+			AddInfo(FString::Printf(
+				TEXT("unit %s stage=%d producedCount=%d"),
+				*Unit.UnitId.ToString(), static_cast<int32>(Unit.Stage),
+				Unit.ProducedComponents.Num()));
+		}
+	}
+	// THE ACTUAL CLAIM: the very unit that sat correctly held for phase
+	// one is the one that finishes once real haul capacity exists -
+	// nothing about it was permanently lost while it waited. It settles
+	// for revenue if the original contract is still open, or rolls off
+	// into stock (GetStockedCraftCount) if that contract expired during
+	// the long hold - the existing sell-from-stock safety net
+	// (Docs/TRANSPORTER_DRONES_2026_09_02_v001.md) doing exactly the
+	// job it was already documented for. Either outcome proves the same
+	// thing: the unit was never lost.
+	TestEqual(TEXT("still exactly the one unit - none silently dropped"),
+		Rig.Production->GetUnits().Num(), 1);
+	TestTrue(TEXT("the same unit finishes once a dock exists, given "
+		"real time to do it - sold or safely stocked, never lost"),
+		Rig.Production->GetRevenuePence() > 0
+			|| Rig.Production->GetStockedCraftCount() > 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftMilestonesBiteTest,
 	"LineBoss.Spacecraft.Phase2.TheObjectivesLadderActuallyGatesThings",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -3908,18 +4005,39 @@ bool FLBSpacecraftPartsMarkTest::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("all nine families have a bigger mark"), Marks, 9);
 
-	// The upgrade is EARNED, at the end of the tree.
-	const FLBSpacecraftResearchNode* Node =
-		FLBSpacecraftResearchCatalogue::FindNode(
-			FName(TEXT("Research.Mfg.PartsMk2")));
-	TestNotNull(TEXT("the parts upgrade is a research node"), Node);
-	if (Node != nullptr)
+	// The upgrade is EARNED, at the end of the tree - and since
+	// 2026-09-03 it is earned in THREE pieces rather than one, so a
+	// player upgrades the part of their factory that is actually their
+	// bottleneck first. The nine marks are still all reachable and
+	// still all sit behind the last tier; what changed is that they no
+	// longer arrive together.
+	const TCHAR* PartsNodes[] = {TEXT("Research.Mfg.HeavyStock"),
+		TEXT("Research.Mfg.HeavyElectronics"),
+		TEXT("Research.Mfg.HeavyPropulsion")};
+	TSet<FName> MarksOpened;
+	for (const TCHAR* NodeId : PartsNodes)
 	{
-		TestEqual(TEXT("it opens all nine marks"),
-			Node->UnlockedStationClasses.Num(), 9);
-		TestTrue(TEXT("and sits behind the last tier"),
-			Node->Prerequisites.Contains(FName(TEXT("Research.Mfg.T4"))));
+		const FLBSpacecraftResearchNode* Node =
+			FLBSpacecraftResearchCatalogue::FindNode(FName(NodeId));
+		TestNotNull(TEXT("each parts specialisation is a research node"),
+			Node);
+		if (Node != nullptr)
+		{
+			TestTrue(TEXT("and sits behind the last tier"),
+				Node->Prerequisites.Contains(
+					FName(TEXT("Research.Mfg.T4"))));
+			for (const FName& Mark : Node->UnlockedStationClasses)
+			{
+				MarksOpened.Add(Mark);
+			}
+		}
 	}
+	// Nine PARTS marks; the yard's bigger rack rides on HeavyStock too
+	// (2026-09-03) and is not one of them, so it is excluded rather
+	// than quietly inflating the count this test exists to pin.
+	MarksOpened.Remove(FName(TEXT("StorageRackMk2")));
+	TestEqual(TEXT("between them the three still open all nine parts "
+		"marks"), MarksOpened.Num(), 9);
 	return true;
 }
 

@@ -257,8 +257,40 @@ bool ALBSpacecraftRuntimeCoordinator::ConfigureFromAuthorities(
 	BuildAuthority = InBuildAuthority;
 	ProductionAuthority = InProductionAuthority;
 	Route = MoveTemp(DerivedRoute);
-	Runtime.Assignments.Reset();
-	Runtime.RouteTopologyHash = ComputeRouteTopologyHash(Route);
+	const uint32 NewTopologyHash = ComputeRouteTopologyHash(Route);
+	// A RECONFIGURE THAT DOES NOT CHANGE THE ROUTE must not touch
+	// in-flight assignments. This runs on every station placement
+	// (LB.Spacecraft.Place -> RelayTrackThroughStations -> here,
+	// unconditionally - even for a non-line building like a delivery
+	// dock, which never appears in the line-station route at all) -
+	// wiping Runtime.Assignments every time orphaned any craft already
+	// on the line, forever: the unit's ledger record survives in
+	// ProductionAuthority, but nothing ever creates it a NEW assignment
+	// (TryStartUnit only ever spawns units against fresh, unclaimed
+	// demand). Found live 2026-09-03: a Cargo unit force-started before
+	// a delivery dock existed sat stuck at MaterialIntake permanently -
+	// placing THAT dock was the moment that silently cut it loose.
+	// The topology hash already exists for exactly this comparison
+	// (RestoreRuntime trusts it the same way); only reset when the
+	// route's own station composition or order genuinely changed.
+	if (NewTopologyHash != Runtime.RouteTopologyHash)
+	{
+		Runtime.Assignments.Reset();
+	}
+	Runtime.RouteTopologyHash = NewTopologyHash;
+	// THE CARRIERS ARE THE CAP (2026-09-04, owner's design). A craft
+	// rides its carrier for the whole time it is on the line, so how
+	// many carriers the player owns is how many craft can be in build.
+	// Pushed here because this runs on commissioning and after every
+	// placement, so the cap can never drift from the carriers owned.
+	// The old flat 3 was a rule the player only met as a refusal;
+	// this is the same limit made into a thing they can see, count
+	// and buy another of.
+	{
+		FString CapReason;
+		InProductionAuthority->SetWIPCap(
+			InBuildAuthority->GetCarrierCount(), CapReason);
+	}
 	OutReason.Reset();
 	return true;
 }
@@ -613,15 +645,26 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 				: nullptr;
 		if (CrewRecord != nullptr && CrewDefinition != nullptr)
 		{
+			// THE SNAPSHOT, not the station's live record (2026-09-03
+			// audit): this block can run tens of seconds to minutes
+			// after the crew that actually did the work, once the
+			// whole line pulses - reading live let a player dismiss a
+			// finished station's crew (rational, they're idle) and get
+			// unfairly charged, or install crew just ahead of the
+			// pulse to buy a clean read for work done uncrewed. Only
+			// DroneSlotCount (the station's fixed catalog capacity,
+			// not per-instance state) still comes from the live
+			// definition.
+			//
 			// The crew's SIZE and its CHARACTER both count: a station
 			// short of drones rushes the fit, and a crew of winches
 			// bodges where a crew of sprays would not.
 			const int32 Points =
 				FLBSpacecraftProductionCatalog::DefectPointsForCrewQuality(
-					CrewRecord->InstalledDrones,
+					Assignment.SnapshotInstalledDrones,
 					CrewDefinition->DroneSlotCount,
 					ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
-						*CrewRecord));
+						Assignment.SnapshotInstalledDroneTypes));
 			FString DefectReason;
 			if (!ProductionAuthority->AccrueDefects(Assignment.UnitId,
 				Points, DefectReason))
@@ -642,9 +685,10 @@ bool ALBSpacecraftRuntimeCoordinator::TryAdvanceAssignment(
 			// Without this the feature ate the end-of-line quality
 			// gate entirely: every defect was caught and reworked in
 			// place, so no craft could ever fail its hover test.
-			const bool bSomeoneIsWatching = CrewRecord->InstalledDrones > 0
+			const bool bSomeoneIsWatching =
+				Assignment.SnapshotInstalledDrones > 0
 				&& ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
-					*CrewRecord) >= 0.9f;
+					Assignment.SnapshotInstalledDroneTypes) >= 0.9f;
 			if (Points > 0 && bSomeoneIsWatching)
 			{
 				FString ReworkReason;
@@ -821,9 +865,30 @@ bool ALBSpacecraftRuntimeCoordinator::TickProduction(double DeltaSeconds,
 					+ static_cast<float>(DeltaSeconds) * WorkBonus,
 				Cycle);
 		}
-		if (Cycle > 0.f && Assignment.CycleElapsedSeconds >= Cycle)
+		if (Cycle > 0.f && Assignment.CycleElapsedSeconds >= Cycle
+			&& !Assignment.bStopComplete)
 		{
 			Assignment.bStopComplete = true;
+			// SNAPSHOT THE CREW RIGHT HERE - see the field comment on
+			// SnapshotInstalledDrones. The later defect read (in
+			// TryAdvanceAssignment, once the pulse actually processes
+			// this assignment) uses this, not the station's live
+			// record.
+			Assignment.SnapshotInstalledDrones = 0;
+			Assignment.SnapshotInstalledDroneTypes.Reset();
+			if (BuildAuthority != nullptr
+				&& Route.IsValidIndex(Assignment.RouteIndex))
+			{
+				if (const FLBSpacecraftStationRecord* CrewRecord =
+					BuildAuthority->FindStation(
+						Route[Assignment.RouteIndex].StationId))
+				{
+					Assignment.SnapshotInstalledDrones =
+						CrewRecord->InstalledDrones;
+					Assignment.SnapshotInstalledDroneTypes =
+						CrewRecord->InstalledDroneTypes;
+				}
+			}
 		}
 	}
 
@@ -1074,6 +1139,104 @@ int32 ALBSpacecraftRuntimeCoordinator::CountStopComplete() const
 		Count += IsPulseMover(Assignment) ? 1 : 0;
 	}
 	return Count;
+}
+
+bool ALBSpacecraftRuntimeCoordinator::GetPaceSetter(
+	FLBSpacecraftPaceSetter& Out) const
+{
+	using namespace LBSpacecraftRuntimeCoordinatorPrivate;
+	Out = FLBSpacecraftPaceSetter();
+	if (!IsConfigured() || BuildAuthority == nullptr
+		|| ProductionAuthority == nullptr)
+	{
+		return false;
+	}
+	// WHICH CRAFT'S PACE? The one on the line, or - before anything is
+	// started - the one the oldest accepted contract asks for, so the
+	// answer is useful while the player is still laying stations out
+	// rather than only once production runs.
+	FName RecipeId;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Runtime.Assignments)
+	{
+		if (const FLBSpacecraftUnitState* Unit =
+			ProductionAuthority->FindUnit(Assignment.UnitId))
+		{
+			RecipeId = Unit->RecipeId;
+			break;
+		}
+	}
+	if (RecipeId.IsNone())
+	{
+		for (const FLBSpacecraftContract& Contract :
+			ProductionAuthority->GetContracts())
+		{
+			if (Contract.State == ELBSpacecraftContractState::Accepted)
+			{
+				RecipeId = Contract.RecipeId;
+				break;
+			}
+		}
+	}
+	FLBSpacecraftRecipe Recipe;
+	if (RecipeId.IsNone()
+		|| !FLBSpacecraftProductionCatalog::FindRecipe(RecipeId, Recipe))
+	{
+		return false;
+	}
+	// Every station's stop, crew included. Any pre-Testing stage takes
+	// the share path (the helper only branches at Testing and beyond,
+	// where a craft flies its own test in place rather than taking a
+	// stop the pulse waits on), so Assembly stands for "fitting" here.
+	// THE LINE'S END IS NOT IN THE RANKING. A craft at the last station
+	// climbs into its hover test in place and flies out under its own
+	// power - IsPulseMover excludes it and the all-complete scan skips
+	// it, so it can NEVER be the station a pulse waits on. Ranking it
+	// would let the readout name a station the player cannot fix by
+	// crewing or splitting, and would be simply untrue.
+	bool bFound = false;
+	for (int32 Index = 0; Index + 1 < Route.Num(); ++Index)
+	{
+		const float Cycle = SpacecraftAssignmentCycleSeconds(Recipe,
+			ELBSpacecraftStage::Assembly, Index, Route.Num(),
+			BuildAuthority, Route);
+		if (Cycle <= 0.f)
+		{
+			continue;
+		}
+		const float Bonus = FMath::Max(
+			BuildAuthority->GetStationWorkBonus(Route[Index].StationId),
+			KINDA_SMALL_NUMBER);
+		const float Stop = Cycle / Bonus;
+		if (Stop > Out.StopSeconds)
+		{
+			Out.RunnerUpStationId = Out.StationId;
+			Out.RunnerUpSeconds = Out.StopSeconds;
+			Out.StationId = Route[Index].StationId;
+			Out.StopSeconds = Stop;
+			bFound = true;
+		}
+		else if (Stop > Out.RunnerUpSeconds)
+		{
+			Out.RunnerUpStationId = Route[Index].StationId;
+			Out.RunnerUpSeconds = Stop;
+		}
+	}
+	if (!bFound)
+	{
+		return false;
+	}
+	if (const FLBSpacecraftStationRecord* Record =
+		BuildAuthority->FindStation(Out.StationId))
+	{
+		const FLBSpacecraftStationDefinition* Definition =
+			ALBSpacecraftBuildAuthority::FindDefinition(
+				Record->DefinitionId);
+		Out.bProcessStation =
+			Definition != nullptr && Definition->bProcessStation;
+	}
+	Out.PulseSeconds = Out.StopSeconds + GetMoveSeconds();
+	return true;
 }
 
 float ALBSpacecraftRuntimeCoordinator::GetMoveSeconds() const

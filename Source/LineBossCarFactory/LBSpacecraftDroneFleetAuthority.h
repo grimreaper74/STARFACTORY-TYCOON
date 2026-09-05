@@ -13,6 +13,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "LBSpacecraftBuildAuthority.h"
+#include "LBSpacecraftInventoryAuthority.h"
 #include "LBSpacecraftDroneFleetAuthority.generated.h"
 
 class ALBSpacecraftCraftingAuthority;
@@ -76,7 +77,12 @@ enum class ELBSpacecraftHaulPhase : uint8
 {
 	Idle = 0,
 	ToMachine,
-	ToStore
+	ToStore,
+	/** Flying EMPTY from home to the store the goods are drawn from,
+	 *  when that store is not the hauler's own (a dock, another rack).
+	 *  Added 2026-09-02 with the transporter pass: a delivery used to
+	 *  be two legs named for the collect job, and read backwards. */
+	ToSource
 };
 
 /** What a hauler is doing this run (owner 2026-08-27, the Production
@@ -128,6 +134,23 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftHaulState
 	 *  short. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
 	FName SourceStoreId;
+
+	/** The station whose store SourceStoreId is, so the presenter can
+	 *  fly the pickup leg somewhere real; None for the site yard. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	FName SourceStationId;
+
+	/** THE HAULERS CHARGE TOO (owner 2026-09-02: "ours will go to their
+	 *  dock and charge"). Same battery as the crews: flight drains it,
+	 *  the pad at home refills it, and a hauler under reserve sits out
+	 *  until it is fit to fly. Never abandons a run mid-air - a trip is
+	 *  short against the battery and cargo must not strand. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	float Charge01 = 1.f;
+
+	/** On the pad topping up (true from the reserve until LaunchFraction). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	bool bCharging = false;
 };
 
 /** Whole-fleet snapshot for the save pipeline. */
@@ -211,7 +234,20 @@ public:
 	void TickHauls(double DeltaSeconds,
 		class ALBSpacecraftCraftingAuthority* InCrafting,
 		class ALBSpacecraftInventoryAuthority* InInventory,
-		const class ALBSpacecraftBuildAuthority* InBuild = nullptr);
+		const class ALBSpacecraftBuildAuthority* InBuild = nullptr,
+		ALBSpacecraftPowerAuthority* InPower = nullptr);
+	/** Pure: how many of an item one haul run carries. An assembled
+	 *  component goes ONE per trip - that is what a ship-sized part
+	 *  means and what the owner wants to see in the claw (2026-09-02);
+	 *  raw stock, processed stock and sub-parts ride in crates of up to
+	 *  Capacity. */
+	static int32 HaulLoadFor(ELBSpacecraftItemCategory Category,
+		int32 Capacity);
+	/** Pure, shared with the presenter so the picture cannot disagree
+	 *  with the ledger: is the hook loaded in this phase of this job?
+	 *  A delivery carries OUT (ToMachine) and returns empty; a
+	 *  collection flies out empty and carries HOME (ToStore). */
+	static bool HaulIsLoaded(const FLBSpacecraftHaulState& Haul);
 
 	UPROPERTY(EditAnywhere, Category = "LineBoss")
 	float HaulTravelSeconds = 4.f;

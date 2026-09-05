@@ -356,7 +356,7 @@ FLBSpacecraftHUDSnapshot ULBSpacecraftTopBarWidget::BuildSnapshot(
 			{
 				Snapshot.LineStatusText += FText::Format(LOCTEXT(
 					"StockedCraft",
-					" - {0} IN STOCK (accept a contract to sell)"),
+					" - {0} IN STOCK (accept a matching contract to sell)"),
 					InProduction->GetStockedCraftCount()).ToString();
 			}
 		}

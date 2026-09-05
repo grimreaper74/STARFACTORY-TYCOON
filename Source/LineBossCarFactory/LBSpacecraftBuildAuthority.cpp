@@ -396,6 +396,27 @@ ALBSpacecraftBuildAuthority::StationCatalogue()
 			StorageRack.bRouteRequired = false;
 			Out.Add(StorageRack);
 
+			// THE BIGGER RACK (2026-09-03). Two systems already asked
+			// for it by name - the drone fleet's rack detection
+			// (LBSpacecraftDroneFleetAuthority.cpp) and the presenter -
+			// as conditions that could never be true, because the
+			// definition was never written. Planned content that was
+			// half-wired and then forgotten; both call sites work the
+			// moment it exists. Same shape as the Mk1 so a yard reads
+			// as one kind of thing, wider and far deeper in stock, and
+			// earned through research rather than free like the Mk1
+			// (which must stay free - the yard needs somewhere to put
+			// bought goods before any research can be paid for).
+			FLBSpacecraftStationDefinition StorageRackMk2;
+			StorageRackMk2.DefinitionId = FName(TEXT("StorageRackMk2"));
+			StorageRackMk2.DisplayName = TEXT("Storage rack Mk2");
+			StorageRackMk2.FootprintCm = FVector2D(800.f, 1400.f);
+			StorageRackMk2.CostPence = 6500000;
+			StorageRackMk2.MaxCraftEnvelopeCm = FVector::ZeroVector;
+			StorageRackMk2.StorageCapacityUnits = 6000;
+			StorageRackMk2.bRouteRequired = false;
+			Out.Add(StorageRackMk2);
+
 			// THE SHIP FACTORY HALL - the world map's first and only
 			// offering (owner 2026-08-28). The player places this on
 			// the outside map, clicks it to enter, and builds the line
@@ -782,17 +803,23 @@ ALBSpacecraftBuildAuthority::DroneKinds()
 float ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
 	const FLBSpacecraftStationRecord& Record)
 {
-	if (Record.InstalledDroneTypes.Num() == 0)
+	return ComputeTypedCrewQuality(Record.InstalledDroneTypes);
+}
+
+float ALBSpacecraftBuildAuthority::ComputeTypedCrewQuality(
+	const TArray<FName>& InstalledDroneTypes)
+{
+	if (InstalledDroneTypes.Num() == 0)
 	{
 		return 1.f;   // untyped or empty: nominal, changes nothing
 	}
 	float Total = 0.f;
-	for (const FName& KindId : Record.InstalledDroneTypes)
+	for (const FName& KindId : InstalledDroneTypes)
 	{
 		const FLBSpacecraftDroneKind* Kind = FindDroneKind(KindId);
 		Total += Kind != nullptr ? Kind->QualityWeight : 1.f;
 	}
-	return Total / static_cast<float>(Record.InstalledDroneTypes.Num());
+	return Total / static_cast<float>(InstalledDroneTypes.Num());
 }
 
 const FLBSpacecraftDroneKind* ALBSpacecraftBuildAuthority::FindDroneKind(
@@ -1523,12 +1550,20 @@ int32 ALBSpacecraftBuildAuthority::GetMaxCraneCount() const
 bool ALBSpacecraftBuildAuthority::BuyGantryCrane(
 	ALBSpacecraftProductionAuthority& InLedger, FString& OutReason)
 {
+	// TEXT RESKINNED 2026-09-03 ("don't think we need the cranes") -
+	// the internal name (GantryCranes field, this function's own name,
+	// GantryCraneCostPence) is unchanged for save compatibility and
+	// minimal diff; only the two player-facing reason strings below
+	// changed, to a transfer drive rather than a crane, matching the
+	// removed presentation. "one per gap" is preserved verbatim - the
+	// cap test (RuntimeCoordinatorTests.cpp,
+	// MoreCranesMakeAShorterPulse) asserts on that exact phrase.
 	const int32 Cap = GetMaxCraneCount();
 	if (GetCraneCount() >= Cap)
 	{
 		OutReason = FString::Printf(
-			TEXT("The rails already carry %d crane%s - one per gap "
-				"between line stations; build more stations first"),
+			TEXT("The rails already carry %d transfer drive%s - one per ")
+				TEXT("gap between line stations; build more stations first"),
 			Cap, Cap == 1 ? TEXT("") : TEXT("s"));
 		return false;
 	}
@@ -1538,8 +1573,8 @@ bool ALBSpacecraftBuildAuthority::BuyGantryCrane(
 	}
 	Layout.GantryCranes = GetCraneCount() + 1;
 	OutReason = FString::Printf(
-		TEXT("Gantry crane %d of %d bought - %d craft can move per "
-			"crane trip"),
+		TEXT("Transfer drive %d of %d bought - %d craft can move per ")
+			TEXT("transfer trip"),
 		Layout.GantryCranes, Cap, Layout.GantryCranes);
 	return true;
 }

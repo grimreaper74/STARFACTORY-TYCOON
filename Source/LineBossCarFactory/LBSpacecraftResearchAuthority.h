@@ -1,7 +1,12 @@
-// Spacecraft-era research unlocks - the last Phase-2 engine seam (one
-// branch for early access; Docs/SPACECRAFT_CONTENT_CATALOGUE_v001.md
-// sections 3 and 5). Unlocks open CONTENT (station families and their
-// recipes), never stat bonuses - the owner's plan is explicit about that.
+// Spacecraft-era research unlocks - the last Phase-2 engine seam.
+// Unlocks open CONTENT (station families, their marks, storage and crew
+// kinds), never stat bonuses. THE RULE AND ITS REASONING LIVE IN
+// Docs/RESEARCH_UNLOCKS_CONTENT_ONLY_v001.md. Until 2026-09-03 this
+// comment cited Docs/SPACECRAFT_CONTENT_CATALOGUE_v001.md, which does
+// not exist in the repository - so the rule shaping every node had no
+// findable source, and a modifier-node proposal nearly went ahead
+// before the comment was noticed. The owner kept the rule; it is
+// written down now.
 //
 // The Manufacturing branch gates the six Phase-2 station families added by
 // the crafting seam: the slice's original five families are free, and each
@@ -41,6 +46,16 @@ struct LINEBOSSCARFACTORY_API FLBSpacecraftResearchNode
 	/** Station families this node opens for building and crafting. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
 	TArray<FName> UnlockedStationClasses;
+
+	/** Drone KINDS this node opens for hiring (2026-09-03). Still
+	 *  content, not a stat bonus: the player unlocks a new kind of
+	 *  crew to buy and place, exactly as they unlock a new machine -
+	 *  what changes is what exists to choose from, never a multiplier
+	 *  applied behind their back. Seven kinds shipped with quality
+	 *  weights from 0.6 to 1.7 and all seven were hireable from the
+	 *  first minute, so the choice carried no progression at all. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
+	TArray<FName> UnlockedDroneKinds;
 };
 
 /** Whole-authority snapshot for the save pipeline. */
@@ -75,6 +90,12 @@ public:
 
 	/** Station families available with NO research (the slice five). */
 	static const TArray<FName>& GetDefaultStationClasses();
+
+	/** Crew kinds available with NO research. Exactly one: the plain
+	 *  assembly drone at nominal quality, which is also the fallback
+	 *  every kind-less caller already gets - so an unresearched
+	 *  factory crews normally and researches its SPECIALISTS. */
+	static const TArray<FName>& GetDefaultDroneKinds();
 
 	/** Shape, ordering-acyclicity and unlock-target validation. */
 	static bool ValidateNodeTable(FString& OutReason);
@@ -121,6 +142,10 @@ public:
 	/** True for the default (slice) families and for any family opened by
 	 *  an unlocked node. The build authority and crafting UI gate on this. */
 	bool IsStationClassUnlocked(FName StationClassId) const;
+
+	/** True for the default crew kind and for any kind opened by an
+	 *  unlocked node. The hire path and the crew UI gate on this. */
+	bool IsDroneKindUnlocked(FName KindId) const;
 
 	int32 GetUnlockedNodeCount() const { return UnlockedNodes.Num(); }
 

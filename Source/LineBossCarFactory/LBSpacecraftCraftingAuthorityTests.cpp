@@ -73,18 +73,20 @@ bool FLBSpacecraftRecipeCatalogueTest::RunTest(const FString& Parameters)
 	FString Reason;
 	TestTrue(TEXT("recipe table validates (shape + chain completeness)"),
 		FLBSpacecraftRecipeCatalogue::ValidateRecipeTable(Reason));
-	// 122 = 16 processed-stock recipes + 100 parts + 6 components. The
-	// hundred-part catalogue landed 2026-08-27; the number is asserted
-	// rather than left loose because a recipe silently vanishing is how
-	// a part becomes unmakeable with nothing failing.
-	TestEqual(TEXT("Phase-2 table carries 126 recipes"),
-		FLBSpacecraftRecipeCatalogue::GetRecipeTable().Num(), 126);
+	// 130 = 16 processed-stock recipes + 100 parts + 10 components (the
+	// hundred-part catalogue landed 2026-08-27, the Cargo's four kinds
+	// 2026-09-02). The number is asserted rather than left loose because
+	// a recipe silently vanishing is how a part becomes unmakeable with
+	// nothing failing.
+	TestEqual(TEXT("Phase-2 table carries 130 recipes"),
+		FLBSpacecraftRecipeCatalogue::GetRecipeTable().Num(), 130);
 	TestEqual(TEXT("the material processor offers twelve recipes"),
 		FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 			FName(TEXT("Smelter"))).Num(), 12);
-	TestEqual(TEXT("the sub-assembly robot builds all six BOM components"),
+	TestEqual(TEXT("the sub-assembly robot builds every component kind"),
 		FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
-			FName(TEXT("SubAssemblyRobot"))).Num(), 6);
+			FName(TEXT("SubAssemblyRobot"))).Num(),
+		static_cast<int32>(LBSpacecraftComponentKindCount));
 	TestEqual(TEXT("an unknown station class offers nothing"),
 		FLBSpacecraftRecipeCatalogue::GetRecipesForStationClass(
 			FName(TEXT("PaintBooth"))).Num(), 0);

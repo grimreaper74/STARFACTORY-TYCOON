@@ -163,6 +163,29 @@ namespace LBSpacecraftHaulPrivate
 			*StationId.ToString()));
 	}
 
+	/** FOUND BY AUDIT (2026-09-03): SyncStationStores only ever
+	 *  registers PER-STATION stores from storage buildings - a comment
+	 *  right beside the dev floor store even says so ("the real game
+	 *  registers stores through storage buildings"). Nothing in
+	 *  ordinary play ever registers the SITE OVERFLOW yard itself, so
+	 *  every real spill into it (a full rack on the return leg; an
+	 *  unwanted item on drop, below) silently failed with TRANSFER
+	 *  PRECONDITIONS FAILED in a genuine playthrough that never
+	 *  happened to run a dev/console command first - only ever proven
+	 *  working via LB.Spacecraft.StockComponents/StockShowComponents,
+	 *  which register it themselves before using it. Lazily ensured
+	 *  right at the point of use instead, the same shape those two
+	 *  already use. */
+	void EnsureOverflowStore(ALBSpacecraftInventoryAuthority& InInventory)
+	{
+		const FName Floor = ALBSpacecraftGameMode::SiteOverflowStoreId();
+		if (!InInventory.HasStore(Floor))
+		{
+			FString Ignored;
+			InInventory.RegisterStore(Floor, 5000, Ignored);
+		}
+	}
+
 	/** Everything a station consumes: the components fitted at a line
 	 *  station, or the inputs of whatever recipe a machine is set to. */
 	/** What a station's shelf should hold of each item, DEMAND-CAPPED.
@@ -232,25 +255,197 @@ namespace LBSpacecraftHaulPrivate
 			}
 		}
 	}
+	/** The delivery's drop: re-clamped against the shelf AS IT IS NOW and
+	 *  transferred source -> shelf in one call. Lifted out of the return
+	 *  leg on 2026-09-02 so it can run on ARRIVAL. */
+	void SpacecraftHaulDropDelivery(FLBSpacecraftHaulState& Haul,
+		ALBSpacecraftCraftingAuthority* InCrafting,
+		ALBSpacecraftInventoryAuthority* InInventory,
+		const ALBSpacecraftBuildAuthority* InBuild,
+		int32 StockpileTopUpUnits)
+	{
+			// Put it down at the station that wanted it. A
+			// full stockpile or a rack that has since been
+			// emptied simply ends the run - the next Idle tick
+			// re-decides with fresh information.
+			//
+			// RE-CLAMPED against the shelf as it is NOW: the
+			// plan was made a flight ago, and a delivery that
+			// landed in between (or a consumed order) can
+			// shrink or erase the shortfall. Without this the
+			// overshoot re-arms the reclaim oscillation the
+			// one-hauler-per-want rule exists to stop. Items
+			// move only at dropoff, so clamping to zero means
+			// nothing moved at all - there is no cargo to
+			// return.
+			bool bWasWanted = false;
+			if (InBuild != nullptr)
+			{
+				if (const FLBSpacecraftStationRecord* DropRecord
+					= InBuild->FindStation(Haul.MachineStationId))
+				{
+					TArray<FLBSpacecraftShelfWant> DropWants;
+					SpacecraftHaulRequirementsOf(*DropRecord,
+						InCrafting, StockpileTopUpUnits,
+						DropWants);
+					for (const FLBSpacecraftShelfWant& DropWant :
+						DropWants)
+					{
+						if (DropWant.ItemId != Haul.CarryItemId)
+						{
+							continue;
+						}
+						bWasWanted = true;
+						const int32 NowShort = FMath::Max(
+							DropWant.TargetUnits
+							- InInventory->GetQuantity(
+								SpacecraftHaulStoreOf(
+									Haul.MachineStationId),
+								Haul.CarryItemId), 0);
+						Haul.CarryCount = FMath::Min(
+							Haul.CarryCount, NowShort);
+						break;
+					}
+				}
+			}
+			// THE STATION'S RECIPE CHANGED IN FLIGHT (found by audit,
+			// 2026-09-03): the item this haul carries does not match
+			// ANY current want, not merely a topped-up one - the
+			// station's shelf was re-clamped above for that case and
+			// this one never touches it. Landing it in the shelf
+			// anyway would strand it there occupying capacity the new
+			// recipe actually needs, with no reclaim path back (reclaim
+			// only finds stock some OTHER live recipe still wants).
+			// Same answer as a full rack on the return leg: spill to
+			// the site overflow yard instead of jamming the wrong
+			// shelf - goods always have somewhere to be.
+			FName DropStoreId = SpacecraftHaulStoreOf(Haul.MachineStationId);
+			if (!bWasWanted)
+			{
+				EnsureOverflowStore(*InInventory);
+				DropStoreId = ALBSpacecraftGameMode::SiteOverflowStoreId();
+			}
+			FString Reason;
+			if (Haul.CarryCount > 0
+				&& !InInventory->Transfer(Haul.SourceStoreId,
+					DropStoreId, Haul.CarryItemId, Haul.CarryCount,
+					Reason))
+			{
+				// Say it rather than swallow it: a delivery
+				// that cannot land is exactly the kind of
+				// silent stall this whole system is meant to
+				// make visible.
+				UE_LOG(LogTemp, Display,
+					TEXT("HAUL REFUSED %s x%d -> %s: %s"),
+					*Haul.CarryItemId.ToString(),
+					Haul.CarryCount,
+					*DropStoreId.ToString(), *Reason);
+			}
+	}
+}
+
+int32 ALBSpacecraftDroneFleetAuthority::HaulLoadFor(
+	ELBSpacecraftItemCategory Category, int32 Capacity)
+{
+	// Only the ASSEMBLED component is one-per-trip: it is the part the
+	// line fits and the one the owner watches go by. Sub-parts feed the
+	// fabricator cells in crates, so the fabrication chain keeps the
+	// pace its tests were tuned to.
+	const bool bBigPart =
+		Category == ELBSpacecraftItemCategory::AssembledComponent;
+	return bBigPart ? 1 : FMath::Max(Capacity, 1);
+}
+
+bool ALBSpacecraftDroneFleetAuthority::HaulIsLoaded(
+	const FLBSpacecraftHaulState& Haul)
+{
+	if (Haul.CarryCount <= 0)
+	{
+		return false;
+	}
+	return Haul.Job == ELBSpacecraftHaulJob::DeliverInput
+		? Haul.Phase == ELBSpacecraftHaulPhase::ToMachine
+		: Haul.Phase == ELBSpacecraftHaulPhase::ToStore;
 }
 
 void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 	ALBSpacecraftCraftingAuthority* InCrafting,
 	ALBSpacecraftInventoryAuthority* InInventory,
-	const ALBSpacecraftBuildAuthority* InBuild)
+	const ALBSpacecraftBuildAuthority* InBuild,
+	ALBSpacecraftPowerAuthority* InPower)
 {
 	if (DeltaSeconds <= 0.0 || InCrafting == nullptr
 		|| InInventory == nullptr)
 	{
 		return;
 	}
+	const float HaulDrainRate = FlightSecondsPerCharge > 0.f
+		? 1.f / FlightSecondsPerCharge : 1.f;
+	const float HaulChargeRate = ChargeSecondsPerCharge > 0.f
+		? 1.f / ChargeSecondsPerCharge : 1.f;
 	for (FLBSpacecraftHaulState& Haul : Hauls)
 	{
+		// THE BATTERY (owner 2026-09-02: "ours will go to their dock
+		// and charge"). Flight drains; the pad at home refills, drawing
+		// the same grid load a crew dock does when a grid is present
+		// (a rig without one charges freely - the honest-grid rule is
+		// about a grid that exists and has no headroom). A hauler
+		// finishes the run it is on - cargo never strands - and sits
+		// out from the reserve until it is fit to launch.
+		const FName HaulLoadId(*FString::Printf(TEXT("HaulCharge.%s"),
+			*Haul.RackStationId.ToString()));
+		if (Haul.Phase != ELBSpacecraftHaulPhase::Idle)
+		{
+			Haul.Charge01 = FMath::Max(0.f, Haul.Charge01
+				- HaulDrainRate * static_cast<float>(DeltaSeconds));
+		}
+		else
+		{
+			if (Haul.Charge01 < ReserveFraction)
+			{
+				Haul.bCharging = true;
+			}
+			if (Haul.bCharging)
+			{
+				bool bPowered = InPower == nullptr
+					|| ConnectedChargeLoads.Contains(HaulLoadId);
+				if (!bPowered)
+				{
+					FString ChargeReason;
+					bPowered = InPower->ConnectLoad(HaulLoadId,
+						DockChargeKw, ChargeReason);
+					if (bPowered)
+					{
+						ConnectedChargeLoads.Add(HaulLoadId);
+					}
+				}
+				if (bPowered)
+				{
+					Haul.Charge01 = FMath::Min(1.f, Haul.Charge01
+						+ HaulChargeRate
+							* static_cast<float>(DeltaSeconds));
+				}
+				if (Haul.Charge01 >= LaunchFraction)
+				{
+					Haul.bCharging = false;
+					if (ConnectedChargeLoads.Remove(HaulLoadId) > 0
+						&& InPower != nullptr)
+					{
+						FString Ignored;
+						InPower->DisconnectLoad(HaulLoadId, Ignored);
+					}
+				}
+			}
+		}
 		switch (Haul.Phase)
 		{
 		case ELBSpacecraftHaulPhase::Idle:
 		{
 			using namespace LBSpacecraftHaulPrivate;
+			if (Haul.bCharging)
+			{
+				break; // on the pad until fit to fly
+			}
 			// FEEDING THE LINE COMES FIRST. A station that runs dry
 			// stops, so topping up a stockpile outranks clearing a
 			// machine's output buffer.
@@ -294,7 +489,14 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 				}
 			}
 			Sources.Add(ALBSpacecraftGameMode::SiteOverflowStoreId());
-			if (InBuild != nullptr)
+			// WHAT IS NEEDED NOW BEFORE WHAT WOULD BE NICE (transporter
+			// pass, 2026-09-02). With one big part per trip, a scan that
+			// topped the first shelf's first item up to target before
+			// looking at anything else left the head station's kit three
+			// trips from complete while its float grew. Pass 0 takes
+			// only shelves below ONE cycle's need; pass 1 the top-ups.
+			for (int32 Pass = 0; Pass < 2 && WantStation.IsNone()
+				&& InBuild != nullptr; ++Pass)
 			{
 				TArray<FLBSpacecraftShelfWant> Wanted;
 				for (const FLBSpacecraftStationRecord& Record :
@@ -315,6 +517,11 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 						const int32 OnHand =
 							InInventory->GetQuantity(Stockpile, ItemId);
 						if (!StockpileWantsItem(OnHand, Want.TargetUnits))
+						{
+							continue;
+						}
+						const bool bUrgent = OnHand < Want.OneCycleUnits;
+						if ((Pass == 0) != bUrgent)
 						{
 							continue;
 						}
@@ -491,10 +698,34 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 				Haul.MachineStationId = WantStation;
 				Haul.CarryItemId = WantItem;
 				Haul.SourceStoreId = WantSource;
-				Haul.Phase = ELBSpacecraftHaulPhase::ToMachine;
-				Haul.PhaseSeconds = 0.f;
-				Haul.CarryCount = FMath::Min3(HaulCapacity, WantRoom,
+				// Which station's store that is - the pickup leg flies
+				// there when it is not home. The yard has no station.
+				Haul.SourceStationId = NAME_None;
+				if (InBuild != nullptr)
+				{
+					for (const FLBSpacecraftStationRecord& SourceRecord :
+						InBuild->GetStations())
+					{
+						if (SpacecraftHaulStoreOf(SourceRecord.StationId)
+							== WantSource)
+						{
+							Haul.SourceStationId = SourceRecord.StationId;
+							break;
+						}
+					}
+				}
+				const FLBSpacecraftItemDefinition* WantRow =
+					FLBSpacecraftItemCatalogue::FindItem(WantItem);
+				const int32 Load = HaulLoadFor(WantRow != nullptr
+					? WantRow->Category : ELBSpacecraftItemCategory::Raw,
+					HaulCapacity);
+				Haul.CarryCount = FMath::Min3(Load, WantRoom,
 					InInventory->GetQuantity(WantSource, WantItem));
+				const bool bFromHome = Haul.SourceStationId.IsNone()
+					|| Haul.SourceStationId == Haul.RackStationId;
+				Haul.Phase = bFromHome ? ELBSpacecraftHaulPhase::ToMachine
+					: ELBSpacecraftHaulPhase::ToSource;
+				Haul.PhaseSeconds = 0.f;
 				break;
 			}
 			// A DOCK'S hauler never collects: machine output landing in
@@ -524,6 +755,17 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 			}
 			break;
 		}
+		case ELBSpacecraftHaulPhase::ToSource:
+			// Empty, home to the store the goods sit in. The goods
+			// themselves move only at the drop, atomically, so a save
+			// taken anywhere on the trip loses nothing.
+			Haul.PhaseSeconds += static_cast<float>(DeltaSeconds);
+			if (Haul.PhaseSeconds >= HaulTravelSeconds)
+			{
+				Haul.Phase = ELBSpacecraftHaulPhase::ToMachine;
+				Haul.PhaseSeconds = 0.f;
+			}
+			break;
 		case ELBSpacecraftHaulPhase::ToMachine:
 			Haul.PhaseSeconds += static_cast<float>(DeltaSeconds);
 			if (Haul.PhaseSeconds >= HaulTravelSeconds)
@@ -536,6 +778,18 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 						InCrafting->GetBufferCount(
 							Haul.MachineStationId));
 				}
+				else
+				{
+					// THE DROP HAPPENS WHERE THE DRONE IS (transporter
+					// pass, 2026-09-02): a delivery used to land in the
+					// station's store when the hauler was back HOME,
+					// and read on screen as a collection. It lands on
+					// arrival now; the way back is empty.
+					LBSpacecraftHaulPrivate::SpacecraftHaulDropDelivery(
+						Haul, InCrafting, InInventory, InBuild,
+						StockpileTopUpUnits);
+					Haul.CarryCount = 0;
+				}
 				Haul.Phase = ELBSpacecraftHaulPhase::ToStore;
 				Haul.PhaseSeconds = 0.f;
 			}
@@ -547,68 +801,7 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 				using namespace LBSpacecraftHaulPrivate;
 				const FName RackStore =
 					SpacecraftHaulStoreOf(Haul.RackStationId);
-				if (Haul.Job == ELBSpacecraftHaulJob::DeliverInput)
-				{
-					// Put it down at the station that wanted it. A
-					// full stockpile or a rack that has since been
-					// emptied simply ends the run - the next Idle tick
-					// re-decides with fresh information.
-					//
-					// RE-CLAMPED against the shelf as it is NOW: the
-					// plan was made a flight ago, and a delivery that
-					// landed in between (or a consumed order) can
-					// shrink or erase the shortfall. Without this the
-					// overshoot re-arms the reclaim oscillation the
-					// one-hauler-per-want rule exists to stop. Items
-					// move only at dropoff, so clamping to zero means
-					// nothing moved at all - there is no cargo to
-					// return.
-					if (InBuild != nullptr)
-					{
-						if (const FLBSpacecraftStationRecord* DropRecord
-							= InBuild->FindStation(Haul.MachineStationId))
-						{
-							TArray<FLBSpacecraftShelfWant> DropWants;
-							SpacecraftHaulRequirementsOf(*DropRecord,
-								InCrafting, StockpileTopUpUnits,
-								DropWants);
-							for (const FLBSpacecraftShelfWant& DropWant :
-								DropWants)
-							{
-								if (DropWant.ItemId != Haul.CarryItemId)
-								{
-									continue;
-								}
-								const int32 NowShort = FMath::Max(
-									DropWant.TargetUnits
-									- InInventory->GetQuantity(
-										SpacecraftHaulStoreOf(
-											Haul.MachineStationId),
-										Haul.CarryItemId), 0);
-								Haul.CarryCount = FMath::Min(
-									Haul.CarryCount, NowShort);
-								break;
-							}
-						}
-					}
-					FString Reason;
-					if (Haul.CarryCount > 0
-						&& !InInventory->Transfer(Haul.SourceStoreId,
-							SpacecraftHaulStoreOf(Haul.MachineStationId),
-							Haul.CarryItemId, Haul.CarryCount, Reason))
-					{
-						// Say it rather than swallow it: a delivery
-						// that cannot land is exactly the kind of
-						// silent stall this whole system is meant to
-						// make visible.
-						UE_LOG(LogTemp, Display,
-							TEXT("HAUL REFUSED %s x%d -> %s: %s"),
-							*Haul.CarryItemId.ToString(),
-							Haul.CarryCount,
-							*Haul.MachineStationId.ToString(), *Reason);
-					}
-				}
-				else
+				if (Haul.Job != ELBSpacecraftHaulJob::DeliverInput)
 				{
 					int32 Moved = 0;
 					FString Reason;
@@ -623,7 +816,12 @@ void ALBSpacecraftDroneFleetAuthority::TickHauls(double DeltaSeconds,
 					{
 						// The rack is full or absent: SPILL to the site
 						// overflow yard rather than jam the machine.
-						// Goods always have somewhere to be.
+						// Goods always have somewhere to be - which
+						// needs the yard to actually exist first (found
+						// by the 2026-09-03 audit: nothing in ordinary
+						// play ever registered it, so this always
+						// silently failed outside a dev/console run).
+						EnsureOverflowStore(*InInventory);
 						InCrafting->TransferBufferToStore(
 							Haul.MachineStationId, *InInventory,
 							ALBSpacecraftGameMode::SiteOverflowStoreId(),

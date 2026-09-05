@@ -230,8 +230,12 @@ namespace LBSpacecraftWIPPresentationPrivate
 	// DARK BED (owner 2026-09-01 "still not right" over a frame of
 	// chalk-pale track on a pale floor). Both benchmarks make the
 	// conveyor the darkest thing on the floor - that contrast IS how
-	// it reads as the spine. Palette hazard backing #23211F in linear.
-	const FLinearColor SpacecraftConveyorBed(0.017f, 0.016f, 0.014f);
+	// it reads as the spine. This IS the palette's own HazardBlack
+	// (#23211F) - now wired to the named token instead of a duplicated
+	// literal, so the two can never drift apart the way this codebase's
+	// own review history keeps finding (LBSpacecraftInventoryAuthorityTests's
+	// hard-coded kind count, ELBSpacecraftComponent's hand-typed literal).
+	const FLinearColor SpacecraftConveyorBed = LBSpacecraftPalette::HazardBlack;
 	const FLinearColor SpacecraftCrateColour = LBSpacecraftPalette::CrateTan; // delivered crates - a second, different crate tone
 	// PHASE A OF THE LOOK PLAN (Docs/LOOK_JUDGEMENT_AND_PLAN_v001.md,
 	// owner "start on A", 2026-09-02): VALUE CONTRAST. Every frame
@@ -261,6 +265,17 @@ namespace LBSpacecraftWIPPresentationPrivate
 	const FLinearColor SpacecraftConveyorChevron(0.58f, 0.57f, 0.54f);
 	const FLinearColor SpacecraftBeltRail(0.52f, 0.53f, 0.56f);
 	const FLinearColor SpacecraftBeltAccent = LBSpacecraftPalette::MachineAmberTrim; // belt accent, running the length of the floor
+	// THE HAZARD BLACK NEVER GOT ITS PARTNER. The palette's own comment
+	// on HazardBlack says it is "always paired with the black" - the
+	// bed IS that black (TickTrack's continuous belt spline and
+	// TickConveyors' per-segment furniture both paint it), but nothing
+	// painted the yellow half, so the belt read as an unexplained dark
+	// scar rather than the yellow-and-black hazard banding this file's
+	// own reference-compare comment (the station bay border) already
+	// names as one of the three things both benchmarks lean on. Used
+	// on TickTrack's sleepers below, replacing their old pale grey.
+	const FLinearColor SpacecraftConveyorHazardStripe =
+		LBSpacecraftPalette::Hazard;
 	constexpr float SpacecraftBeltDeckZCm = 34.f;
 	constexpr float SpacecraftConveyorSpeedCmPerS = 250.f;
 	constexpr float SpacecraftConveyorSpacingCm = 400.f;
@@ -530,6 +545,23 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 			"/Game/LineBoss/Candidates/Spacecraft/SpacecraftTestBay_v001")
 			TEXT("/Meshes/SM_LB_SC_Cargo01_Canopy_v001")
 			TEXT(".SM_LB_SC_Cargo01_Canopy_v001"))));
+	// THE CARGO-01 CRAFT, v002 (owner 2026-09-03 evening: "fuse part 2
+	// and part 3 together" / "yes go ahead" on splitting it for real).
+	// Built from the owner's Meshy part-segmentation drop rather than
+	// the v001 single mesh: two overlapping hull slices pushed into a
+	// real Boolean union (71% surface containment at best fit - genuine
+	// overlap, not just adjacency), landing legs and the boarding ramp
+	// joined on as fixed hull furniture, decimated 282,747 -> 38,940
+	// tris after a render check held up the panel detail. Imported at
+	// 21 m on its longest axis, verified (Saved/Audits/Spacecraft/
+	// cargo_craft_import_v002.json); promoted under "Craft." in
+	// TryGetStationMesh. v001 stays on disk, unused, as evidence. The
+	// two engine nacelles ship separately (CargoOwnPallets below) and
+	// fit onto this hull through the existing ThrusterPods sockets.
+	StationMeshes.Add(FName(TEXT("Craft.Cargo01")),
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT(
+			"/Game/LineBoss/Candidates/Spacecraft/CargoCraft_v002")
+			TEXT("/SM_LB_SC_Cargo01_Craft_v002.SM_LB_SC_Cargo01_Craft_v002"))));
 	// The six ship COMPONENTS (owner's batch 2026-08-26, identities
 	// assigned by gallery; sized to fit IN the ship). Keyed by their
 	// ledger item ids so cargo visuals resolve straight from state.
@@ -679,6 +711,17 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("LB_Carrier_%s.LB_Carrier_%s"),
 				Carrier, Carrier, Carrier))));
 	}
+	// THE CRAFT AGV (2026-09-04): the motorised carrier a craft rides
+	// down the line, replacing the procedural stand that stood in for
+	// it since the gantry crane came off. Same "Carrier." prefix as
+	// the parts carriers above - both are things that carry - which
+	// also means it inherits their promoted-source entry and renders
+	// the moment it is registered, rather than silently falling back
+	// to a cube the way ten other real assets were doing until today.
+	StationMeshes.Add(FName(TEXT("Carrier.CraftAGV")),
+		TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(
+			TEXT("/Game/LineBoss/Spacecraft/CraftAGV_v001/")
+			TEXT("SM_LB_SC_CraftAGV_v001.SM_LB_SC_CraftAGV_v001"))));
 	// PALLETLOADS_v001 (2026-08-30): fourteen real ship assemblies cut
 	// from the Scout model itself, stowed on factory pallets - the
 	// per-COMPONENT kit dolly content the Meshy-era generic crate block
@@ -710,6 +753,33 @@ ALBSpacecraftWIPPresentationActor::ALBSpacecraftWIPPresentationActor()
 				TEXT("/Game/LineBoss/Candidates/Spacecraft/")
 				TEXT("PalletLoads_v001/%s/%s/StaticMeshes/%s.%s"),
 				*FolderStem, Pallet, Pallet, Pallet))));
+	}
+	// THE CARGO'S OWN FOUR (owner's own GPT reference images, through
+	// Meshy image-to-3D, 2026-09-03): separate small imports, not part
+	// of the PalletLoads_v001 batch, so registered on their own rather
+	// than folded into the loop above whose nested path these assets
+	// do not share.
+	const TCHAR* CargoOwnPallets[][2] = {
+		{ TEXT("Pallet.pallet-thrusterpod"), TEXT("SM_LB_SC_ThrusterPod_v001") },
+		{ TEXT("Pallet.pallet-cargobay"), TEXT("SM_LB_SC_Cargo01_BayDoor_v001") },
+		{ TEXT("Pallet.pallet-dockingcollar"), TEXT("SM_LB_SC_Cargo01_DockingCollar_v001") },
+		{ TEXT("Pallet.pallet-shielding"), TEXT("SM_LB_SC_Cargo01_Shielding_v001") },
+		// The v002 hull's OWN engines (2026-09-03 evening), cut from the
+		// same part-segmentation drop as the hull itself and sized to
+		// the same 180 cm already verified for pallet-thrusterpod above
+		// - these replace it at the ThrusterPods socket (RefreshUnitFittings)
+		// because they share the hull's own panel language; the generic
+		// pallet-thrusterpod stays registered for the kit-dolly/hauler
+		// display, which still wants one representative mesh, not a pair.
+		{ TEXT("Pallet.pallet-thrusterpod-a"), TEXT("SM_LB_SC_Cargo01_ThrusterA_v001") },
+		{ TEXT("Pallet.pallet-thrusterpod-b"), TEXT("SM_LB_SC_Cargo01_ThrusterB_v001") },
+	};
+	for (const auto& Entry : CargoOwnPallets)
+	{
+		StationMeshes.Add(FName(Entry[0]),
+			TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(
+				TEXT("/Game/LineBoss/Candidates/Spacecraft/CargoParts_v001/%s.%s"),
+				Entry[1], Entry[1]))));
 	}
 }
 
@@ -772,16 +842,25 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("AssemblyRobot"))
 		|| DefinitionId == FName(TEXT("DeliveryDock"))
 		|| DefinitionId == FName(TEXT("PowerStation"))
-		|| DefinitionId == FName(TEXT("StructureFab"))
-		|| DefinitionId == FName(TEXT("FitOutFab"))
-		|| DefinitionId == FName(TEXT("CircuitFab"))
-		|| DefinitionId == FName(TEXT("PowerCellPlant"))
-		|| DefinitionId == FName(TEXT("PropulsionStation"))
-		|| DefinitionId == FName(TEXT("ElectronicsStation"))
-		|| DefinitionId == FName(TEXT("SubAssemblyRobot"))
-		|| DefinitionId == FName(TEXT("Smelter"))
-		|| DefinitionId == FName(TEXT("PowerPlant"))
-		|| DefinitionId == FName(TEXT("RollingMill"))
+		// A BIGGER MARK INHERITS ITS FAMILY'S PROMOTION (2026-09-03).
+		// These nine tested for an EXACT name while the four line
+		// families just above test with StartsWith - so every Mk2 of
+		// an approved crafting family failed the gate and drew as a
+		// grey cube, with its Mk1's approved mesh sitting right there
+		// unused. Nothing about a bigger mark makes its art less
+		// promoted than the mark it replaces; the inconsistency was
+		// an oversight, not a decision. StartsWith on all of them now,
+		// matching the line stations.
+		|| DefinitionId.ToString().StartsWith(TEXT("StructureFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("FitOutFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("CircuitFab"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PowerCellPlant"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PropulsionStation"))
+		|| DefinitionId.ToString().StartsWith(TEXT("ElectronicsStation"))
+		|| DefinitionId.ToString().StartsWith(TEXT("SubAssemblyRobot"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Smelter"))
+		|| DefinitionId.ToString().StartsWith(TEXT("PowerPlant"))
+		|| DefinitionId.ToString().StartsWith(TEXT("RollingMill"))
 		|| DefinitionId.ToString().StartsWith(TEXT("Carrier."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Track."))
 		// PALLETLOADS_v001 (2026-08-30): added at registration time,
@@ -798,7 +877,23 @@ UStaticMesh* ALBSpacecraftWIPPresentationActor::TryGetStationMesh(
 		|| DefinitionId.ToString().StartsWith(TEXT("Station."))
 		|| DefinitionId.ToString().StartsWith(TEXT("Hall."))
 		// The storage rack wears the same imported pallet rack (2026-09-02).
-		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"));
+		|| DefinitionId.ToString().StartsWith(TEXT("StorageRack"))
+		// The Cargo-01 craft (2026-09-03): owner-chosen concept, size
+		// verified at import, receipt on record - promoted.
+		|| DefinitionId.ToString().StartsWith(TEXT("Craft."))
+		// THE OLD MESHY CONTENT IS RELEASED (owner, 2026-09-04:
+		// "unblock the ten keys, they're the old meshy stuff"). The
+		// 2026-08-30 punchlist held these off screen until Design
+		// replaced them; the owner has decided, knowing exactly what
+		// they are, that showing them beats showing engine cubes in
+		// their place. This SUPERSEDES that decision for these keys -
+		// see Docs/MESHY_BLOCKOUT_PUNCHLIST_v001.md. Each has a real
+		// imported asset on disk today; every one of them was drawing
+		// as a blockout purely because of this gate.
+		|| DefinitionId == FName(TEXT("SubAssemblyHall"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Canopy."))
+		|| DefinitionId == FName(TEXT("Gear.Leg"))
+		|| DefinitionId.ToString().StartsWith(TEXT("Component."));
 	if (bBlockoutMeshyContent && !bHasPromotedSource)
 	{
 		return nullptr;
@@ -1267,6 +1362,86 @@ ALBSpacecraftWIPPresentationActor::MakeGearSet(
 	return Gear;
 }
 
+UStaticMeshComponent* ALBSpacecraftWIPPresentationActor::MakeUnitStand(
+	UStaticMeshComponent* CraftComponent, FName UnitId)
+{
+	// THE CRAFT'S OWN STAND (2026-09-03, replacing the gantry crane -
+	// see the note on UnitStands in the header). A flat platform under
+	// the hull, sized to its own footprint so a blockout craft (drawn
+	// as a scaled cube) gets a stand that scales with it rather than
+	// one sized for the real mesh.
+	if (CraftComponent == nullptr
+		|| CraftComponent->GetStaticMesh() == nullptr)
+	{
+		return nullptr; // draws less, never more
+	}
+	const FName StandKey(*FString::Printf(TEXT("%s_Stand"),
+		*UnitId.ToString()));
+	UStaticMeshComponent* Stand = MakeBlockComponent(StandKey,
+		LBSpacecraftPalette::StructureGraphite);
+	if (Stand == nullptr)
+	{
+		return nullptr;
+	}
+	const FBoxSphereBounds Bounds =
+		CraftComponent->GetStaticMesh()->GetBounds();
+	// THE REAL CARRIER, when it resolves (2026-09-04). A motorised AGV
+	// the craft rides, in place of the flat platform below. It is
+	// scaled UNIFORMLY off the hull's LENGTH, never per-axis: the model
+	// is 1500 x 355 cm, a Scout is 1400 x 746, and stretching Y to the
+	// hull's width would nearly double one axis alone and visibly
+	// distort the wheels and cradles. A transporter narrower than its
+	// load is also what real ones look like - the craft overhangs the
+	// sides, as it should.
+	if (UStaticMesh* CarrierMesh =
+		TryGetStationMesh(FName(TEXT("Carrier.CraftAGV"))))
+	{
+		const FBoxSphereBounds CarrierBounds = CarrierMesh->GetBounds();
+		const float CarrierLength =
+			FMath::Max(CarrierBounds.BoxExtent.X * 2.f, 1.f);
+		// The deck runs a little longer than the hull so the craft sits
+		// ON it rather than overhanging the ends, which is the one
+		// direction an overhang would read as a mistake.
+		const float WantLength = Bounds.BoxExtent.X * 2.f * 1.06f;
+		const float Uniform = WantLength / CarrierLength;
+		Stand->SetStaticMesh(CarrierMesh);
+		Stand->AttachToComponent(CraftComponent,
+			FAttachmentTransformRules::KeepRelativeTransform);
+		Stand->SetRelativeRotation(FRotator::ZeroRotator);
+		Stand->SetRelativeScale3D(FVector(Uniform));
+		// Sits UNDER the hull: the mesh is modelled with its base at
+		// zero, so drop it by its own scaled height plus the hull's
+		// half-depth to put the deck against the craft's belly.
+		Stand->SetRelativeLocation(FVector(Bounds.Origin.X,
+			Bounds.Origin.Y,
+			Bounds.Origin.Z - Bounds.BoxExtent.Z
+				- CarrierBounds.BoxExtent.Z * 2.f * Uniform));
+		return Stand;
+	}
+	// Undoes the CRAFT's own scale for the one quantity that must stay
+	// a constant WORLD thickness regardless of it (a blockout hull's
+	// scale can be over twenty times a unit cube's) - the same
+	// correction MakeGearSet applies to a leg's length, just above.
+	const FVector CraftScale = CraftComponent->GetRelativeScale3D();
+	const float InvCraftZ =
+		1.f / FMath::Max(FMath::Abs(CraftScale.Z), KINDA_SMALL_NUMBER);
+	const float ThicknessCm = 18.f;
+	Stand->AttachToComponent(CraftComponent,
+		FAttachmentTransformRules::KeepRelativeTransform);
+	// X/Y intentionally NOT corrected for craft scale: 90% of the
+	// mesh's own bounds tracks whatever footprint is actually on
+	// screen, real hull or scaled blockout alike, the same way the
+	// hull itself does.
+	Stand->SetRelativeLocation(FVector(Bounds.Origin.X, Bounds.Origin.Y,
+		Bounds.Origin.Z - Bounds.BoxExtent.Z
+			- ThicknessCm * 0.5f * InvCraftZ));
+	Stand->SetRelativeRotation(FRotator::ZeroRotator);
+	Stand->SetRelativeScale3D(FVector(
+		Bounds.BoxExtent.X * 0.018f, Bounds.BoxExtent.Y * 0.018f,
+		ThicknessCm / 100.f * InvCraftZ));
+	return Stand;
+}
+
 void ALBSpacecraftWIPPresentationActor::ApplyFlameIntensity(
 	const TArray<TWeakObjectPtr<UStaticMeshComponent>>& Flames,
 	float Intensity01, float FlickerSeed)
@@ -1558,8 +1733,18 @@ void ALBSpacecraftWIPPresentationActor::TickTrack(float DeltaSeconds)
 			UMaterialInstanceDynamic* SleeperMID =
 				UMaterialInstanceDynamic::Create(ShapeMaterial,
 					TrackSleepers);
+			// HAZARD YELLOW, not pale grey (found by the 2026-09-03
+			// look pass): the belt's dark bed IS the palette's own
+			// HazardBlack, and HazardBlack's own doc comment says it
+			// is "always paired with the black" - nothing painted that
+			// pairing before, so the belt read as an unexplained dark
+			// scar rather than the yellow-and-black hazard banding
+			// this file's own reference-compare comment already names
+			// as one of the three things both benchmarks lean on. The
+			// sleepers already give the belt its cross-tie rhythm;
+			// this just gives that rhythm the colour it was missing.
 			SleeperMID->SetVectorParameterValue(TEXT("Color"),
-				SpacecraftConveyorChevron);
+				SpacecraftConveyorHazardStripe);
 			TrackSleepers->SetMaterial(0, SleeperMID);
 		}
 	}
@@ -2457,23 +2642,6 @@ FVector ALBSpacecraftWIPPresentationActor::ComputeDroneWorkOffsetCm(
 		HoverHeightCm + 55.f * FMath::Sin(ClockSeconds * 1.7f + Phase));
 }
 
-float ALBSpacecraftWIPPresentationActor::ComputeCraneCarryCm(
-	float Progress01, float SlideStart, float CarryCm)
-{
-	// Parked: the craft sits on its cradle and the crane is not on it.
-	if (Progress01 <= SlideStart)
-	{
-		return 0.f;
-	}
-	// Remap the slide window onto 0..1 and reuse the station lift's
-	// rise-hold-fall shape rather than writing a second one. They are
-	// the same motion at different scales, and one of them is already
-	// covered by tests.
-	const float Alpha = (Progress01 - SlideStart)
-		/ FMath::Max(1.f - SlideStart, 0.01f);
-	return ComputeStationLiftCm(Alpha, CarryCm, 0.25f);
-}
-
 float ALBSpacecraftWIPPresentationActor::ComputeStationLiftCm(
 	float Progress01, float RaisedCm, float RiseFraction)
 {
@@ -2703,6 +2871,25 @@ void ALBSpacecraftWIPPresentationActor::GetKitPalletCandidates(
 	else if (ComponentId == FName(TEXT("Component.Interior")))
 	{
 		OutPalletKeys = { FName(TEXT("Pallet.pallet-interior")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.ThrusterPods")))
+	{
+		// The real parts (2026-09-03): the kit dolly shows them
+		// waiting, and the hauler's claw carries them, the same as
+		// every other component that has a real pallet load.
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-thrusterpod")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.CargoBay")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-cargobay")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.DockingCollar")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-dockingcollar")) };
+	}
+	else if (ComponentId == FName(TEXT("Component.Shielding")))
+	{
+		OutPalletKeys = { FName(TEXT("Pallet.pallet-shielding")) };
 	}
 }
 
@@ -5470,7 +5657,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshLineStationFrame(
 			Frame.Parts.Add(Ram);
 			Stages.Add(Ram);
 		}
-		StationLiftRams.Add(Record.StationId, Stages);
+		StationLiftRams.Add(Record.StationId, FLBMeshComponentArray(Stages));
 
 		const FName SaddleKey(*FString::Printf(TEXT("%s_LF_LiftSaddle"),
 			*Record.StationId.ToString()));
@@ -5965,11 +6152,6 @@ void ALBSpacecraftWIPPresentationActor::DestroySprayRig(
 void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 {
 	using namespace LBSpacecraftWIPPresentationPrivate;
-	// Cleared BEFORE the guard, not after: an unconfigured line has no
-	// craft, and a stale carry would leave the gantry parked over a
-	// ship that is no longer there.
-	bCraftIsCarried = false;
-	CarriedCraftsCm.Reset();
 	if (Coordinator == nullptr || ProductionAuthority == nullptr
 		|| !Coordinator->IsConfigured())
 	{
@@ -5998,11 +6180,35 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		const bool bScoutSixPart = Unit->RecipeId
 			== LBSpacecraftWIPPresentationPrivate::SpacecraftScoutRecipeId
 			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
-		const bool bCraftForm = bScoutSixPart
+		// THE CARGO WEARS THE SCOUT'S SIX-PART FORM AT 1.5x AS A BLOCKOUT
+		// (2026-09-03). Its own forms are Meshy-era and stay behind the
+		// blockout switch until a Design replacement lands (the owner's
+		// 2026-08-30 call, Docs/MESHY_BLOCKOUT_PUNCHLIST_v001.md), and
+		// the crate that stood in showed none of the ten kinds it now
+		// fits. The Scout craft is a promoted, Design-made model; at
+		// the Cargo's 1.5x envelope (owner-approved size) it is an
+		// honest stand-in, and the Cargo's four extra kinds attach to
+		// it as blockouts so their placement can be judged now. Read
+		// this as "blockout until the Cargo model is commissioned",
+		// never as the Cargo's look.
+		const bool bCargoHullReady = Unit->RecipeId
+			== LBSpacecraftWIPPresentationPrivate::SpacecraftCargoRecipeId
+			&& Unit->ProducedComponents.Contains(ELBSpacecraftComponent::Hull);
+		// The real Cargo-01 (concept A, 2026-09-03) when it resolves;
+		// the Scout stand-in at 1.5x only while it does not.
+		UStaticMesh* CargoCraftHull = bCargoHullReady
+			? TryGetStationMesh(FName(TEXT("Craft.Cargo01"))) : nullptr;
+		const bool bCargoOnScoutForm = bCargoHullReady
+			&& CargoCraftHull == nullptr;
+		const bool bCraftForm = bScoutSixPart || bCargoHullReady
 			|| Unit->Stage >= ELBSpacecraftStage::Assembly;
 		UStaticMesh* Craft = nullptr;
 		if (bCraftForm)
 		{
+			if (CargoCraftHull != nullptr)
+			{
+				Craft = CargoCraftHull;
+			}
 			// THE SIX-ASSEMBLY SCOUT tries first for its own recipe.
 			// Hull becomes the primary component's mesh; the other
 			// five attach as children once Component exists below.
@@ -6013,8 +6219,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			UStaticMesh* V2Electronics = nullptr;
 			UStaticMesh* V2Navigation = nullptr;
 			UStaticMesh* V2Interior = nullptr;
-			if (Unit->RecipeId == LBSpacecraftWIPPresentationPrivate
-					::SpacecraftScoutRecipeId
+			if ((Unit->RecipeId == LBSpacecraftWIPPresentationPrivate
+					::SpacecraftScoutRecipeId || bCargoOnScoutForm)
 				&& ResolveScoutV2Parts(Craft, V2Propulsion, V2Power,
 					V2Electronics, V2Navigation, V2Interior))
 			{
@@ -6156,7 +6362,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 						Sections.Add(Section);
 					}
 					StrippedHullSections.Add(Assignment.UnitId,
-						MoveTemp(Sections));
+						FLBMeshComponentArray(MoveTemp(Sections)));
 				}
 				Component->SetVisibility(false);
 				// THE HULL COMES TOGETHER (look plan, 2026-09-02): the
@@ -6165,7 +6371,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// progresses, so the first station shows a hull being
 				// built rather than parts lying still; the real hull
 				// takes over the instant it is fitted.
-				if (TArray<TObjectPtr<UStaticMeshComponent>>* Loose =
+				if (FLBMeshComponentArray* Loose =
 					StrippedHullSections.Find(Assignment.UnitId))
 				{
 					float StopProgress = 0.f;
@@ -6175,7 +6381,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 							StopProgress);
 					}
 					TArray<float> LengthsCm;
-					for (UStaticMeshComponent* Section : *Loose)
+					for (UStaticMeshComponent* Section : Loose->Items)
 					{
 						LengthsCm.Add(Section != nullptr
 							&& Section->GetStaticMesh() != nullptr
@@ -6185,12 +6391,12 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					}
 					TArray<float> CentresCm;
 					ComputeSequentialLayoutCentresCm(LengthsCm, CentresCm);
-					const int32 Count = Loose->Num();
+					const int32 Count = Loose->Items.Num();
 					const float Closed = FMath::SmoothStep(0.f, 1.f,
 						FMath::Clamp(StopProgress, 0.f, 1.f));
 					for (int32 Index = 0; Index < Count; ++Index)
 					{
-						UStaticMeshComponent* Section = (*Loose)[Index];
+						UStaticMeshComponent* Section = Loose->Items[Index];
 						if (Section == nullptr || !CentresCm.IsValidIndex(Index))
 						{
 							continue;
@@ -6207,10 +6413,10 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					}
 				}
 			}
-			else if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			else if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(Assignment.UnitId))
 			{
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -6238,6 +6444,21 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			Component->SetStaticMesh(Craft);
 			Component->EmptyOverrideMaterials(); // craft keeps its own look
 		}
+		// THE STAND (2026-09-03): made once, sized off whatever mesh
+		// Component is carrying right here - the first REAL form (a
+		// blockout chassis counts), not the bare pale crate a unit
+		// starts as, so it comes out proportioned for the actual craft
+		// rather than a generic cube. Left alone after, the same
+		// "created once" rule UnitGear and ScoutV2Parts already follow.
+		if (!UnitStands.Contains(Assignment.UnitId)
+			&& Component->GetStaticMesh() != nullptr)
+		{
+			if (UStaticMeshComponent* Stand = MakeUnitStand(Component,
+				Assignment.UnitId))
+			{
+				UnitStands.Add(Assignment.UnitId, Stand);
+			}
+		}
 		// THE FIVE ATTACHED ASSEMBLIES. Component now holds Hull; the
 		// rest are separate meshes that never existed as a single
 		// object, so they must be spawned and attached rather than
@@ -6247,7 +6468,8 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 		// space (loading only Hull gives a bare airframe; loading all
 		// six gives the finished craft, per the modelling brief).
 		if (bCraftForm
-			&& Unit->RecipeId == SpacecraftScoutRecipeId)
+			&& (Unit->RecipeId == SpacecraftScoutRecipeId
+				|| bCargoOnScoutForm))
 		{
 			UStaticMesh* V2Hull = nullptr;
 			UStaticMesh* V2Propulsion = nullptr;
@@ -6268,7 +6490,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// bCraftForm first turns true.
 				TSet<ELBSpacecraftComponent>& Attached =
 					ScoutV2AttachedComponents.FindOrAdd(Assignment.UnitId);
-				TArray<TObjectPtr<UStaticMeshComponent>>& Parts =
+				FLBMeshComponentArray& Parts =
 					ScoutV2Parts.FindOrAdd(Assignment.UnitId);
 				// Unique key per UNIT, not just per part-name: with
 				// attachment now gated on real per-component fitting
@@ -6321,7 +6543,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					{
 						return;
 					}
-					Parts.Add(Attach(Mesh, NodeId, bDisallowNanite));
+					Parts.Items.Add(Attach(Mesh, NodeId, bDisallowNanite));
 					Attached.Add(Comp);
 				};
 				AttachIfFitted(ELBSpacecraftComponent::Propulsion,
@@ -6334,6 +6556,83 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					V2Navigation, FName(TEXT("Node.Navigation")), true);
 				AttachIfFitted(ELBSpacecraftComponent::Interior,
 					V2Interior, FName(TEXT("Node.Interior")), false);
+				// THE CARGO'S FOUR, as hull-relative blockouts (owner
+				// 2026-09-02: every visible feature is a real component;
+				// blockout first when the model is missing). Hue-free so
+				// the livery stays the only colour on the craft; a real
+				// part replaces each the day it is modelled. Fractions of
+				// the hull's full size, nose +X: the bay under the belly,
+				// the collar on top amidships, twin pods aft on the
+				// flanks, plating low along both sides.
+				if (bCargoOnScoutForm && V2Hull != nullptr)
+				{
+					const FBoxSphereBounds HullBounds = V2Hull->GetBounds();
+					const FVector E = HullBounds.BoxExtent;
+					const FVector O = HullBounds.Origin;
+					struct FLBCargoBlock
+					{
+						FVector Centre;
+						FVector Size;
+						FLinearColor Tint;
+					};
+					const FLinearColor Pale(0.55f, 0.53f, 0.50f);
+					const FLinearColor Graphite(0.10f, 0.11f, 0.12f);
+					auto AttachBlockoutIfFitted = [&](
+						ELBSpacecraftComponent Kind, const TCHAR* Label,
+						const TArray<FLBCargoBlock>& Blocks)
+					{
+						if (Attached.Contains(Kind)
+							|| !Unit->ProducedComponents.Contains(Kind))
+						{
+							return;
+						}
+						for (int32 BlockIndex = 0; BlockIndex < Blocks.Num();
+							++BlockIndex)
+						{
+							const FLBCargoBlock& Block = Blocks[BlockIndex];
+							const FName BlockKey(*FString::Printf(
+								TEXT("%s_%s%d"), *Assignment.UnitId.ToString(),
+								Label, BlockIndex));
+							UStaticMeshComponent* Piece = MakeBlockComponent(
+								BlockKey, Block.Tint);
+							if (Piece == nullptr)
+							{
+								continue;
+							}
+							Piece->AttachToComponent(Component,
+								FAttachmentTransformRules::KeepRelativeTransform);
+							Piece->SetRelativeLocation(O + FVector(
+								Block.Centre.X * E.X * 2.f,
+								Block.Centre.Y * E.Y * 2.f,
+								Block.Centre.Z * E.Z * 2.f));
+							Piece->SetRelativeRotation(FRotator::ZeroRotator);
+							Piece->SetRelativeScale3D(FVector(
+								Block.Size.X * E.X * 2.f,
+								Block.Size.Y * E.Y * 2.f,
+								Block.Size.Z * E.Z * 2.f) / 100.f);
+							Parts.Items.Add(Piece);
+						}
+						Attached.Add(Kind);
+					};
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::CargoBay,
+						TEXT("CargoBay"), { { FVector(-0.05f, 0.f, -0.32f),
+							FVector(0.40f, 0.55f, 0.22f), Pale } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::DockingCollar,
+						TEXT("DockingCollar"), { { FVector(0.05f, 0.f, 0.44f),
+							FVector(0.10f, 0.12f, 0.10f), Graphite } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::ThrusterPods,
+						TEXT("ThrusterPod"), {
+							{ FVector(-0.30f, 0.48f, 0.05f),
+								FVector(0.12f, 0.07f, 0.08f), Pale },
+							{ FVector(-0.30f, -0.48f, 0.05f),
+								FVector(0.12f, 0.07f, 0.08f), Pale } });
+					AttachBlockoutIfFitted(ELBSpacecraftComponent::Shielding,
+						TEXT("Shielding"), {
+							{ FVector(0.05f, 0.47f, -0.08f),
+								FVector(0.55f, 0.02f, 0.22f), Graphite },
+							{ FVector(0.05f, -0.47f, -0.08f),
+								FVector(0.55f, 0.02f, 0.22f), Graphite } });
+				}
 			}
 		}
 		else if (BuildForm != nullptr
@@ -6355,26 +6654,124 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			}
 		}
 
-		// Position: at the station, CARRIED BY THE GANTRY to the next
+		// THE CARGO'S OWN FOUR, FOR REAL (2026-09-03 evening). The block
+		// above only ever attaches them while bCargoOnScoutForm - the
+		// Scout-stand-in fallback. Getting the real v002 hull to resolve
+		// (CargoCraftHull != nullptr) means that branch is skipped now,
+		// same as the RefreshUnitFittings call further up - so a real
+		// hull showed literally none of its four kinds, real parts or
+		// blockouts, until this. All four now have real imported meshes
+		// (bay door, docking collar, the hull's own twin engines,
+		// plating), so this attaches the real thing directly rather than
+		// a blockout standing in for one. Same hull-relative fractional
+		// sockets the blockout version used, so nothing needs to move
+		// again once every kind has a real part.
+		if (bCraftForm && CargoCraftHull != nullptr)
+		{
+			TSet<ELBSpacecraftComponent>& CargoAttached =
+				CargoHullAttachedComponents.FindOrAdd(Assignment.UnitId);
+			FLBMeshComponentArray& CargoParts =
+				CargoHullParts.FindOrAdd(Assignment.UnitId);
+			const FBoxSphereBounds HullBounds = CargoCraftHull->GetBounds();
+			const FVector HullExtent = HullBounds.BoxExtent;
+			const FVector HullOrigin = HullBounds.Origin;
+			auto CargoSocketPoint = [&](const FVector& Fraction)
+			{
+				return HullOrigin + FVector(Fraction.X * HullExtent.X * 2.f,
+					Fraction.Y * HullExtent.Y * 2.f,
+					Fraction.Z * HullExtent.Z * 2.f);
+			};
+			auto AttachCargoPart = [&](UStaticMesh* Mesh,
+				const FVector& Fraction, const TCHAR* Label, int32 Index)
+			{
+				if (Mesh == nullptr)
+				{
+					return;
+				}
+				const FName PartKey(*FString::Printf(TEXT("%s_%s%d"),
+					*Assignment.UnitId.ToString(), Label, Index));
+				UStaticMeshComponent* Part = NewObject<UStaticMeshComponent>(
+					this, UStaticMeshComponent::StaticClass(), PartKey);
+				Part->SetStaticMesh(Mesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Part->SetCastShadow(true);
+				Part->AttachToComponent(Component,
+					FAttachmentTransformRules::KeepRelativeTransform);
+				Part->SetRelativeLocation(CargoSocketPoint(Fraction));
+				Part->RegisterComponent();
+				CargoParts.Items.Add(Part);
+			};
+			auto AttachCargoKindIfFitted = [&](ELBSpacecraftComponent Kind)
+			{
+				if (CargoAttached.Contains(Kind)
+					|| !Unit->ProducedComponents.Contains(Kind))
+				{
+					return;
+				}
+				CargoAttached.Add(Kind);
+				if (Kind == ELBSpacecraftComponent::CargoBay)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-cargobay"))),
+						FVector(-0.05f, 0.f, -0.32f), TEXT("CargoBay"), 0);
+				}
+				else if (Kind == ELBSpacecraftComponent::DockingCollar)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-dockingcollar"))),
+						FVector(0.05f, 0.f, 0.44f), TEXT("DockingCollar"), 0);
+				}
+				else if (Kind == ELBSpacecraftComponent::ThrusterPods)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-thrusterpod-a"))),
+						FVector(-0.30f, 0.48f, 0.05f), TEXT("ThrusterPod"), 0);
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-thrusterpod-b"))),
+						FVector(-0.30f, -0.48f, 0.05f), TEXT("ThrusterPod"),
+						1);
+				}
+				else if (Kind == ELBSpacecraftComponent::Shielding)
+				{
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-shielding"))),
+						FVector(0.05f, 0.47f, -0.08f), TEXT("Shielding"), 0);
+					AttachCargoPart(TryGetStationMesh(
+						FName(TEXT("Pallet.pallet-shielding"))),
+						FVector(0.05f, -0.47f, -0.08f), TEXT("Shielding"), 1);
+				}
+			};
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::CargoBay);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::DockingCollar);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::ThrusterPods);
+			AttachCargoKindIfFitted(ELBSpacecraftComponent::Shielding);
+		}
+
+		// Position: at the station, SLIDING ON ITS OWN STAND to the next
 		// late in a cycle (owner 2026-08-28: "if the gantry crane moves
 		// the ship we don't need conveyer?", then choosing crane plus
-		// rail).
+		// rail; owner 2026-09-03 evening: "don't think we need the
+		// cranes... the whole [transfer] should move with the ship
+		// stands").
 		//
-		// The belt never moved anything. This slid the craft along the
-		// floor between station transforms while a conveyor animated
-		// beside it - a CAR idiom inherited from the car game. A pulse
-		// line moves airframes by crane, so the craft now RIDES: up off
-		// its cradle, across, and set down at the next station.
+		// The belt never moved anything (2026-08-28 finding). The
+		// gantry crane that replaced it never carried the craft either
+		// - it was a separate mesh chasing a published position while
+		// the craft's own rise-carry-descend arc ran independently,
+		// choreographed to look connected. Both were decoration around
+		// the same one thing that actually moves the craft: this
+		// position update. The craft now travels on its own stand
+		// (MakeUnitStand/UnitStands) at a constant rail height instead
+		// of rising - no crane to clear parts bins for anymore.
 		FVector Location =
 			Route[Assignment.RouteIndex].WorldTransform.GetLocation();
 		// THE PULSE (2026-09-02): the craft rides only while the line
-		// is MOVING and only inside its own crane trip's window of
-		// the move phase - with one crane the craft go one after
-		// another, with a crane per gap they all rise together. A
-		// finished station's craft sits on its cradle until then;
-		// after its trip it waits at the next station for the phase
-		// to end, where the sim will put it. Progress01 is remapped so
-		// the carry arc (ComputeCraneCarryCm) spans the whole trip.
+		// is MOVING and only inside its own trip's window of the move
+		// phase - with one transfer drive the craft go one after
+		// another, with one per gap they all slide together. A
+		// finished station's craft sits on its stand until then; after
+		// its trip it waits at the next station for the phase to end,
+		// where the sim will put it.
 		float Progress01 = 0.f;
 		float CarryStart01 = 0.f;
 		float CarryEnd01 = 0.f;
@@ -6449,13 +6846,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			{
 				Location = FMath::Lerp(Location, Next, Alpha);
 			}
-			Location.Z += ComputeCraneCarryCm(Progress01,
-				SlideStartFraction, CraneCarryRiseCm);
-			// Published for the crane tick. ONE writer, so the gantry
-			// can never drift off the ship it is holding.
-			CarriedCraftAtCm = Location;
-			bCraftIsCarried = true;
-			CarriedCraftsCm.Add(Location);
+			// No vertical lift: the stand slides at a constant rail
+			// height (Z stays whatever Location already carries from
+			// the station transform / spline sample above). The
+			// station's OWN four-post working lift is unrelated and
+			// unchanged - see "THE STATION LIFTS THE SHIP" below,
+			// which still raises the craft (and now its stand with it)
+			// while it is actually being worked on.
 		}
 
 		// Face along the line (owner playtest fix): moving units point
@@ -6527,7 +6924,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				// same number rather than its own copy of the curve -
 				// a lift whose column disagreed with the thing standing
 				// on it is the one fault this cannot have.
-				if (TArray<TObjectPtr<UStaticMeshComponent>>* Stages =
+				if (FLBMeshComponentArray* Stages =
 					StationLiftRams.Find(Assignment.StationId))
 				{
 					// TELESCOPING STAGES SLIDE, THEY DO NOT STRETCH.
@@ -6559,9 +6956,9 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 					const float Extension = FMath::Clamp(
 						Lift / FMath::Max(SpacecraftLiftMaxTravelCm, 1.f),
 						0.f, 1.f);
-					for (int32 Stage = 0; Stage < Stages->Num(); ++Stage)
+					for (int32 Stage = 0; Stage < Stages->Items.Num(); ++Stage)
 					{
-						UStaticMeshComponent* Ram = (*Stages)[Stage];
+						UStaticMeshComponent* Ram = Stages->Items[Stage];
 						if (Ram == nullptr
 							|| !StationLiftRamRestZ.Contains(Ram))
 						{
@@ -6842,6 +7239,13 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				DestroySprayRig(*DoneRig);
 				UnitSprayRigs.Remove(Assignment.UnitId);
 			}
+			if (bCargoOnScoutForm)
+			{
+				// The stand-in at the Cargo's own envelope (1.5x the
+				// Scout, owner-approved 2026-08-25); the attached parts
+				// and blockouts are children and scale with it.
+				UnitTransform.SetScale3D(FVector(1.5f));
+			}
 			UnitTransform.AddToTranslation(FVector(0.f, 0.f, Lift));
 		}
 		else
@@ -7036,21 +7440,53 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 			// they follow its transform automatically), but still need
 			// explicit destruction at the end, so they move with the
 			// departing visual the same way the gear legs do.
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* V2Parts =
+			if (FLBMeshComponentArray* V2Parts =
 				ScoutV2Parts.Find(It.Key()))
 			{
-				Departure.ScoutParts = *V2Parts;
+				Departure.ScoutParts = V2Parts->Items;
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
+			}
+			// The Cargo's own four kinds, same trap as the Scout's five:
+			// hang off Component, so a parent DestroyComponent() would
+			// only detach, not destroy them. Not carried into Departure
+			// (unlike the Scout parts above) - destroyed here instead,
+			// a smaller visual simplification than risking a leak on a
+			// path added under time pressure while proving this fix.
+			if (FLBMeshComponentArray* CargoParts =
+				CargoHullParts.Find(It.Key()))
+			{
+				for (UStaticMeshComponent* Part : CargoParts->Items)
+				{
+					if (Part != nullptr) { Part->DestroyComponent(); }
+				}
+				CargoHullParts.Remove(It.Key());
+				CargoHullAttachedComponents.Remove(It.Key());
+			}
+			// THE STAND STAYS BEHIND. A departing craft flies out under
+			// its own power (the hover test, every tick - not a crane
+			// trip), and ground equipment does not fly with it: unlike
+			// the gear above (part of the SHIP, retracts into it) a
+			// stand is part of the LINE. Destroyed rather than carried
+			// into Departure for the same reason the Cargo's four kinds
+			// just above are.
+			if (TObjectPtr<UStaticMeshComponent>* Stand =
+				UnitStands.Find(It.Key()))
+			{
+				if (*Stand != nullptr)
+				{
+					(*Stand)->DestroyComponent();
+				}
+				UnitStands.Remove(It.Key());
 			}
 			// Should not normally exist at departure - Hull is always
 			// fitted long before Testing/Dispatched - but destroyed
 			// defensively rather than left to leak if a unit somehow
 			// reaches here first.
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(It.Key()))
 			{
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -7084,24 +7520,46 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnits()
 				}
 				UnitGear.Remove(It.Key());
 			}
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* V2Parts =
+			if (FLBMeshComponentArray* V2Parts =
 				ScoutV2Parts.Find(It.Key()))
 			{
 				// Same trap, same fix: the six-part Scout's five
 				// children hang off Component too.
-				for (UStaticMeshComponent* Part : *V2Parts)
+				for (UStaticMeshComponent* Part : V2Parts->Items)
 				{
 					if (Part != nullptr) { Part->DestroyComponent(); }
 				}
 				ScoutV2Parts.Remove(It.Key());
 				ScoutV2AttachedComponents.Remove(It.Key());
 			}
-			if (TArray<TObjectPtr<UStaticMeshComponent>>* Sections =
+			if (FLBMeshComponentArray* CargoParts =
+				CargoHullParts.Find(It.Key()))
+			{
+				// Same trap, same fix: the Cargo's four kinds hang off
+				// Component too.
+				for (UStaticMeshComponent* Part : CargoParts->Items)
+				{
+					if (Part != nullptr) { Part->DestroyComponent(); }
+				}
+				CargoHullParts.Remove(It.Key());
+				CargoHullAttachedComponents.Remove(It.Key());
+			}
+			if (TObjectPtr<UStaticMeshComponent>* Stand =
+				UnitStands.Find(It.Key()))
+			{
+				// Same trap, same fix: the stand hangs off Component too.
+				if (*Stand != nullptr)
+				{
+					(*Stand)->DestroyComponent();
+				}
+				UnitStands.Remove(It.Key());
+			}
+			if (FLBMeshComponentArray* Sections =
 				StrippedHullSections.Find(It.Key()))
 			{
 				// Same trap, same fix: the loose hull sections hang off
 				// Component too.
-				for (UStaticMeshComponent* Section : *Sections)
+				for (UStaticMeshComponent* Section : Sections->Items)
 				{
 					if (Section != nullptr) { Section->DestroyComponent(); }
 				}
@@ -7346,9 +7804,9 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 			CraftingAuthority->GetStationOutputItem(Record.StationId);
 		UStaticMesh* OutputMesh = OutputItem.IsNone()
 			? nullptr : TryGetStationMesh(OutputItem);
-		TArray<TObjectPtr<UStaticMeshComponent>>& Stack =
+		FLBMeshComponentArray& Stack =
 			BufferCrates.FindOrAdd(Record.StationId);
-		while (Stack.Num() < Crates && Cube != nullptr)
+		while (Stack.Items.Num() < Crates && Cube != nullptr)
 		{
 			UStaticMeshComponent* Crate =
 				NewObject<UStaticMeshComponent>(this,
@@ -7368,23 +7826,23 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 					SpacecraftCrateColour);
 				Crate->SetMaterial(0, MID);
 			}
-			Stack.Add(Crate);
+			Stack.Items.Add(Crate);
 		}
-		while (Stack.Num() > Crates)
+		while (Stack.Items.Num() > Crates)
 		{
-			if (Stack.Last() != nullptr)
+			if (Stack.Items.Last() != nullptr)
 			{
-				Stack.Last()->DestroyComponent();
+				Stack.Items.Last()->DestroyComponent();
 			}
-			Stack.Pop();
+			Stack.Items.Pop();
 		}
 		const FVector Base = Record.WorldTransform.TransformPosition(
 			FVector(Definition->FootprintCm.X * 0.5f + 120.f, 0.f, 0.f));
-		for (int32 Index = 0; Index < Stack.Num(); ++Index)
+		for (int32 Index = 0; Index < Stack.Items.Num(); ++Index)
 		{
-			if (Stack[Index] != nullptr)
+			if (Stack.Items[Index] != nullptr)
 			{
-				Stack[Index]->SetWorldTransform(FTransform(
+				Stack.Items[Index]->SetWorldTransform(FTransform(
 					FQuat::Identity,
 					Base + FVector(0.f, 0.f, 40.f + Index * 82.f),
 					FVector(0.8f, 0.8f, 0.8f)));
@@ -7395,7 +7853,7 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 	{
 		if (!Live.Contains(It.Key()))
 		{
-			for (UStaticMeshComponent* Crate : It.Value())
+			for (UStaticMeshComponent* Crate : It.Value().Items)
 			{
 				if (Crate != nullptr)
 				{
@@ -7406,37 +7864,124 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		}
 	}
 	// --- the heavy hauler's flights (mirrors the fleet, never invents) ---
+	//
+	// THE TRANSPORTER PASS (owner 2026-09-02: Car Manufacture's
+	// transporters are never still, "we have the heavy drones that's
+	// supposed to do that"; and "ours will go to their dock and charge").
+	// What changed from the first version: a hauler now has a PAD at
+	// its home rack or dock and sits on it between runs instead of
+	// vanishing; a delivery flies OUT loaded and drops on arrival (the
+	// fleet's HaulIsLoaded rule decides, so the picture cannot disagree
+	// with the ledger); the carried part is the real component mesh
+	// when one exists and a crate otherwise; and every leg lifts to a
+	// lane height, cruises, and settles, rather than a straight line
+	// through whatever stood between.
 	if (DroneFleetAuthority == nullptr)
 	{
 		return;
 	}
+	const float LaneZCm = 520.f;
+	const float PadStandoffCm = 220.f;
+	const float LiftFraction = 0.15f;
 	TSet<FName> LiveHaulers;
 	for (const FLBSpacecraftHaulState& Haul :
 		DroneFleetAuthority->GetHauls())
 	{
-		if (Haul.Phase == ELBSpacecraftHaulPhase::Idle)
-		{
-			continue; // parked at the rack, the crew visuals cover it
-		}
-		const FLBSpacecraftStationRecord* Rack = nullptr;
+		const FLBSpacecraftStationRecord* Home = nullptr;
 		const FLBSpacecraftStationRecord* Machine = nullptr;
+		const FLBSpacecraftStationRecord* Source = nullptr;
 		for (const FLBSpacecraftStationRecord& Record :
 			BuildAuthority->GetStations())
 		{
 			if (Record.StationId == Haul.RackStationId)
 			{
-				Rack = &Record;
+				Home = &Record;
 			}
 			if (Record.StationId == Haul.MachineStationId)
 			{
 				Machine = &Record;
 			}
+			if (Record.StationId == Haul.SourceStationId)
+			{
+				Source = &Record;
+			}
 		}
-		if (Rack == nullptr || Machine == nullptr)
+		const FLBSpacecraftStationDefinition* HomeDefinition = Home != nullptr
+			? ALBSpacecraftBuildAuthority::FindDefinition(Home->DefinitionId)
+			: nullptr;
+		if (Home == nullptr || HomeDefinition == nullptr)
 		{
 			continue;
 		}
 		LiveHaulers.Add(Haul.RackStationId);
+		// THE PAD, beside home on its local +Y side, clear of the
+		// footprint so nothing lands on the rack itself.
+		const FVector PadCm = Home->WorldTransform.TransformPosition(
+			FVector(0.f, HomeDefinition->FootprintCm.Y * 0.5f
+				+ PadStandoffCm, 0.f));
+		TObjectPtr<UStaticMeshComponent>& Pad =
+			HaulerPads.FindOrAdd(Haul.RackStationId);
+		if (Pad == nullptr)
+		{
+			const FName PadKey(*FString::Printf(TEXT("%s_HaulPad"),
+				*Haul.RackStationId.ToString()));
+			Pad = MakeBlockComponent(PadKey, LBSpacecraftPalette::IndicatorIdle);
+			if (Pad != nullptr)
+			{
+				Pad->SetCastShadow(false);
+				Pad->SetWorldTransform(FTransform(FQuat::Identity,
+					PadCm + FVector(0.f, 0.f, 8.f),
+					FVector(1.4f, 1.4f, 0.16f)));
+				HaulerPadMIDs.FindOrAdd(Haul.RackStationId) =
+					Cast<UMaterialInstanceDynamic>(Pad->GetMaterial(0));
+				if (UStaticMesh* DockMesh = TryGetStationMesh(
+					FName(TEXT("Dock.Charging"))))
+				{
+					const FName ModelKey(*FString::Printf(
+						TEXT("%s_HaulPadModel"),
+						*Haul.RackStationId.ToString()));
+					UStaticMeshComponent* Model =
+						NewObject<UStaticMeshComponent>(this,
+							UStaticMeshComponent::StaticClass(), ModelKey);
+					Model->SetStaticMesh(DockMesh);
+					Model->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Model->SetCastShadow(false);
+					Model->SetupAttachment(RootComponent);
+					Model->RegisterComponent();
+					Model->SetWorldTransform(FTransform(FQuat::Identity,
+						PadCm + FVector(0.f, 0.f, 16.f), FVector(1.f)));
+					HaulerPadModels.FindOrAdd(Haul.RackStationId) = Model;
+				}
+			}
+		}
+		if (Pad != nullptr)
+		{
+			Pad->SetVisibility(true);
+		}
+		if (TObjectPtr<UStaticMeshComponent>* PadModel =
+			HaulerPadModels.Find(Haul.RackStationId))
+		{
+			if (*PadModel != nullptr)
+			{
+				(*PadModel)->SetVisibility(true);
+			}
+		}
+		// The pad pulses while the fleet says the hauler is on charge;
+		// a full battery sits dark. Same honesty as the crew docks.
+		if (TObjectPtr<UMaterialInstanceDynamic>* PadMID =
+			HaulerPadMIDs.Find(Haul.RackStationId))
+		{
+			if (*PadMID != nullptr)
+			{
+				const bool bOnCharge = Haul.Phase == ELBSpacecraftHaulPhase::Idle
+					&& (Haul.bCharging || Haul.Charge01 < 1.f);
+				const float Pulse = 0.55f + 0.45f * FMath::Sin(
+					AccentClockSeconds * 3.2f);
+				(*PadMID)->SetVectorParameterValue(TEXT("Color"), bOnCharge
+					? LBSpacecraftPalette::IndicatorWorking * Pulse
+					: LBSpacecraftPalette::IndicatorIdle);
+			}
+		}
 		TObjectPtr<UStaticMeshComponent>& Body =
 			HaulerBodies.FindOrAdd(Haul.RackStationId);
 		if (Body == nullptr)
@@ -7458,35 +8003,127 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		{
 			continue;
 		}
-		const float Alpha = DroneFleetAuthority->HaulTravelSeconds > 0.f
-			? FMath::Clamp(Haul.PhaseSeconds
-				/ DroneFleetAuthority->HaulTravelSeconds, 0.f, 1.f)
-			: 1.f;
-		const FVector RackCm =
-			Rack->WorldTransform.GetLocation() + FVector(0.f, 0.f, 560.f);
-		const FVector MachineCm = Machine->WorldTransform.GetLocation()
-			+ FVector(0.f, 0.f, 560.f);
-		const bool bOutbound =
-			Haul.Phase == ELBSpacecraftHaulPhase::ToMachine;
-		const FVector From = bOutbound ? RackCm : MachineCm;
-		const FVector To = bOutbound ? MachineCm : RackCm;
-		const FVector Where = FMath::Lerp(From, To,
-			FMath::SmoothStep(0.f, 1.f, Alpha));
-		// The hook: returning with cargo, the machine's component hangs
-		// under the hauler (owner: the parts the drones carry are the
-		// real models now). Fallback stays empty-hook, never invented.
+		// WHERE A LEG STARTS AND ENDS. A line station takes delivery at
+		// its kit dolly on the far flank; a machine at its buffer spot
+		// off its +X end; a store (rack, dock) at its own centre.
+		auto DropPointOf = [](const FLBSpacecraftStationRecord& Record)
+		{
+			const FLBSpacecraftStationDefinition* Definition =
+				ALBSpacecraftBuildAuthority::FindDefinition(
+					Record.DefinitionId);
+			if (Definition == nullptr)
+			{
+				return Record.WorldTransform.GetLocation();
+			}
+			const FVector Local = Definition->StageClassId
+				== FName(TEXT("LineStation"))
+				? FVector(0.f, -(Definition->FootprintCm.Y * 0.5f - 210.f),
+					0.f)
+				: FVector(Definition->FootprintCm.X * 0.5f + 120.f, 0.f, 0.f);
+			return Record.WorldTransform.TransformPosition(Local);
+		};
+		FVector Where = PadCm + FVector(0.f, 0.f, 70.f);
+		FRotator Facing = Home->WorldTransform.GetRotation().Rotator();
+		Facing.Pitch = 0.f;
+		Facing.Roll = 0.f;
+		if (Haul.Phase != ELBSpacecraftHaulPhase::Idle)
+		{
+			const bool bSourceAway = Source != nullptr && Source != Home;
+			FVector From = PadCm;
+			FVector To = PadCm;
+			switch (Haul.Phase)
+			{
+			case ELBSpacecraftHaulPhase::ToSource:
+				To = bSourceAway ? Source->WorldTransform.GetLocation()
+					: PadCm;
+				break;
+			case ELBSpacecraftHaulPhase::ToMachine:
+				From = Haul.Job == ELBSpacecraftHaulJob::DeliverInput
+					&& bSourceAway
+					? Source->WorldTransform.GetLocation() : PadCm;
+				To = Machine != nullptr ? DropPointOf(*Machine) : PadCm;
+				break;
+			case ELBSpacecraftHaulPhase::ToStore:
+				From = Machine != nullptr ? DropPointOf(*Machine) : PadCm;
+				To = PadCm;
+				break;
+			default:
+				break;
+			}
+			const float Alpha = DroneFleetAuthority->HaulTravelSeconds > 0.f
+				? FMath::Clamp(Haul.PhaseSeconds
+					/ DroneFleetAuthority->HaulTravelSeconds, 0.f, 1.f)
+				: 1.f;
+			// Lift, cruise, settle. The cruise runs at lane height so a
+			// leg never ploughs through a tower or the craft.
+			const FVector FromLow = From + FVector(0.f, 0.f, 120.f);
+			const FVector ToLow = To + FVector(0.f, 0.f, 120.f);
+			const FVector FromUp(From.X, From.Y, LaneZCm);
+			const FVector ToUp(To.X, To.Y, LaneZCm);
+			if (Alpha < LiftFraction)
+			{
+				Where = FMath::Lerp(FromLow, FromUp,
+					FMath::SmoothStep(0.f, 1.f, Alpha / LiftFraction));
+			}
+			else if (Alpha < 1.f - LiftFraction)
+			{
+				Where = FMath::Lerp(FromUp, ToUp, FMath::SmoothStep(0.f, 1.f,
+					(Alpha - LiftFraction) / (1.f - 2.f * LiftFraction)));
+			}
+			else
+			{
+				Where = FMath::Lerp(ToUp, ToLow, FMath::SmoothStep(0.f, 1.f,
+					(Alpha - (1.f - LiftFraction)) / LiftFraction));
+			}
+			const FVector Heading = ToUp - FromUp;
+			if (!Heading.IsNearlyZero(1.f))
+			{
+				Facing = Heading.Rotation();
+				Facing.Pitch = 0.f;
+				Facing.Roll = 0.f;
+			}
+		}
+		Body->SetWorldTransform(FTransform(Facing, Where, FVector(1.f)));
+		Body->SetVisibility(true);
+		// THE PART IN THE CLAW. The fleet's rule says when the hook is
+		// loaded; the real component mesh hangs there when one exists
+		// (the six line components do), a crate otherwise.
+		const bool bLoaded =
+			ALBSpacecraftDroneFleetAuthority::HaulIsLoaded(Haul);
+		UStaticMesh* CargoMesh = nullptr;
+		if (bLoaded)
+		{
+			FName CarryItem = Haul.CarryItemId;
+			if (Haul.Job == ELBSpacecraftHaulJob::CollectOutput
+				&& CraftingAuthority != nullptr)
+			{
+				CarryItem = CraftingAuthority->GetStationOutputItem(
+					Haul.MachineStationId);
+			}
+			CargoMesh = CarryItem.IsNone() ? nullptr
+				: TryGetStationMesh(CarryItem);
+			// A LINE COMPONENT RIDES AS ITS KIT PALLET (first close-up,
+			// 2026-09-02: the hull went by as a tan cube). The six
+			// Component.* keys are not promoted meshes; the pallet
+			// loads the dolly shows for that component are, and a
+			// pallet under a cargo drone is exactly what the dolly is
+			// waiting for. First candidate that resolves wins.
+			if (CargoMesh == nullptr && !CarryItem.IsNone())
+			{
+				TArray<FName> PalletCandidates;
+				GetKitPalletCandidates(CarryItem, PalletCandidates);
+				for (const FName& Candidate : PalletCandidates)
+				{
+					CargoMesh = TryGetStationMesh(Candidate);
+					if (CargoMesh != nullptr)
+					{
+						break;
+					}
+				}
+			}
+		}
 		TObjectPtr<UStaticMeshComponent>& Cargo =
 			HaulerCargos.FindOrAdd(Haul.RackStationId);
-		const bool bCarrying =
-			!bOutbound && Haul.CarryCount > 0;
-		UStaticMesh* CargoMesh = nullptr;
-		if (bCarrying && CraftingAuthority != nullptr)
-		{
-			const FName CarryItem = CraftingAuthority
-				->GetStationOutputItem(Haul.MachineStationId);
-			CargoMesh = CarryItem.IsNone()
-				? nullptr : TryGetStationMesh(CarryItem);
-		}
 		if (CargoMesh != nullptr)
 		{
 			if (Cargo == nullptr)
@@ -7504,23 +8141,18 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 				Cargo->SetStaticMesh(CargoMesh);
 			}
 			Cargo->SetVisibility(true);
-			Cargo->SetWorldLocation(Where - FVector(0.f, 0.f, 300.f));
+			Cargo->SetWorldLocationAndRotation(
+				Where - FVector(0.f, 0.f, 300.f), Facing);
 		}
 		else if (Cargo != nullptr)
 		{
 			Cargo->SetVisibility(false);
 		}
-		FRotator Facing = (To - From).Rotation();
-		Facing.Pitch = 0.f;
-		Body->SetWorldTransform(FTransform(Facing, Where, FVector(1.f)));
-		Body->SetVisibility(true);
-		// The slung crate rides only on the loaded leg home.
+		// The slung crate stands in when no real mesh does.
+		const bool bCrate = bLoaded && CargoMesh == nullptr;
 		TObjectPtr<UStaticMeshComponent>& CarryCrate =
 			HaulerCrates.FindOrAdd(Haul.RackStationId);
-		const bool bLoaded =
-			Haul.Phase == ELBSpacecraftHaulPhase::ToStore
-			&& Haul.CarryCount > 0;
-		if (CarryCrate == nullptr && bLoaded && Cube != nullptr)
+		if (CarryCrate == nullptr && bCrate && Cube != nullptr)
 		{
 			CarryCrate = NewObject<UStaticMeshComponent>(this,
 				UStaticMeshComponent::StaticClass());
@@ -7543,33 +8175,27 @@ void ALBSpacecraftWIPPresentationActor::TickSubAssemblyLogistics(
 		}
 		if (CarryCrate != nullptr)
 		{
-			CarryCrate->SetVisibility(bLoaded);
+			CarryCrate->SetVisibility(bCrate);
 		}
 	}
-	for (auto It = HaulerBodies.CreateIterator(); It; ++It)
+	// A hauler whose rack or dock is gone leaves the picture whole:
+	// body, cargo, crate, pad and pad model together (the audit of
+	// 2026-09-01 found a crate left hanging when only the body hid).
+	auto HideStale = [&LiveHaulers](auto& Map)
 	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
+		for (auto It = Map.CreateIterator(); It; ++It)
 		{
-			It.Value()->SetVisibility(false);
+			if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
+			{
+				It.Value()->SetVisibility(false);
+			}
 		}
-	}
-	for (auto It = HaulerCargos.CreateIterator(); It; ++It)
-	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
-		{
-			It.Value()->SetVisibility(false);
-		}
-	}
-	// The slung crate too (audit 2026-09-01): hiding the body does not
-	// propagate, so every completed haul left a tan crate hanging in
-	// mid-air at the rack until the next haul happened to reuse it.
-	for (auto It = HaulerCrates.CreateIterator(); It; ++It)
-	{
-		if (!LiveHaulers.Contains(It.Key()) && It.Value() != nullptr)
-		{
-			It.Value()->SetVisibility(false);
-		}
-	}
+	};
+	HideStale(HaulerBodies);
+	HideStale(HaulerCargos);
+	HideStale(HaulerCrates);
+	HideStale(HaulerPads);
+	HideStale(HaulerPadModels);
 }
 
 void ALBSpacecraftWIPPresentationActor::ClearUnitFittings(FName UnitId)
@@ -7597,14 +8223,26 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 	{
 		return;
 	}
-	// Route progress reveals the six components one by one; the pipe
-	// and cable runs arrive with the fifth (the hull closes soon after).
+	// THE RECIPE SAYS HOW MANY (2026-09-02): the reveal used to count to
+	// a fixed six; the Cargo carries ten kinds now, so the sequence and
+	// its length come from the recipe, in its own fixing order.
+	FLBSpacecraftRecipe FitRecipe;
+	TArray<FName> FitSequence;
+	if (FLBSpacecraftProductionCatalog::FindRecipe(
+		FName(bCargoRecipe ? TEXT("CARGO-01") : TEXT("SCOUT-01")), FitRecipe))
+	{
+		FitSequence =
+			FLBSpacecraftProductionCatalog::FixingSequenceItemIds(FitRecipe);
+	}
+	const int32 KindCount = FitSequence.Num();
+	// Route progress reveals the components one by one; the pipe and
+	// cable runs arrive with the fifth (the hull closes soon after).
 	const float Progress = RouteCount > 1
 		? static_cast<float>(RouteIndex) / (RouteCount - 1) : 0.f;
-	// Seven reveals: the six components, then the canopy glass - the
-	// last thing fitted before the hull closes (owner 2026-08-26).
+	// Kinds plus one: every component, then the canopy glass - the last
+	// thing fitted before the hull closes (owner 2026-08-26).
 	const int32 Reveal = FMath::Clamp(
-		FMath::CeilToInt(Progress * 7.f), 0, 7);
+		FMath::CeilToInt(Progress * (KindCount + 1)), 0, KindCount + 1);
 	FLBSpacecraftUnitFittings& Fittings = UnitFittings.FindOrAdd(UnitId);
 	if (Fittings.RevealedCount == Reveal)
 	{
@@ -7623,56 +8261,166 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 	{
 		return;
 	}
-
 	const FBoxSphereBounds HullBounds =
 		UnitComponent->GetStaticMesh()->GetBounds();
 	const FVector E = HullBounds.BoxExtent;   // hull half-size, local
 	const FVector O = HullBounds.Origin;
-	// Sockets in hull-local space, nose +X: engine aft, power behind
-	// the middle, hull stack amidships, electronics forward, nav at
-	// the nose, cockpit interior front-top.
-	const TPair<const TCHAR*, FVector> Sockets[] = {
-		{ TEXT("Component.Propulsion"),
-			FVector(-0.55f, 0.f, 0.18f) },
-		{ TEXT("Component.Power"), FVector(-0.25f, 0.15f, 0.15f) },
-		{ TEXT("Component.Hull"), FVector(-0.05f, -0.3f, 0.12f) },
-		{ TEXT("Component.Electronics"),
-			FVector(0.2f, 0.3f, 0.15f) },
-		{ TEXT("Component.Navigation"), FVector(0.55f, 0.f, 0.2f) },
-		{ TEXT("Component.Interior"), FVector(0.3f, -0.15f, 0.3f) } };
-
+	// Sockets in hull-local space as fractions of the full size, nose
+	// +X: engine aft, power behind the middle, hull stack amidships,
+	// electronics forward, nav at the nose, cockpit interior front-top;
+	// the Cargo's bay under the belly, its collar on top, its pods aft
+	// on the flanks, its plating low along both sides.
+	static const TMap<FName, FVector> SocketByKey = {
+		{ FName(TEXT("Component.Propulsion")), FVector(-0.55f, 0.f, 0.18f) },
+		{ FName(TEXT("Component.Power")), FVector(-0.25f, 0.15f, 0.15f) },
+		{ FName(TEXT("Component.Hull")), FVector(-0.05f, -0.3f, 0.12f) },
+		{ FName(TEXT("Component.Electronics")), FVector(0.2f, 0.3f, 0.15f) },
+		{ FName(TEXT("Component.Navigation")), FVector(0.55f, 0.f, 0.2f) },
+		{ FName(TEXT("Component.Interior")), FVector(0.3f, -0.15f, 0.3f) },
+		{ FName(TEXT("Component.CargoBay")), FVector(-0.05f, 0.f, -0.32f) },
+		{ FName(TEXT("Component.DockingCollar")), FVector(0.05f, 0.f, 0.44f) },
+		{ FName(TEXT("Component.ThrusterPods")), FVector(-0.30f, 0.48f, 0.05f) },
+		{ FName(TEXT("Component.Shielding")), FVector(0.05f, 0.47f, -0.08f) } };
 	auto SocketPoint = [&](const FVector& Fraction)
 	{
 		return O + FVector(Fraction.X * E.X * 2.f,
 			Fraction.Y * E.Y * 2.f, Fraction.Z * E.Z * 2.f);
 	};
-
+	// BLOCKOUTS FOR THE CARGO'S FOUR (2026-09-02, "blockout first when
+	// models are missing"): hull-relative boxes so they land on any hull
+	// mesh, hue-free so the livery stays the only colour on the craft,
+	// replaced by real parts when they are modelled. Each is a real
+	// component the line fitted - never decoration.
+	auto AddBlockoutFitting = [&](const FName& Key, int32 Index)
+	{
+		struct FLBFittingBlock
+		{
+			FVector Centre;
+			FVector Size;
+			FLinearColor Tint;
+		};
+		const FLinearColor Pale(0.55f, 0.53f, 0.50f);
+		const FLinearColor Graphite(0.10f, 0.11f, 0.12f);
+		TArray<FLBFittingBlock> Blocks;
+		if (Key == FName(TEXT("Component.CargoBay")))
+		{
+			Blocks = { { FVector(-0.05f, 0.f, -0.32f),
+				FVector(0.40f, 0.55f, 0.22f), Pale } };
+		}
+		else if (Key == FName(TEXT("Component.DockingCollar")))
+		{
+			Blocks = { { FVector(0.05f, 0.f, 0.44f),
+				FVector(0.10f, 0.12f, 0.10f), Graphite } };
+		}
+		else if (Key == FName(TEXT("Component.ThrusterPods")))
+		{
+			Blocks = { { FVector(-0.30f, 0.48f, 0.05f),
+				FVector(0.12f, 0.07f, 0.08f), Pale },
+				{ FVector(-0.30f, -0.48f, 0.05f),
+				FVector(0.12f, 0.07f, 0.08f), Pale } };
+		}
+		else if (Key == FName(TEXT("Component.Shielding")))
+		{
+			Blocks = { { FVector(0.05f, 0.47f, -0.08f),
+				FVector(0.55f, 0.02f, 0.22f), Graphite },
+				{ FVector(0.05f, -0.47f, -0.08f),
+				FVector(0.55f, 0.02f, 0.22f), Graphite } };
+		}
+		for (int32 BlockIndex = 0; BlockIndex < Blocks.Num(); ++BlockIndex)
+		{
+			const FLBFittingBlock& Block = Blocks[BlockIndex];
+			const FName BlockKey(*FString::Printf(TEXT("%s_Fit%d_%d"),
+				*UnitId.ToString(), Index, BlockIndex));
+			UStaticMeshComponent* Piece = MakeBlockComponent(BlockKey,
+				Block.Tint);
+			if (Piece == nullptr)
+			{
+				continue;
+			}
+			Piece->AttachToComponent(UnitComponent,
+				FAttachmentTransformRules::KeepRelativeTransform);
+			Piece->SetRelativeLocation(SocketPoint(Block.Centre));
+			Piece->SetRelativeRotation(FRotator::ZeroRotator);
+			Piece->SetRelativeScale3D(FVector(
+				Block.Size.X * E.X * 2.f, Block.Size.Y * E.Y * 2.f,
+				Block.Size.Z * E.Z * 2.f) / 100.f);
+			Fittings.Parts.Add(Piece);
+		}
+	};
 	int32 Placed = 0;
 	FVector Previous = FVector::ZeroVector;
 	bool bHavePrevious = false;
-	for (const auto& Socket : Sockets)
+	for (const FName& Key : FitSequence)
 	{
 		if (Placed >= Reveal)
 		{
 			break;
 		}
-		UStaticMesh* Mesh = TryGetStationMesh(FName(Socket.Key));
-		const FVector Local = SocketPoint(Socket.Value);
-		if (Mesh != nullptr)
+		const FVector* Fraction = SocketByKey.Find(Key);
+		const FVector Local = SocketPoint(Fraction != nullptr
+			? *Fraction : FVector::ZeroVector);
+		bool bHandled = false;
+		if (Key == FName(TEXT("Component.ThrusterPods")))
 		{
-			const FName Key(*FString::Printf(TEXT("%s_Fit%d"),
-				*UnitId.ToString(), Placed));
-			UStaticMeshComponent* Part =
-				NewObject<UStaticMeshComponent>(this,
-					UStaticMeshComponent::StaticClass(), Key);
-			Part->SetStaticMesh(Mesh);
-			Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Part->SetCastShadow(true);
-			Part->SetReceivesDecals(false);
-			Part->SetupAttachment(UnitComponent);
-			Part->RegisterComponent();
-			Part->SetRelativeLocation(Local);
-			Fittings.Parts.Add(Part);
+			// The hull's OWN two engines (2026-09-03 evening, the
+			// part-segmentation drop): a real left/right pair, cut from
+			// the same source as the hull so the panel language matches.
+			// Replaces the two-block blockout at these same sockets when
+			// both resolve; falls through to the generic single-mesh
+			// path (and from there to blockout) if either is missing -
+			// never a half-fitted pair.
+			UStaticMesh* EngineA = TryGetStationMesh(
+				FName(TEXT("Pallet.pallet-thrusterpod-a")));
+			UStaticMesh* EngineB = TryGetStationMesh(
+				FName(TEXT("Pallet.pallet-thrusterpod-b")));
+			if (EngineA != nullptr && EngineB != nullptr)
+			{
+				auto SpawnEngine = [&](UStaticMesh* Mesh,
+					const FVector& Fraction2, const TCHAR* Suffix)
+				{
+					const FName PartKey(*FString::Printf(
+						TEXT("%s_Fit%d%s"), *UnitId.ToString(), Placed,
+						Suffix));
+					UStaticMeshComponent* Part =
+						NewObject<UStaticMeshComponent>(this,
+							UStaticMeshComponent::StaticClass(), PartKey);
+					Part->SetStaticMesh(Mesh);
+					Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+					Part->SetCastShadow(true);
+					Part->SetReceivesDecals(false);
+					Part->SetupAttachment(UnitComponent);
+					Part->RegisterComponent();
+					Part->SetRelativeLocation(SocketPoint(Fraction2));
+					Fittings.Parts.Add(Part);
+				};
+				SpawnEngine(EngineA, FVector(-0.30f, 0.48f, 0.05f), TEXT("A"));
+				SpawnEngine(EngineB, FVector(-0.30f, -0.48f, 0.05f), TEXT("B"));
+				bHandled = true;
+			}
+		}
+		if (!bHandled)
+		{
+			UStaticMesh* Mesh = TryGetStationMesh(Key);
+			if (Mesh != nullptr)
+			{
+				const FName PartKey(*FString::Printf(TEXT("%s_Fit%d"),
+					*UnitId.ToString(), Placed));
+				UStaticMeshComponent* Part =
+					NewObject<UStaticMeshComponent>(this,
+						UStaticMeshComponent::StaticClass(), PartKey);
+				Part->SetStaticMesh(Mesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Part->SetCastShadow(true);
+				Part->SetReceivesDecals(false);
+				Part->SetupAttachment(UnitComponent);
+				Part->RegisterComponent();
+				Part->SetRelativeLocation(Local);
+				Fittings.Parts.Add(Part);
+			}
+			else
+			{
+				AddBlockoutFitting(Key, Placed);
+			}
 		}
 		// The pipe/cable dressing links the sockets once most parts
 		// are in - thin dark runs plus one warning-orange line.
@@ -7707,7 +8455,7 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 		bHavePrevious = true;
 		++Placed;
 	}
-	if (Reveal >= 7)
+	if (Reveal >= KindCount + 1)
 	{
 		// The canopy glass drops on at its authored position - the
 		// forms share one baked transform, so zero offset aligns it.
@@ -7730,7 +8478,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshUnitFittings(FName UnitId,
 		}
 	}
 }
-
 void ALBSpacecraftWIPPresentationActor::BeginShellDelivery(
 	FName UnitId, const FVector& StationLocation, UStaticMesh* ShellMesh)
 {
@@ -8272,66 +9019,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 	};
 	UStaticMesh* Stockpile = LoadInterior(TEXT("SM_LB_IN_StockpileRack"));
 	UStaticMesh* Column = LoadInterior(TEXT("SM_LB_IN_HallColumn"));
-	// THE COMMISSIONED GANTRY, with the old block crane behind it.
-	//
-	// Drawn orthographic references were fed to image-to-3D after two
-	// text-prompted attempts came back with handrails and a push handle
-	// on machines nothing human ever touches. This one has rail bogies,
-	// lattice-braced box girders, a trolley and a spreader - and no
-	// walkways, ladders or cab.
-	//
-	// Scaled from the CLEAR SPAN rather than the overall width: what
-	// has to fit under a portal is the craft plus its working room, and
-	// that is the opening between the legs, not the outside of the
-	// machine. 23 m of opening makes it 31.4 m wide and 17.0 m tall.
-	// GENERATED v002, not commissioned. Three text briefs for this
-	// machine produced three plausible wrong ones - two monorails and a
-	// portal turned a quarter turn - because no adjective says which
-	// axis the bridge crosses. Scripts/build_gantry_portal.py builds it
-	// from GantryRailSpanCm() instead, in four pieces that move
-	// separately.
-	auto LoadGantry = [](const TCHAR* Piece) -> UStaticMesh*
-	{
-		// NESTED, because Interchange puts each imported asset in its
-		// own <Name>/StaticMeshes/ folder rather than flat beside its
-		// siblings. The flat path here loaded nothing, the fallback
-		// quietly drew the old block crane, and only the warning added
-		// this morning said so. Guessing an asset path is the same
-		// mistake as guessing a cook entry.
-		const FString Path = FString::Printf(
-			TEXT("/Game/LineBoss/Candidates/Spacecraft/Gantry_v002/")
-			TEXT("LB_Gantry_%s/StaticMeshes/LB_Gantry_%s.LB_Gantry_%s"),
-			Piece, Piece, Piece);
-		return LoadObject<UStaticMesh>(nullptr, *Path);
-	};
-	UStaticMesh* Crane = LoadGantry(TEXT("portal"));
-	UStaticMesh* CraneTrolley = LoadGantry(TEXT("trolley"));
-	UStaticMesh* CraneHoist = LoadGantry(TEXT("hoist"));
-	if (Crane == nullptr)
-	{
-		// LOUDLY, because this exact silence shipped a build. The
-		// commissioned crane is loaded by hard-coded path, which the
-		// COOKER CANNOT SEE - nothing references it, so nothing
-		// packaged it - and this fallback then quietly drew the old
-		// block crane. The packaged game looked correct and was a
-		// revision behind, with no error anywhere to find.
-		//
-		// The fix is Config/DefaultGame.ini's DirectoriesToAlwaysCook;
-		// this warning is how anyone learns that it has been missed
-		// again, since a graceful fallback is otherwise indistinguishable
-		// from success.
-		UE_LOG(LogTemp, Warning,
-			TEXT("SPACECRAFT PRESENTER: the generated gantry portal did "
-				"not load - falling back to the block crane. If this is "
-				"a packaged build, Gantry_v002 is missing from "
-				"DirectoriesToAlwaysCook."));
-		Crane = LoadInterior(TEXT("SM_LB_IN_GantryCrane"));
-	}
-	// THE RAILS ARE NOT PART OF THE CRANE (owner 2026-08-29: "take the
-	// rails off and use in the map"). The gantry travels and the track
-	// does not - modelled as one object the rails would slide down the
-	// hall with it, which is exactly backwards.
-	UStaticMesh* CraneRails = LoadGantry(TEXT("rails"));
 	UStaticMesh* Door = LoadInterior(TEXT("SM_LB_IN_DispatchDoor"));
 	auto Place = [this](UStaticMesh* Mesh, const FName& Name,
 		const FVector& Where, float Yaw)
@@ -8855,257 +9542,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 			Index)),
 			FVector(HallAt.X + Floor.X * 0.5f - 1200.f, Along, 0.f), 0.f);
 	}
-	// HOW MANY CRANES IS AN OPEN QUESTION (owner 2026-08-29). He asked
-	// for "one gantry crane between each station", then handed the
-	// choice back - "1 crane does all work, will have to test each" - so
-	// this builds either and lets the two be compared in play rather
-	// than argued about.
-	//
-	//   LB.Spacecraft.CranePerGap 1  - N stations, N-1 cranes, every
-	//                                  station hands forward at once
-	//   LB.Spacecraft.CranePerGap 0  - one crane, a queue of trips and
-	//                                  therefore a real upgrade axis
-	//
-	// The RAILS are one continuous full-length pair either way. That
-	// part he did specify, and it holds for both.
-	//
-	// NO STATIONS, NO CRANE (owner 2026-09-01: "and the crane is
-	// already there" - a fresh empty hall was spawning one crane and a
-	// 60 m rail at Y=0 because the empty StationYs degraded to MeanY=0
-	// instead of skipping). The crane exists to move craft BETWEEN
-	// stations; an empty floor has nothing to serve. The resets stay
-	// outside the guard so TickHallCrane never drives a component the
-	// skipped rebuild destroyed.
-	HallCranes.Reset();
-	HallCraneParkCm.Reset();
-	HallCraneAxisAlongY.Reset();
-	HallCrane = nullptr;
-	// RAILS FOLLOW THE LINE (owner 2026-09-01: "if i place a station at
-	// the top the crane isnt over it" - the old rig was one hall-centre
-	// column, correct only for the fixed starter line). The laid track
-	// is grouped into maximal straight LEGS; every leg that carries a
-	// station gets its own tiled rail run and its own portal(s), yawed
-	// to the leg's axis. No track or no stations means no cranes.
-	if (LineStations.Num() > 0 && TrackAuthority != nullptr)
-	{
-		struct FLBHallCraneLeg
-		{
-			bool bAlongY = true;
-			float CrossCm = 0.f;
-			float MinAlongCm = 0.f;
-			float MaxAlongCm = 0.f;
-			TArray<float> StationAlongCm;
-		};
-		TArray<FLBHallCraneLeg> Legs;
-		{
-			FLBHallCraneLeg Current;
-			bool bOpen = false;
-			const auto CloseLeg = [&Legs, &Current, &bOpen]()
-			{
-				if (bOpen && Current.StationAlongCm.Num() > 0)
-				{
-					Legs.Add(Current);
-				}
-				bOpen = false;
-			};
-			for (const FLBSpacecraftTrackPieceRecord& Piece :
-				TrackAuthority->GetPieces())
-			{
-				const bool bStraightKind = Piece.PieceType
-						== ELBSpacecraftTrackPiece::Straight
-					|| Piece.PieceType == ELBSpacecraftTrackPiece::Start
-					|| Piece.PieceType == ELBSpacecraftTrackPiece::End;
-				if (!bStraightKind)
-				{
-					// A corner ends its leg; collinear legs on either
-					// side of a U stay separate runs, as their rails do.
-					CloseLeg();
-					continue;
-				}
-				const FVector At = Piece.WorldTransform.GetLocation();
-				const float Yaw = Piece.WorldTransform.Rotator().Yaw;
-				const bool bAlongY = FMath::Abs(FMath::Fmod(
-					FMath::Abs(Yaw), 180.f) - 90.f) < 45.f;
-				const float Cross = bAlongY ? At.X : At.Y;
-				const float Along = bAlongY ? At.Y : At.X;
-				if (!bOpen || Current.bAlongY != bAlongY
-					|| !FMath::IsNearlyEqual(Current.CrossCm, Cross, 1.f))
-				{
-					CloseLeg();
-					Current = FLBHallCraneLeg();
-					Current.bAlongY = bAlongY;
-					Current.CrossCm = Cross;
-					Current.MinAlongCm = Along;
-					Current.MaxAlongCm = Along;
-					bOpen = true;
-				}
-				Current.MinAlongCm = FMath::Min(Current.MinAlongCm, Along);
-				Current.MaxAlongCm = FMath::Max(Current.MaxAlongCm, Along);
-				if (!Piece.NodeStationId.IsNone())
-				{
-					Current.StationAlongCm.Add(Along);
-				}
-			}
-			CloseLeg();
-		}
-		// AS MANY CRANES AS THE PLAYER OWNS (PULSE_LINE_DESIGN_v001,
-		// 2026-09-02). The hall comes with one; each bought crane
-		// lets one more craft move per crane trip of a pulse, up to
-		// one per gap. The count is the build authority's, so what is
-		// drawn on the rails is exactly what the simulation is moving
-		// craft with. The old LB.Spacecraft.CranePerGap cvar is gone:
-		// the comparison the owner asked for (2026-08-29, "1 crane
-		// does all work, will have to test each") is now made by
-		// buying cranes in the BUILD tab.
-		const int32 OwnedCranes = BuildAuthority != nullptr
-			? BuildAuthority->GetCraneCount() : 1;
-		int32 CraneIndex = 0;
-		for (int32 LegIndex = 0; LegIndex < Legs.Num(); ++LegIndex)
-		{
-			const FLBHallCraneLeg& Leg = Legs[LegIndex];
-			// The v002 gantry set is modelled with its run on X and its
-			// gauge on Y, so a Y-running leg wears the quarter turn.
-			const float LegYaw = Leg.bAlongY ? 90.f : 0.f;
-			const auto LegPoint = [&Leg](float Along, float Z)
-			{
-				return Leg.bAlongY
-					? FVector(Leg.CrossCm, Along, Z)
-					: FVector(Along, Leg.CrossCm, Z);
-			};
-			// Rails TILED over the leg with clearance past each end so
-			// a crane can stand clear while the next one works.
-			{
-				constexpr float RailPieceCm = 6000.f;
-				constexpr float RailMarginCm = 1600.f;
-				const float NeededCm =
-					(Leg.MaxAlongCm - Leg.MinAlongCm) + RailMarginCm * 2.f;
-				const float CentreAlong =
-					(Leg.MinAlongCm + Leg.MaxAlongCm) * 0.5f;
-				const int32 Pieces = FMath::Max(1,
-					FMath::CeilToInt(NeededCm / RailPieceCm));
-				const float FirstAlong = CentreAlong
-					- (Pieces - 1) * RailPieceCm * 0.5f;
-				for (int32 Piece = 0; Piece < Pieces; ++Piece)
-				{
-					const int32 BeforeRail = HallInteriorPieces.Num();
-					Place(CraneRails, FName(*FString::Printf(
-						TEXT("HallCraneRails_%d_%d"), LegIndex, Piece)),
-						LegPoint(FirstAlong + Piece * RailPieceCm, 0.f),
-						LegYaw);
-					// The rail GAUGE narrows with the portal span (the
-					// legs must land on their rails) - same native-Y
-					// scale as the portal below.
-					if (HallInteriorPieces.Num() > BeforeRail)
-					{
-						UStaticMeshComponent* Rail =
-							HallInteriorPieces.Last();
-						FVector RailScale = Rail->GetRelativeScale3D();
-						RailScale.Y *= 0.42f;
-						Rail->SetRelativeScale3D(RailScale);
-					}
-				}
-			}
-			// The owned cranes spread along the leg: one per gap when
-			// there are enough, otherwise evenly over the gaps, and a
-			// single crane parks at the leg's middle.
-			TArray<float> Parks;
-			TArray<float> Stations = Leg.StationAlongCm;
-			Stations.Sort();
-			TArray<float> GapParks;
-			for (int32 Gap = 0; Gap + 1 < Stations.Num(); ++Gap)
-			{
-				GapParks.Add((Stations[Gap] + Stations[Gap + 1]) * 0.5f);
-			}
-			if (GapParks.Num() > 0 && OwnedCranes >= GapParks.Num())
-			{
-				Parks = GapParks;
-			}
-			else if (GapParks.Num() > 1 && OwnedCranes > 1)
-			{
-				for (int32 Index = 0; Index < OwnedCranes; ++Index)
-				{
-					Parks.Add(GapParks[FMath::Clamp(
-						(Index * GapParks.Num() + GapParks.Num() / 2)
-							/ OwnedCranes,
-						0, GapParks.Num() - 1)]);
-				}
-			}
-			else
-			{
-				float Mean = 0.f;
-				for (const float Along : Stations)
-				{
-					Mean += Along;
-				}
-				Parks.Add(Mean / FMath::Max(Stations.Num(), 1));
-			}
-			for (const float Park : Parks)
-			{
-				// COUNTED BEFORE AND AFTER, not "take the last piece".
-				// Place is a no-op on a missing mesh, so grabbing the
-				// last entry blind would hand TickHallCrane whatever
-				// went down previously - the rails.
-				const int32 BeforeCrane = HallInteriorPieces.Num();
-				Place(Crane, FName(*FString::Printf(TEXT("HallCrane_%d"),
-					CraneIndex)), LegPoint(Park, 0.f), LegYaw);
-				if (HallInteriorPieces.Num() <= BeforeCrane)
-				{
-					continue;
-				}
-				UStaticMeshComponent* Portal = HallInteriorPieces.Last();
-				// HUG THE LINE (owner 2026-09-01 "cranes only go
-				// across"): the authored portal spans 31.5 m - sized
-				// for the old multi-line bay - so over a single leg it
-				// reached twelve metres of empty floor each side and
-				// read as a bridge across the hall, not a crane over
-				// the line. Scaled on the mesh's native span axis (its
-				// local Y; the yaw has already turned the component)
-				// to shoulder the stations instead.
-				constexpr float PortalSpanScale = 0.42f;
-				{
-					FVector PortalScale = Portal->GetRelativeScale3D();
-					PortalScale.Y *= PortalSpanScale;
-					Portal->SetRelativeScale3D(PortalScale);
-				}
-				HallCranes.Add(Portal);
-				HallCraneParkCm.Add(LegPoint(Park, 0.f));
-				HallCraneAxisAlongY.Add(Leg.bAlongY);
-				if (HallCranes.Num() == 1)
-				{
-					// The first is the one TickHallCrane drives until a
-					// craft picks a nearer one.
-					HallCrane = Portal;
-					HallCraneParkAtCm = LegPoint(Park, 0.f);
-					bHallCraneAxisAlongY = Leg.bAlongY;
-				}
-				// THE TROLLEY AND HOIST RIDE THE PORTAL, so they are
-				// ATTACHED rather than placed loose - anything merely
-				// standing at the same coordinate is left behind the
-				// moment the crane travels.
-				const int32 BeforeRig = HallInteriorPieces.Num();
-				Place(CraneTrolley, FName(*FString::Printf(
-					TEXT("HallCraneTrolley_%d"), CraneIndex)),
-					LegPoint(Park, 0.f), LegYaw);
-				// IDLE POSITION IS RAISED (owner, 2026-09-01: "the
-				// crane has something hanging from it that's always
-				// there"): stowed hoist, dropped only when the carry
-				// animation lands.
-				const float HoistRaiseCm = CraneHoist != nullptr
-					? CraneHoist->GetBounds().BoxExtent.Z * 2.f * 0.7f
-					: 0.f;
-				Place(CraneHoist, FName(*FString::Printf(
-					TEXT("HallCraneHoist_%d"), CraneIndex)),
-					LegPoint(Park, HoistRaiseCm), LegYaw);
-				for (int32 Rig = BeforeRig;
-					Rig < HallInteriorPieces.Num(); ++Rig)
-				{
-					HallInteriorPieces[Rig]->AttachToComponent(Portal,
-						FAttachmentTransformRules::KeepWorldTransform);
-				}
-				++CraneIndex;
-			}
-		}
-	}
 	// The dispatch door at the runway (+X) end of the hall.
 	Place(Door, FName(TEXT("HallDispatchDoor")),
 		FVector(HallAt.X + Floor.X * 0.5f - 300.f, HallAt.Y, 0.f), 90.f);
@@ -9255,204 +9691,6 @@ void ALBSpacecraftWIPPresentationActor::RefreshHallInterior()
 		HallInteriorPieces.Num(), LineStations.Num());
 }
 
-void ALBSpacecraftWIPPresentationActor::TickHallCrane(float DeltaSeconds)
-{
-	// EVERY CRANE HAS A JOB OR GOES HOME. A pulse with a crane per gap
-	// lifts several craft in the same trip, so each craft in transit
-	// claims the nearest crane nobody else has claimed; with a single
-	// crane the craft go one after another and that crane does them
-	// all. Before the pulse line one crane chased one carried craft
-	// and the others stood still while their craft rose on nothing.
-	const int32 CraneCount = HallCranes.Num();
-	if (CraneCount == 0)
-	{
-		return;
-	}
-	TArray<int32> CraneJob;
-	CraneJob.Init(INDEX_NONE, CraneCount);
-	for (int32 Craft = 0; Craft < CarriedCraftsCm.Num(); ++Craft)
-	{
-		int32 Nearest = INDEX_NONE;
-		float Best = TNumericLimits<float>::Max();
-		for (int32 Index = 0; Index < CraneCount; ++Index)
-		{
-			if (CraneJob[Index] != INDEX_NONE || !HallCranes[Index].IsValid()
-				|| !HallCraneParkCm.IsValidIndex(Index))
-			{
-				continue;
-			}
-			const float Distance = FVector::DistSquared2D(
-				HallCraneParkCm[Index], CarriedCraftsCm[Craft]);
-			if (Distance < Best)
-			{
-				Best = Distance;
-				Nearest = Index;
-			}
-		}
-		if (Nearest != INDEX_NONE)
-		{
-			CraneJob[Nearest] = Craft;
-		}
-	}
-
-	// One hoist rig per crane, remade when the crane count changes
-	// (the hall rebuild resets HallCranes; stale rigs would hang in
-	// the air over cranes that no longer exist).
-	if (HallCraneHoists.Num() != CraneCount * 3)
-	{
-		for (UStaticMeshComponent* Old : HallCraneHoists)
-		{
-			if (Old != nullptr)
-			{
-				Old->DestroyComponent();
-			}
-		}
-		HallCraneHoists.Reset();
-		// THE AMBER LIVES HERE, and only here on the crane: the hoist
-		// is the one piece that moves, so it is the one piece that
-		// earns the accent; the portal around it is structure and
-		// stays graphite.
-		const FLinearColor HoistTone = LBSpacecraftPalette::MachineAmber;
-		const FLinearColor CableTone =
-			LBSpacecraftPalette::StructureGraphiteDark;
-		for (int32 Index = 0; Index < CraneCount; ++Index)
-		{
-			UStaticMeshComponent* Block = MakeBlockComponent(
-				FName(*FString::Printf(TEXT("CraneHoistBlock_%d"), Index)),
-				HoistTone);
-			UStaticMeshComponent* CableA = MakeBlockComponent(
-				FName(*FString::Printf(TEXT("CraneCable_%d_0"), Index)),
-				CableTone);
-			UStaticMeshComponent* CableB = MakeBlockComponent(
-				FName(*FString::Printf(TEXT("CraneCable_%d_1"), Index)),
-				CableTone);
-			HallCraneHoists.Add(Block);
-			HallCraneHoists.Add(CableA);
-			HallCraneHoists.Add(CableB);
-		}
-	}
-
-	if (HallCraneAudio.Num() != CraneCount)
-	{
-		for (UAudioComponent* Old : HallCraneAudio)
-		{
-			if (Old != nullptr)
-			{
-				Old->Stop();
-				Old->DestroyComponent();
-			}
-		}
-		HallCraneAudio.Init(nullptr, CraneCount);
-		HallCraneWasBusy.Init(false, CraneCount);
-	}
-	for (int32 Index = 0; Index < CraneCount; ++Index)
-	{
-		UStaticMeshComponent* Crane = HallCranes[Index].Get();
-		if (Crane == nullptr || !HallCraneParkCm.IsValidIndex(Index))
-		{
-			continue;
-		}
-		const bool bAlongY = HallCraneAxisAlongY.IsValidIndex(Index)
-			? HallCraneAxisAlongY[Index] : true;
-		const bool bBusy = CraneJob[Index] != INDEX_NONE;
-		// THE CRANE IS HEARD: a travel loop while it has a job, a
-		// set-down clunk when the job ends.
-		if (bBusy && HallCraneAudio[Index] == nullptr)
-		{
-			if (USoundBase* Travel = SoundFor(FName(TEXT("CraneTravel"))))
-			{
-				HallCraneAudio[Index] =
-					LBSpacecraftWIPPresentationPrivate::SpacecraftMakeRotorAudio(
-						this, Crane, FName(*FString::Printf(
-							TEXT("CraneTravelAudio_%d"), Index)),
-						Travel, 2500.f, 6000.f);
-			}
-		}
-		if (HallCraneAudio[Index] != nullptr)
-		{
-			if (bBusy && !HallCraneAudio[Index]->IsPlaying())
-			{
-				HallCraneAudio[Index]->Play();
-			}
-			else if (!bBusy && HallCraneAudio[Index]->IsPlaying())
-			{
-				HallCraneAudio[Index]->Stop();
-			}
-		}
-		if (HallCraneWasBusy.IsValidIndex(Index)
-			&& HallCraneWasBusy[Index] && !bBusy)
-		{
-			PlayWorldCue(FName(TEXT("CraneSetDown")),
-				Crane->GetComponentLocation());
-		}
-		if (HallCraneWasBusy.IsValidIndex(Index))
-		{
-			HallCraneWasBusy[Index] = bBusy;
-		}
-		const FVector Load = bBusy
-			? CarriedCraftsCm[CraneJob[Index]] : HallCraneParkCm[Index];
-		// A GANTRY RUNS ON RAILS, so only the along-leg axis moves -
-		// constant speed, not an ease: a gantry accelerates hard and
-		// then runs flat, and an eased interp reads as floating.
-		const FVector At = Crane->GetComponentLocation();
-		FVector NewAt = At;
-		if (bAlongY)
-		{
-			NewAt.Y = FMath::FInterpConstantTo(At.Y, Load.Y, DeltaSeconds,
-				FMath::Max(CraneTravelSpeedCmS, 1.f));
-		}
-		else
-		{
-			NewAt.X = FMath::FInterpConstantTo(At.X, Load.X, DeltaSeconds,
-				FMath::Max(CraneTravelSpeedCmS, 1.f));
-		}
-		Crane->SetWorldLocation(NewAt);
-		if (Index == 0)
-		{
-			// Kept for anything that still reads the single-crane fields.
-			HallCrane = HallCranes[Index];
-			HallCraneParkAtCm = HallCraneParkCm[Index];
-			bHallCraneAxisAlongY = bAlongY;
-		}
-
-		// The hoist: a block riding the beam with two cables down to
-		// the load. The beam is near the top of the gantry's own bounds
-		// rather than a hardcoded height, so a replacement crane mesh
-		// does not leave the hoist hanging in mid-air. The trolley
-		// slides ACROSS the beam toward the load, so the hook's
-		// cross-axis coordinate is the craft's; the along-axis one is
-		// the crane's own travel.
-		const int32 Rig = Index * 3;
-		if (!HallCraneHoists.IsValidIndex(Rig + 2)
-			|| HallCraneHoists[Rig] == nullptr
-			|| HallCraneHoists[Rig + 1] == nullptr
-			|| HallCraneHoists[Rig + 2] == nullptr)
-		{
-			continue;
-		}
-		const float BeamZ = Crane->Bounds.Origin.Z
-			+ Crane->Bounds.BoxExtent.Z * 0.62f;
-		FVector Hook(NewAt.X, NewAt.Y, BeamZ - 220.f);
-		if (bBusy)
-		{
-			Hook = bAlongY
-				? FVector(Load.X, NewAt.Y, Load.Z + 210.f)
-				: FVector(NewAt.X, Load.Y, Load.Z + 210.f);
-		}
-		HallCraneHoists[Rig]->SetWorldTransform(FTransform(
-			FRotator::ZeroRotator, Hook, FVector(1.6f, 1.2f, 0.5f)));
-		const float Drop = FMath::Max(BeamZ - Hook.Z, 10.f);
-		for (int32 Cable = 0; Cable < 2; ++Cable)
-		{
-			const float Side = Cable == 0 ? -60.f : 60.f;
-			HallCraneHoists[Rig + 1 + Cable]->SetWorldTransform(FTransform(
-				FRotator::ZeroRotator,
-				FVector(Hook.X + Side, Hook.Y, Hook.Z + Drop * 0.5f),
-				FVector(0.08f, 0.08f, Drop / 100.f)));
-		}
-	}
-}
-
 USoundBase* ALBSpacecraftWIPPresentationActor::SoundFor(FName CueRole)
 {
 	if (TObjectPtr<USoundBase>* Known = SoundByRole.Find(CueRole))
@@ -9540,6 +9778,129 @@ void ALBSpacecraftWIPPresentationActor::TickAudioCues(float DeltaSeconds)
 			PlayWorldCue(FName(TEXT("LorryArrives")), DockAt);
 		}
 		LastPendingOrderCount = Pending;
+	}
+
+	// THE WORK ITSELF (2026-09-03): a loop per station that runs while
+	// that station's drones are actually fitting, driven by the same
+	// WorkAlpha the drone animation already uses - so what you hear
+	// and what you see can never disagree. Spatialised on the station,
+	// so a floor of six stations is a place rather than a wall of
+	// noise, and the loop is only created for a station that has
+	// actually worked once.
+	if (BuildAuthority != nullptr)
+	{
+		for (const FLBSpacecraftStationRecord& Record :
+			BuildAuthority->GetStations())
+		{
+			const float WorkAlpha = GetDroneWorkAlpha(Record.StationId);
+			const bool bWorking = WorkAlpha > 0.5f;
+			TObjectPtr<UAudioComponent>* Existing =
+				StationWorkAudio.Find(Record.StationId);
+			if (bWorking && Existing == nullptr)
+			{
+				USoundBase* Loop = SoundFor(FName(TEXT("DroneWork")));
+				if (Loop == nullptr)
+				{
+					continue;   // silent cue, not a crash
+				}
+				const FName Key(*FString::Printf(TEXT("WorkAudio_%s"),
+					*Record.StationId.ToString()));
+				if (UAudioComponent* Audio =
+					LBSpacecraftWIPPresentationPrivate
+						::SpacecraftMakeRotorAudio(this, RootComponent,
+							Key, Loop, RotorAudioRadiusCm,
+							RotorAudioFalloffCm))
+				{
+					Audio->SetWorldLocation(
+						Record.WorldTransform.GetLocation()
+							+ FVector(0.f, 0.f, 120.f));
+					Audio->Play();
+					StationWorkAudio.Add(Record.StationId, Audio);
+					UE_LOG(LogTemp, Display,
+						TEXT("SOUND DroneWork on at %s"),
+						*Record.StationId.ToString());
+				}
+			}
+			else if (Existing != nullptr && *Existing != nullptr)
+			{
+				UAudioComponent* Audio = Existing->Get();
+				if (bWorking && !Audio->IsPlaying())
+				{
+					Audio->Play();
+				}
+				else if (!bWorking && Audio->IsPlaying())
+				{
+					Audio->Stop();
+				}
+			}
+		}
+		// A SOLD STATION TAKES ITS VOICE WITH IT. Without this the
+		// loop would keep running at the empty floor where the station
+		// used to stand - the same "created but never cleaned up"
+		// shape three separate audits found elsewhere tonight.
+		for (auto It = StationWorkAudio.CreateIterator(); It; ++It)
+		{
+			if (BuildAuthority->FindStation(It.Key()) == nullptr)
+			{
+				if (It.Value() != nullptr)
+				{
+					It.Value()->Stop();
+					It.Value()->DestroyComponent();
+				}
+				It.RemoveCurrent();
+			}
+		}
+	}
+
+	// THE PULSE MOVES (2026-09-03, replacing the deleted crane's own
+	// audio): the travel loop runs for exactly as long as the line is
+	// in its move phase, and a set-down lands per craft when the pulse
+	// resolves. Same two waves the gantry used - what carries the
+	// craft changed, the sound of a line moving did not.
+	if (Coordinator != nullptr)
+	{
+		const bool bMoving = Coordinator->GetPulseProgress01() > 0.f;
+		if (bMoving && PulseTravelAudio == nullptr)
+		{
+			if (USoundBase* Travel = SoundFor(FName(TEXT("CraneTravel"))))
+			{
+				PulseTravelAudio = UGameplayStatics::CreateSound2D(this,
+					Travel, 0.5f, 1.f, 0.f, nullptr,
+					/*bPersistAcrossLevelTransition=*/false,
+					/*bAutoDestroy=*/false);
+			}
+		}
+		if (PulseTravelAudio != nullptr)
+		{
+			if (bMoving && !PulseTravelAudio->IsPlaying())
+			{
+				PulseTravelAudio->Play();
+				UE_LOG(LogTemp, Display, TEXT("SOUND CraneTravel on"));
+			}
+			else if (!bMoving && PulseTravelAudio->IsPlaying())
+			{
+				PulseTravelAudio->Stop();
+			}
+		}
+		// A RISE IN THE PULSE COUNT is the line landing: one clunk per
+		// craft that just moved, where it now stands.
+		const int32 Pulses = Coordinator->GetPulseCount();
+		if (LastPulseCount >= 0 && Pulses > LastPulseCount)
+		{
+			for (const FLBSpacecraftRuntimeAssignment& Assignment :
+				Coordinator->GetAssignments())
+			{
+				if (const FLBSpacecraftStationRecord* At =
+					BuildAuthority != nullptr
+						? BuildAuthority->FindStation(Assignment.StationId)
+						: nullptr)
+				{
+					PlayWorldCue(FName(TEXT("CraneSetDown")),
+						At->WorldTransform.GetLocation());
+				}
+			}
+		}
+		LastPulseCount = Pulses;
 	}
 }
 
@@ -10410,9 +10771,6 @@ void ALBSpacecraftWIPPresentationActor::Tick(float DeltaSeconds)
 	TickDrones(DeltaSeconds);
 	TickSubAssemblyLogistics(DeltaSeconds);
 	RefreshUnits();
-	// AFTER RefreshUnits: it publishes where the carried craft is, and
-	// the gantry has nothing to follow until it has.
-	TickHallCrane(DeltaSeconds);
 	TickShellDeliveries(DeltaSeconds);
 	TickDepartures(DeltaSeconds);
 	TickAmbientDrones(DeltaSeconds);

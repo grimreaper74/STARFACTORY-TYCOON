@@ -2,6 +2,8 @@
 
 #include "LBSpacecraftRuntimeCoordinator.h"
 
+#include "LBSpacecraftGameMode.h"
+
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
 
@@ -543,7 +545,7 @@ bool FLBSpacecraftPulseTogetherTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPulseCranesTest,
-	"LineBoss.Spacecraft.RuntimeCoordinator.MoreCranesMakeAShorterPulse",
+	"LineBoss.Spacecraft.RuntimeCoordinator.MoreCarriersHoldMoreCraftAndDeliverSooner",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
@@ -553,6 +555,7 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 	FString Reason;
 	double Seconds[2] = { 0.0, 0.0 };
 	int32 Pulses[2] = { 0, 0 };
+	int32 OnLine[2] = { 0, 0 };
 	for (int32 Variant = 0; Variant < 2; ++Variant)
 	{
 		FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
@@ -560,8 +563,8 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 			PlaceAndCommissionSpacecraftLine(Rig, Reason));
 		if (Variant == 1)
 		{
-			// One crane per gap: buy up to the cap (one fewer than the
-			// positions on the line, booth included), then one more.
+			// Buy carriers up to the cap (one fewer than the positions
+			// on the line, booth included), then try one more.
 			FString Earn;
 			const int32 Cap = Rig.Build->GetMaxCraneCount();
 			TestTrue(TEXT("the rig has gaps to fill"), Cap >= 3);
@@ -585,24 +588,36 @@ bool FLBSpacecraftPulseCranesTest::RunTest(const FString& Parameters)
 		// A long trip so the difference is unmistakable against the
 		// stop times.
 		Rig.Coordinator->CraneTripSeconds = 30.f;
+		// FIVE craft, more than either line can hold at once, so the
+		// carrier count is what decides how many run in parallel - with
+		// three the difference would be invisible, because the starting
+		// three carriers already hold three.
 		TestTrue(TEXT("contract ready"),
-			OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 3, Reason));
+			OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 5, Reason));
+		TestEqual(TEXT("the carriers ARE the WIP cap"),
+			Rig.Production->GetWIPCap(), Rig.Build->GetCarrierCount());
 		bool bSawHold = false;
 		bool bOnPulses = true;
 		int32 MaxOnLine = 0;
-		Seconds[Variant] = RunPulseLineToDelivery(Rig, 3, bSawHold,
+		Seconds[Variant] = RunPulseLineToDelivery(Rig, 5, bSawHold,
 			bOnPulses, MaxOnLine);
+		OnLine[Variant] = MaxOnLine;
 		Pulses[Variant] = Rig.Coordinator->GetPulseCount();
 		Rig.World->DestroyWorld(false);
 	}
-	// Same line, same craft - the only difference is how many craft
-	// each pulse can carry at once, so the crane-per-gap line must
-	// finish sooner. (The pulse COUNT is not pinned: a shorter move
-	// phase shifts when the head admits the next craft, and the run
-	// can need one pulse fewer.) This is the upgrade axis the owner
-	// named (2026-08-29), and the comparison he asked for.
+	// WHAT THE UPGRADE BUYS CHANGED (2026-09-04). While a crane could
+	// carry any craft, buying one shortened the MOVE - ceil(craft /
+	// cranes) trips - and this test pinned that. Now a craft rides its
+	// own carrier for the whole journey, so the count is the WIP CAP:
+	// every craft on the line always has a carrier, every pulse is one
+	// trip, and buying a carrier puts one MORE CRAFT in build instead
+	// of hurrying the ones already there. Same upgrade axis the owner
+	// named (2026-08-29), a better thing bought with it - so the test
+	// pins the new promise rather than the retired one.
 	TestTrue(TEXT("both lines pulsed"), Pulses[0] > 0 && Pulses[1] > 0);
-	TestTrue(TEXT("a crane per gap delivers sooner than one crane"),
+	TestTrue(TEXT("more carriers hold more craft at once"),
+		OnLine[1] > OnLine[0]);
+	TestTrue(TEXT("and a line that holds more craft delivers sooner"),
 		Seconds[1] < Seconds[0]);
 	return true;
 }
@@ -774,7 +789,13 @@ bool FLBSpacecraftStationInspectionTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-#endif // WITH_DEV_AUTOMATION_TESTS
+// NOTE: everything below this line was found (2026-09-03, integration
+// gap audit) sitting OUTSIDE the WITH_DEV_AUTOMATION_TESTS guard above
+// - a pre-existing misplacement, not something this session's edits
+// caused. In a Shipping/Test config (WITH_DEV_AUTOMATION_TESTS=0) this
+// would have left IMPLEMENT_SIMPLE_AUTOMATION_TEST and TestTrue/
+// TestEqual referenced with no guard around them. The single #endif
+// for the whole file now sits at the true end instead.
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftQualityRulesTest,
 	"LineBoss.Spacecraft.Quality.CrewDecidesWorkmanship",
@@ -935,3 +956,417 @@ bool FLBSpacecraftUnbuildableContractTest::RunTest(const FString& Parameters)
 	Rig.World->DestroyWorld(false);
 	return true;
 }
+
+// FOUND LIVE (2026-09-03): a Cargo unit force-started before a delivery
+// dock existed sat stuck at MaterialIntake forever, even long after the
+// dock was placed. Root cause: ConfigureFromAuthorities unconditionally
+// reset Runtime.Assignments on every call, and LB.Spacecraft.Place ->
+// RelayTrackThroughStations calls it after EVERY station placement -
+// not just line stations, a delivery dock included, which never even
+// appears in the derived route. The wipe orphaned any unit already
+// assigned: its ledger record survived in ProductionAuthority, but
+// nothing ever created it a replacement assignment, since TryStartUnit
+// only ever spawns units against fresh, unclaimed demand.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftReconfigurePreservesInFlightUnitsTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.AReconfigureThatDoesNotChangeTheRouteKeepsInFlightUnits",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftReconfigurePreservesInFlightUnitsTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	// Quantity 2 so a second unit stays a live possibility - the same
+	// shape as the live repro's later, larger contracts, not just the
+	// exhausted-single-unit case already covered elsewhere.
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-001"), 2, Reason));
+
+	// Run the line for real until a unit is genuinely assigned and has
+	// made some progress - not just created.
+	int32 Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() == 0 && Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("a unit is assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const FName UnitId = Rig.Coordinator->GetAssignments()[0].UnitId;
+	for (int32 Tick = 0; Tick < 4; ++Tick)
+	{
+		Rig.Coordinator->TickProduction(5.0, Reason);
+	}
+	float ElapsedBefore = -1.f;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Rig.Coordinator->GetAssignments())
+	{
+		if (Assignment.UnitId == UnitId)
+		{
+			ElapsedBefore = Assignment.CycleElapsedSeconds;
+		}
+	}
+	TestTrue(TEXT("real cycle time has accrued"), ElapsedBefore > 0.f);
+
+	// A DELIVERY DOCK, placed exactly as LB.Spacecraft.Place would -
+	// it is not a line station and never appears in the derived route,
+	// so the route's own topology is unchanged by this.
+	FName DockId;
+	TestTrue(TEXT("a delivery dock places"),
+		Rig.Build->PlaceStation(FName(TEXT("DeliveryDock")),
+			FTransform(FRotator::ZeroRotator, FVector(-4000.f, 0.f, 0.f)),
+			DockId, Reason));
+	// THE RELAY'S OWN RECONFIGURE (RelayTrackThroughStations calls this
+	// unconditionally after every placement) - reproduced directly
+	// rather than through the console command, since that is the exact
+	// call the live session's dock placement made.
+	TestTrue(TEXT("the reconfigure itself still succeeds"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+
+	TestEqual(TEXT("the same unit is still assigned - not orphaned by a "
+		"same-topology reconfigure"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	float ElapsedAfter = -1.f;
+	for (const FLBSpacecraftRuntimeAssignment& Assignment :
+		Rig.Coordinator->GetAssignments())
+	{
+		if (Assignment.UnitId == UnitId)
+		{
+			ElapsedAfter = Assignment.CycleElapsedSeconds;
+		}
+	}
+	TestTrue(TEXT("it is the SAME unit, findable by its own id"),
+		ElapsedAfter >= 0.f);
+	TestEqual(TEXT("its accrued cycle time was not reset to zero"),
+		ElapsedAfter, ElapsedBefore);
+
+	// And production keeps working afterward - the fix does not just
+	// preserve stale state, the line actually still runs.
+	Guard = 0;
+	while (Rig.Production->GetRevenuePence() == 0 && Guard++ < 400)
+	{
+		Rig.Coordinator->TickProduction(5.0, Reason);
+	}
+	TestTrue(TEXT("the preserved unit goes on to dispatch normally"),
+		Rig.Production->GetRevenuePence() > 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+// FOUND BY AUDIT (2026-09-03, integration gap audit): the guard that
+// stops a route station being removed while craft are on the line -
+// ALBSpacecraftGameMode::RemoveStationPowered's "CRAFT ARE ON THE LINE"
+// refusal, added 2026-09-01 after selling a live route station
+// poisoned a save - reads correct by inspection but had ZERO test
+// coverage anywhere in the suite. Every existing RemoveStationPowered
+// call site either omits InCoordinator (defaulting nullptr, which
+// short-circuits the guard's own outer null check) or never has a live
+// assignment when it calls it. This proves both halves for real: the
+// refusal while a craft is mid-line, and the ResetConfiguration() wipe
+// when the station is on an idle (assignment-free) route instead.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftRemoveLiveRouteStationTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.RemovingARouteStationRefusesWithCraftOnItAndResetsWhenIdle",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftRemoveLiveRouteStationTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	TestTrue(TEXT("route exists before any craft is assigned"),
+		Rig.Coordinator->IsConfigured());
+	// Four fitting stations plus the spray booth the line cannot
+	// commission without (owner 2026-08-28) - same shape as the
+	// route-length assertion above.
+	TestEqual(TEXT("route has the four line stations and the booth"),
+		Rig.Coordinator->GetRoute().Num(), 5);
+	const FName StationOnRoute = Rig.Coordinator->GetRoute()[0].StationId;
+
+	ALBSpacecraftPowerAuthority* Power =
+		Rig.World->SpawnActor<ALBSpacecraftPowerAuthority>();
+	ALBSpacecraftInventoryAuthority* Inventory =
+		Rig.World->SpawnActor<ALBSpacecraftInventoryAuthority>();
+
+	// --- Part A: a craft is genuinely mid-line - removal must refuse,
+	// with the exact reason, and mutate NOTHING. ---
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-REM1"), 1, Reason));
+	int32 Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() == 0 && Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("a unit is genuinely on the line"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const int32 StationCountBefore = Rig.Build->GetStations().Num();
+
+	FString RefusalReason;
+	TestFalse(TEXT("removal of a live-route station refuses"),
+		ALBSpacecraftGameMode::RemoveStationPowered(*Rig.Build, *Power,
+			*Inventory, nullptr, StationOnRoute, RefusalReason,
+			Rig.Production, Rig.Coordinator));
+	TestTrue(TEXT("the refusal names craft on the line"),
+		RefusalReason.Contains(TEXT("CRAFT ARE ON THE LINE")));
+	TestEqual(TEXT("no station was removed"),
+		Rig.Build->GetStations().Num(), StationCountBefore);
+	TestEqual(TEXT("the assignment survived untouched"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	TestTrue(TEXT("the route is still configured"),
+		Rig.Coordinator->IsConfigured());
+
+	// --- Part B: drain the line so the route is idle (commissioned,
+	// zero live assignments) - removal must now SUCCEED, and the
+	// coordinator must fully reset rather than keep ticking a route
+	// missing one of its stations. ---
+	Guard = 0;
+	while (Rig.Coordinator->GetAssignments().Num() > 0 && Guard++ < 400)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+	}
+	TestEqual(TEXT("the line drained - no craft left assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 0);
+	TestTrue(TEXT("the route itself is still configured while idle"),
+		Rig.Coordinator->IsConfigured());
+
+	FString RemovalReason;
+	TestTrue(TEXT("removal of an idle-route station succeeds"),
+		ALBSpacecraftGameMode::RemoveStationPowered(*Rig.Build, *Power,
+			*Inventory, nullptr, StationOnRoute, RemovalReason,
+			Rig.Production, Rig.Coordinator));
+	TestEqual(TEXT("the station is actually gone"),
+		Rig.Build->GetStations().Num(), StationCountBefore - 1);
+	TestFalse(TEXT("ResetConfiguration wiped the route rather than "
+		"leaving it stale with a missing station"),
+		Rig.Coordinator->IsConfigured());
+	TestEqual(TEXT("assignments are empty too"),
+		Rig.Coordinator->GetAssignments().Num(), 0);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+// FOUND BY AUDIT (2026-09-03, integration gap audit round 3): the
+// station-quality defect read used to look at the station's LIVE crew
+// whenever TryAdvanceAssignment happened to run - which for a non-final
+// station only happens once the whole line pulses, a real gap of one or
+// more ticks after the station's own stop actually finished. A player
+// could dismiss a just-finished station's crew in that window (rational
+// - they're idle, waiting on a slower station) and have the craft
+// unfairly charged defects for work a full crew actually did. Fixed by
+// snapshotting crew at the exact instant a stop completes
+// (Assignment.SnapshotInstalledDrones/SnapshotInstalledDroneTypes) and
+// reading THAT in the later defect calculation instead of the live
+// station record.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FLBSpacecraftCrewSnapshotSurvivesDismissalTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.DismissingCrewAfterAStopFinishesDoesNotRetroactivelyChangeItsQuality",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftCrewSnapshotSurvivesDismissalTest::RunTest(
+	const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready, nominally crewed (2 drones per station)"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-CREW1"), 1, Reason));
+
+	// Tick until the FIRST station's stop completes - a single unit at
+	// RouteIndex 0 is enough to flip the line to Moving (bAllComplete
+	// only checks non-final assignments), giving a real multi-tick
+	// window before the pulse actually resolves it.
+	int32 Guard = 0;
+	while (Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+		if (Rig.Coordinator->GetAssignments().Num() == 1
+			&& Rig.Coordinator->GetAssignments()[0].bStopComplete)
+		{
+			break;
+		}
+	}
+	TestEqual(TEXT("one unit assigned"),
+		Rig.Coordinator->GetAssignments().Num(), 1);
+	const FLBSpacecraftRuntimeAssignment FirstStop =
+		Rig.Coordinator->GetAssignments()[0];
+	TestTrue(TEXT("its first stop is complete"), FirstStop.bStopComplete);
+	TestEqual(TEXT("the snapshot captured the nominal crew that did "
+		"the work"), FirstStop.SnapshotInstalledDrones, 2);
+	const FName UnitId = FirstStop.UnitId;
+	const FName StationId = FirstStop.StationId;
+
+	// DISMISS THE CREW NOW - after the stop finished, before the pulse
+	// that will actually read it. A rational player move: this
+	// station is done and idle, waiting on the others.
+	TestTrue(TEXT("first drone dismissed"),
+		Rig.Build->RemoveStationDrone(StationId, Reason));
+	TestTrue(TEXT("second drone dismissed"),
+		Rig.Build->RemoveStationDrone(StationId, Reason));
+	const FLBSpacecraftStationRecord* Record =
+		Rig.Build->FindStation(StationId);
+	TestNotNull(TEXT("station still exists"), Record);
+	if (Record != nullptr)
+	{
+		TestEqual(TEXT("the station is genuinely uncrewed now"),
+			Record->InstalledDrones, 0);
+	}
+
+	// Tick until the pulse actually resolves this assignment (it moves
+	// off RouteIndex 0, or dispatches if the line is that short).
+	Guard = 0;
+	while (Guard++ < 40)
+	{
+		TestTrue(TEXT("tick runs"), Rig.Coordinator->TickProduction(5.0,
+			Reason));
+		const FLBSpacecraftRuntimeAssignment* Still =
+			nullptr;
+		for (const FLBSpacecraftRuntimeAssignment& A :
+			Rig.Coordinator->GetAssignments())
+		{
+			if (A.UnitId == UnitId)
+			{
+				Still = &A;
+			}
+		}
+		if (Still == nullptr || Still->RouteIndex != FirstStop.RouteIndex)
+		{
+			break; // moved on (or dispatched, if the line were length 1)
+		}
+	}
+
+	const FLBSpacecraftUnitState* Unit = Rig.Production->FindUnit(UnitId);
+	TestNotNull(TEXT("the unit still exists"), Unit);
+	if (Unit != nullptr)
+	{
+		TestEqual(TEXT("NO DEFECTS: the crew that did the work was "
+			"nominal, and dismissing them afterward must not "
+			"retroactively charge the craft as if they were never "
+			"there"), Unit->DefectPoints, 0);
+	}
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+// THE PACE-SETTER (2026-09-03). On a pulse line every station waits for
+// the slowest one, so naming that station - and the gap to the next
+// slowest, which is what fixing it would actually win - is the single
+// most actionable thing the game can tell a player. This pins that the
+// readout is real: it names a station on the route, its arithmetic
+// agrees with the pulse it predicts, and it RESPONDS to the player's
+// own lever (crew), which is what makes it advice rather than trivia.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftPaceSetterTest,
+	"LineBoss.Spacecraft.RuntimeCoordinator.ThePaceSetterNamesTheSlowestStationAndAnswersToCrew",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftPaceSetterTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	using namespace LBSpacecraftRuntimeCoordinatorTestsPrivate;
+	FLBSpacecraftRuntimeRig Rig = MakeSpacecraftRuntimeRig();
+	FString Reason;
+
+	TestTrue(TEXT("line ready"),
+		PlaceAndCommissionSpacecraftLine(Rig, Reason));
+	TestTrue(TEXT("configured"),
+		Rig.Coordinator->ConfigureFromAuthorities(Rig.Build, Rig.Production,
+			Reason));
+
+	// BEFORE A SINGLE CRAFT RUNS: the answer comes from an accepted
+	// contract's recipe, so a player laying stations out can already be
+	// told where their pace will come from.
+	FLBSpacecraftPaceSetter Early;
+	TestFalse(TEXT("nothing to pace with no contract and no craft"),
+		Rig.Coordinator->GetPaceSetter(Early));
+	TestTrue(TEXT("contract ready"),
+		OfferAndAcceptScoutContract(Rig, TEXT("C-PACE1"), 1, Reason));
+	TestTrue(TEXT("the pace-setter is known before production starts"),
+		Rig.Coordinator->GetPaceSetter(Early));
+
+	// It names a station that is REALLY on the route.
+	bool bOnRoute = false;
+	for (const FLBSpacecraftRouteStep& Step : Rig.Coordinator->GetRoute())
+	{
+		bOnRoute |= Step.StationId == Early.StationId;
+	}
+	TestTrue(TEXT("it names a station on the route"), bOnRoute);
+	TestTrue(TEXT("with a real stop time"), Early.StopSeconds > 0.f);
+	// NEVER THE LINE'S END. A craft at the last station climbs into its
+	// hover test in place and departs under its own power, so it is
+	// excluded from the pulse by IsPulseMover and can never be what the
+	// line waits on - naming it would be advice the player cannot act
+	// on. (Caught by a parallel survey right after this shipped.)
+	TestNotEqual(TEXT("the pace-setter is never the line's end"),
+		Early.StationId,
+		Rig.Coordinator->GetRoute().Last().StationId);
+	TestNotEqual(TEXT("and neither is the runner-up"),
+		Early.RunnerUpStationId,
+		Rig.Coordinator->GetRoute().Last().StationId);
+	// The runner-up is a different station, and never the slower one.
+	TestNotEqual(TEXT("the runner-up is a different station"),
+		Early.RunnerUpStationId, Early.StationId);
+	TestTrue(TEXT("and is not slower than the pace-setter"),
+		Early.RunnerUpSeconds <= Early.StopSeconds);
+	// The arithmetic it reports is the arithmetic it promises.
+	TestEqual(TEXT("a pulse is the slowest stop plus the move"),
+		Early.PulseSeconds,
+		Early.StopSeconds + Rig.Coordinator->GetMoveSeconds());
+
+	// IT ANSWERS TO CREW. Crewing the pace-setter raises its work bonus,
+	// which shortens its stop - so either it speeds up, or it stops
+	// being the bottleneck at all and the runner-up takes over. Both
+	// are correct; what would be wrong is nothing changing.
+	const FName WasPacing = Early.StationId;
+	const float WasSeconds = Early.StopSeconds;
+	for (int32 Hire = 0; Hire < 4; ++Hire)
+	{
+		FString HireReason;
+		Rig.Build->InstallStationDrone(WasPacing, HireReason);
+	}
+	FLBSpacecraftPaceSetter After;
+	TestTrue(TEXT("still answers after hiring"),
+		Rig.Coordinator->GetPaceSetter(After));
+	const bool bMovedOn = After.StationId != WasPacing;
+	const bool bGotFaster = After.StationId == WasPacing
+		&& After.StopSeconds < WasSeconds;
+	TestTrue(TEXT("crewing the pace-setter either speeds it up or hands "
+		"the bottleneck to another station"), bMovedOn || bGotFaster);
+	// Either way the LINE got faster - that is the player's payoff.
+	TestTrue(TEXT("and the line's pace improved"),
+		After.StopSeconds < WasSeconds + KINDA_SMALL_NUMBER);
+
+	Rig.World->DestroyWorld(false);
+	return true;
+}
+
+#endif // WITH_DEV_AUTOMATION_TESTS

@@ -100,8 +100,14 @@ has finished and holds the craft). Save schema bumps to v8; a v7 save
 is refused as today (no migration).
 
 `ValidateRuntime` keeps "two units occupy one station" and adds:
-`Phase == Moving` requires at least one assignment, and no
-assignment may be `bStopComplete` while `Moving`.
+`Phase == Moving` requires at least one assignment that IS
+`bStopComplete` (a mover the pulse is carrying) - not, as this
+document originally and wrongly said, that none may be. Corrected
+2026-09-03 (integration gap audit round 3): the shipped check was
+always the opposite of this paragraph's prose, and rightly so - the
+Stopped-to-Moving transition only fires once every mover already has
+`bStopComplete == true`, so `Moving` with zero complete movers would
+itself be the invalid state.
 
 `TickProduction` becomes:
 
@@ -196,3 +202,67 @@ way - every crane portal at the head end 4 m apart on the scripted
 line - turned out to be the dev command laying a legacy show track
 away from the stations; it now relays through the stations like
 commissioning does, and the portals stand between the stations.
+
+## Addendum, 2026-09-03 evening: the crane is gone
+
+Owner: "don't think we need the cranes and the whole [transfer] should
+move with the ship stands so a new stand will appear in station one
+after it's moved out in sync." The visible gantry - portal, trolley,
+rails, hoist, and the `TickHallCrane` that drove them - is removed.
+It never actually carried the craft: it was a mesh chasing a published
+position (`CarriedCraftAtCm`) while the craft's own rise-carry-descend
+arc ran as a completely separate, independently-driven system, only
+choreographed to look connected. Both halves of that were decoration
+around the one thing that actually moves a craft - the per-tick
+position update in `RefreshUnits` - the same shape the original belt
+turned out to be (see "The belt never moved anything" above).
+
+**What changed and what did not.** The PULSE ITSELF - every station
+finishing before anyone moves, then everyone advancing together - is
+untouched; this addendum is about the visible carrying mechanism, not
+the batch-movement decision this whole document is about. The
+THROUGHPUT ECONOMY this fed is also untouched: `BuyGantryCrane`,
+`GetCraneCount`, `GetMaxCraneCount` (one per gap), `CraneTripSeconds`
+and the `GetMoveSeconds() = CraneTripSeconds * ceil(craft/N)` formula
+are all exactly as tested - a real upgrade axis the owner asked for on
+2026-08-29, and tonight's ask was about the mechanism on screen, not
+that economy. Only the player-facing TEXT changed ("Transfer drive"
+in the BUILD tab, "per transfer trip" in the tooltip and purchase
+reason) - the internal field/function names (`GantryCranes`,
+`GantryCraneCostPence`) stay as they are for save compatibility and
+because renaming working, tested code for a cosmetic reason is not
+free.
+
+**What replaced the visual.** Every craft now travels on its own
+stand - a flat platform (`MakeUnitStand`, hue-free blockout,
+`LBSpacecraftPalette::StructureGraphite`) attached under its primary
+visual component the moment it first takes on a real form, sized off
+that mesh's own bounds so a blockout hull gets a stand that scales
+with it. It rides with the craft through the station's OWN four-post
+working lift (unchanged, unrelated - that still raises the craft, and
+now its stand, for the ground crew) and every pulse's slide to the
+next station, now at a CONSTANT rail height instead of rising -
+`ComputeCraneCarryCm` is deleted outright along with its dedicated
+test, not left calling into nothing. The stand is destroyed (not
+carried into the departure flight, unlike landing gear - a stand is
+part of the LINE, not the ship) the moment a unit departs. A fresh
+craft admitted at the head of the line gets its own fresh stand the
+moment it takes on a real form, which is what reads as "a new stand
+appearing at station one" - no separate idle-prop bookkeeping needed
+for an empty stand to sit and wait.
+
+**Proven:** clean build; 117/117 across the full `LineBoss.Spacecraft`
+suite (one fewer than before - the deleted `CraneCarry` test - no
+other regressions, `MoreCranesMakeAShorterPulse` still green
+unchanged); live PIE, a fresh editor launch, zero crane-related log
+lines across two full pulse cycles (a Scout completed end to end, then
+a second caught mid-line at three different stations) versus the
+pre-existing "station mesh bound"-style confirmation lines for
+everything else; frames at three stations show no crane, gantry, rail
+or hoist anywhere in view. **Not strongly proven on a frame:** the
+stand itself reads distinctly from directly overhead at gameplay zoom
+- it sits mostly under the hull's own silhouette from that angle, by
+design (90% of the hull's own footprint), so its presence is
+functional (in code and in the object hierarchy) more than it is
+visually striking yet. Worth a closer look once real stand geometry
+replaces the blockout.

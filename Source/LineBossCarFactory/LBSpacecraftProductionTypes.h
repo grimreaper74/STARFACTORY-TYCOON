@@ -41,8 +41,33 @@ enum class ELBSpacecraftComponent : uint8
 	Power,
 	Propulsion,
 	Navigation,
-	Interior
+	Interior,
+	/** THE CARGO TIER'S OWN FEATURES (owner 2026-09-02: "the line grows
+	 *  by components per craft, not by small parts"). Appended after the
+	 *  Scout's six so every saved unit's component bytes keep meaning.
+	 *  Each is a visible feature on the hull, an item with a price, and
+	 *  a sub-assembly recipe from parts already in the catalogue. */
+	CargoBay,
+	DockingCollar,
+	ThrusterPods,
+	Shielding,
+	/** Sentinel, not a real kind - always the count of everything above
+	 *  it by construction, so appending a kind can never leave the
+	 *  count stale the way a hand-typed number could (Copilot review,
+	 *  PR #1: a manual constant next to the enum still drifts if a new
+	 *  kind lands without updating both). Hidden from Blueprint pickers. */
+	Count UMETA(Hidden)
 };
+
+/** How many component kinds exist. The one number the item table, the
+ *  BOM mirror check and every "for each component" loop share, so a
+ *  new kind cannot be half-added. Derived from the enum's own trailing
+ *  Count sentinel rather than hand-typed, so it cannot drift from it. */
+constexpr uint8 LBSpacecraftComponentKindCount =
+	static_cast<uint8>(ELBSpacecraftComponent::Count);
+static_assert(LBSpacecraftComponentKindCount == 10,
+	"A kind was added or removed - this is not a failure, just a nudge "
+	"to update this comment's expectation once the new count is known.");
 
 /** ONE ACCESS EDGE: fitting Blocker puts Blocked out of reach.
  *
@@ -527,13 +552,15 @@ public:
 	 *  seeded with these, which is what gets it past the assembly
 	 *  gate without walking the whole ladder. */
 	static void ComponentsEarnedBy(ELBSpacecraftStage Stage,
-		TArray<ELBSpacecraftComponent>& OutComponents);
+		TArray<ELBSpacecraftComponent>& OutComponents,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/** The components a refit entering at Stage will actually RE-FIT:
 	 *  the union of what rows Stage..end produce. This is the work
 	 *  being bought, and it is the only honest basis for a price. */
 	static void ComponentsRefittedFrom(ELBSpacecraftStage Stage,
-		TArray<ELBSpacecraftComponent>& OutComponents);
+		TArray<ELBSpacecraftComponent>& OutComponents,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/**
 	 * What share of a whole craft's work a refit from Stage represents,
@@ -553,7 +580,8 @@ public:
 	 * so a refit can never be more profitable per part than the build
 	 * it is a subset of.
 	 */
-	static float RefitWorkFraction(ELBSpacecraftStage EntryStage);
+	static float RefitWorkFraction(ELBSpacecraftStage EntryStage,
+		const FLBSpacecraftRecipe* Recipe = nullptr);
 
 	/**
 	 * May a refit enter here, and if not, why not?

@@ -232,13 +232,19 @@ public:
 		int32 SlotIndex, FString& OutReason,
 		ALBSpacecraftProductionAuthority* InLedger = nullptr);
 
+	/** InResearch gates the KIND (2026-09-03): specialist crew are
+	 *  research content like any machine, so a kind the player has
+	 *  not researched cannot be hired. Optional and defaulted, like
+	 *  the progression hook beside it - a caller that passes no
+	 *  research authority (dev commands, fixtures) is ungated. */
 	static bool InstallStationDronePowered(
 		ALBSpacecraftBuildAuthority& InBuild, FName StationId,
 		FString& OutReason,
 		ALBSpacecraftProductionAuthority* InLedger = nullptr,
 		const class ALBSpacecraftProgressionAuthority* InProgression =
 			nullptr,
-		FName KindId = NAME_None);
+		FName KindId = NAME_None,
+		const class ALBSpacecraftResearchAuthority* InResearch = nullptr);
 
 	/** Sell-back fraction refunded when a station is removed through
 	 *  RemoveStationPowered with a ledger (PROVISIONAL: half). */
@@ -327,6 +333,26 @@ public:
 		int32 ReputationTier);
 
 	void RaiseSimAlert(const FString& Alert);
+	/**
+	 * What the LINE itself has to say this tick: the hold reason if it
+	 * is stopped, else - only while nothing is on the line - why it
+	 * will not start. A start refusal while craft are in flight ("no
+	 * accepted contract demand", "the head station is occupied") is
+	 * the queue answering, not a fault, and the stranger run through
+	 * the real panel (2026-09-02) read "No accepted contract demand
+	 * for this recipe" across the whole build of their one accepted
+	 * ship.
+	 */
+	static FString LineAlertFor(const FString& HoldReason,
+		const FString& StartRefusal, int32 UnitsInFlight);
+	/**
+	 * Raise the line's complaint, or - when the line has none this tick
+	 * and the strip is still showing the line's PREVIOUS complaint -
+	 * clear it. Complaints from other sources (a stalled machine) are
+	 * left alone; RaiseSimAlert's rule that an empty alert never clears
+	 * a real one still holds for everything else.
+	 */
+	void ApplyLineAlert(const FString& LineAlert);
 	const FString& GetSimAlert() const { return SimAlertText; }
 
 	/** Pure: the plainest true sentence for a machine whose output
@@ -566,6 +592,8 @@ private:
 	/** The running factory's most recent complaint (see RaiseSimAlert). */
 	UPROPERTY()
 	FString SimAlertText;
+	/** The last complaint ApplyLineAlert raised, so it clears only its own. */
+	FString LastLineAlertText;
 
 	float SimTimeScale = 1.f;
 

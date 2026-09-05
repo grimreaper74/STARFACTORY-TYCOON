@@ -60,7 +60,13 @@ const TArray<FLBSpacecraftStageDescriptor>& FLBSpacecraftProductionCatalog::Stag
 			TEXT("Component fabrication"), FName(TEXT("LineStation")), false,
 			{ ELBSpacecraftComponent::Electronics, ELBSpacecraftComponent::Power,
 			  ELBSpacecraftComponent::Propulsion, ELBSpacecraftComponent::Navigation,
-			  ELBSpacecraftComponent::Interior }),
+			  ELBSpacecraftComponent::Interior,
+			  // The Cargo's four ride the same fabrication stage; a
+			  // recipe that does not require them never produces them.
+			  ELBSpacecraftComponent::CargoBay,
+			  ELBSpacecraftComponent::DockingCollar,
+			  ELBSpacecraftComponent::ThrusterPods,
+			  ELBSpacecraftComponent::Shielding }),
 		MakeSpacecraftStage(ELBSpacecraftStage::AssemblyStaging,
 			TEXT("Assembly staging"), FName(TEXT("LineStation")), false, {}),
 		MakeSpacecraftStage(ELBSpacecraftStage::Assembly,
@@ -426,7 +432,8 @@ int32 FLBSpacecraftProductionCatalog::ComponentCountForItem(
 }
 
 void FLBSpacecraftProductionCatalog::ComponentsEarnedBy(
-	ELBSpacecraftStage Stage, TArray<ELBSpacecraftComponent>& OutComponents)
+	ELBSpacecraftStage Stage, TArray<ELBSpacecraftComponent>& OutComponents,
+	const FLBSpacecraftRecipe* Recipe)
 {
 	OutComponents.Reset();
 	const TArray<FLBSpacecraftStageDescriptor>& Table = StageTable();
@@ -445,10 +452,21 @@ void FLBSpacecraftProductionCatalog::ComponentsEarnedBy(
 			OutComponents.AddUnique(Component);
 		}
 	}
+	// A RECIPE NARROWS IT TO ITS OWN KINDS (2026-09-02): the stage table
+	// lists every kind any recipe can produce, and a Scout must not be
+	// priced or seeded for the Cargo's bay and collar.
+	if (Recipe != nullptr)
+	{
+		OutComponents.RemoveAll([Recipe](ELBSpacecraftComponent Kind)
+		{
+			return !Recipe->RequiredComponents.Contains(Kind);
+		});
+	}
 }
 
 void FLBSpacecraftProductionCatalog::ComponentsRefittedFrom(
-	ELBSpacecraftStage Stage, TArray<ELBSpacecraftComponent>& OutComponents)
+	ELBSpacecraftStage Stage, TArray<ELBSpacecraftComponent>& OutComponents,
+	const FLBSpacecraftRecipe* Recipe)
 {
 	OutComponents.Reset();
 	const TArray<FLBSpacecraftStageDescriptor>& Table = StageTable();
@@ -464,13 +482,23 @@ void FLBSpacecraftProductionCatalog::ComponentsRefittedFrom(
 			OutComponents.AddUnique(Component);
 		}
 	}
+	// A RECIPE NARROWS IT TO ITS OWN KINDS (2026-09-02): the stage table
+	// lists every kind any recipe can produce, and a Scout must not be
+	// priced or seeded for the Cargo's bay and collar.
+	if (Recipe != nullptr)
+	{
+		OutComponents.RemoveAll([Recipe](ELBSpacecraftComponent Kind)
+		{
+			return !Recipe->RequiredComponents.Contains(Kind);
+		});
+	}
 }
 
 float FLBSpacecraftProductionCatalog::RefitWorkFraction(
-	ELBSpacecraftStage EntryStage)
+	ELBSpacecraftStage EntryStage, const FLBSpacecraftRecipe* Recipe)
 {
 	TArray<ELBSpacecraftComponent> Refitted;
-	ComponentsRefittedFrom(EntryStage, Refitted);
+	ComponentsRefittedFrom(EntryStage, Refitted, Recipe);
 
 	// The whole-craft total is counted DIRECTLY rather than by asking
 	// ComponentsRefittedFrom for a stage before the first one. That
@@ -481,7 +509,11 @@ float FLBSpacecraftProductionCatalog::RefitWorkFraction(
 	{
 		for (ELBSpacecraftComponent Component : Row.ComponentsProduced)
 		{
-			Whole.AddUnique(Component);
+			if (Recipe == nullptr
+				|| Recipe->RequiredComponents.Contains(Component))
+			{
+				Whole.AddUnique(Component);
+			}
 		}
 	}
 	if (Whole.Num() <= 0)
@@ -728,9 +760,16 @@ bool FLBSpacecraftProductionCatalog::AdvanceUnit(FLBSpacecraftUnitState& Unit,
 	Unit.Stage = Target;
 	if (const FLBSpacecraftStageDescriptor* Row = FindStage(Target))
 	{
+		// ONLY WHAT THIS RECIPE REQUIRES. The stage table lists every
+		// kind the fabrication stage can produce; a Scout must not leave
+		// it carrying the Cargo's bay and collar (caught by the suite the
+		// day the Cargo's kinds were added, 2026-09-02).
 		for (ELBSpacecraftComponent Component : Row->ComponentsProduced)
 		{
-			Unit.ProducedComponents.AddUnique(Component);
+			if (Recipe.RequiredComponents.Contains(Component))
+			{
+				Unit.ProducedComponents.AddUnique(Component);
+			}
 		}
 	}
 	Unit.bCompleted = Unit.Stage == ELBSpacecraftStage::Dispatched;
@@ -840,10 +879,23 @@ const TArray<FLBSpacecraftRecipe>& FLBSpacecraftProductionCatalog::CanonicalReci
 		FLBSpacecraftRecipe Cargo;
 		Cargo.RecipeId = FName(TEXT("CARGO-01"));
 		Cargo.DisplayName = TEXT("Cargo-01");
+		// TEN COMPONENT KINDS, NOT SIX (owner 2026-09-02, "ok do it" to
+		// "what grows the line is components per craft"): the hauler
+		// carries a cargo bay, a docking collar, twin thruster pods and
+		// thermal plating that a Scout never has. Each is a visible
+		// feature on the hull, an item with an import price, and a
+		// sub-assembly recipe from parts already in the catalogue -
+		// never a presentation-only addition. Ten fittings across the
+		// line is what takes a Cargo line to six or eight stations for
+		// a real reason.
 		Cargo.RequiredComponents = {
 			ELBSpacecraftComponent::Hull, ELBSpacecraftComponent::Electronics,
 			ELBSpacecraftComponent::Power, ELBSpacecraftComponent::Propulsion,
-			ELBSpacecraftComponent::Navigation, ELBSpacecraftComponent::Interior };
+			ELBSpacecraftComponent::Navigation, ELBSpacecraftComponent::Interior,
+			ELBSpacecraftComponent::CargoBay,
+			ELBSpacecraftComponent::DockingCollar,
+			ELBSpacecraftComponent::ThrusterPods,
+			ELBSpacecraftComponent::Shielding };
 		// WHAT MAKES IT A BIGGER CRAFT RATHER THAN A DEARER ONE.
 		//
 		// Measured against its own bill of materials, a Cargo cost
@@ -865,18 +917,48 @@ const TArray<FLBSpacecraftRecipe>& FLBSpacecraftProductionCatalog::CanonicalReci
 			{ ELBSpacecraftComponent::Propulsion, 3 },
 			{ ELBSpacecraftComponent::Electronics, 2 },
 			{ ELBSpacecraftComponent::Navigation, 2 },
-			{ ELBSpacecraftComponent::Interior, 2 } };
-		Cargo.FixingOrder = SharedFixingOrder;
+			{ ELBSpacecraftComponent::Interior, 2 },
+			// Pods come as a pair, one each side; the rest are single.
+			{ ELBSpacecraftComponent::ThrusterPods, 2 } };
+		// The Cargo's OWN build sequence: shell, powerplant, engines,
+		// then the bay, the collar and the pods go onto the open
+		// structure, then the wiring and avionics, the cabin, and the
+		// plating LAST because it closes over the three structural
+		// additions - the access edges below say exactly that.
+		Cargo.FixingOrder = {
+			ELBSpacecraftComponent::Hull, ELBSpacecraftComponent::Power,
+			ELBSpacecraftComponent::Propulsion,
+			ELBSpacecraftComponent::CargoBay,
+			ELBSpacecraftComponent::DockingCollar,
+			ELBSpacecraftComponent::ThrusterPods,
+			ELBSpacecraftComponent::Electronics,
+			ELBSpacecraftComponent::Navigation,
+			ELBSpacecraftComponent::Interior,
+			ELBSpacecraftComponent::Shielding };
 		Cargo.AccessBlocks = SharedAccessBlocks;
+		Cargo.AccessBlocks.Append({
+			// The plating covers the bay, the collar and the pods.
+			Edge(ELBSpacecraftComponent::Shielding,
+				ELBSpacecraftComponent::CargoBay),
+			Edge(ELBSpacecraftComponent::Shielding,
+				ELBSpacecraftComponent::DockingCollar),
+			Edge(ELBSpacecraftComponent::Shielding,
+				ELBSpacecraftComponent::ThrusterPods) });
+		// Four more fittings are more line work: staging and assembly
+		// grow with them (PROVISIONAL, like every number here).
 		Cargo.NominalCycleSeconds = {
 			{ ELBSpacecraftStage::MaterialIntake, 30.f },
 			{ ELBSpacecraftStage::MaterialProcessing, 70.f },
 			{ ELBSpacecraftStage::HullFabrication, 140.f },
 			{ ELBSpacecraftStage::ComponentFabrication, 110.f },
-			{ ELBSpacecraftStage::AssemblyStaging, 45.f },
-			{ ELBSpacecraftStage::Assembly, 180.f },
+			{ ELBSpacecraftStage::AssemblyStaging, 60.f },
+			{ ELBSpacecraftStage::Assembly, 240.f },
 			{ ELBSpacecraftStage::Testing, 90.f } };
-		Cargo.RevenuePence = 36000000; // 360,000 cr (same 3x retune)
+		// Priced against the bigger bill: importing all ten kinds (with
+		// the Cargo's instance counts) is about 375,000 cr, so 440,000
+		// keeps importing everything a thin margin and fabricating the
+		// place the money is - the same rule the Scout's price follows.
+		Cargo.RevenuePence = 44000000; // 440,000 cr
 		Cargo.CraftEnvelopeCm = FVector(2100.f, 1119.f, 580.f);
 		// Bigger craft need a NAME: reputation tier 2 (PROVISIONAL).
 		Cargo.MinReputationTier = 2;

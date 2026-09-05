@@ -261,6 +261,48 @@ public:
 	/** How many finished craft are built and unsold. */
 	int32 GetStockedCraftCount() const;
 
+	/** THE CAP IS THE CARRIERS (2026-09-04). It used to be a flat 3
+	 *  living in the ledger, enforced with "WIP cap 3 reached" and
+	 *  explained by nothing on screen - a rule the player met as a
+	 *  refusal rather than a thing they could see or change. A craft
+	 *  rides a carrier for its whole time on the line, so the number
+	 *  of carriers owned IS how many craft can be in build; the build
+	 *  authority owns that number and pushes it here. Fails closed on
+	 *  a non-positive cap: a factory that can hold no craft at all is
+	 *  never what anyone meant. */
+	bool SetWIPCap(int32 NewCap, FString& OutReason);
+
+	int32 GetWIPCap() const { return Ledger.WIPCap; }
+
+	/** THE BROKER (2026-09-03). A finished craft with no matching order
+	 *  used to sit in stock with nothing the player could do but wait
+	 *  for the offer board to come round to its recipe again. It was
+	 *  never a soft-lock - the board round-robins, so a buyer always
+	 *  turns up eventually - but it was frozen capital and zero agency,
+	 *  which is the opposite of what a management game wants from an
+	 *  awkward situation. Selling to a broker is the decision that
+	 *  replaces the waiting: cash today at a discount, against full
+	 *  price whenever a real customer appears.
+	 *  Sells the OLDEST stocked craft of this recipe. Fails closed when
+	 *  nothing of that kind is in stock. */
+	bool SellStockedCraftToBroker(FName RecipeId, int64& OutPaidPence,
+		FString& OutReason);
+
+	/** What a broker would pay for this craft right now, defects and
+	 *  all - so the button can say the number before it is pressed. */
+	static int64 BrokerOfferPence(FName RecipeId,
+		const struct FLBSpacecraftUnitState& Unit);
+
+	/** Share of a craft's list price a broker pays. PROVISIONAL, and
+	 *  the owner's to tune like the station sell-back's 50%. */
+	static constexpr int64 BrokerPricePercent = 60;
+
+	/** The price deduction a craft carries for its own failures (and
+	 *  any concession granted in their place). Shared so a craft is
+	 *  discounted identically however it is sold. */
+	static int64 UnitDeductionPercent(
+		const struct FLBSpacecraftUnitState& Unit);
+
 private:
 	/** Pays for one craft against one order, defect penalty and all.
 	 *  Shared so a craft sold OUT OF STOCK is settled exactly as one

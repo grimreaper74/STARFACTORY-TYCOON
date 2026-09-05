@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "LBSpacecraftInventoryAuthority.h"
+#include "LBSpacecraftProductionTypes.h"
 
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
@@ -15,14 +16,19 @@ bool FLBSpacecraftItemCatalogueTest::RunTest(const FString& Parameters)
 	FString Reason;
 	TestTrue(TEXT("item table validates structurally"),
 		FLBSpacecraftItemCatalogue::ValidateItemTable(Reason));
-	// 131 = 9 raw + 16 processed + 100 parts + 6 components (the
-	// hundred-part catalogue, 2026-08-27).
-	TestEqual(TEXT("Phase-2 table carries 131 items"),
-		FLBSpacecraftItemCatalogue::GetItemTable().Num(), 135);
+	// 139 = 9 raw + 16 processed + 104 parts + 10 components. The
+	// hundred-part catalogue (2026-08-27) was 131 = 9 + 16 + 100 + 6;
+	// the Cargo tier's four kinds (2026-09-02) added four parts and
+	// four components on top of it.
+	TestEqual(TEXT("Phase-2 table carries 139 items"),
+		FLBSpacecraftItemCatalogue::GetItemTable().Num(), 139);
 	TestNull(TEXT("unknown ids resolve to nothing"),
 		FLBSpacecraftItemCatalogue::FindItem(FName(TEXT("Raw.Unobtainium"))));
-	// The assembled-component rows mirror the six-slot BOM one-to-one.
-	for (uint8 Component = 0; Component < 6; ++Component)
+	// The assembled-component rows mirror the full BOM one-to-one -
+	// all ten kinds, Scout's six and Cargo's four alike, not just the
+	// first six the table used to stop at.
+	for (uint8 Component = 0; Component < LBSpacecraftComponentKindCount;
+		++Component)
 	{
 		const FLBSpacecraftItemDefinition* Row =
 			FLBSpacecraftItemCatalogue::FindItem(
@@ -37,7 +43,8 @@ bool FLBSpacecraftItemCatalogueTest::RunTest(const FString& Parameters)
 		}
 	}
 	TestTrue(TEXT("out-of-range BOM index yields NAME_None"),
-		FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(6).IsNone());
+		FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
+			LBSpacecraftComponentKindCount).IsNone());
 	return true;
 }
 

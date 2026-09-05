@@ -257,6 +257,12 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		// first contract to the clock learning both from a stall toast.
 		bool bAllLineCrewed = false;
 		bool bHasDock = false;
+		// THE BOOTH IS A TAUGHT STEP (stranger run through the real
+		// panel, 2026-09-02): three crewed stations and a dock ticked
+		// every line here, and "Commission the factory" refused with
+		// "The line has no spray booth". The list had set the player
+		// up to fail the step it was pointing at.
+		bool bHasBooth = false;
 		if (GameMode->GetBuildAuthority() != nullptr)
 		{
 			int32 LineStations = 0;
@@ -281,6 +287,8 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 				}
 				bHasDock |= Record.DefinitionId
 					== FName(TEXT("DeliveryDock"));
+				bHasBooth |= !Definition->StageClassId.IsNone()
+					&& Definition->bProcessStation;
 			}
 			bAllLineCrewed = LineStations > 0 && Uncrewed == 0;
 		}
@@ -305,6 +313,9 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 		AddLine(LOCTEXT("StepStation",
 			"Place assembly stations - the track connects them")
 			.ToString(), bHasStation);
+		AddLine(LOCTEXT("StepBooth",
+			"Add a spray booth to the line - every craft leaves in the customer's livery")
+			.ToString(), bHasBooth);
 		AddLine(LOCTEXT("StepCrew",
 			"Hire drones at every station - uncrewed work is dirty")
 			.ToString(), bHasAnyDrone);
@@ -344,11 +355,51 @@ void ULBSpacecraftObjectivesWidget::Rebuild()
 			const int32 Stock = Ledger->GetStockedCraftCount();
 			AddLine(Stock > 0
 				? FText::Format(LOCTEXT("NextSellStock",
-					"NEXT: accept a contract - {0} finished ship(s) sell the moment one is taken"),
+					"NEXT: accept a matching contract - {0} finished ship(s) sell the moment one is taken"),
 					Stock).ToString()
 				: LOCTEXT("NextAccept",
 					"NEXT: accept a contract - the line is idle (Contracts tab)")
 					.ToString(), false);
+		}
+	}
+	// THE PACE-SETTER (2026-09-03). Both benchmarks let a player look
+	// at the floor and see where the problem is; this game had OEE
+	// numbers and no answer to "what is holding me up". On a pulse line
+	// the answer is exact - every station waits for the slowest one -
+	// so it is stated plainly, with the GAP to the runner-up, because
+	// that gap is all that fixing it would actually win before another
+	// station takes over as the bottleneck.
+	if (GameMode->GetCoordinator() != nullptr)
+	{
+		FLBSpacecraftPaceSetter Pace;
+		if (GameMode->GetCoordinator()->GetPaceSetter(Pace))
+		{
+			AddLine(FText::Format(
+				LOCTEXT("PaceSetter",
+					"PACE: {0} sets it at {1}s of every {2}s pulse"),
+				FText::FromName(Pace.StationId),
+				FText::AsNumber(FMath::RoundToInt(Pace.StopSeconds)),
+				FText::AsNumber(FMath::RoundToInt(Pace.PulseSeconds)))
+					.ToString(), false);
+			// Only worth advising when there is something to win: if the
+			// runner-up is right behind, the line is already balanced
+			// and telling the player to fix this station would be a lie.
+			const float Gain = Pace.StopSeconds - Pace.RunnerUpSeconds;
+			if (Gain >= 1.f)
+			{
+				AddLine(FText::Format(
+					Pace.bProcessStation
+						// A booth takes what it takes - there is no
+						// fitting order on it to split.
+						? LOCTEXT("PaceProcess",
+							"  up to {0}s per craft if it were not the "
+							"slowest - crew cannot hurry a process")
+						: LOCTEXT("PaceAdvice",
+							"  up to {0}s per craft back by crewing it "
+							"or splitting its fitting order"),
+					FText::AsNumber(FMath::RoundToInt(Gain)))
+						.ToString(), false);
+			}
 		}
 	}
 	struct FLBSpacecraftObjectiveRow

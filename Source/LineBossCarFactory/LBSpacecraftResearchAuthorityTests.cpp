@@ -19,8 +19,45 @@ bool FLBSpacecraftResearchCatalogueTest::RunTest(const FString& Parameters)
 	FString Reason;
 	TestTrue(TEXT("research table validates"),
 		FLBSpacecraftResearchCatalogue::ValidateNodeTable(Reason));
-	TestEqual(TEXT("four tiers, the route Mk2 marks and the parts Mk2 marks"),
-		FLBSpacecraftResearchCatalogue::GetNodeTable().Num(), 6);
+	// 12 since 2026-09-03: the four tiers and the route Mk2 marks as
+	// before, the old single parts-Mk2 node split into three
+	// specialisations (stock / electronics / propulsion-and-fit-out)
+	// so the player upgrades their actual bottleneck first, and a new
+	// four-node CREW branch that opens the specialist drone kinds.
+	TestEqual(TEXT("four tiers, route marks, three parts specialisations "
+		"and the crew branch"),
+		FLBSpacecraftResearchCatalogue::GetNodeTable().Num(), 12);
+	// THE SHAPE MATTERS MORE THAN THE COUNT: a tree with real choices
+	// has more than one node a player can afford next, so pin that
+	// several nodes share the same prerequisite rather than forming
+	// one chain. T4 alone opens the three parts specialisations.
+	{
+		int32 OffT4 = 0;
+		for (const FLBSpacecraftResearchNode& Node :
+			FLBSpacecraftResearchCatalogue::GetNodeTable())
+		{
+			if (Node.Prerequisites.Contains(FName(TEXT("Research.Mfg.T4"))))
+			{
+				++OffT4;
+			}
+		}
+		TestEqual(TEXT("three parts specialisations branch off T4 - a "
+			"choice, not a queue"), OffT4, 3);
+	}
+	// The crew branch opens kinds, never families, and every kind it
+	// names is real (the validator proves the second half).
+	{
+		int32 CrewKinds = 0;
+		for (const FLBSpacecraftResearchNode& Node :
+			FLBSpacecraftResearchCatalogue::GetNodeTable())
+		{
+			CrewKinds += Node.UnlockedDroneKinds.Num();
+		}
+		TestEqual(TEXT("six specialist crew kinds are researchable"),
+			CrewKinds, 6);
+	}
+	TestEqual(TEXT("only the plain assembly drone is free"),
+		FLBSpacecraftResearchCatalogue::GetDefaultDroneKinds().Num(), 1);
 	// 9 = the five slice families, power plant, storage rack, and BOTH
 	// halls (owner 2026-08-26: generators and parts machines live only
 	// inside their buildings, so neither hall can be research-locked).
@@ -478,6 +515,64 @@ bool FLBSpacecraftContractDeadlineTest::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("a name can be lost but never goes negative"),
 		Name->GetPoints() >= 0);
+
+	World->DestroyWorld(false);
+	return true;
+}
+
+// THE CREW BRANCH (2026-09-03): specialist drone kinds are research
+// CONTENT, unlocked and hired like a machine is built - never a stat
+// bonus applied behind the player's back. This pins both halves: an
+// unresearched factory can still crew normally with the free kind, and
+// a locked specialist is refused at the hire that names it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftResearchCrewKindTest,
+	"LineBoss.Spacecraft.Research.SpecialistCrewIsUnlockedContent",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftResearchCrewKindTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false,
+		FName(TEXT("LBSpacecraftResearchCrewWorld")));
+	ALBSpacecraftResearchAuthority* Research =
+		World->SpawnActor<ALBSpacecraftResearchAuthority>();
+	FString Reason;
+
+	// NOBODY IS GATED OUT OF PLAYING: the plain drone, and the
+	// kind-less hire every existing caller makes, always work.
+	TestTrue(TEXT("the plain assembly drone is free"),
+		Research->IsDroneKindUnlocked(FName(TEXT("Assembly"))));
+	TestTrue(TEXT("a kind-less hire is the free drone, never a refusal"),
+		Research->IsDroneKindUnlocked(NAME_None));
+
+	// The specialists are earned.
+	TestFalse(TEXT("the spray drone starts locked"),
+		Research->IsDroneKindUnlocked(FName(TEXT("Spray"))));
+	TestFalse(TEXT("so does the ground sprayer, two nodes deeper"),
+		Research->IsDroneKindUnlocked(FName(TEXT("GroundSprayer"))));
+
+	// Unlocking is the ordinary node path: prerequisites and points.
+	TestTrue(TEXT("points bank"), Research->AddPoints(100, Reason));
+	TestFalse(TEXT("the crew branch needs its prerequisite first"),
+		Research->UnlockNode(FName(TEXT("Research.Crew.Specialists")),
+			Reason));
+	TestTrue(TEXT("basic fabrication first"),
+		Research->UnlockNode(FName(TEXT("Research.Mfg.T1")), Reason));
+	TestTrue(TEXT("then crew specialisation"),
+		Research->UnlockNode(FName(TEXT("Research.Crew.Specialists")),
+			Reason));
+	TestTrue(TEXT("the spray drone is hireable now"),
+		Research->IsDroneKindUnlocked(FName(TEXT("Spray"))));
+	TestTrue(TEXT("and so is the winch beside it"),
+		Research->IsDroneKindUnlocked(FName(TEXT("Winch"))));
+	TestFalse(TEXT("but the ground crew is still its own node"),
+		Research->IsDroneKindUnlocked(FName(TEXT("GroundLifter"))));
+
+	// UNLOCKING A CREW NODE OPENS NO MACHINES. The two axes stay
+	// separate - a crew node that quietly unlocked a station family
+	// would be exactly the kind of hidden effect this branch avoids.
+	TestFalse(TEXT("a crew node opens no station family"),
+		Research->IsStationClassUnlocked(FName(TEXT("PropulsionStation"))));
 
 	World->DestroyWorld(false);
 	return true;

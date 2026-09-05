@@ -1480,10 +1480,17 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						: FString());
 			}
 		}
-		// THE CRANES (PULSE_LINE_DESIGN_v001). One comes with the hall;
-		// each further crane lets one more craft move per crane trip of
-		// a pulse, up to one per gap between line stations. Offered
-		// only inside the factory, like everything on the line.
+		// THE TRANSFER DRIVES (PULSE_LINE_DESIGN_v001; reskinned
+		// 2026-09-03, "don't think we need the cranes"). Same upgrade
+		// axis as before the visual crane was removed - one comes with
+		// the hall, each further one lets one more craft move per
+		// transfer trip of a pulse, up to one per gap between line
+		// stations - the internal name (GantryCrane tag, GetCraneCount,
+		// GantryCraneCostPence) is unchanged for save compatibility;
+		// only what the player reads changed, since "buy a gantry
+		// crane" stopped making sense the moment there was no longer a
+		// crane on screen to buy. Offered only inside the factory, like
+		// everything on the line.
 		if (!bOnSiteMap && GameMode->GetBuildAuthority() != nullptr)
 		{
 			const ALBSpacecraftBuildAuthority* CraneBuild =
@@ -1491,9 +1498,9 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			const int32 Have = CraneBuild->GetCraneCount();
 			const int32 Cap = CraneBuild->GetMaxCraneCount();
 			AddSectionLabel(LOCTEXT("SectionCranes",
-				"THE LINE - GANTRY CRANES").ToString());
+				"THE LINE - TRANSFER DRIVES").ToString());
 			AddTaggedButton(FText::Format(
-				LOCTEXT("CraneRow", "Gantry crane  ({0} of {1})"),
+				LOCTEXT("CraneRow", "Transfer drive  ({0} of {1})"),
 				FText::AsNumber(Have), FText::AsNumber(Cap)).ToString(),
 				FName(TEXT("GantryCrane")),
 				[this](FName InTag) { HandleBuyCrane(); },
@@ -1502,7 +1509,7 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						"one per gap - build more stations for more")
 						.ToString()
 					: FText::Format(LOCTEXT("CraneNext",
-						"{0}   +1 lets {1} craft move per crane trip"),
+						"{0}   +1 lets {1} craft move per transfer trip"),
 						FText::FromString(
 							ULBSpacecraftTopBarWidget::FormatCurrency(
 								ALBSpacecraftBuildAuthority
@@ -1587,12 +1594,30 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						Parts = LOCTEXT("SplitPassThrough",
 							"Pass-through").ToString();
 					}
-					const float StopSeconds = bRecipe
+					// CREW COUNTS, and this row used to pretend it did
+					// not (found 2026-09-03 alongside the pace-setter
+					// readout, which would otherwise have contradicted
+					// this tile). StationFitSeconds is the NOMINAL
+					// share of the fitting work; the stop a player
+					// actually waits through is that divided by the
+					// station's work bonus, which spans 0.5x to 2.5x.
+					// An unevenly crewed line was showing two stations
+					// the same "~40 s stop" when one really took five
+					// times the other.
+					float StopSeconds = bRecipe
 						? FLBSpacecraftProductionCatalog::
 							StationFitSeconds(SplitRecipe,
 								SplitCounts[Index], TotalAllocated,
 								SplitStations.Num())
 						: 0.f;
+					if (StopSeconds > 0.f
+						&& GameMode->GetBuildAuthority() != nullptr)
+					{
+						StopSeconds /= FMath::Max(
+							GameMode->GetBuildAuthority()
+								->GetStationWorkBonus(SplitStations[Index]),
+							KINDA_SMALL_NUMBER);
+					}
 					// LIVE FITTING PROGRESS: when a craft stands at
 					// this station, the row says which part of the
 					// slice is going on and how far through the stop
@@ -1927,6 +1952,44 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				{
 					AddSectionLabel(BuildFinishedStockLine(Row.Key,
 						Row.Value));
+					// THE BROKER (2026-09-03). Stock used to be a line
+					// of text and nothing else: a finished craft with
+					// no matching order left the player waiting for
+					// the offer board to come round again, with their
+					// capital frozen and no move available. The price
+					// is on the button because the whole point is an
+					// informed trade - cash today against full price
+					// whenever a real customer turns up.
+					{
+						const FLBSpacecraftUnitState* Stocked = nullptr;
+						for (const FLBSpacecraftUnitState& Unit :
+							StockLedger->GetUnits())
+						{
+							if (Unit.bAwaitingSale
+								&& Unit.RecipeId == Row.Key)
+							{
+								Stocked = &Unit;
+								break;
+							}
+						}
+						const int64 Offer = Stocked != nullptr
+							? ALBSpacecraftProductionAuthority
+								::BrokerOfferPence(Row.Key, *Stocked)
+							: 0;
+						if (Offer > 0)
+						{
+							AddTaggedButton(FText::Format(
+								LOCTEXT("SellToBroker",
+									"Sell one to a broker  ({0})"),
+								FText::FromString(
+									ULBSpacecraftTopBarWidget
+										::FormatCurrency(Offer)))
+									.ToString(),
+								Row.Key,
+								[this](FName InTag)
+								{ HandleSellToBroker(InTag); });
+						}
+					}
 				}
 			}
 		}
@@ -2144,6 +2207,31 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 			{
 				GridSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
 			}
+			// IS THERE A NEXT SHIP? (stranger run through the real panel,
+			// 2026-09-02): the first ship delivered, its one-craft
+			// contract closed, and the grid went straight back to
+			// "Order the 6 missing part(s)" for a ship nobody had
+			// ordered. Accepted demand not yet DISPATCHED is what makes
+			// the order button honest. A craft already on the line still
+			// counts - it eats its parts station by station, and the
+			// first cut of this rule subtracted it, which hid the button
+			// from a player whose only ship sat at the head station
+			// waiting for the very parts it would not let them order.
+			bool bNextShipDemanded = false;
+			if (GameMode->GetProductionAuthority() != nullptr)
+			{
+				for (const FLBSpacecraftContract& Contract :
+					GameMode->GetProductionAuthority()->GetContracts())
+				{
+					if (Contract.State == ELBSpacecraftContractState::Accepted
+						&& Contract.RecipeId == LineRecipeId()
+						&& Contract.Quantity > Contract.DispatchedCount)
+					{
+						bNextShipDemanded = true;
+						break;
+					}
+				}
+			}
 			int64 MissingCost = 0;
 			int32 Missing = 0;
 			int32 PartIndex = 0;
@@ -2165,9 +2253,25 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 							StoreId, ItemId);
 					}
 				}
+				// ALREADY ON ITS WAY IS NOT MISSING (same run): four of six
+				// ordered parts had landed and the button offered to
+				// order the other two again while their lorry was still
+				// thirty seconds out.
+				int32 OnItsWay = 0;
+				if (GameMode->GetInventoryAuthority() != nullptr)
+				{
+					for (const FLBSpacecraftResourceOrder& Order :
+						GameMode->GetInventoryAuthority()->GetPendingOrders())
+					{
+						if (Order.ItemId == ItemId)
+						{
+							OnItsWay += Order.Count;
+						}
+					}
+				}
 				const int64 Price =
 					FLBSpacecraftItemCatalogue::GetItemImportPricePence(ItemId);
-				if (Held <= 0 && Price > 0)
+				if (Held <= 0 && OnItsWay <= 0 && Price > 0)
 				{
 					MissingCost += Price;
 					++Missing;
@@ -2177,16 +2281,19 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 				const FString Sub = Held > 0
 					? FText::Format(LOCTEXT("PartReady", "{0} ready"),
 						FText::AsNumber(Held)).ToString()
-					: ULBSpacecraftTopBarWidget::FormatCurrency(Price);
+					: OnItsWay > 0
+						? LOCTEXT("PartOnItsWay", "on its way").ToString()
+						: ULBSpacecraftTopBarWidget::FormatCurrency(Price);
 				UTexture* Icon = LBSpacecraftCommandPanelPrivate::
 					SpacecraftPanelIconForTag(ItemId);
 				ULBSpacecraftTaggedButton* Tile = AddTileButton(PartGrid,
 					PartIndex++, Short, Sub, ItemId,
 					[this](FName InTag) { HandleImport(InTag); }, Icon,
-					Held <= 0 && Price > PartsCash, Held > 0, FString());
+					Held <= 0 && OnItsWay <= 0 && Price > PartsCash, Held > 0,
+					FString());
 				(void)Tile;
 			}
-			if (Missing > 0)
+			if (Missing > 0 && bNextShipDemanded)
 			{
 				AddTaggedButton(FText::Format(LOCTEXT("OrderMissing",
 					"Order the {0} missing part(s)  ({1})"),
@@ -2195,6 +2302,24 @@ void ULBSpacecraftCommandPanelWidget::RebuildContent()
 						MissingCost))).ToString(), NAME_None,
 					[this](FName InTag) { HandleOrderMissingParts(InTag); },
 					FString(), MissingCost > PartsCash, true);
+			}
+			else if (Missing > 0)
+			{
+				UTextBlock* NoNext = WidgetTree->ConstructWidget<UTextBlock>(
+					UTextBlock::StaticClass());
+				NoNext->SetText(LOCTEXT("NoNextShip",
+					"No contract demands another ship - accept one, then order its parts"));
+				NoNext->SetAutoWrapText(true);
+				NoNext->SetColorAndOpacity(FSlateColor(
+					LBSpacecraftCommandPanelPrivate::SpacecraftPanelSubText));
+				FSlateFontInfo NoNextFont = NoNext->GetFont();
+				NoNextFont.Size = 11;
+				NoNext->SetFont(NoNextFont);
+				if (UVerticalBoxSlot* NoNextSlot =
+					ContentBox->AddChildToVerticalBox(NoNext))
+				{
+					NoNextSlot->SetPadding(FMargin(4.f, 6.f, 4.f, 2.f));
+				}
 			}
 		}
 		AddSectionLabel(
@@ -2971,6 +3096,25 @@ void ULBSpacecraftCommandPanelWidget::HandleRemoveStation(FName StationId)
 	}
 }
 
+void ULBSpacecraftCommandPanelWidget::HandleSellToBroker(FName RecipeId)
+{
+	if (GameMode == nullptr
+		|| GameMode->GetProductionAuthority() == nullptr)
+	{
+		return;
+	}
+	int64 Paid = 0;
+	FString Reason;
+	const bool bSold = GameMode->GetProductionAuthority()
+		->SellStockedCraftToBroker(RecipeId, Paid, Reason);
+	PanelActionText = Reason;
+	if (!bSold)
+	{
+		LBSpacecraftCommandPanelPrivate::SpacecraftPlayInterfaceCue(this,
+			FName(TEXT("Refusal")));
+	}
+}
+
 void ULBSpacecraftCommandPanelWidget::HandleCommission(FName Unused)
 {
 	(void)Unused;
@@ -3377,10 +3521,14 @@ void ULBSpacecraftCommandPanelWidget::HandleInstallDroneKind(FName KindId)
 		return;
 	}
 	FString Reason;
+	// The RESEARCH authority goes in here and only here: this is the
+	// button where the player picks a specific crew KIND, so it is the
+	// one hire a locked specialist must be refused at. The kind-less
+	// hire above always gets the free assembly drone.
 	ALBSpacecraftGameMode::InstallStationDronePowered(
 		*GameMode->GetBuildAuthority(), Pawn->GetSelectedStation(), Reason,
 		GameMode->GetProductionAuthority(), GameMode->GetProgression(),
-		KindId);
+		KindId, GameMode->GetResearchAuthority());
 	PanelActionText = Reason;
 	// The fleet mirrors the station records, so a new crew member has
 	// to be told about or it never appears on the floor.

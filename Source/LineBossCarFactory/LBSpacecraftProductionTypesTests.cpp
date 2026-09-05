@@ -1,6 +1,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "LBSpacecraftProductionTypes.h"
+#include "LBSpacecraftInventoryAuthority.h"
+#include "LBSpacecraftCraftingAuthority.h"
 
 #include "Misc/AutomationTest.h"
 
@@ -162,19 +164,35 @@ bool FLBSpacecraftFixingOrderTest::RunTest(const FString& Parameters)
 			(int32)INDEX_NONE);
 	}
 
-	// Internals are SHARED across craft tiers: a tier differs in
-	// quantities and stage times, never in how it goes together. If a
-	// later tier ever needs its own sequence, that is a decision to make
-	// deliberately, not to discover.
+	// Internals are shared across craft tiers, and until 2026-09-02 so
+	// was the whole sequence. The Cargo made the deliberate decision
+	// this comment used to reserve: it carries kinds of its own and
+	// fits them in its own order. What still holds for every tier is
+	// that it STARTS like the Scout - shell, powerplant, engines - and
+	// fits every kind the Scout fits.
 	if (Recipes.Num() >= 2)
 	{
 		for (int32 Index = 1; Index < Recipes.Num(); ++Index)
 		{
+			const TArray<ELBSpacecraftComponent>& First =
+				Recipes[0].FixingOrder;
+			const TArray<ELBSpacecraftComponent>& Later =
+				Recipes[Index].FixingOrder;
+			bool bSameStart = Later.Num() >= 3 && First.Num() >= 3;
+			for (int32 Step = 0; bSameStart && Step < 3; ++Step)
+			{
+				bSameStart = Later[Step] == First[Step];
+			}
+			bool bCoversFirst = true;
+			for (ELBSpacecraftComponent Kind : First)
+			{
+				bCoversFirst &= Later.Contains(Kind);
+			}
 			TestTrue(*FString::Printf(
-				TEXT("%s goes together like %s"),
+				TEXT("%s starts like %s and fits everything it fits"),
 				*Recipes[Index].RecipeId.ToString(),
 				*Recipes[0].RecipeId.ToString()),
-				Recipes[Index].FixingOrder == Recipes[0].FixingOrder);
+				bSameStart && bCoversFirst);
 		}
 	}
 
@@ -251,6 +269,67 @@ bool FLBSpacecraftRecipeValidationTest::RunTest(const FString& Parameters)
 	Free.RevenuePence = 0;
 	TestFalse(TEXT("recipe without revenue is rejected"),
 		FLBSpacecraftProductionCatalog::ValidateRecipe(Free, Error));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLBSpacecraftCargoTenComponentsTest,
+	"LineBoss.Spacecraft.Production.TheCargoCarriesTenKindsEachBackedByRealParts",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FLBSpacecraftCargoTenComponentsTest::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	// Owner 2026-09-02: the line grows by components per craft, and a
+	// visible feature must be wired into the parts catalogue. The Cargo
+	// tier carries ten kinds; every one is an item with an import price
+	// and a sub-assembly recipe that produces it, the fixing order
+	// covers them and the plating goes on last.
+	FLBSpacecraftRecipe Cargo;
+	TestTrue(TEXT("Cargo-01 resolves"),
+		FLBSpacecraftProductionCatalog::FindRecipe(FName(TEXT("CARGO-01")),
+			Cargo));
+	TestEqual(TEXT("ten kinds"), Cargo.RequiredComponents.Num(), 10);
+	FString Error;
+	TestTrue(TEXT("its fixing order validates"),
+		FLBSpacecraftProductionCatalog::ValidateFixingOrder(Cargo, Error));
+	TestEqual(TEXT("the plating goes on last"),
+		Cargo.FixingOrder.Last(), ELBSpacecraftComponent::Shielding);
+	const TArray<FLBSpacecraftItemRecipe>& Recipes =
+		FLBSpacecraftRecipeCatalogue::GetRecipeTable();
+	for (ELBSpacecraftComponent Kind : Cargo.RequiredComponents)
+	{
+		const FName ItemId =
+			FLBSpacecraftItemCatalogue::GetAssembledComponentItemId(
+				static_cast<uint8>(Kind));
+		TestFalse(TEXT("every kind maps to an item id"), ItemId.IsNone());
+		const FLBSpacecraftItemDefinition* Row =
+			FLBSpacecraftItemCatalogue::FindItem(ItemId);
+		TestTrue(*FString::Printf(TEXT("%s is an assembled component row"),
+			*ItemId.ToString()), Row != nullptr && Row->Category
+				== ELBSpacecraftItemCategory::AssembledComponent);
+		TestTrue(*FString::Printf(TEXT("%s has an import price"),
+			*ItemId.ToString()),
+			FLBSpacecraftItemCatalogue::GetItemImportPricePence(ItemId) > 0);
+		bool bMade = false;
+		for (const FLBSpacecraftItemRecipe& Recipe : Recipes)
+		{
+			for (const FLBSpacecraftItemStack& Output : Recipe.Outputs)
+			{
+				bMade |= Output.ItemId == ItemId;
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("%s has a recipe that makes it"),
+			*ItemId.ToString()), bMade);
+	}
+	// The Scout is untouched: six kinds, and its loadout is its own.
+	FLBSpacecraftRecipe Scout;
+	TestTrue(TEXT("Scout-01 resolves"),
+		FLBSpacecraftProductionCatalog::FindRecipe(FName(TEXT("SCOUT-01")),
+			Scout));
+	TestEqual(TEXT("the Scout keeps six"), Scout.RequiredComponents.Num(), 6);
+	FString TableReason;
+	TestTrue(TEXT("the item table still validates"),
+		FLBSpacecraftItemCatalogue::ValidateItemTable(TableReason));
 	return true;
 }
 

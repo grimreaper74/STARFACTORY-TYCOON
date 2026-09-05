@@ -66,6 +66,28 @@ struct FLBSpacecraftDepartingVisual
 	float GearRetractTravelCm = 0.f;
 };
 
+/** Wraps a per-key array of mesh components so it can carry UPROPERTY()
+ *  as a TMap value - UHT rejects TArray directly as a map value (nested
+ *  containers are not reflectable), which is why ScoutV2Parts,
+ *  CargoHullParts, StrippedHullSections, StationLiftRams and
+ *  BufferCrates could not simply take the bare UPROPERTY() that closed
+ *  the same GC gap on UnitVisuals/StationVisuals/UnitStands - a build
+ *  attempt confirmed UHT's error is exactly that (2026-09-04). */
+USTRUCT()
+struct FLBMeshComponentArray
+{
+	GENERATED_BODY()
+
+	FLBMeshComponentArray() = default;
+	explicit FLBMeshComponentArray(TArray<TObjectPtr<UStaticMeshComponent>> InItems)
+		: Items(MoveTemp(InItems))
+	{
+	}
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Items;
+};
+
 UCLASS()
 class LINEBOSSCARFACTORY_API ALBSpacecraftWIPPresentationActor : public AActor
 {
@@ -614,25 +636,6 @@ public:
 	 *  holds through the middle where the work happens, and lowers over
 	 *  the last. Eased at both ends - a lift that snapped would read as
 	 *  a teleport. Pure and deterministic. */
-	/** How high the craft rides while the gantry crane carries it
-	 *  between stations, in cm. Enough to clear the station cradles and
-	 *  the parts bins it passes over, and to read as CARRIED rather
-	 *  than as hovering. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
-	float CraneCarryRiseCm = 260.f;
-
-	/** How fast the gantry travels along the line, cm/s. A gantry runs
-	 *  on rails, so this is the ONLY axis it moves on. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LineBoss")
-	float CraneTravelSpeedCmS = 900.f;
-
-	/** The carry height at a point in a station's cycle: zero while the
-	 *  craft is parked, then rise, hold and set down across the slide
-	 *  window. Pure so the choreography is testable without a world -
-	 *  the same reason ComputeStationLiftCm is. */
-	static float ComputeCraneCarryCm(float Progress01, float SlideStart,
-		float CarryCm);
-
 	/** Does this station's own shelf hold that component right now? */
 	bool HasKitComponent(FName StationId, FName ComponentId) const;
 
@@ -704,7 +707,8 @@ private:
 	 *  first - a parent's DestroyComponent() DETACHES children rather
 	 *  than destroying them, the trap the landing gear legs and the
 	 *  rotor voices already taught this file twice. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> ScoutV2Parts;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> ScoutV2Parts;
 
 	/** Which of the five non-Hull assemblies a Scout unit has actually
 	 *  had FITTED so far (owner, 2026-08-30: "the hull parts need to be
@@ -718,6 +722,21 @@ private:
 	 *  what stops it being re-attached every tick once it has. */
 	TMap<FName, TSet<ELBSpacecraftComponent>> ScoutV2AttachedComponents;
 
+	/** The Cargo's own four kinds (bay, collar, thruster pods, plating),
+	 *  attached as children once the REAL v002 hull resolves - the
+	 *  mirror of ScoutV2Parts/ScoutV2AttachedComponents just above for
+	 *  a hull that is not the Scout's. Before 2026-09-03 evening this
+	 *  never had anywhere to attach TO: the Cargo either wore the
+	 *  Scout's stand-in (bCargoOnScoutForm, blockouts only) or its own
+	 *  v001 single fused mesh (everything already sculpted in, nothing
+	 *  to attach). Getting the real v002 hull to resolve is what
+	 *  exposed the gap - CargoCraftHull != nullptr skips BOTH of those
+	 *  branches, so without this map a real hull showed literally none
+	 *  of its four kinds, real or blockout. */
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> CargoHullParts;
+	TMap<FName, TSet<ELBSpacecraftComponent>> CargoHullAttachedComponents;
+
 	/** The four real hull-section pallets (nose/fwd/mid/aft), riding
 	 *  loose on a Scout unit BEFORE Hull is fitted - "stripped down and
 	 *  built live" (owner, 2026-08-30): the ship reads as its own real
@@ -726,7 +745,8 @@ private:
 	 *  mesh takes over. Attached as children of the unit's primary
 	 *  visual component, so they ride every crane-carry/slide for free;
 	 *  destroyed (never just detached) wherever the primary is. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> StrippedHullSections;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> StrippedHullSections;
 
 
 	/** THE INSPECTION SWEEP (owner 2026-08-27). A bar of light that
@@ -876,6 +896,32 @@ private:
 		float RetractTravelCm = 0.f;
 	};
 	TMap<FName, FLBSpacecraftGearSet> UnitGear;
+
+	/** THE CRAFT'S OWN STAND (2026-09-03, replacing the gantry crane):
+	 *  a flat platform attached under a unit's primary visual component
+	 *  the moment it first appears on the line, sized to the craft's
+	 *  own bounds. It travels with the craft for its whole time on the
+	 *  line - through every station's own four-post working lift
+	 *  (unchanged, unrelated - that still raises the craft AND its
+	 *  stand together for the ground crew) and every pulse's slide to
+	 *  the next station - and is destroyed when the unit departs. A
+	 *  fresh one is made for whichever craft is admitted next, so a new
+	 *  stand reads as appearing at the head of the line the moment the
+	 *  previous occupant's has moved on, without any separate idle-prop
+	 *  bookkeeping. Hue-free blockout (MakeBlockComponent) until a real
+	 *  asset replaces it - blockout first when a model is missing, the
+	 *  same rule every other stand-in in this file follows. UPROPERTY
+	 *  is load-bearing here exactly as it is on UnitVisuals above (see
+	 *  its comment: an unmarked TObjectPtr cache crashed a packaged
+	 *  soak on 2026-09-01 when GC freed what a stale latch still
+	 *  pointed at) - found untagged by the 2026-09-03 integration-gap
+	 *  audit, latent rather than reachable today since create/destroy
+	 *  are tightly paired, fixed anyway for the same defense-in-depth
+	 *  reason the file already states. */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> UnitStands;
+	UStaticMeshComponent* MakeUnitStand(UStaticMeshComponent* CraftComponent,
+		FName UnitId);
 
 	/** Builds the three gear legs under a craft mesh component. Draws
 	 *  nothing at all if the primitives are unavailable - never a
@@ -1066,49 +1112,26 @@ private:
 	TObjectPtr<class UInstancedStaticMeshComponent> HallTrussInstances;
 	TObjectPtr<class UInstancedStaticMeshComponent> HallLightInstances;
 
-	/** The gantry itself, held separately from the rest of the hall
-	 *  furniture because it is the only piece that MOVES. */
-	/** Every portal standing on the line's track. One per gap, or one
-	 *  for the whole line - the count is switchable while the two are
-	 *  compared in play (owner 2026-08-29, "will have to test each"). */
-	TArray<TWeakObjectPtr<UStaticMeshComponent>> HallCranes;
-
-	/** Idle post of each crane in HallCranes, index for index. */
-	/** Per-crane park position and travel axis: cranes ride the rails
-	 *  of the track LEG they serve (owner 2026-09-01: "if i place a
-	 *  station at the top the crane isnt over it" - the old rig was a
-	 *  single hall-centre column that ignored where the line ran). */
-	TArray<FVector> HallCraneParkCm;
-	TArray<bool> HallCraneAxisAlongY;
-
-	/** The crane TickHallCrane is currently driving - the one nearest
-	 *  the craft being carried. The hoist rig hangs off this one. */
-	TWeakObjectPtr<UStaticMeshComponent> HallCrane;
-
-	/** Hoist block and its two cables, made once and repositioned. */
-	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoist;
-
-	/** One hoist rig (block + two cables, three entries) PER CRANE,
-	 *  flat, index = crane * 3. Rebuilt when the crane count changes. */
-	TArray<TObjectPtr<UStaticMeshComponent>> HallCraneHoists;
-
-	/** EVERY craft in transit this frame, published by RefreshUnits.
-	 *  With a crane per gap a pulse carries several at once, and each
-	 *  crane takes the nearest unclaimed one (PULSE_LINE_DESIGN_v001). */
-	TArray<FVector> CarriedCraftsCm;
-
-	/** Where the crane must be, published by RefreshUnits - the one
-	 *  place that knows where a carried craft is. Deriving it a second
-	 *  time in the crane tick would let the two disagree, and the crane
-	 *  would drift off the thing it is supposed to be holding. */
-	FVector CarriedCraftAtCm = FVector::ZeroVector;
-	bool bCraftIsCarried = false;
-	FVector HallCraneParkAtCm = FVector::ZeroVector;
-	bool bHallCraneAxisAlongY = true;
-
-	/** Moves the gantry along the line and hangs its hoist on whatever
-	 *  craft is in transit. */
-	void TickHallCrane(float DeltaSeconds);
+	/** THE CRANE IS GONE (2026-09-03: owner - "don't think we need the
+	 *  cranes... the whole [transfer] should move with the ship stands
+	 *  so a new stand will appear in station one after it's moved out
+	 *  in sync"). It used to be here: a portal gantry that chased a
+	 *  published craft position without ever actually carrying it (the
+	 *  craft's own rise-carry-descend arc and the crane mesh were two
+	 *  independently-driven systems only choreographed to look
+	 *  connected). Removed along with HallCranes, HallCraneParkCm,
+	 *  HallCraneAxisAlongY, HallCrane, HallCraneHoist(s), HallCraneAudio,
+	 *  HallCraneWasBusy, TickHallCrane, and the published
+	 *  CarriedCraftsCm/CarriedCraftAtCm/bCraftIsCarried fields that
+	 *  existed only to feed it. The pulse timing and the crane-count
+	 *  PURCHASE economy this fed (BuildAuthority::GantryCranes,
+	 *  BuyGantryCrane, GetCraneCount, CraneTripSeconds) are UNCHANGED -
+	 *  that is a real, tested throughput upgrade axis the owner asked
+	 *  for on 2026-08-29 and this evening's ask was about the visible
+	 *  mechanism, not the economy. See UnitStands below for what
+	 *  replaced the visual: every craft now travels on its own stand
+	 *  for its whole time on the line, sliding at a constant rail
+	 *  height instead of being lifted and carried. */
 
 	// ---- THE FACTORY'S VOICE (Docs/AUDIO_INTAKE_2026_09_02_v001.md) ----
 	// The module had no audio at all until 2026-09-02. Every cue here is
@@ -1116,24 +1139,29 @@ private:
 	// the waves still cooks and runs, only silent. The presenter plays
 	// WORLD cues (it is the one place that knows where things are);
 	// interface cues live with the panel and the pawn.
-	/** One looping crane-travel component per crane, index for index
-	 *  with HallCranes; started while the crane has a job. */
-	// UPROPERTY on every one of these (packaged crash, 2026-09-02, cycle
-	// 12: EXCEPTION_ACCESS_VIOLATION in FAudioDevice::PlaySoundAtLocation
-	// under PlayWorldCue from TickHallCrane). The same family as the
-	// mesh-cache purge: the editor keeps assets alive, the packaged
-	// game's garbage collector does not, and an unreflected TObjectPtr
-	// hands the audio device a freed sound.
-	UPROPERTY()
-	TArray<TObjectPtr<UAudioComponent>> HallCraneAudio;
-	/** Whether each crane was busy last frame - the set-down one-shot
-	 *  fires on the busy-to-idle edge. */
-	TArray<bool> HallCraneWasBusy;
 	/** The hall's room tone, playing whenever the view is inside. */
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> HallAmbienceAudio;
 	/** Pending order count last frame; a drop means a lorry landed. */
 	int32 LastPendingOrderCount = -1;
+
+	// THE THREE CUES THAT WERE IMPORTED BUT NEVER HEARD (audit
+	// 2026-09-03). Docs/AUDIO_INTAKE_2026_09_02_v001.md records eight
+	// sounds imported and "wired"; four of them were - ambience,
+	// lorry, departure, refusal, plus the panel's contract-accepted -
+	// but LB_DroneWork_v001 was never referenced by any code, and
+	// LB_CraneTravel/LB_CraneSetDown lost their only caller when the
+	// gantry crane was removed the following night. The work loop is
+	// the costly silence: drones fitting parts is the most frequent
+	// thing on screen and it made no sound at all.
+	/** One work loop per station, playing while its drones fit. */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UAudioComponent>> StationWorkAudio;
+	/** The line's travel loop, playing through the pulse's move. */
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> PulseTravelAudio;
+	/** Pulse count last frame; a rise means craft just set down. */
+	int32 LastPulseCount = -1;
 	/** Sounds by role, loaded on first use. */
 	UPROPERTY()
 	TMap<FName, TObjectPtr<USoundBase>> SoundByRole;
@@ -1205,7 +1233,8 @@ private:
 	 *  than a scissor because a scissor's linkage splays into exactly
 	 *  the volume under the craft that the ground crew were hired to
 	 *  work in - the same mistake the four corner posts made. */
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> StationLiftRams;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> StationLiftRams;
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> StationLiftSaddles;
 
 	/** Each ram stage's authored Z, recorded when it is built.
@@ -1222,6 +1251,7 @@ private:
 	static constexpr int32 SpacecraftLiftStages = 3;
 
 	/** The hauler's under-slung component cargo, keyed like the body. */
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerCargos;
 
 	/** The SITE DRESSING (owner 2026-08-26 night: "can we get the floor
@@ -1363,9 +1393,23 @@ private:
 	FString TrackRenderSignature;
 	UPROPERTY()
 	TObjectPtr<class ALBSpacecraftTrackAuthority> TrackAuthority;
-	TMap<FName, TArray<TObjectPtr<UStaticMeshComponent>>> BufferCrates;
+	UPROPERTY()
+	TMap<FName, FLBMeshComponentArray> BufferCrates;
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerBodies;
+	UPROPERTY()
 	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerCrates;
+	/** THE HAULER'S PAD at its home rack or dock (owner 2026-09-02:
+	 *  "ours will go to their dock and charge"): a status disc that
+	 *  pulses while the fleet says the hauler is charging, the charging
+	 *  dock model on it when the mesh is available, and the hauler
+	 *  itself sitting on it between runs instead of vanishing. */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerPads;
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UStaticMeshComponent>> HaulerPadModels;
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UMaterialInstanceDynamic>> HaulerPadMIDs;
 
 	TSet<FName> StationMeshLoadFailed;
 
